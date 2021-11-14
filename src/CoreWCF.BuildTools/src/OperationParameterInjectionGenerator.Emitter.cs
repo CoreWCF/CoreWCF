@@ -14,6 +14,37 @@ namespace CoreWCF.BuildTools
     {
         private sealed class Emitter
         {
+            private class Indentor
+            {
+                const string ____ = "    ";
+                const string ________ = "        ";
+                const string ____________ = "            ";
+                const string ________________ = "                ";
+                const string ____________________ = "                    ";
+
+                public int Level { get; private set; } = 0;
+                public void Increment()
+                {
+                    Level++;
+                }
+
+                public void Decrement()
+                {
+                    Level--;
+                }
+
+                public override string ToString() => Level switch
+                {
+                    0 => string.Empty,
+                    1 => ____,
+                    2 => ________,
+                    3 => ____________,
+                    4 => ________________,
+                    5 => ____________________,
+                    _ => throw new IndexOutOfRangeException(),
+                };
+            }
+
             private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
             private SourceGenerationSpec _generationSpec;
 
@@ -22,7 +53,6 @@ namespace CoreWCF.BuildTools
                 _sourceGenerationContext = sourceGenerationContext;
                 _generationSpec = generationSpec;
             }
-
 
             public void Emit()
             {
@@ -62,47 +92,56 @@ namespace CoreWCF.BuildTools
                     _ => "internal "
                 };
 
+                var indentor = new Indentor();
                 var builder = new StringBuilder();
 
-                builder.Append($@"
+                builder.AppendLine($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespace}
-{{
-    {accessibilityModifier}partial class {operationContractSpec.ServiceContractImplementation.Name}
-    {{
-");
-                builder.Append($@"        public {@async}{GetReturnType()} {operationContractSpec.MissingOperationContract.Name}({GetParameters()})
-        {{
-");
-                builder.Append($@"            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
-            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
-            {{
-                using (var scope = serviceProvider.CreateScope())
-                {{
-");
-                AddDependenciesResolution("scope.ServiceProvider", "                    ", "d");
-                AddMethodCall("                    ", "d");
+{{");
+                indentor.Increment();
+                builder.AppendLine($@"{indentor}{accessibilityModifier}partial class {operationContractSpec.ServiceContractImplementation.Name}");
+                builder.AppendLine($@"{indentor}{{");
+                indentor.Increment();
+                builder.AppendLine($@"{indentor}public {@async}{GetReturnType()} {operationContractSpec.MissingOperationContract.Name}({GetParameters()})");
+                builder.AppendLine($@"{indentor}{{");
+                indentor.Increment();
+                builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
+                builder.AppendLine($@"{indentor}if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");");
+                builder.AppendLine($@"{indentor}if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)");
+                builder.AppendLine($@"{indentor}{{");
+                indentor.Increment();
+                builder.AppendLine($@"{indentor}using (var scope = serviceProvider.CreateScope())");
+                builder.AppendLine($@"{indentor}{{");
+                indentor.Increment();
+   
+                AddDependenciesResolution("scope.ServiceProvider", "d");
+                AddMethodCall("d");
 
                 if (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol))
                 {
-                    builder.Append($@"
-                    return;");
+                    builder.AppendLine($@"{indentor}return;");
                 }
 
-                builder.Append($@"
-                }}
-            }}
-");
-                AddDependenciesResolution("serviceProvider", "            ", "e");
-                AddMethodCall("            ", "e");
-                builder.Append($@"
-        }}
-    }}
-}}
-");
-                _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
+                indentor.Decrement();
+                builder.AppendLine($@"{indentor}}}");
+                indentor.Decrement();
+                builder.AppendLine($@"{indentor}}}");
+   
+                AddDependenciesResolution("serviceProvider", "e");
+                AddMethodCall("e");
+
+                indentor.Decrement();
+                builder.AppendLine($@"{indentor}}}");
+                indentor.Decrement();
+                builder.AppendLine($@"{indentor}}}");
+                indentor.Decrement();
+                builder.AppendLine($@"{indentor}}}");
+
+                var generated = builder.ToString();
+
+                _sourceGenerationContext.AddSource(fileName, SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
                 string GetReturnType()
                     => operationContractSpec.MissingOperationContract.ReturnsVoid ?
@@ -118,18 +157,18 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                                 _ => $"{p.Type} {p.Name}",
                             }));
 
-                void AddDependenciesResolution(string serviceProviderName, string prefix, string dependencyPrefix)
+                void AddDependenciesResolution(string serviceProviderName, string dependencyPrefix)
                 {
                     for (int i = 0; i < dependencies.Length; i++)
                     {
                         dependencyNames[dependencies[i].Type] = $"{dependencyPrefix}{i}";
-                        builder.AppendLine($@"{prefix}var {dependencyPrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
+                        builder.AppendLine($@"{indentor}var {dependencyPrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
                     }
                 }
 
-                void AddMethodCall(string prefix, string dependencyPrefix)
+                void AddMethodCall(string dependencyPrefix)
                 {
-                    builder.Append($"{prefix}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
+                    builder.Append($"{indentor}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
                     for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
                     {
                         IParameterSymbol parameter = operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i];
@@ -152,7 +191,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                             });
                         }
                     }
-                    builder.Append(");");
+                    builder.AppendLine(");");
                 }
             }
         }
