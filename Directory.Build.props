@@ -12,6 +12,7 @@
     <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
     <ProjectAssetsFile>$(BaseIntermediateOutputPath)/project.assets.json</ProjectAssetsFile>
     <WarningsAsErrors>CS4014</WarningsAsErrors>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <!-- Set up some common paths -->
   <PropertyGroup>
