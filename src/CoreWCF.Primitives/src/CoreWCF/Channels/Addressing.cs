@@ -358,7 +358,7 @@ namespace CoreWCF.Channels
     {
         private const bool mustUnderstandValue = true;
         private static ToHeader s_anonymousToHeader10;
-        //static ToHeader anonymousToHeader200408;
+        private static ToHeader s_anonymousToHeader200408;
 
         protected ToHeader(Uri to, AddressingVersion version)
             : base(version)
@@ -379,15 +379,15 @@ namespace CoreWCF.Channels
             }
         }
 
-        //static ToHeader AnonymousTo200408
-        //{
-        //    get
-        //    {
-        //        if (anonymousToHeader200408 == null)
-        //            anonymousToHeader200408 = new AnonymousToHeader(AddressingVersion.WSAddressingAugust2004);
-        //        return anonymousToHeader200408;
-        //    }
-        //}
+        static ToHeader AnonymousTo200408
+        {
+            get
+            {
+                if (s_anonymousToHeader200408 == null)
+                    s_anonymousToHeader200408 = new AnonymousToHeader(AddressingVersion.WSAddressingAugust2004);
+                return s_anonymousToHeader200408;
+            }
+        }
 
         public override XmlDictionaryString DictionaryName
         {
@@ -416,8 +416,7 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    //return AnonymousTo200408;
-                    throw new PlatformNotSupportedException($"Unsupported addressing version {addressingVersion.ToString()}");
+                    return AnonymousTo200408;
                 }
             }
             else
@@ -432,7 +431,7 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(to));
             }
-            else if ((object)to == (object)addressingVersion.AnonymousUri)
+            else if ((object)to == addressingVersion.AnonymousUri)
             {
                 if (addressingVersion == AddressingVersion.WSAddressing10)
                 {
@@ -440,9 +439,8 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    throw new PlatformNotSupportedException($"Unsupported addressing version {addressingVersion.ToString()}");
+                    return AnonymousTo200408;
                 }
-                //return AnonymousTo200408;
             }
             else
             {
@@ -573,6 +571,7 @@ namespace CoreWCF.Channels
     {
         private const bool mustUnderstandValue = false;
         private static ReplyToHeader s_anonymousReplyToHeader10;
+        private static ReplyToHeader s_anonymousReplyToHeader200408;
 
         private ReplyToHeader(EndpointAddress replyTo, AddressingVersion version)
             : base(version)
@@ -605,15 +604,15 @@ namespace CoreWCF.Channels
             }
         }
 
-        //public static ReplyToHeader AnonymousReplyTo200408
-        //{
-        //    get
-        //    {
-        //        if (anonymousReplyToHeader200408 == null)
-        //            anonymousReplyToHeader200408 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressingAugust2004);
-        //        return anonymousReplyToHeader200408;
-        //    }
-        //}
+        public static ReplyToHeader AnonymousReplyTo200408
+        {
+            get
+            {
+                if (s_anonymousReplyToHeader200408 == null)
+                    s_anonymousReplyToHeader200408 = new ReplyToHeader(EndpointAddress.AnonymousAddress, AddressingVersion.WSAddressingAugust2004);
+                return s_anonymousReplyToHeader200408;
+            }
+        }
 
         public static ReplyToHeader Create(EndpointAddress replyTo, AddressingVersion addressingVersion)
         {
@@ -642,7 +641,7 @@ namespace CoreWCF.Channels
 
             if (actor.Length == 0 && mustUnderstand == mustUnderstandValue && !relay)
             {
-                if ((object)replyTo == (object)EndpointAddress.AnonymousAddress)
+                if ((object)replyTo == EndpointAddress.AnonymousAddress)
                 {
                     if (version == AddressingVersion.WSAddressing10)
                     {
@@ -650,8 +649,7 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        //return AnonymousReplyTo200408;
-                        throw new PlatformNotSupportedException($"Addressing version {version.ToString()} not supported");
+                        return AnonymousReplyTo200408;
                     }
                 }
                 return new ReplyToHeader(replyTo, version);

@@ -9,20 +9,23 @@ namespace CoreWCF.Channels
 {
     public sealed class MessageVersion
     {
-        private static readonly MessageVersion s_soap12Addressing10;
-
-        static MessageVersion()
-        {
-            None = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
-            Soap11 = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
-            s_soap12Addressing10 = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
-        }
-
         private MessageVersion(EnvelopeVersion envelopeVersion, AddressingVersion addressingVersion)
         {
             Envelope = envelopeVersion;
             Addressing = addressingVersion;
         }
+
+        public AddressingVersion Addressing { get; }
+        public EnvelopeVersion Envelope { get; }
+
+        public static MessageVersion Default => Soap12WSAddressing10;
+        public static MessageVersion None { get; } = new MessageVersion(EnvelopeVersion.None, AddressingVersion.None);
+        public static MessageVersion Soap11 { get; } = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.None);
+        public static MessageVersion Soap12 { get; } = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.None);
+        public static MessageVersion Soap11WSAddressing10 { get; } = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.WSAddressing10);
+        public static MessageVersion Soap12WSAddressing10 { get; } = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressing10);
+        public static MessageVersion Soap11WSAddressingAugust2004 { get; } = new MessageVersion(EnvelopeVersion.Soap11, AddressingVersion.WSAddressingAugust2004);
+        public static MessageVersion Soap12WSAddressingAugust2004 { get; } = new MessageVersion(EnvelopeVersion.Soap12, AddressingVersion.WSAddressingAugust2004);
 
         public static MessageVersion CreateVersion(EnvelopeVersion envelopeVersion)
         {
@@ -45,7 +48,15 @@ namespace CoreWCF.Channels
             {
                 if (addressingVersion == AddressingVersion.WSAddressing10)
                 {
-                    return s_soap12Addressing10;
+                    return Soap12WSAddressing10;
+                }
+                else if (addressingVersion == AddressingVersion.WSAddressingAugust2004)
+                {
+                    return Soap12WSAddressingAugust2004;
+                }
+                else if (addressingVersion == AddressingVersion.None)
+                {
+                    return Soap12;
                 }
                 else
                 {
@@ -55,7 +66,15 @@ namespace CoreWCF.Channels
             }
             else if (envelopeVersion == EnvelopeVersion.Soap11)
             {
-                if (addressingVersion == AddressingVersion.None)
+                if (addressingVersion == AddressingVersion.WSAddressing10)
+                {
+                    return Soap11WSAddressing10;
+                }
+                else if (addressingVersion == AddressingVersion.WSAddressingAugust2004)
+                {
+                    return Soap11WSAddressingAugust2004;
+                }
+                else if (addressingVersion == AddressingVersion.None)
                 {
                     return Soap11;
                 }
@@ -84,15 +103,6 @@ namespace CoreWCF.Channels
             }
         }
 
-        public AddressingVersion Addressing { get; }
-
-        public static MessageVersion Default
-        {
-            get { return s_soap12Addressing10; }
-        }
-
-        public EnvelopeVersion Envelope { get; }
-
         public override bool Equals(object obj)
         {
             return this == obj;
@@ -108,15 +118,6 @@ namespace CoreWCF.Channels
 
             return code;
         }
-
-        public static MessageVersion None { get; private set; }
-
-        public static MessageVersion Soap12WSAddressing10
-        {
-            get { return s_soap12Addressing10; }
-        }
-
-        public static MessageVersion Soap11 { get; private set; }
 
         public override string ToString()
         {
