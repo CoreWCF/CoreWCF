@@ -6,10 +6,18 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
-public static class CSharpIncrementalGeneratorVerifier<TSourceGenerator>
+public static class CSharpGeneratorVerifier<TSourceGenerator>
+#if ROSLYN4_0_OR_GREATER
     where TSourceGenerator : IIncrementalGenerator, new()
+#else
+    where TSourceGenerator : ISourceGenerator, new()
+#endif
 {
+#if ROSLYN4_0_OR_GREATER
     public class Test : CSharpIncrementalGeneratorTest<TSourceGenerator, XUnitVerifier>
+#else
+    public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+#endif
     {
         public Test()
         {
