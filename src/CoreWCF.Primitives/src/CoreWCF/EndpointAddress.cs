@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml;
 using CoreWCF.Channels;
@@ -657,10 +658,10 @@ namespace CoreWCF
             {
                 isAnonymous = ReadContentsFrom10(reader, out uri, out headers, out identity, out buffer, out metadataSection, out extensionSection);
             }
-            //else if (addressingVersion == AddressingVersion.WSAddressingAugust2004)
-            //{
-            //    isAnonymous = ReadContentsFrom200408(reader, out uri, out headers, out identity, out buffer, out metadataSection, out extensionSection, out pspSection);
-            //}
+            else if (addressingVersion == AddressingVersion.WSAddressingAugust2004)
+            {
+                isAnonymous = ReadContentsFrom200408(reader, out uri, out headers, out identity, out buffer, out metadataSection, out extensionSection, out pspSection);
+            }
             else
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(addressingVersion),
@@ -735,6 +736,162 @@ namespace CoreWCF
             }
 
             return buffer;
+        }
+
+        private static bool ReadContentsFrom200408(XmlDictionaryReader reader, out Uri uri, out AddressHeaderCollection headers, out EndpointIdentity identity, out XmlBuffer buffer, out int metadataSection, out int extensionSection, out int pspSection)
+        {
+            buffer = null;
+            headers = null;
+            extensionSection = -1;
+            metadataSection = -1;
+            pspSection = -1;
+
+            // Cache address string
+            reader.MoveToContent();
+            if (!reader.IsStartElement(XD.AddressingDictionary.Address, AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateXmlException(reader, SR.Format(SR.UnexpectedElementExpectingElement, reader.LocalName, reader.NamespaceURI, XD.AddressingDictionary.Address.Value, XD.Addressing200408Dictionary.Namespace.Value)));
+            }
+            string address = reader.ReadElementContentAsString();
+
+            // ReferenceProperites
+            reader.MoveToContent();
+            if (reader.IsStartElement(XD.AddressingDictionary.ReferenceProperties, AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                headers = AddressHeaderCollection.ReadServiceParameters(reader, true);
+            }
+
+            // ReferenceParameters
+            reader.MoveToContent();
+            if (reader.IsStartElement(XD.AddressingDictionary.ReferenceParameters, AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                if (headers != null)
+                {
+                    List<AddressHeader> headerList = new List<AddressHeader>();
+                    foreach (AddressHeader ah in headers)
+                    {
+                        headerList.Add(ah);
+                    }
+                    AddressHeaderCollection tmp = AddressHeaderCollection.ReadServiceParameters(reader);
+                    foreach (AddressHeader ah in tmp)
+                    {
+                        headerList.Add(ah);
+                    }
+                    headers = new AddressHeaderCollection(headerList);
+                }
+                else
+                {
+                    headers = AddressHeaderCollection.ReadServiceParameters(reader);
+                }
+            }
+
+            XmlDictionaryWriter bufferWriter = null;
+
+            // PortType
+            reader.MoveToContent();
+            if (reader.IsStartElement(XD.AddressingDictionary.PortType, AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                if (bufferWriter == null)
+                {
+                    if (buffer == null)
+                        buffer = new XmlBuffer(short.MaxValue);
+                    bufferWriter = buffer.OpenSection(reader.Quotas);
+                    bufferWriter.WriteStartElement(DummyName, DummyNamespace);
+                }
+                bufferWriter.WriteNode(reader, true);
+            }
+
+            // ServiceName
+            reader.MoveToContent();
+            if (reader.IsStartElement(XD.AddressingDictionary.ServiceName, AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                if (bufferWriter == null)
+                {
+                    if (buffer == null)
+                        buffer = new XmlBuffer(short.MaxValue);
+                    bufferWriter = buffer.OpenSection(reader.Quotas);
+                    bufferWriter.WriteStartElement(DummyName, DummyNamespace);
+                }
+                bufferWriter.WriteNode(reader, true);
+            }
+
+            // Policy
+            reader.MoveToContent();
+            while (reader.IsNamespaceUri(XD.PolicyDictionary.Namespace))
+            {
+                if (bufferWriter == null)
+                {
+                    if (buffer == null)
+                        buffer = new XmlBuffer(short.MaxValue);
+                    bufferWriter = buffer.OpenSection(reader.Quotas);
+                    bufferWriter.WriteStartElement(DummyName, DummyNamespace);
+                }
+                bufferWriter.WriteNode(reader, true);
+                reader.MoveToContent();
+            }
+
+            // Finish PSP
+            if (bufferWriter != null)
+            {
+                bufferWriter.WriteEndElement();
+                buffer.CloseSection();
+                pspSection = buffer.SectionCount - 1;
+                bufferWriter = null;
+            }
+            else
+            {
+                pspSection = -1;
+            }
+
+
+            // Metadata
+            if (reader.IsStartElement(Description.MetadataStrings.MetadataExchangeStrings.Metadata,
+                                      Description.MetadataStrings.MetadataExchangeStrings.Namespace))
+            {
+                if (bufferWriter == null)
+                {
+                    if (buffer == null)
+                        buffer = new XmlBuffer(short.MaxValue);
+                    bufferWriter = buffer.OpenSection(reader.Quotas);
+                    bufferWriter.WriteStartElement(DummyName, DummyNamespace);
+                }
+                bufferWriter.WriteNode(reader, true);
+            }
+
+            // Finish metadata
+            if (bufferWriter != null)
+            {
+                bufferWriter.WriteEndElement();
+                buffer.CloseSection();
+                metadataSection = buffer.SectionCount - 1;
+            }
+            else
+            {
+                metadataSection = -1;
+            }
+
+            // Extensions
+            reader.MoveToContent();
+            buffer = ReadExtensions(reader, AddressingVersion.WSAddressingAugust2004, buffer, out identity, out extensionSection);
+
+            // Finished reading
+            if (buffer != null)
+                buffer.Close();
+
+            // Process Address
+            if (address == Addressing200408Strings.Anonymous)
+            {
+                uri = AddressingVersion.WSAddressingAugust2004.AnonymousUri;
+                if (headers == null && identity == null)
+                    return true;
+            }
+            else
+            {
+                if (!Uri.TryCreate(address, UriKind.Absolute, out uri))
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.InvalidUriValue, address, XD.AddressingDictionary.Address.Value, AddressingVersion.WSAddressingAugust2004.Namespace)));
+            }
+
+            return false;
         }
 
         private static bool ReadContentsFrom10(XmlDictionaryReader reader, out Uri uri, out AddressHeaderCollection headers, out EndpointIdentity identity, out XmlBuffer buffer, out int metadataSection, out int extensionSection)

@@ -5,6 +5,13 @@ namespace CoreWCF.Description
 {
     internal static class MetadataStrings
     {
+        public static class MetadataExchangeStrings
+        {
+            public const string Namespace = "http://schemas.xmlsoap.org/ws/2004/09/mex";
+            public const string Metadata = "Metadata";
+
+        }
+
         public static class WSPolicy
         {
             public const string Prefix = "wsp";
