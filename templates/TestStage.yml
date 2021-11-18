@@ -10,34 +10,41 @@ stages:
   - job: TestRelease
     strategy:
       matrix:
-        Windows_netcore2.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: ''
         Windows_netcore3.1:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: ''
+          additionalDotNetCoreSdk: '3.1.x'
         Windows_net5.0:
           imageName: 'windows-latest'
           targetFramework: 'net5.0'
           testArgs: ''
+          additionalDotNetCoreSdk: '5.0.x'
+        Windows_net6.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net6.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter Category!=NetCoreOnly'
-        Linux_netcore2.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '3.1.x'
         Linux_net5.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '5.0.x'
+        Linux_net6.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net6.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
     displayName: Test Release
     pool:
       vmImage: $(imageName)
@@ -48,6 +55,21 @@ stages:
         source: current
         artifact: ReleaseBuild
         path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use additional .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: $(additionalDotNetCoreSdk)
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
 
     - task: DotNetCoreCLI@2
       displayName: Restore packages
@@ -84,34 +106,41 @@ stages:
   - job: TestDebug
     strategy:
       matrix:
-        Windows_netcore2.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: ''
         Windows_netcore3.1:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: ''       
+          additionalDotNetCoreSdk: '3.1.x'
         Windows_net5.0:
           imageName: 'windows-latest'
           targetFramework: 'net5.0'
           testArgs: ''
+          additionalDotNetCoreSdk: '5.0.x'
+        Windows_net6.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net6.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter Category!=NetCoreOnly'
-        Linux_netcore2.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '3.1.x'
         Linux_net5.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '5.0.x'
+        Linux_net6.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net6.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
@@ -122,6 +151,21 @@ stages:
         source: current
         artifact: DebugBuild
         path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use additional .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: $(additionalDotNetCoreSdk)
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
 
     - task: DotNetCoreCLI@2
       displayName: Restore packages
@@ -170,6 +214,13 @@ stages:
         artifact: ReleaseBuild
         path: $(System.DefaultWorkingDirectory)/bin
 
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
     - task: DotNetCoreCLI@2
       displayName: Restore packages
       inputs:
@@ -191,7 +242,7 @@ stages:
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Release --framework netcoreapp3.1'
+        arguments: '--configuration Release --framework net6.0'
 
     - task: DotNetCoreCLI@2
       displayName: Run Tests with Coverage
@@ -200,7 +251,7 @@ stages:
         command: 'test'
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Release --framework netcoreapp3.1 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
+        arguments: '--no-restore --no-build --configuration Release --framework net6.0 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
 
     - script: reportgenerator "-reports:$(Build.ArtifactStagingDirectory)/Coverage/*.xml" "-targetdir:$(Build.ArtifactStagingDirectory)/Coverage/Report" -reporttypes:HtmlInline_AzurePipelines;Cobertura;Badges
       displayName: 'Generate Coverage Report'
