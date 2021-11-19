@@ -21,7 +21,9 @@ namespace CoreWCF.BuildTools
                 const string ____________ = "            ";
                 const string ________________ = "                ";
                 const string ____________________ = "                    ";
-
+                const string ________________________ = "                        ";
+                const string ____________________________ = "                            ";
+                const string ________________________________ = "                                ";
                 public int Level { get; private set; } = 0;
                 public void Increment()
                 {
@@ -41,6 +43,9 @@ namespace CoreWCF.BuildTools
                     3 => ____________,
                     4 => ________________,
                     5 => ____________________,
+                    6 => ________________________,
+                    7 => ____________________________,
+                    8 => ________________________________,
                     _ => throw new InvalidOperationException(),
                 };
             }
@@ -86,8 +91,10 @@ namespace CoreWCF.BuildTools
                     string.Empty
                     : "return ";
 
-                string accessibilityModifier = operationContractSpec.ServiceContractImplementation.DeclaredAccessibility switch
+                string GetAccessibilityModifier(Accessibility accessibility) => accessibility switch
                 {
+                    Accessibility.Private => "private ",
+                    Accessibility.Protected => "protected ",
                     Accessibility.Public => "public ",
                     _ => "internal "
                 };
@@ -112,9 +119,22 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespace}
 {{");
-                indentor.Increment();
-                builder.AppendLine($@"{indentor}{accessibilityModifier}partial class {operationContractSpec.ServiceContractImplementation.Name}");
-                builder.AppendLine($@"{indentor}{{");
+                Stack<INamedTypeSymbol> classes = new Stack<INamedTypeSymbol>();
+                INamedTypeSymbol containingType = operationContractSpec.ServiceContractImplementation;
+                while (containingType != null)
+                {
+                    classes.Push(containingType);
+                    containingType = containingType.ContainingType;
+                }
+
+                while (classes.Count > 0)
+                {
+                    containingType = classes.Pop();
+                    indentor.Increment();
+                    builder.AppendLine($@"{indentor}{GetAccessibilityModifier(containingType.DeclaredAccessibility)}partial class {containingType.Name}");
+                    builder.AppendLine($@"{indentor}{{");
+                }
+                
                 indentor.Increment();
                 builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 builder.AppendLine($@"{indentor}{{");
@@ -146,12 +166,11 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 AppendResolveDependencies("serviceProvider");
                 AppendInvokeUserProvidedImplementation();
 
-                indentor.Decrement();
-                builder.AppendLine($@"{indentor}}}");
-                indentor.Decrement();
-                builder.AppendLine($@"{indentor}}}");
-                indentor.Decrement();
-                builder.AppendLine($@"{indentor}}}");
+                while (indentor.Level > 0)
+                {
+                    indentor.Decrement();
+                    builder.AppendLine($@"{indentor}}}");
+                }
 
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 

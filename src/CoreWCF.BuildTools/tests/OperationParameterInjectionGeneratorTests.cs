@@ -90,6 +90,184 @@ namespace MyProject
         [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]
+        public async Task NestedClassesMultipleLevelsTests(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public partial class ContainerA
+    {{
+        public partial class ContainerB
+        {{
+            public partial class ContainerC
+            {{
+                public partial class IdentityService : IIdentityService
+                {{
+                    public string Echo(string input) => input;
+                    public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+                }}
+            }}
+        }}
+    }}
+                
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    public partial class ContainerA
+    {{
+        public partial class ContainerB
+        {{
+            public partial class ContainerC
+            {{
+                public partial class IdentityService
+                {{
+                    public string Echo2(string input)
+                    {{
+                        var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+                        if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+                        if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+                        {{
+                            using (var scope = serviceProvider.CreateScope())
+                            {{
+                                var d0 = scope.ServiceProvider.GetService<object>();
+                                return Echo2(input, d0);
+                            }}
+                        }}
+                        var e0 = serviceProvider.GetService<object>();
+                        return Echo2(input, e0);
+                    }}
+                }}
+            }}
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel", "public ", "public ", "public ", "public ")]
+        [InlineData("System.ServiceModel", "public ", "internal ", "public ", "internal ")]
+        [InlineData("System.ServiceModel", "public ", "protected ", "public ", "protected ")]
+        [InlineData("System.ServiceModel", "public ", "private ", "public ", "private ")]
+        [InlineData("System.ServiceModel", "public ", "", "public ", "private ")]
+
+        [InlineData("System.ServiceModel", "internal ", "public ", "internal ", "public ")]
+        [InlineData("System.ServiceModel", "internal ", "internal ", "internal ", "internal ")]
+        [InlineData("System.ServiceModel", "internal ", "protected ", "internal ", "protected ")]
+        [InlineData("System.ServiceModel", "internal ", "private ", "internal ", "private ")]
+        [InlineData("System.ServiceModel", "internal ", "", "internal ", "private ")]
+
+        [InlineData("CoreWCF", "public ", "public ", "public ", "public ")]
+        [InlineData("CoreWCF", "public ", "internal ", "public ", "internal ")]
+        [InlineData("CoreWCF", "public ", "protected ", "public ", "protected ")]
+        [InlineData("CoreWCF", "public ", "private ", "public ", "private ")]
+        [InlineData("CoreWCF", "public ", "", "public ", "private ")]
+
+        [InlineData("CoreWCF", "internal ", "public ", "internal ", "public ")]
+        [InlineData("CoreWCF", "internal ", "internal ", "internal ", "internal ")]
+        [InlineData("CoreWCF", "internal ", "protected ", "internal ", "protected ")]
+        [InlineData("CoreWCF", "internal ", "private ", "internal ", "private ")]
+        [InlineData("CoreWCF", "internal ", "", "internal ", "private ")]
+        public async Task NestedClassContainingTypeHierarchyAccessModifiersTests(string attributeNamespace, string containerModifiers, string implementationModifiers, string expectedContainerModifiers, string expectedImplementationModifiers)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    {containerModifiers}partial class Container
+    {{
+        {implementationModifiers}partial class IdentityService : IIdentityService
+        {{
+            public string Echo(string input) => input;
+            public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    {expectedContainerModifiers}partial class Container
+    {{
+        {expectedImplementationModifiers}partial class IdentityService
+        {{
+            public string Echo2(string input)
+            {{
+                var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+                if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+                if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+                {{
+                    using (var scope = serviceProvider.CreateScope())
+                    {{
+                        var d0 = scope.ServiceProvider.GetService<object>();
+                        return Echo2(input, d0);
+                    }}
+                }}
+                var e0 = serviceProvider.GetService<object>();
+                return Echo2(input, e0);
+            }}
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
         public async Task RefParameterTests(string attributeNamespace)
         {
             var test = new VerifyCS.Test
@@ -362,13 +540,13 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel", "internal ", "internal ")]
         [InlineData("System.ServiceModel", "public ", "public ")]
+        [InlineData("System.ServiceModel", "internal ", "internal ")]
         [InlineData("System.ServiceModel", "", "internal ")]
-        [InlineData("CoreWCF", "internal ", "internal ")]
         [InlineData("CoreWCF", "public ", "public ")]
+        [InlineData("CoreWCF", "internal ", "internal ")]
         [InlineData("CoreWCF", "", "internal ")]
-        public async Task ServiceImplementationAccessModifiersTests(string attributeNamespace, string accessModifier, string expectedAccessModifier)
+        public async Task ServiceImplementationContainingTypeAccessModifiersTests(string attributeNamespace, string accessModifier, string expectedAccessModifier)
         {
             var test = new VerifyCS.Test
             {
