@@ -1238,6 +1238,103 @@ namespace MyProject
         [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartial(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class IdentityService : IIdentityService
+        {{
+            public string Echo(string input) => input;
+            public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics =
+                    {
+                        new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
+                    },
+                },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
+        public async Task ShouldRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartial(string attributeNamespace)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class ContainerB
+        {{
+            public partial class IdentityService : IIdentityService
+            {{
+                public string Echo(string input) => input;
+                public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+            }}
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics =
+                    {
+                        new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
+                    },
+                },
+                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.ServiceModel")]
+        [InlineData("CoreWCF")]
         public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace)
         {
             var test = new VerifyCS.Test

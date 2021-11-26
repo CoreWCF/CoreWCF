@@ -45,7 +45,7 @@ namespace CoreWCF.BuildTools
                     return null;
                 }
 
-                if (!methodDeclarationSyntax.HasParentPartialClass())
+                if (!methodSymbol.ContainingType.IsPartial())
                 {
                     _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldBePartialError(methodSymbol.ContainingType.Name, methodSymbol.Name));
                     return null;
