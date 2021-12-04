@@ -35,13 +35,11 @@ stages:
         SonarCloud: SonarCloud
         organization: corewcf
         projectKey: CoreWCF_CoreWCF
-        projectName: 'CoreWCF Code Coverage'
+        projectName: 'CoreWCF Code Analysis'
         extraProperties: |
           sonar.cs.opencover.reportsPaths=$(Agent.TempDirectory)/**/coverage.opencover.xml
-          sonar.inclusions=src/**/*.cs
           sonar.exclusions=src/Samples/**/*.*
           sonar.coverage.exclusions=src/**/tests/**/*.cs
-          sonar.verbose=true
       condition: not(eq(variables['build.reason'], 'PullRequest'))
 
     - task: DotNetCoreCLI@2
