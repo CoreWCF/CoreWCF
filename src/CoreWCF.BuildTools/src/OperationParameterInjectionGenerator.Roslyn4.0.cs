@@ -11,15 +11,15 @@ namespace CoreWCF.BuildTools
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValuesProvider<MethodDeclarationSyntax> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider<MethodDeclarationSyntax>(
+            IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
                 predicate: (token, _) => Parser.IsSyntaxTargetForGeneration(token),
                 transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
                 .Where(static c => c is not null);
 
-            IncrementalValueProvider<(Compilation, ImmutableArray<MethodDeclarationSyntax>)> compilationAndMethods =
+            IncrementalValueProvider<(Compilation, ImmutableArray<MethodDeclarationSyntax?>)> compilationAndMethods =
               context.CompilationProvider.Combine(methodDeclarations.Collect());
 
-            context.RegisterSourceOutput(compilationAndMethods, (spc, source) => Execute(source.Item1, source.Item2, spc));
+            context.RegisterSourceOutput(compilationAndMethods, (spc, source) => Execute(source.Item1, source.Item2!, spc));
         }
 
         private void Execute(Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)

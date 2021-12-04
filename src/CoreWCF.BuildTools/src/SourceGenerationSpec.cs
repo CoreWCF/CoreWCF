@@ -11,7 +11,7 @@ namespace CoreWCF.BuildTools
     internal sealed class SourceGenerationSpec
     {
         public SourceGenerationSpec(List<OperationContractSpec> operationContractSpecs) => OperationContractSpecs = operationContractSpecs;
-        public List<OperationContractSpec>? OperationContractSpecs { get; }
+        public List<OperationContractSpec> OperationContractSpecs { get; }
         public INamedTypeSymbol? TaskSymbol { get; set; }
         public INamedTypeSymbol? SSMOperationContractSymbol { get; set; }
         public INamedTypeSymbol? CoreWCFOperationContractSymbol { get; set; }

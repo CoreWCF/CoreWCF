@@ -40,7 +40,7 @@ namespace CoreWCF.BuildTools
             {
                 SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
                 IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
-                if(methodSymbol == null)
+                if (methodSymbol == null)
                 {
                     return null;
                 }
@@ -88,13 +88,7 @@ namespace CoreWCF.BuildTools
                                     return null;
                                 }
 
-                                return new OperationContractSpec
-                                {
-                                    ServiceContract = serviceImplementationAndContract.ServiceContract,
-                                    ServiceContractImplementation = serviceImplementationAndContract.ServiceImplementation,
-                                    MissingOperationContract = operationContractCandidate,
-                                    UserProvidedOperationContractImplementation = methodSymbol
-                                };
+                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol);
                             }
                         }
                     }
@@ -150,7 +144,7 @@ namespace CoreWCF.BuildTools
                     var model = _compilation.GetSemanticModel(@class.SyntaxTree);
                     var namedTypeSymbol = model.GetDeclaredSymbol(@class);
 
-                    if(namedTypeSymbol == null)
+                    if (namedTypeSymbol == null)
                     {
                         continue;
                     }
@@ -197,11 +191,11 @@ namespace CoreWCF.BuildTools
                 foreach (var reference in _compilation.References)
                 {
                     var assemblySymbol = _compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if(assemblySymbol == null)
+                    if (assemblySymbol == null)
                     {
                         continue;
                     }
-                    
+
                     var visitor = new FindAllServiceContractsVisitor(referenceServiceContracts, new INamedTypeSymbol?[]
                     {
                         SSMServiceContractSymbol,
@@ -221,7 +215,7 @@ namespace CoreWCF.BuildTools
                 methodDeclarationSyntax.ParameterList.Parameters.Count > 0
                 && methodDeclarationSyntax.ParameterList.Parameters.Any(static p => p.AttributeLists.Count > 0)
                 && (methodDeclarationSyntax.Body != null || methodDeclarationSyntax.ExpressionBody != null);
-                
+
 
             internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
             {
