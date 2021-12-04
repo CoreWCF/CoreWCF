@@ -78,15 +78,6 @@ stages:
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Release /t:restore'
 
-    - task: SonarCloudPrepare@1
-      displayName: 'Prepare analysis on SonarCloud'
-      inputs:
-        SonarCloud: SonarCloud
-        organization: corewcf
-        projectKey: CoreWCF_CoreWCF
-        projectName: 'CoreWCF'
-      condition: and(not(eq(variables['build.reason'], 'PullRequest')), and(eq(variables.imageName, 'windows-latest'), eq(variables.targetFramework, 'net5.0')))
-
     - task: DotNetCoreCLI@2
       displayName: Build test projects
       inputs:
