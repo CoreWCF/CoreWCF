@@ -28,7 +28,7 @@ namespace CoreWCF.BuildTools
                 _compilation = compilation;
                 _sourceGenerationContext = sourceGenerationContext;
                 _allNodes = new Lazy<IEnumerable<SyntaxNode>>(() => _compilation.SyntaxTrees
-                    .SelectMany(x => x.GetRoot().DescendantNodes())
+                    .SelectMany(static x => x.GetRoot().DescendantNodes())
                     .ToImmutableArray());
                 _serviceImplementationsAndContracts = new Lazy<IEnumerable<(INamedTypeSymbol ServiceImplementation, INamedTypeSymbol ServiceContract)>>(() => FindServiceImplementationAndContracts(_allNodes.Value));
                 _operationContracts = new Dictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>>(SymbolEqualityComparer.Default);
@@ -136,7 +136,7 @@ namespace CoreWCF.BuildTools
                 var serviceContracts = FindServiceContracts(allNodes);
 
                 IEnumerable<ClassDeclarationSyntax> allClasses = allNodes
-                    .Where(d => d.IsKind(SyntaxKind.ClassDeclaration))
+                    .Where(static d => d.IsKind(SyntaxKind.ClassDeclaration))
                     .OfType<ClassDeclarationSyntax>();
 
                 foreach (var @class in allClasses)
@@ -168,7 +168,7 @@ namespace CoreWCF.BuildTools
                 var CoreWCFServiceContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
 
                 IEnumerable<InterfaceDeclarationSyntax> allInterfaces = allNodes
-                   .Where(d => d.IsKind(SyntaxKind.InterfaceDeclaration))
+                   .Where(static d => d.IsKind(SyntaxKind.InterfaceDeclaration))
                    .OfType<InterfaceDeclarationSyntax>();
 
                 foreach (var @interface in allInterfaces)

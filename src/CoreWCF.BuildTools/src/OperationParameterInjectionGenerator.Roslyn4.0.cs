@@ -12,7 +12,7 @@ namespace CoreWCF.BuildTools
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
-                predicate: (token, _) => Parser.IsSyntaxTargetForGeneration(token),
+                predicate: static (token, _) => Parser.IsSyntaxTargetForGeneration(token),
                 transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
                 .Where(static c => c is not null);
 

@@ -104,7 +104,7 @@ namespace CoreWCF.BuildTools
                     : $"{operationContractSpec.MissingOperationContract.ReturnType}";
 
                 string parameters = string.Join(", ", operationContractSpec.MissingOperationContract.Parameters
-                    .Select(p => p.RefKind switch
+                    .Select(static p => p.RefKind switch
                     {
                         RefKind.Ref => $"ref {p.Type} {p.Name}",
                         RefKind.Out => $"out {p.Type} {p.Name}",

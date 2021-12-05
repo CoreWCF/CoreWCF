@@ -12,7 +12,7 @@ namespace CoreWCF.BuildTools
     {
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxContextReceiver());
+            context.RegisterForSyntaxNotifications(static () => new SyntaxContextReceiver());
         }
 
         public void Execute(GeneratorExecutionContext executionContext)
