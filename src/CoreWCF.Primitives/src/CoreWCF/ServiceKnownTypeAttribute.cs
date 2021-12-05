@@ -8,9 +8,9 @@ namespace CoreWCF
     [AttributeUsage(CoreWCFAttributeTargets.ServiceContract | CoreWCFAttributeTargets.OperationContract, Inherited = true, AllowMultiple = true)]
     public sealed class ServiceKnownTypeAttribute : Attribute
     {
-        private ServiceKnownTypeAttribute()
+        internal ServiceKnownTypeAttribute()
         {
-            // Disallow default constructor
+            // Disallow default constructor for outside assemblies.
         }
 
         public ServiceKnownTypeAttribute(Type type)
@@ -18,22 +18,21 @@ namespace CoreWCF
             Type = type;
         }
 
-        // The named method must take a parameter of ICustomAttributeProvider which isn't available so this overload can't be used
-        //public ServiceKnownTypeAttribute(string methodName)
-        //{
-        //    _methodName = methodName;
-        //}
+        public ServiceKnownTypeAttribute(string methodName)
+        {
+            MethodName = methodName;
+        }
 
-        //public ServiceKnownTypeAttribute(string methodName, Type declaringType)
-        //{
-        //    _methodName = methodName;
-        //    _declaringType = declaringType;
-        //}
+        public ServiceKnownTypeAttribute(string methodName, Type declaringType)
+        {
+            MethodName = methodName;
+            DeclaringType = declaringType;
+        }
 
-        //public Type DeclaringType => _declaringType;
+        public Type DeclaringType { get; internal set; }
 
-        //public string MethodName => _methodName;
+        public string MethodName { get; internal set; }
 
-        public Type Type { get; }
+        public Type Type { get; internal set; }
     }
 }

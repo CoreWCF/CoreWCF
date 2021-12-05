@@ -28,7 +28,7 @@ namespace CoreWCF.Description
             typeof(DataContractFormatAttribute)
         };
 
-        //static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
+        static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
 
         internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
 
@@ -379,32 +379,30 @@ namespace CoreWCF.Description
             }
         }
 
-        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, CustomAttributeProvider provider)
+        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, ICustomAttributeProvider provider)
         {
-            // The named method must take a parameter of ICustomAttributeProvider which isn't available so this can only specify known types by Type
-            //if (knownTypeAttributes.Length == 1)
-            //{
-            //    ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
-            //    if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
-            //    {
-            //        Type type = knownTypeAttribute.DeclaringType;
-            //        if (type == null)
-            //        {
-            //            type = (provider as TypeInfo)?.AsType();
-            //            if (type == null)
-            //                type = ((MethodInfo)provider).DeclaringType;
-            //        }
-            //        type.GetMethods()
-            //        MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, knownTypesMethodParamType, null);
-            //        if (method == null)
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
+            if (knownTypeAttributes.Length == 1)
+            {
+                ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
+                if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
+                {
+                    Type type = knownTypeAttribute.DeclaringType;
+                    if (type == null)
+                    {
+                        type = (provider as TypeInfo)?.AsType();
+                        if (type == null)
+                            type = ((MethodInfo)provider).DeclaringType;
+                    }
+                    MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, knownTypesMethodParamType, null);
+                    if (method == null)
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
+                    if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
-            //    }
-            //}
+                    return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
+                }
+            }
 
             List<Type> knownTypes = new List<Type>();
             for (int i = 0; i < knownTypeAttributes.Length; ++i)

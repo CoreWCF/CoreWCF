@@ -384,6 +384,7 @@ namespace CoreWCF.Description
         internal const string SMMessageParameterAttributeFullName = "System.ServiceModel.MessageParameterAttribute";
         internal const string SMXmlSerializerFormatAttributeFullName = "System.ServiceModel.XmlSerializerFormatAttribute";
         internal const string SMFaultContractAttributeFullName = "System.ServiceModel.FaultContractAttribute";
+        internal const string SMServiceKnownTypeAttributeFullName = "System.ServiceModel.ServiceKnownTypeAttribute";
 
         internal static readonly string CWCFMesssageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
         internal static readonly string CWCFMesssageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";

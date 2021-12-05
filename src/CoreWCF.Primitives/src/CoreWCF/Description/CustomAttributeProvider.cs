@@ -159,6 +159,14 @@ namespace CoreWCF.Description
                        result[i] = ConvertFromServiceModelFaultContractAttribute(result[i]);
                    }
                 }
+                else if (attributeType == typeof(ServiceKnownTypeAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelServiceKnownTypeAttribute(result[i]);
+                    }
+                }
             }
             return result;
         }
@@ -372,7 +380,17 @@ namespace CoreWCF.Description
             // TODO: IsInitiating and IsTerminating
             return oca;
         }
+        private static ServiceKnownTypeAttribute ConvertFromServiceModelServiceKnownTypeAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName), "Expected attribute of type S.SM.ServiceKnownType");
+            var skta = new ServiceKnownTypeAttribute();
 
+            skta.MethodName= GetProperty<string>(attr, nameof(ServiceKnownTypeAttribute.MethodName));
+            skta.Type = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.Type));
+            skta.DeclaringType = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.DeclaringType));
+
+            return skta;
+        }
         private static TProp GetProperty<TProp>(object obj, string propName)
         {
             Fx.Assert(obj != null, "Expected non-null object");
