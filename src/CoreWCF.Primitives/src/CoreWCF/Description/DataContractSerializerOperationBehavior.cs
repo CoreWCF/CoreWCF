@@ -71,7 +71,14 @@ namespace CoreWCF.Description
 
         public virtual XmlObjectSerializer CreateSerializer(Type type, XmlDictionaryString name, XmlDictionaryString ns, IList<Type> knownTypes)
         {
-            return new DataContractSerializer(type, name, ns, knownTypes);
+            DataContractSerializerSettings settings = new DataContractSerializerSettings()
+            {
+                RootName = name,
+                RootNamespace = ns,
+                KnownTypes = knownTypes,
+                DataContractResolver = DataContractResolver
+            };
+            return new DataContractSerializer(type, settings);
         }
 
         internal object GetFormatter(OperationDescription operation, out bool formatRequest, out bool formatReply, bool isProxy)
