@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Remove="CSharpIncrementalGeneratorTest`2.cs" />
     <Compile Remove="IncrementalGeneratorTest`1.cs" />
+    <Compile Include="..\src\DiagnosticDescriptors.cs" Link="DiagnosticDescriptors.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.1" />
