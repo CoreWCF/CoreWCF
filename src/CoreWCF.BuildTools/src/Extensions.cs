@@ -41,14 +41,14 @@ namespace CoreWCF.BuildTools
 
     internal static class NamedTypeSymbolExtensions
     {
-        public static bool IsPartial(this INamedTypeSymbol namedTypeSymbol)
+        public static bool IsPartial(this INamedTypeSymbol namedTypeSymbol, out INamedTypeSymbol parentType)
         {
             bool result = namedTypeSymbol.DeclaringSyntaxReferences.Select(static s => s.GetSyntax()).OfType<ClassDeclarationSyntax>().All(static c => c.Modifiers.Any(static m => m.IsKind(SyntaxKind.PartialKeyword)));
             if (result && namedTypeSymbol.ContainingType != null)
             {
-                return namedTypeSymbol.ContainingType.IsPartial();
+                return namedTypeSymbol.ContainingType.IsPartial(out parentType);
             }
-
+            parentType = namedTypeSymbol;
             return result;
         }
     }

@@ -1083,7 +1083,6 @@ namespace MyProject
                     },
                 },
             };
-            
             await test.RunAsync();
         }
 
@@ -1148,7 +1147,7 @@ namespace MyProject
 
             MetadataReference BuildInMemoryAssembly()
             {
-                List<MetadataReference>  references = new List<MetadataReference>
+                List<MetadataReference> references = new List<MetadataReference>
                 {
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                     MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("netstandard")).Location),
@@ -1226,10 +1225,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
+                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                            .WithDefaultPath("/0/Test0.cs")
+                            .WithSpan(14, 18, 14, 33)
+                            .WithArguments("IdentityService", "Echo2")
                     },
-                },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+                }
             };
 
             await test.RunAsync();
@@ -1273,10 +1274,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
-                    },
-                },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                            .WithDefaultPath("/0/Test0.cs")
+                            .WithSpan(14, 18, 14, 28)
+                            .WithArguments("ContainerA", "Echo2")
+                    }
+                }
             };
 
             await test.RunAsync();
@@ -1323,10 +1326,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0100", DiagnosticSeverity.Error)
+                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                            .WithSpan(14, 18, 14, 28)
+                            .WithArguments("ContainerA", "Echo2")
+                            .WithDefaultPath("/0/Test0.cs"),
                     },
-                },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+                }
             };
 
             await test.RunAsync();
@@ -1368,10 +1373,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0102", DiagnosticSeverity.Error)
+                        new DiagnosticResult(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplementedError)
+                            .WithSpan(18, 23, 18, 28)
+                            .WithArguments("IIdentityService", "Echo2")
+                            .WithDefaultPath("/0/Test0.cs"),
                     },
                 },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
             };
 
             await test.RunAsync();
@@ -1407,10 +1414,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0101", DiagnosticSeverity.Error)
+                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
+                            .WithDefaultPath("/0/Test0.cs")
+                            .WithSpan(11, 26, 11, 41)
+                            .WithArguments("IdentityService", "Echo2")
                     },
-                },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+                }
             };
 
             await test.RunAsync();
@@ -1439,10 +1448,12 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult("COREWCF_0101", DiagnosticSeverity.Error)
+                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
+                            .WithDefaultPath("/0/Test0.cs")
+                            .WithSpan(4, 26, 4, 41)
+                            .WithArguments("IdentityService", "Echo2")
                     },
-                },
-                DiagnosticsFilter = (diagnostic, _) => diagnostic.Id.StartsWith("COREWCF")
+                }
             };
 
             await test.RunAsync();

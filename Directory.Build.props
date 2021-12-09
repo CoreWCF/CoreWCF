@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <!-- Configuring strong name signing -->
-  <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)corewcf.snk')">
+  <PropertyGroup Condition="!($(IsSampleProject)) AND Exists('$(ProjectDir)corewcf.snk')">
     <AssemblyOriginatorKeyFile>$(ProjectDir)corewcf.snk</AssemblyOriginatorKeyFile>
 	<SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>

@@ -45,16 +45,16 @@ namespace CoreWCF.BuildTools
                     return null;
                 }
 
-                if (!methodSymbol.ContainingType.IsPartial())
+                if (!methodSymbol.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                 {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldBePartialError(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, methodSymbol.Name, parentType.Locations[0]));
                     return null;
                 }
 
                 var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
                 if (allServiceContractCandidates.Length == 0)
                 {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
                     return null;
                 }
 
@@ -84,7 +84,7 @@ namespace CoreWCF.BuildTools
                                 IMethodSymbol operationContractCandidate = operationContractCandidates[0];
                                 if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
                                 {
-                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplementedError(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name));
+                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseOperationContractShouldNotBeAlreadyImplementedError(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name, methodSymbol.Locations[0]));
                                     return null;
                                 }
 
@@ -96,7 +96,7 @@ namespace CoreWCF.BuildTools
 
                 if (!atLeastOneServiceContractIsFound)
                 {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name));
+                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
                 }
 
                 return null;

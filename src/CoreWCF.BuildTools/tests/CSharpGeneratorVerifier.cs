@@ -36,8 +36,6 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
 
         public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
 
-        public Func<Diagnostic, CompilerDiagnostics, bool> DiagnosticsFilter { get; set; } = (diagnostic, __) => diagnostic.Severity >= DiagnosticSeverity.Error;
-
         private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
         {
             string[] args = { "/warnaserror:nullable" };
@@ -50,7 +48,6 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         protected override ParseOptions CreateParseOptions()
             => ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
 
-        protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
-            => DiagnosticsFilter(diagnostic, compilerDiagnostics);
+        protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics) => false;
     }
 }
