@@ -839,17 +839,17 @@ namespace CoreWCF.Description
             return contractDescription;
         }
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {
-                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                var attributes = attrProvider.GetDualCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
                 if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
 
-                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                attributes = attrProvider.GetDualCustomAttributes(typeof(DataContractFormatAttribute), false);
                 if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
@@ -1253,7 +1253,7 @@ namespace CoreWCF.Description
 
         private MessageDescription CreateParameterMessageDescription(ParameterInfo[] parameters,
                                                   Type returnType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string methodName,
                                                   string defaultNS,
@@ -1305,7 +1305,7 @@ namespace CoreWCF.Description
             return messageDescription;
         }
 
-        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, CustomAttributeProvider attrProvider, Type type)
+        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, ICustomAttributeProvider attrProvider, Type type)
         {
             MessagePartDescription parameterPart;
             MessageParameterAttribute paramAttr = ServiceReflector.GetSingleAttribute<MessageParameterAttribute>(attrProvider);
@@ -1321,7 +1321,7 @@ namespace CoreWCF.Description
         }
 
         internal MessageDescription CreateTypedMessageDescription(Type typedMessageType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string defaultNS,
                                                   string action,
@@ -1459,7 +1459,7 @@ namespace CoreWCF.Description
         }
 
         private MessagePartDescription CreateMessagePartDescription(Type bodyType,
-                                                         CustomAttributeProvider attrProvider,
+                                                         ICustomAttributeProvider attrProvider,
                                                          XmlName defaultName,
                                                          string defaultNS,
                                                          int parameterIndex,
@@ -1485,9 +1485,9 @@ namespace CoreWCF.Description
                 };
             }
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                partDescription.MemberInfo = attrProvider.MemberInfo;
+                partDescription.MemberInfo = (MemberInfo)attrProvider;
             }
             partDescription.Type = bodyType;
             partDescription.Index = parameterIndex;
@@ -1495,7 +1495,7 @@ namespace CoreWCF.Description
         }
 
         private MessageHeaderDescription CreateMessageHeaderDescription(Type headerParameterType,
-                                                                    CustomAttributeProvider attrProvider,
+                                                                    ICustomAttributeProvider attrProvider,
                                                                     XmlName defaultName,
                                                                     string defaultNS,
                                                                     int parameterIndex,
@@ -1534,16 +1534,16 @@ namespace CoreWCF.Description
                 headerDescription.Relay = headerAttr.Relay;
             }
             headerDescription.SerializationPosition = serializationPosition;
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                headerDescription.MemberInfo = attrProvider.MemberInfo;
+                headerDescription.MemberInfo = attrProvider as MemberInfo;
             }
 
             headerDescription.Index = parameterIndex;
             return headerDescription;
         }
 
-        private MessagePropertyDescription CreateMessagePropertyDescription(CustomAttributeProvider attrProvider,
+        private MessagePropertyDescription CreateMessagePropertyDescription(ICustomAttributeProvider attrProvider,
                                                             XmlName defaultName,
                                                             int parameterIndex)
         {
@@ -1554,9 +1554,9 @@ namespace CoreWCF.Description
                 Index = parameterIndex
             };
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                propertyDescription.MemberInfo = attrProvider.MemberInfo;
+                propertyDescription.MemberInfo = attrProvider as MemberInfo;
             }
 
             return propertyDescription;
@@ -2081,17 +2081,17 @@ namespace CoreWCF.Description
 
         internal const string ResponseSuffix = "Response";
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {
-                var attributes = attrProvider.GetCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                var attributes = attrProvider.GetDualCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
                 if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
 
-                attributes = attrProvider.GetCustomAttributes(typeof(DataContractFormatAttribute), false);
+                attributes = attrProvider.GetDualCustomAttributes(typeof(DataContractFormatAttribute), false);
                 if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);

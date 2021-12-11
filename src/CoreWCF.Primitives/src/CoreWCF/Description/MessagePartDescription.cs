@@ -13,8 +13,7 @@ namespace CoreWCF.Description
         private ProtectionLevel _protectionLevel;
         private bool _hasProtectionLevel;
 
-        // TODO: Was ICustomAttributeProvider
-        private CustomAttributeProvider _additionalAttributesProvider;
+        private ICustomAttributeProvider _additionalAttributesProvider;
 
         public MessagePartDescription(string name, string ns)
         {
@@ -87,7 +86,7 @@ namespace CoreWCF.Description
 
         internal bool HasProtectionLevel => false;
 
-        internal CustomAttributeProvider AdditionalAttributesProvider
+        internal ICustomAttributeProvider AdditionalAttributesProvider
         {
             get { return _additionalAttributesProvider ?? MemberInfo; }
             set { _additionalAttributesProvider = value; }
