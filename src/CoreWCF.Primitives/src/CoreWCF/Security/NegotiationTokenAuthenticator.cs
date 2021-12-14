@@ -348,7 +348,7 @@ namespace CoreWCF.Security
             _standardsManager = s_defaultStandardsManager;
             _securityStateEncoder = s_defaultSecurityStateEncoder;
             _maximumConcurrentNegotiations = DefaultServerMaxActiveNegotiations;
-            // we rely on the transport encoders to enforce the message size except in the 
+            // we rely on the transport encoders to enforce the message size except in the
             // mixed mode nego case, where the client is unauthenticated and the maxMessageSize is too
             // large to be a mitigation
             _maxMessageSize = int.MaxValue;
@@ -664,7 +664,7 @@ namespace CoreWCF.Security
                             (BodyWriter replyBody, T negotiatonState) processedRequestSecurityToken = await ProcessRequestSecurityTokenAsync(request, rst);//.AsTask().GetAwaiter().GetResult();
                             negotiationState = processedRequestSecurityToken.negotiatonState;
                             replyBody = processedRequestSecurityToken.replyBody;
-                            using(await negotiationState.AsyncLock.TakeLockAsync())
+                            await using (await negotiationState.AsyncLock.TakeLockAsync())
                             {
                                 if (negotiationState.IsNegotiationCompleted)
                                 {
@@ -673,6 +673,7 @@ namespace CoreWCF.Security
                                     {
                                         IssuedTokenCache.AddContext(negotiationState.ServiceToken);
                                     }
+
                                     OnTokenIssued(negotiationState.ServiceToken);
                                     // SecurityTraceRecordHelper.TraceServiceSecurityNegotiationCompleted(request, this, negotiationState.ServiceToken);
                                     disposeState = true;
@@ -682,6 +683,7 @@ namespace CoreWCF.Security
                                     _stateCache.AddState(context, negotiationState);
                                     disposeState = false;
                                 }
+
                                 AddNegotiationChannelForIdleTracking();
                             }
                         }
@@ -692,9 +694,10 @@ namespace CoreWCF.Security
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new SecurityNegotiationException(SR.Format(SR.CannotFindNegotiationState, context)));
                             }
 
-                            using (await negotiationState.AsyncLock.TakeLockAsync())
+                            await using (await negotiationState.AsyncLock.TakeLockAsync())
                             {
-                                replyBody = await ProcessRequestSecurityTokenResponseAsync(negotiationState, request, rstr);//.AsTask().GetAwaiter().GetResult();
+                                replyBody = await ProcessRequestSecurityTokenResponseAsync(negotiationState, request,
+                                    rstr); //.AsTask().GetAwaiter().GetResult();
                                 if (negotiationState.IsNegotiationCompleted)
                                 {
                                     // if session-sct add it to cache and add a redirect header
@@ -702,6 +705,7 @@ namespace CoreWCF.Security
                                     {
                                         IssuedTokenCache.AddContext(negotiationState.ServiceToken);
                                     }
+
                                     OnTokenIssued(negotiationState.ServiceToken);
                                     // SecurityTraceRecordHelper.TraceServiceSecurityNegotiationCompleted(request, this, negotiationState.ServiceToken);
                                     disposeState = true;

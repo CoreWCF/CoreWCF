@@ -200,7 +200,7 @@ namespace Helpers
 
         public static void RegisterApplicationLifetime(this IServiceCollection services)
         {
-#if NET5_0 || NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
             services.AddSingleton<Microsoft.Extensions.Hosting.IHostApplicationLifetime, Microsoft.Extensions.Hosting.Internal.ApplicationLifetime>();
             var genericWebHostApplicationLifetimeType =
                 typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(

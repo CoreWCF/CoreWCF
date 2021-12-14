@@ -484,7 +484,7 @@ namespace CoreWCF.Security
         }
 
         /// <summary>
-        /// This method creates SessionInitiationMessageServiceDispatcher which would act as 
+        /// This method creates SessionInitiationMessageServiceDispatcher which would act as
         /// holder for SecurityReplySessionServiceChannelDispatcher (for Duplex we can implement simillar to ServerSecurityDuplexSessionChannel).
         /// Even though the Dispatcher is being added to demuxer, the ServiceChannelDispatcher is lazily initialized(based on first call) and that instance being hold to serve subsequent calls from the same client.
         /// When close received, the ServiceChannelDispatcher is cleared as well as the Dispatcher from Demuxer.
@@ -815,38 +815,43 @@ namespace CoreWCF.Security
             public IList<Type> SupportedChannelTypes => throw new NotImplementedException();
 
             /// <summary>
-            /// ProcessMessage equivalent in WCF 
+            /// ProcessMessage equivalent in WCF
             /// </summary>
             /// <returns></returns>
             public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
             {
                 if (_sessionChannelDispatcher == null)
                 {
-                    using (await AsyncLock.TakeLockAsync())
+                    await using (await AsyncLock.TakeLockAsync())
                     {
                         if (_sessionChannelDispatcher == null)
                         {
                             if (!_settings.RemovePendingSession(_sessionToken.ContextId))
                             {
-                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new CommunicationException(SR.Format(SR.SecuritySessionNotPending, _sessionToken.ContextId)));
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(
+                                    new CommunicationException(SR.Format(SR.SecuritySessionNotPending,
+                                        _sessionToken.ContextId)));
                             }
+
                             ServerSecuritySessionChannel _replySessionChannelDispatcher = null;
                             if (_settings.AcceptorChannelType == typeof(IDuplexSessionChannel))
                             {
                                 _replySessionChannelDispatcher = new ServerSecurityDuplexSessionChannel.
-                                 ServerSecurityDuplexSessionChannelDispatcher(_settings, _sessionToken,
-                                 null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
+                                    ServerSecurityDuplexSessionChannelDispatcher(_settings, _sessionToken,
+                                        null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
 
                             }
                             else if (_settings.AcceptorChannelType == typeof(IReplyChannel))
                             {
                                 _replySessionChannelDispatcher = new ServerSecuritySimplexSessionChannel.
                                     SecurityReplySessionServiceChannelDispatcher(_settings, _sessionToken,
-                                    null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
+                                        null, _settings.SettingsLifetimeManager, channel, _remoteAddress);
                             }
+
                             await _replySessionChannelDispatcher.OpenAsync(ServiceDefaults.OpenTimeout);
                             _sessionChannelDispatcher = (IServiceChannelDispatcher)_replySessionChannelDispatcher;
-                            _settings.AddSessionChannel(_sessionToken.ContextId, _replySessionChannelDispatcher, _messageFilter);
+                            _settings.AddSessionChannel(_sessionToken.ContextId, _replySessionChannelDispatcher,
+                                _messageFilter);
                         }
                     }
                 }
@@ -1070,7 +1075,7 @@ namespace CoreWCF.Security
                     throw TraceUtility.ThrowHelperWarning(new MessageSecurityException(SR.NoSessionTokenPresentInMessage), message);
                 }
                 // the incoming token's key should have been issued within keyRenewalPeriod time in the past
-                // if not, send back a renewal fault. However if this is a session close message then its ok to not require the client 
+                // if not, send back a renewal fault. However if this is a session close message then its ok to not require the client
                 // to renew the key in order to send the close.
                 if (incomingToken.KeyExpirationTime < DateTime.UtcNow &&
                     message.Headers.Action != Settings.SecurityStandardsManager.SecureConversationDriver.CloseAction.Value)
@@ -1196,7 +1201,7 @@ namespace CoreWCF.Security
                     }
                 }
                 ThrowIfFaulted();
-                
+
                 return (true, null);
             }
 
@@ -1976,7 +1981,7 @@ namespace CoreWCF.Security
             }
         }
 
-        private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel 
+        private class ServerSecurityDuplexSessionChannel : ServerSecuritySessionChannel //, IDuplexSessionChannel
         {
             private SoapSecurityServerDuplexSession _session;
             private bool _isInputClosed;

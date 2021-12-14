@@ -48,7 +48,7 @@ namespace CoreWCF.Channels.Framing
         {
             if (_replyChannel == null)
             {
-                using (await _lock.TakeLockAsync())
+                await using (await _lock.TakeLockAsync())
                 {
                     if (_replyChannel == null)
                     {
@@ -65,8 +65,10 @@ namespace CoreWCF.Channels.Framing
                             MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
                             MessageEncoderFactory = connection.MessageEncoderFactory
                         };
-                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
-                        _channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
+                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null,
+                            _servicesScopeFactory.CreateScope().ServiceProvider);
+                        _channelDispatcher =
+                            await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
                     }
                 }
             }
@@ -339,7 +341,7 @@ namespace CoreWCF.Channels.Framing
 
                     if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
-                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
+                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
                         int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 
@@ -411,7 +413,7 @@ namespace CoreWCF.Channels.Framing
 
                     if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
-                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
+                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
                         int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 

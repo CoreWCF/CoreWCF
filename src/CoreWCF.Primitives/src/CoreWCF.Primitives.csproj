@@ -10,9 +10,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.23" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="2.1.1" />
     <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
     <PackageReference Include="System.DirectoryServices.Protocols" Version="5.0.1" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0" />
@@ -21,4 +23,21 @@
     <PackageReference Include="System.Reflection.DispatchProxy" Version="4.7.1" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn3.11.csproj" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn4.0.dll">
+      <Pack>true</Pack>
+      <PackagePath>analyzers/dotnet/roslyn4.0/cs</PackagePath>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn3.11.dll">
+      <Pack>true</Pack>
+      <PackagePath>analyzers/dotnet/roslyn3.11/cs</PackagePath>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+  
 </Project>

@@ -96,6 +96,46 @@ namespace DependencyInjection
         }
 
         [Fact]
+        public static void InstanceContextMode_PerCall_WithScopedCtorDependency()
+        {
+            ScopedCtorDependency.ClearCounts();
+            PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = DispatcherHelper.CreateChannelFactory<PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency, ISimpleService>(
+                (services) =>
+                {
+                    services.AddScoped<IScopedCtorDependency, ScopedCtorDependency>();
+                    services.AddTransient<PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency>();
+                });
+            factory.Open();
+            ISimpleService channel = factory.CreateChannel();
+            ((System.ServiceModel.Channels.IChannel)channel).Open();
+            // Instance created as part of service startup to probe if type is availale in DI
+            Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
+            // Instance not disposed as it implements IServiceBehavior and is added to service behaviors
+            Assert.Equal(0, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
+            Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.AddBindingParametersCallCount);
+            Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ApplyDispatchBehaviorCount);
+            Assert.Equal(1, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ValidateCallCount);
+
+            PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
+            ScopedCtorDependency.ClearCounts();
+
+            string echo = channel.Echo("hello");
+            echo = channel.Echo("hello");
+            PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
+            Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
+            Assert.Equal(2, PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
+
+            ScopedCtorDependency.WaitForDisposalCount(2, TimeSpan.FromSeconds(30));
+            Assert.Equal(2, ScopedCtorDependency.CreationCount);
+            Assert.Equal(2, ScopedCtorDependency.DisposalCount);
+
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+
+        [Fact]
         public static void InstanceContextMode_PerCall_NoInjection()
         {
             PerCallInstanceContextSimpleService.ClearCounts();
@@ -177,6 +217,47 @@ namespace DependencyInjection
         }
 
         [Fact]
+        public static void InstanceContextMode_PerSession_WithScopedCtorDependency()
+        {
+            PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
+            System.ServiceModel.ChannelFactory<ISimpleSessionService> factory = DispatcherHelper.CreateChannelFactory<PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency, ISimpleSessionService>(
+                (services) =>
+                {
+                    services.AddScoped<IScopedCtorDependency, ScopedCtorDependency>();
+                    services.AddTransient<PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency>();
+                });
+            factory.Open();
+            ISimpleSessionService channel = factory.CreateChannel();
+            ((System.ServiceModel.Channels.IChannel)channel).Open();
+            // Instance created as part of service startup to probe if type is available in DI
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
+            // Instance not disposed as it implements IServiceBehavior and is added to service behaviors
+            Assert.Equal(0, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.AddBindingParametersCallCount);
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ApplyDispatchBehaviorCount);
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ValidateCallCount);
+
+            PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.ClearCounts();
+            ScopedCtorDependency.ClearCounts();
+
+            string echo = channel.Echo("hello");
+            echo = channel.Echo("hello");
+            echo = channel.Echo("hello");
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.CreationCount);
+            PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
+            Assert.Equal(1, PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency.DisposalCount);
+
+            ScopedCtorDependency.WaitForDisposalCount(1, TimeSpan.FromSeconds(30));
+            Assert.Equal(1, ScopedCtorDependency.CreationCount);
+            Assert.Equal(1, ScopedCtorDependency.DisposalCount);
+
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+
+        [Fact]
         public static void InstanceContextMode_PerSession_NoInjection()
         {
             PerSessionInstanceContextSimpleService.ClearCounts();
@@ -229,6 +310,50 @@ namespace DependencyInjection
         }
     }
 
+    public interface IScopedCtorDependency { }
+
+    public class ScopedCtorDependency : IScopedCtorDependency, IDisposable
+    {
+        private static int _creationCount = 0;
+        private static int _disposalCount = 0;
+        private static readonly ManualResetEventSlim s_disposalCountWaitable = new ManualResetEventSlim(false);
+
+        public static int CreationCount => _creationCount;
+        public static int DisposalCount => _disposalCount;
+
+        public ScopedCtorDependency()
+        {
+            Interlocked.Increment(ref _creationCount);
+        }
+
+        public static void ClearCounts()
+        {
+            Interlocked.Exchange(ref _creationCount, 0);
+            Interlocked.Exchange(ref _disposalCount, 0);
+            s_disposalCountWaitable.Reset();
+        }
+
+        public void Dispose()
+        {
+            Interlocked.Increment(ref _disposalCount);
+            s_disposalCountWaitable.Set();
+        }
+
+        public static void WaitForDisposalCount(int expectedDisposals, TimeSpan maxWait)
+        {
+            DateTime maxWaitDeadline = DateTime.Now + maxWait;
+            while (DateTime.Now < maxWaitDeadline && expectedDisposals > DisposalCount)
+            {
+                // There's a small race condition here where DisposalCount could be incremented and the MRE set
+                // before we call reset. In which case we'll wait maxWait time and then the test will pass. The
+                // delay shouldn't be more than a few seconds anyway so this won't have any significant impact and
+                // it has no affect on the pass/fail of the test
+                s_disposalCountWaitable.Reset();
+                s_disposalCountWaitable.Wait(maxWaitDeadline - DateTime.Now);
+            }
+        }
+    }
+
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class SingleInstanceContextSimpleService : InstanceContextSimpleServiceAndBehaviorBase<SingleInstanceContextSimpleService> { }
 
@@ -238,11 +363,33 @@ namespace DependencyInjection
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
     public class PerCallInstanceContextSimpleServiceAndBehavior : InstanceContextSimpleServiceAndBehaviorBase<PerCallInstanceContextSimpleServiceAndBehavior> { }
 
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
+    public class PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency : InstanceContextSimpleServiceAndBehaviorBase<PerCallInstanceContextSimpleServiceAndBehavior>
+    {
+        private readonly IScopedCtorDependency _scopedCtorDependency;
+
+        public PerCallInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency(IScopedCtorDependency scopedCtorDependency)
+        {
+            _scopedCtorDependency = scopedCtorDependency;
+        }
+    }
+
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession)]
     public class PerSessionInstanceContextSimpleService : InstanceContextSimpleServiceBase<PerSessionInstanceContextSimpleService>, ISimpleSessionService { }
 
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession)]
     public class PerSessionInstanceContextSimpleServiceAndBehavior : InstanceContextSimpleServiceAndBehaviorBase<PerSessionInstanceContextSimpleServiceAndBehavior>, ISimpleSessionService { }
+
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession)]
+    public class PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency : InstanceContextSimpleServiceAndBehaviorBase<PerSessionInstanceContextSimpleServiceAndBehavior>, ISimpleSessionService
+    {
+        private readonly IScopedCtorDependency _scopedCtorDependency;
+
+        public PerSessionInstanceContextSimpleServiceAndBehaviorWithScopedCtorDependency(IScopedCtorDependency scopedCtorDependency)
+        {
+            _scopedCtorDependency = scopedCtorDependency;
+        }
+    }
 
     public abstract class InstanceContextSimpleServiceAndBehaviorBase<TService> : InstanceContextSimpleServiceBase<TService>, IServiceBehavior where TService : InstanceContextSimpleServiceAndBehaviorBase<TService>
     {

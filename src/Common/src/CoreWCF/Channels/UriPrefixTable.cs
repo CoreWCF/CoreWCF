@@ -54,9 +54,9 @@ namespace CoreWCF.Channels
         {
             get
             {
-                // The UriPrefixTable instance itself is used as a 
-                // synchronization primitive in the TransportManagers and the 
-                // TransportManagerContainers so we return 'this' to keep them in sync.                 
+                // The UriPrefixTable instance itself is used as a
+                // synchronization primitive in the TransportManagers and the
+                // TransportManagerContainers so we return 'this' to keep them in sync.
                 return this;
             }
         }
@@ -69,7 +69,7 @@ namespace CoreWCF.Channels
         {
             Uri uri = key.BaseAddress;
 
-            // don't need to normalize path since SegmentHierarchyNode is 
+            // don't need to normalize path since SegmentHierarchyNode is
             // already OrdinalIgnoreCase
             string[] paths = UriSegmenter.ToPath(uri, key.HostNameComparisonMode, _includePortInComparison);
             bool exactMatch;
