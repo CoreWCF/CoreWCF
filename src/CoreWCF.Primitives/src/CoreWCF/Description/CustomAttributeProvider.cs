@@ -318,6 +318,7 @@ namespace CoreWCF.Description
             // TODO: IsInitiating and IsTerminating
             return oca;
         }
+
         private static ServiceKnownTypeAttribute ConvertFromServiceModelServiceKnownTypeAttribute(object attr)
         {
             Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName), "Expected attribute of type S.SM.ServiceKnownType");
@@ -329,6 +330,7 @@ namespace CoreWCF.Description
 
             return skta;
         }
+
         private static TProp GetProperty<TProp>(object obj, string propName)
         {
             Fx.Assert(obj != null, "Expected non-null object");
