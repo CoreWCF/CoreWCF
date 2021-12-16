@@ -40,9 +40,9 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [Fact]
-        public static void ServiceKnownTypeException()
+        public static void ServiceKnownTypeTest_Ex()
         {
-            var factory = ServiceKnownTypeTests.CreateFactory<IPingServiceEx, PingServiceEx>();
+            var factory = ServiceKnownTypeTests.CreateFactory<IPingService_Ex, PingService_Ex>();
             var channel = ServiceKnownTypeTests.CreateChannel(factory);
             Assert.Throws<System.Xml.XmlException>(() =>
             {
@@ -52,9 +52,9 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [Fact]
-        public static void ServiceKnownTypeTest1()
+        public static void ServiceKnownTypeTest_Inline()
         {
-            var factory = ServiceKnownTypeTests.CreateFactory<IPingService1, PingService1>();
+            var factory = ServiceKnownTypeTests.CreateFactory<IPingService_Inline, PingService_Inline>();
             var channel = ServiceKnownTypeTests.CreateChannel(factory);
             BaseMsg msg = channel.Ping("hello");
             Assert.Equal("hello", msg.msg);
@@ -62,9 +62,9 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [Fact]
-        public static void ServiceKnownTypeTest2()
+        public static void ServiceKnownTypeTest_Inline_SSM()
         {
-            var factory = ServiceKnownTypeTests.CreateFactory<IPingService2, PingService2>();
+            var factory = ServiceKnownTypeTests.CreateFactory<IPingService_Inline_SSM, PingService_Inline_SSM>();
             var channel = ServiceKnownTypeTests.CreateChannel(factory);
             BaseMsg msg = channel.Ping("hello");
             Assert.Equal("hello", msg.msg);
@@ -72,9 +72,9 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [Fact]
-        public static void ServiceKnownTypeTest3()
+        public static void ServiceKnownTypeTest_Method()
         {
-            var factory = ServiceKnownTypeTests.CreateFactory<IPingService3, PingService3>();
+            var factory = ServiceKnownTypeTests.CreateFactory<IPingService_Method, PingService_Method>();
             var channel = ServiceKnownTypeTests.CreateChannel(factory);
             BaseMsg msg = channel.Ping("hello");
             Assert.Equal("hello", msg.msg);
@@ -82,9 +82,9 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [Fact]
-        public static void ServiceKnownTypeTest4()
+        public static void ServiceKnownTypeTest_Method_SSM()
         {
-            var factory = ServiceKnownTypeTests.CreateFactory<IPingService4, PingService4>();
+            var factory = ServiceKnownTypeTests.CreateFactory<IPingService_Method_SSM, PingService_Method_SSM>();
             var channel = ServiceKnownTypeTests.CreateChannel(factory);
             BaseMsg msg = channel.Ping("hello");
             Assert.Equal("hello", msg.msg);
@@ -92,102 +92,62 @@ namespace CoreWCF.Primitives.Tests
         }
     }
 
-    internal class PingServiceEx : IPingServiceEx
-    {
-        public BaseMsg Ping(string msg)
-        {
-            return new DerivedMsg { msg = msg };
-        }
+    internal class PingService_Ex : PingServiceBase, IPingService_Ex { }
 
-    }
-
-    [ServiceContract]
     [System.ServiceModel.ServiceContract]
-    public interface IPingServiceEx
+    public interface IPingService_Ex
     {
-        [OperationContract]
+       
         [System.ServiceModel.OperationContract]
         BaseMsg Ping(string msg);
 
     }
 
-    internal class PingService1 : IPingService1
-    {
-        public BaseMsg Ping(string msg)
-        {
-            return new DerivedMsg { msg = msg };
-        }
-
-    }
-
-    [ServiceContract]
+    internal class PingService_Inline : PingServiceBase, IPingService_Inline { }
+   
     [System.ServiceModel.ServiceContract]
     [ServiceKnownType(typeof(DerivedMsg))]
     [System.ServiceModel.ServiceKnownType(typeof(DerivedMsg))]
-    public interface IPingService1
+    public interface IPingService_Inline
     {
-        [OperationContract]
+       
         [System.ServiceModel.OperationContract]
         BaseMsg Ping(string msg);
 
     }
 
-    internal class PingService2 : IPingService2
-    {
-        public BaseMsg Ping(string msg)
-        {
-            return new DerivedMsg { msg = msg };
-        }
+    internal class PingService_Inline_SSM : PingServiceBase, IPingService_Inline_SSM { }
 
-    }
-
-    [ServiceContract]
     [System.ServiceModel.ServiceContract]
     [System.ServiceModel.ServiceKnownType(typeof(DerivedMsg))]
-    public interface IPingService2
+    public interface IPingService_Inline_SSM
     {
-        [OperationContract]
+       
         [System.ServiceModel.OperationContract]
         BaseMsg Ping(string msg);
 
     }
 
-    internal class PingService3 : IPingService3
-    {
-        public BaseMsg Ping(string msg)
-        {
-            return new DerivedMsg { msg = msg };
-        }
-
-    }
-
-    [ServiceContract]
+    internal class PingService_Method : PingServiceBase, IPingService_Method { }
+  
     [System.ServiceModel.ServiceContract]
     [ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
     [System.ServiceModel.ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
-    public interface IPingService3
+    public interface IPingService_Method
     {
-        [OperationContract]
+       
         [System.ServiceModel.OperationContract]
         BaseMsg Ping(string msg);
 
     }
 
-    internal class PingService4 : IPingService4
-    {
-        public BaseMsg Ping(string msg)
-        {
-            return new DerivedMsg { msg = msg };
-        }
-
-    }
-
-    [ServiceContract]
+    internal class PingService_Method_SSM : PingServiceBase, IPingService_Method_SSM { }
+   
     [System.ServiceModel.ServiceContract]
     [System.ServiceModel.ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
-    public interface IPingService4
+    public interface IPingService_Method_SSM
     {
-        [OperationContract]
+       
         [System.ServiceModel.OperationContract]
         BaseMsg Ping(string msg);
 
@@ -205,9 +165,13 @@ namespace CoreWCF.Primitives.Tests
     {
     }
 
-    [DataContract]
-    public class DerivedMsg2 : BaseMsg
+    internal class PingServiceBase
     {
+        public BaseMsg Ping(string msg)
+        {
+            return new DerivedMsg { msg = msg };
+        }
+
     }
 
     public class DataProviderTypes
