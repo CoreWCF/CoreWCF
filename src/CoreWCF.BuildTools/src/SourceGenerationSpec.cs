@@ -17,5 +17,6 @@ namespace CoreWCF.BuildTools
         public INamedTypeSymbol? CoreWCFOperationContractSymbol { get; set; }
         public INamedTypeSymbol? GenericTaskSymbol { get; set; }
         public INamedTypeSymbol? CoreWCFInjectedSymbol { get; set; }
+        public INamedTypeSymbol? MicrosoftAspNetCoreMvcFromServicesSymbol { get; set; }
     }
 }

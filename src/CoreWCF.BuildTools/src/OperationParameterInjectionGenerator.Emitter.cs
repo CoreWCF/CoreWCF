@@ -227,7 +227,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                             builder.Append(", ");
                         }
 
-                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol))
+                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol))
                         {
                             builder.Append(dependencyNames[parameter.Type]);
                         }
