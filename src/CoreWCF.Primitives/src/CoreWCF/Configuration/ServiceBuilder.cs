@@ -134,8 +134,7 @@ namespace CoreWCF.Configuration
             }
             else
             {
-                // TODO: Either find an existing SR to use or create a new one.
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(service)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError((new ArgumentException(SR.Format(SR.UnknownServiceConfiguration), nameof(service))));
             }
 
             return this;
