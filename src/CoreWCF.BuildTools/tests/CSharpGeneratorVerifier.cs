@@ -25,6 +25,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
             TestState.AdditionalReferences.Add(typeof(System.ServiceModel.ServiceContractAttribute).Assembly);
             TestState.AdditionalReferences.Add(typeof(CoreWCF.ServiceContractAttribute).Assembly);
             TestState.AdditionalReferences.Add(typeof(Microsoft.Extensions.DependencyInjection.IServiceScope).Assembly);
+            TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Http.HttpContext).Assembly);
         }
 
         protected override CompilationOptions CreateCompilationOptions()
