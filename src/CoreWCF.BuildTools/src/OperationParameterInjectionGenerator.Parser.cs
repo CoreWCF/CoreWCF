@@ -23,6 +23,8 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
             private readonly INamedTypeSymbol? _httpContextSymbol;
+            private readonly INamedTypeSymbol? _httpRequestSymbol;
+            private readonly INamedTypeSymbol? _httpResponseSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext sourceGenerationContext)
             {
@@ -36,6 +38,8 @@ namespace CoreWCF.BuildTools
                 _sSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
                 _coreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
+                _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
+                _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
             }
 
             private OperationContractSpec? GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
@@ -90,7 +94,7 @@ namespace CoreWCF.BuildTools
                                     return null;
                                 }
 
-                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol, _httpContextSymbol);
+                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol, _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol);
                             }
                         }
                     }

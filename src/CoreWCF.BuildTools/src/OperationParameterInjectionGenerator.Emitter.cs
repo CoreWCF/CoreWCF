@@ -142,7 +142,9 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
                 builder.AppendLine($@"{indentor}if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");");
 
-                if (dependencies.Any(x => SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpContextSymbol)))
+                if (dependencies.Any(x => SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpContextSymbol)
+                    || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpRequestSymbol)
+                    || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpResponseSymbol)))
                 {
                     builder.AppendLine($@"{indentor}var httpContext = CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties[""Microsoft.AspNetCore.Http.HttpContext""] as Microsoft.AspNetCore.Http.HttpContext;");
                     builder.AppendLine($@"{indentor}if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");");
@@ -193,6 +195,14 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                         if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpContextSymbol, dependencies[i].Type))
                         {
                             builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpRequestSymbol, dependencies[i].Type))
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Request;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpResponseSymbol, dependencies[i].Type))
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
                         }
                         else
                         {

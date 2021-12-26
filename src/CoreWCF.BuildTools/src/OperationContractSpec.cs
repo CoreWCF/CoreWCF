@@ -8,13 +8,16 @@ namespace CoreWCF.BuildTools
     internal sealed class OperationContractSpec
     {
         public OperationContractSpec(INamedTypeSymbol serviceContract, INamedTypeSymbol serviceContractImplementation,
-            IMethodSymbol missingOperationContract, IMethodSymbol userProvidedOperationContractImplementation, INamedTypeSymbol? httpContextSymbol)
+            IMethodSymbol missingOperationContract, IMethodSymbol userProvidedOperationContractImplementation,
+            INamedTypeSymbol? httpContextSymbol, INamedTypeSymbol? httpRequestSymbol, INamedTypeSymbol? httpResponseSymbol)
         {
             this.ServiceContract = serviceContract;
             this.ServiceContractImplementation = serviceContractImplementation;
             this.UserProvidedOperationContractImplementation = userProvidedOperationContractImplementation;
             this.MissingOperationContract = missingOperationContract;
             this.HttpContextSymbol = httpContextSymbol;
+            this.HttpRequestSymbol = httpRequestSymbol;
+            this.HttpResponseSymbol = httpResponseSymbol;
         }
 
         public INamedTypeSymbol ServiceContract { get; }
@@ -22,5 +25,7 @@ namespace CoreWCF.BuildTools
         public IMethodSymbol MissingOperationContract { get; }
         public IMethodSymbol UserProvidedOperationContractImplementation { get; }
         public INamedTypeSymbol? HttpContextSymbol { get; }
+        public INamedTypeSymbol? HttpRequestSymbol { get; }
+        public INamedTypeSymbol? HttpResponseSymbol { get; }
     }
 }
