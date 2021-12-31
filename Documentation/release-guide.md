@@ -16,13 +16,15 @@ The initial release will have a 0.1 version number. The major version number wil
 Here are the steps to release a new version:
 
 1. Update to the latest patch version of nuget dependencies
-2. Install Nerdbank.GitVersioning
+2. Update the CoreWCF.BuildTools AnalyzerReleases markdown documents if new analyzer rules have been created. Instructions for what changes may need to be made are located [here](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md).
+3. If any changes were made in steps 1 & 2, create a branch, commit the changes, push to your fork, create a PR and merge the changes. Update your local main branch after the PR has been merged.
+4. Install Nerdbank.GitVersioning
 
    ```dos
-       install --tool-path . nbgv
+       dotnet tool install --tool-path . nbgv
    ```
 
-3. Prepare the release
+5. Prepare the release
 
    ```dos
        .\nbgv.exe prepare-release
@@ -30,9 +32,9 @@ Here are the steps to release a new version:
 
    This creates the release/vX.Y release branch and updates the main branch to use the vX.(Y+1) version.
 
-4. Push the main and release/vX.Y branches to GitHub so it reflects the changes made by NerdBank GitVersion.
-5. Stabilization occurs in the release branch.
-6. Commits first occur in main branch and are cherry-picked into release/vX.Y if needed.
-7. Build release packages and tag vX.Y.Z from the release/vX.Y branch.
-8. Push package and symbol package to NuGet.
-9. Delete the release/vX.Y branch.
+6. Push the main and release/vX.Y branches to GitHub so it reflects the changes made by NerdBank GitVersion.
+7. Stabilization occurs in the release branch.
+8. Commits first occur in main branch and are cherry-picked into release/vX.Y if needed.
+9. Build release packages and tag vX.Y.Z from the release/vX.Y branch.
+10. Push package and symbol package to NuGet.
+11. Delete the release/vX.Y branch.

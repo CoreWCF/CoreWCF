@@ -1,0 +1,74 @@
+parameters:
+- name: testProjects
+  default: ''
+- name: solution
+  default: ''
+
+stages:
+- stage: Code_Analysis
+  displayName: Run Code Analysis
+  dependsOn: []
+  jobs:
+
+  - job: Code_Analysis
+    displayName: SonarCloud & CodeCoverage reports 
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore packages
+      inputs:
+        command: restore
+        projects: src/CoreWCF.sln
+
+    - task: SonarCloudPrepare@1
+      displayName: 'Prepare analysis on SonarCloud'
+      inputs:
+        SonarCloud: SonarCloud
+        organization: corewcf
+        projectKey: CoreWCF_CoreWCF
+        projectName: 'CoreWCF Code Analysis'
+        extraProperties: |
+          sonar.cs.opencover.reportsPaths=$(Agent.TempDirectory)/**/coverage.opencover.xml
+          sonar.exclusions=src/Samples/**/*.*
+          sonar.coverage.exclusions=src/**/tests/**/*.cs
+      condition: not(eq(variables['build.reason'], 'PullRequest'))
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: ${{ parameters.solution }}
+        arguments: '--no-restore -c Release'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run tests with Coverage
+      timeoutInMinutes: 10
+      inputs:
+        command: test
+        projects: ${{ parameters.testProjects}}
+        arguments: '--no-restore --no-build -c Release -f net6.0 --filter Category!=WindowsOnly --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
+
+    - task: PublishCodeCoverageResults@1
+      displayName: Publish Code Coverage report
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
+
+    - task: SonarCloudAnalyze@1
+      displayName: 'Run SonarCloud analysis'
+      condition: not(eq(variables['build.reason'], 'PullRequest'))
+
+    - task: SonarCloudPublish@1
+      displayName: 'Publish results on build summary'
+      inputs:
+        pollingTimeoutSec: '300'
+      condition: not(eq(variables['build.reason'], 'PullRequest'))

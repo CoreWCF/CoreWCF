@@ -204,7 +204,7 @@ namespace CoreWCF.Description
             return contract;
         }
 
-        //This needs proper review. 
+        //This needs proper review.
         private void AddAuthorizeOperations(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
         {
 
@@ -429,8 +429,13 @@ namespace CoreWCF.Description
             {
                 if (targetIface.IsAssignableFrom(implType) && targetIface.IsInterface)
                 {
-                    ifaceMap = implType.GetInterfaceMap(targetIface);
-                    useImplAttrs = true;
+                    // if implType is an interface not an implementation class
+                    // we cannot use the interface map for looking up the implementation methods
+                    if (!implType.IsInterface)
+                    {
+                        ifaceMap = implType.GetInterfaceMap(targetIface);
+                        useImplAttrs = true;
+                    }
                 }
                 else
                 {
@@ -825,9 +830,9 @@ namespace CoreWCF.Description
                 }
             }
 
-            // this contract 
+            // this contract
             CreateOperationDescriptions(contractDescription, reflectionInfo, contractType, contractDescription, MessageDirection.Input);
-            // CallbackContract 
+            // CallbackContract
             if (callbackType != null && !inheritedCallbackTypes.Contains(callbackType))
             {
                 CreateOperationDescriptions(contractDescription, reflectionInfo, callbackType, contractDescription, MessageDirection.Output);
@@ -943,7 +948,7 @@ namespace CoreWCF.Description
                         existingOp.TaskTResult = newOp.TaskTResult;
                         if (existingOp.SyncMethod != null)
                         {
-                            // Task vs. Sync 
+                            // Task vs. Sync
                             VerifyConsistency(new SyncTaskOperationConsistencyVerifier(existingOp, newOp));
                         }
                         else
@@ -2007,10 +2012,10 @@ namespace CoreWCF.Description
         //  - the service type you want to pull behavior attributes from
         //  - the "destination" behavior collection, where all the right behavior attributes should be added to
         //  - a delegate
-        // The delegate is just a function you write that behaves like this: 
+        // The delegate is just a function you write that behaves like this:
         //    imagine that "currentType" was the only type (imagine there was no inheritance hierarchy)
         //    find desired behavior attributes on this type, and add them to "behaviors"
-        // ApplyServiceInheritance then uses the logic you provide for getting behavior attributes from a single type, 
+        // ApplyServiceInheritance then uses the logic you provide for getting behavior attributes from a single type,
         // and it walks the actual type hierarchy and does the inheritance/override logic for you.
         public static void ApplyServiceInheritance<IBehavior, TBehaviorCollection>(
                      TBehaviorCollection descriptionBehaviors,
@@ -2032,10 +2037,10 @@ namespace CoreWCF.Description
         //  - the type you want to pull behavior attributes from
         //  - the "destination" behavior collection, where all the right behavior attributes should be added to
         //  - a delegate
-        // The delegate is just a function you write that behaves like this: 
+        // The delegate is just a function you write that behaves like this:
         //    imagine that "currentType" was the only type (imagine there was no inheritance hierarchy)
         //    find desired behavior attributes on this type, and add them to "behaviors"
-        // AddBehaviorsAtOneScope then uses the logic you provide for getting behavior attributes from a single type, 
+        // AddBehaviorsAtOneScope then uses the logic you provide for getting behavior attributes from a single type,
         // and it does the override logic for you (only add the behavior if it wasn't already in the descriptionBehaviors)
         private static void AddBehaviorsAtOneScope<IBehavior, TBehaviorCollection>(
                      Type type,

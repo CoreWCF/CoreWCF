@@ -15,14 +15,12 @@ stages:
           _buildConfig: 'Debug'
     pool:
       vmImage: 'windows-latest'
-      demands:
-      - java
     steps:
       - task: UseDotNet@2
         displayName: 'Use .NET Core sdk'
         inputs:
           packageType: sdk
-          version: 5.0.x
+          version: 6.0.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
 
       # NGBV project at https://github.com/dotnet/Nerdbank.GitVersioning
@@ -42,15 +40,6 @@ stages:
           command: 'build'
           projects: ${{ parameters.buildProjects}}
           arguments: '--configuration $(_buildConfig) /t:restore'
-
-      - task: SonarCloudPrepare@1
-        displayName: 'Prepare analysis on SonarCloud'
-        inputs:
-          SonarCloud: SonarCloud
-          organization: corewcf
-          projectKey: CoreWCF_CoreWCF
-          projectName: 'CoreWCF'
-        condition: and(not(eq(variables['build.reason'], 'PullRequest')), eq(variables._buildConfig, 'Release'))
       
       - task: DotNetCoreCLI@2
         displayName: Build $(_buildConfig)
