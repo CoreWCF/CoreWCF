@@ -127,6 +127,7 @@ namespace Helpers
                     });
                 })
             .UseStartup<TStartup>();
+
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG

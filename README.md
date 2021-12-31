@@ -1,6 +1,6 @@
 ### What is Core WCF? 
 
-Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core.
+Core WCF is a port of Windows Communication Foundation (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core.
 
 ### Package Status
 
@@ -10,6 +10,10 @@ Core WCF is a port of Windows Communication Framework (WCF) to .NET Core. The go
 | [CoreWCF.Http](https://www.nuget.org/packages/CoreWCF.Http/)                                 | ![CoreWCF.Http](https://img.shields.io/nuget/v/CoreWCF.Http.svg)                                 | ![CoreWCF.Http](https://img.shields.io/nuget/dt/CoreWCF.Http)                                 |
 | [CoreWCF.NetTcp](https://www.nuget.org/packages/CoreWCF.NetTcp/)                             | ![CoreWCF.NetTcp](https://img.shields.io/nuget/v/CoreWCF.NetTcp.svg)                             | ![CoreWCF.NetTcp](https://img.shields.io/nuget/dt/CoreWCF.NetTcp)                             |
 | [CoreWCF.ConfigurationManager](https://www.nuget.org/packages/CoreWCF.ConfigurationManager/) | ![CoreWCF.ConfigurationManager](https://img.shields.io/nuget/v/CoreWCF.ConfigurationManager.svg) | ![CoreWCF.ConfigurationManager](https://img.shields.io/nuget/dt/CoreWCF.ConfigurationManager) |
+
+### Code Quality
+
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=CoreWCF_CoreWCF)
 
 ### Announcements
 
