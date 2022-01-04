@@ -165,10 +165,11 @@ namespace CoreWCF.Description
                 ListenUriInfo listenUriInfo = GetListenUriInfoForEndpoint(serviceHost, endpoint);
                 if (!stuffPerListenUriInfo.ContainsKey(listenUriInfo))
                 {
-                    stuffPerListenUriInfo.Add(listenUriInfo, new StuffPerListenUriInfo());
+                    StuffPerListenUriInfo stuff = new StuffPerListenUriInfo();
+                    stuff.Parameters.Add(services);
+                    stuffPerListenUriInfo.Add(listenUriInfo, stuff);
                 }
                 stuffPerListenUriInfo[listenUriInfo].Endpoints.Add(endpoint);
-                stuffPerListenUriInfo[listenUriInfo].Parameters.Add(services);
             }
 
             foreach (KeyValuePair<ListenUriInfo, StuffPerListenUriInfo> stuff in stuffPerListenUriInfo)
