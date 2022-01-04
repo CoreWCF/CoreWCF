@@ -19,14 +19,7 @@ namespace Extensibility
             var callContextInitializer = new TestCallContextInitializers();
             var endpointBehavior = new TestEndpointBehavior(callContextInitializer);
 
-            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>((CoreWCF.ServiceHostBase serviceHostBase) =>
-            {
-                foreach (var endpoint in serviceHostBase.Description.Endpoints)
-                {
-                    endpoint.EndpointBehaviors.Add(endpointBehavior);
-                }
-            });
-            factory.Open();
+            var factory = ConfigureFactory(endpointBehavior);
             ISimpleService channel = factory.CreateChannel();
             string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
@@ -46,14 +39,7 @@ namespace Extensibility
             var callContextInitializer = new TestCallContextInitializers();
             var endpointBehavior = new TestEndpointBehavior(callContextInitializer);
 
-            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>((CoreWCF.ServiceHostBase serviceHostBase) =>
-            {
-                foreach (var endpoint in serviceHostBase.Description.Endpoints)
-                {
-                    endpoint.EndpointBehaviors.Add(endpointBehavior);
-                }
-            });
-            factory.Open();
+            var factory = ConfigureFactory(endpointBehavior);
             ISimpleService channel = factory.CreateChannel();
             foreach (int dummy in Enumerable.Range(0, timesToCall))
             {
@@ -67,6 +53,38 @@ namespace Extensibility
             ((System.ServiceModel.Channels.IChannel)channel).Close();
             factory.Close();
             TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+        }
+
+        [Fact]
+        public static void CorrelationStatePassedToAfterInvoke()
+        {
+            var expectedCorrelationState = new object();
+            var callContextInitializer = new TestCallContextInitializers(expectedCorrelationState);
+            var endpointBehavior = new TestEndpointBehavior(callContextInitializer);
+
+            var factory = ConfigureFactory(endpointBehavior);
+            ISimpleService channel = factory.CreateChannel();
+            string echo = channel.Echo("hello");
+
+            ((System.ServiceModel.Channels.IChannel)channel).Close();
+            factory.Close();
+            TestHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+
+            Assert.Same(expectedCorrelationState, callContextInitializer.ActualCorrelationState);
+        }
+
+        private static System.ServiceModel.ChannelFactory<ISimpleService> ConfigureFactory(IEndpointBehavior endpointBehavior)
+        {
+            System.ServiceModel.ChannelFactory<ISimpleService> factory = ExtensibilityHelper.CreateChannelFactory<SimpleService, ISimpleService>((CoreWCF.ServiceHostBase serviceHostBase) =>
+            {
+                foreach (var endpoint in serviceHostBase.Description.Endpoints)
+                {
+                    endpoint.EndpointBehaviors.Add(endpointBehavior);
+                }
+            });
+            factory.Open();
+
+            return factory;
         }
     }
 
@@ -96,18 +114,27 @@ namespace Extensibility
 
     internal class TestCallContextInitializers : ICallContextInitializer
     {
+        private readonly object _correlationStateToReturn;
+
+        public object ActualCorrelationState;
         public int AfterInvokeCount;
         public int BeforeInvokeCount;
 
+        public TestCallContextInitializers(object correlationStateToReturn = null)
+        {
+            _correlationStateToReturn = correlationStateToReturn;
+        }
+
         public void AfterInvoke(object correlationState)
         {
+            ActualCorrelationState = correlationState;
             AfterInvokeCount++;
         }
 
         public object BeforeInvoke(InstanceContext instanceContext, IClientChannel channel, Message message)
         {
             BeforeInvokeCount++;
-            return new object();
+            return _correlationStateToReturn;
         }
     }
 }
