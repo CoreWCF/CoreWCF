@@ -384,6 +384,7 @@ namespace CoreWCF.Description
         internal const string SMMessageParameterAttributeFullName = "System.ServiceModel.MessageParameterAttribute";
         internal const string SMXmlSerializerFormatAttributeFullName = "System.ServiceModel.XmlSerializerFormatAttribute";
         internal const string SMFaultContractAttributeFullName = "System.ServiceModel.FaultContractAttribute";
+        internal const string SMServiceKnownTypeAttributeFullName = "System.ServiceModel.ServiceKnownTypeAttribute";
 
         internal static readonly string CWCFMesssageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
         internal static readonly string CWCFMesssageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";
@@ -504,16 +505,16 @@ namespace CoreWCF.Description
             return types;
         }
 
-        internal static object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType)
+        internal static object[] GetCustomAttributes(ICustomAttributeProvider attrProvider, Type attrType)
         {
             return GetCustomAttributes(attrProvider, attrType, false);
         }
 
-        internal static object[] GetCustomAttributes(CustomAttributeProvider attrProvider, Type attrType, bool inherit)
+        internal static object[] GetCustomAttributes(ICustomAttributeProvider attrProvider, Type attrType, bool inherit)
         {
             try
             {
-                return attrProvider.GetCustomAttributes(attrType, inherit) ?? Array.Empty<object>();
+                return attrProvider.GetDualCustomAttributes(attrType, inherit) ?? Array.Empty<object>();
             }
             catch (Exception e)
             {
@@ -533,14 +534,14 @@ namespace CoreWCF.Description
                     }
                 }
 
-                TypeInfo typeInfo = attrProvider.TypeInfo;
-                MethodInfo method = attrProvider.MethodInfo;
-                ParameterInfo param = attrProvider.ParameterInfo;
+                Type type = attrProvider as Type;
+                MethodInfo method = attrProvider as MethodInfo;
+                ParameterInfo param = attrProvider as ParameterInfo;
                 // there is no good way to know if this is a return type attribute
-                if (typeInfo != null)
+                if (type != null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                        SR.Format(SR.SFxErrorReflectingOnType2, attrType.Name, typeInfo.Name), e));
+                        SR.Format(SR.SFxErrorReflectingOnType2, attrType.Name, type.Name), e));
                 }
                 else if (method != null)
                 {
@@ -563,7 +564,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal static T GetFirstAttribute<T>(CustomAttributeProvider attrProvider)
+        internal static T GetFirstAttribute<T>(ICustomAttributeProvider attrProvider)
             where T : class
         {
             Type attrType = typeof(T);
@@ -578,7 +579,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal static T GetSingleAttribute<T>(CustomAttributeProvider attrProvider) where T : class
+        internal static T GetSingleAttribute<T>(ICustomAttributeProvider attrProvider) where T : class
         {
             Type attrType = typeof(T);
             object[] attrs = GetCustomAttributes(attrProvider, attrType);
@@ -633,7 +634,7 @@ namespace CoreWCF.Description
         //    }
         //}
 
-        internal static T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider)
+        internal static T GetRequiredSingleAttribute<T>(ICustomAttributeProvider attrProvider)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -644,7 +645,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        internal static T GetSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        internal static T GetSingleAttribute<T>(ICustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider);
@@ -667,7 +668,7 @@ namespace CoreWCF.Description
             return result;
         }
 
-        internal static T GetRequiredSingleAttribute<T>(CustomAttributeProvider attrProvider, Type[] attrTypeGroup)
+        internal static T GetRequiredSingleAttribute<T>(ICustomAttributeProvider attrProvider, Type[] attrTypeGroup)
             where T : class
         {
             T result = GetSingleAttribute<T>(attrProvider, attrTypeGroup);

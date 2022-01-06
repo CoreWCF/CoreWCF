@@ -1006,9 +1006,9 @@ namespace CoreWCF.Description
         {
             string ns = isRpc ? null : part.Namespace;
             MemberInfo additionalAttributesProvider = null;
-            if (part.AdditionalAttributesProvider.MemberInfo != null)
+            if (part.AdditionalAttributesProvider is MemberInfo)
             {
-                additionalAttributesProvider = part.AdditionalAttributesProvider.MemberInfo;
+                additionalAttributesProvider = part.AdditionalAttributesProvider as MemberInfo;
             }
 
             XmlName memberName = string.IsNullOrEmpty(part.UniquePartName) ? null : new XmlName(part.UniquePartName, true /*isEncoded*/);
