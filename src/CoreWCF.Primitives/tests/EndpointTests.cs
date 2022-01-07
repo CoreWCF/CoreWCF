@@ -58,7 +58,7 @@ namespace CoreWCF.Primitives.Tests
         public void MultipleEndpointsWithSameListenAddressShouldWork()
         {
             var builder = WebHost.CreateDefaultBuilder<Startup>(null);
-            builder.UseNetTcp();
+            builder.UseNetTcp(8080);
             var host = builder.Build();
             using (host)
                 host.Start();
