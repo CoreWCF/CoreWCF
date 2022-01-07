@@ -43,7 +43,7 @@ namespace CoreWCF.Dispatcher
 
         public string Action { get; }
 
-        internal SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
+        public SynchronizedCollection<ICallContextInitializer> CallContextInitializers { get; }
 
         public SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
