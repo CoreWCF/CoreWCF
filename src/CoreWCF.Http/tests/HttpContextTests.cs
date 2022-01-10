@@ -32,7 +32,10 @@ namespace DependencyInjection
         {
             public string Echo(string echo)
             {
-                HttpContext httpContext = OperationContext.Current.RequestContext.RequestMessage.Properties["Microsoft.AspNetCore.Http.HttpContext"] as HttpContext;
+                HttpContext httpContext = (OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue("Microsoft.AspNetCore.Http.HttpContext", out var @object)
+                    && @object is HttpContext context)
+                    ? context 
+                    : null;
                 IHttpContextAccessor httpContextAccessor = OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>().GetService<IHttpContextAccessor>();
                 Assert.Same(httpContext, httpContextAccessor.HttpContext);
                 return echo;

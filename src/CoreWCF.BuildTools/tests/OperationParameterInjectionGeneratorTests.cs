@@ -132,7 +132,10 @@ namespace MyProject
         {{
             var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
             if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var httpContext = CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties[""Microsoft.AspNetCore.Http.HttpContext""] as Microsoft.AspNetCore.Http.HttpContext;
+            var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)
+                && @object is Microsoft.AspNetCore.Http.HttpContext context)
+                ? context
+                : null;
             if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");
             if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
             {{
@@ -202,7 +205,10 @@ namespace MyProject
         {{
             var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
             if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var httpContext = CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties[""Microsoft.AspNetCore.Http.HttpContext""] as Microsoft.AspNetCore.Http.HttpContext;
+            var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)
+                && @object is Microsoft.AspNetCore.Http.HttpContext context)
+                ? context
+                : null;
             if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");
             if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
             {{
@@ -272,7 +278,10 @@ namespace MyProject
         {{
             var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
             if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            var httpContext = CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties[""Microsoft.AspNetCore.Http.HttpContext""] as Microsoft.AspNetCore.Http.HttpContext;
+            var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)
+                && @object is Microsoft.AspNetCore.Http.HttpContext context)
+                ? context
+                : null;
             if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");
             if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
             {{

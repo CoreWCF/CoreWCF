@@ -146,7 +146,12 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpRequestSymbol)
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpResponseSymbol)))
                 {
-                    builder.AppendLine($@"{indentor}var httpContext = CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties[""Microsoft.AspNetCore.Http.HttpContext""] as Microsoft.AspNetCore.Http.HttpContext;");
+                    builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)");
+                    indentor.Increment();
+                    builder.AppendLine($@"{indentor}&& @object is Microsoft.AspNetCore.Http.HttpContext context)");
+                    builder.AppendLine($@"{indentor}? context");
+                    builder.AppendLine($@"{indentor}: null;");
+                    indentor.Decrement();
                     builder.AppendLine($@"{indentor}if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");");
                 }
 
