@@ -9,7 +9,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    internal class MessagePartSpecification
+    public class MessagePartSpecification
     {
         private List<XmlQualifiedName> _headerTypes;
         private bool _isBodyIncluded;

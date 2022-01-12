@@ -4,6 +4,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.Description;
+using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Channels
 {
@@ -117,6 +119,36 @@ namespace CoreWCF.Channels
             }
 
             return null;
+        }
+
+        public static void ExportWsdlEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext,
+            string wsdlTransportUri, EndpointAddress address, AddressingVersion addressingVersion)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (endpointContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointContext));
+            }
+
+            // Set SoapBinding Transport URI
+            if (wsdlTransportUri != null)
+            {
+                WsdlNS.SoapBinding soapBinding = SoapHelper.GetOrCreateSoapBinding(endpointContext, exporter);
+
+                if (soapBinding != null)
+                {
+                    soapBinding.Transport = wsdlTransportUri;
+                }
+            }
+
+            if (endpointContext.WsdlPort != null)
+            {
+                WsdlExporter.WSAddressingHelper.AddAddressToWsdlPort(endpointContext.WsdlPort, address, addressingVersion);
+            }
         }
 
         protected override bool IsMatch(BindingElement b)

@@ -3,11 +3,15 @@
 
 using System.Net;
 using System.Net.Security;
+using System.Xml;
+using CoreWCF.Description;
 
 namespace CoreWCF.Channels
 {
-    public class HttpsTransportBindingElement : HttpTransportBindingElement
+    public class HttpsTransportBindingElement : HttpTransportBindingElement, ITransportTokenAssertionProvider
     {
+        MessageSecurityVersion _messageSecurityVersion = null;
+
         public HttpsTransportBindingElement() : base()
         {
             RequireClientCertificate = TransportDefaults.RequireClientCertificate;
@@ -73,5 +77,39 @@ namespace CoreWCF.Channels
                 return base.GetProperty<T>(context);
             }
         }
+
+        internal override void OnExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            base.OnExportPolicy(exporter, context);
+            SecurityBindingElement.ExportPolicyForTransportTokenAssertionProviders(exporter, context);
+            // The below code used to be in ExportPolicyForTransportTokenAssertionProviders but as it can't access this class,
+            // it's now been moved inline.
+            if (context.BindingElements.Find<TransportSecurityBindingElement>() == null)
+            {
+                TransportSecurityBindingElement dummyTransportBindingElement = new TransportSecurityBindingElement();
+                if (context.BindingElements.Find<SecurityBindingElement>() == null)
+                {
+                    dummyTransportBindingElement.IncludeTimestamp = false;
+                }
+
+                // In order to generate the right sp assertion without SBE.
+                // scenario: WSxHttpBinding with SecurityMode.Transport.
+                if (_messageSecurityVersion != null)
+                {
+                    dummyTransportBindingElement.MessageSecurityVersion = _messageSecurityVersion;
+                }
+
+                SecurityBindingElement.ExportTransportSecurityBindingElement(dummyTransportBindingElement, this, exporter, context);
+            }
+        }
+
+        #region ITransportTokenAssertionProvider Members
+
+        public XmlElement GetTransportTokenAssertion()
+        {
+            return null;
+        }
+
+        #endregion
     }
 }

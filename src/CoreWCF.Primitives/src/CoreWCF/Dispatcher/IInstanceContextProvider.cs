@@ -6,7 +6,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IInstanceContextProvider
+    public interface IInstanceContextProvider
     {
         InstanceContext GetExistingInstanceContext(Message message, IContextChannel channel);
         void InitializeInstanceContext(InstanceContext instanceContext, Message message, IContextChannel channel);

@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddressingVersionNotSupported" xml:space="preserve">
+    <value>Addressing Version '{0}' is not supported.</value>
+  </data>
+  <data name="DuplicateContractQNameNameOnExport" xml:space="preserve">
+    <value>Duplicate contract XmlQualifiedNames are not supported.\r\nAnother ContractDescription with the Name: {0} and Namespace: {1} has already been exported.</value>
+  </data>
+  <data name="EndpointsMustHaveAValidBinding1" xml:space="preserve">
+    <value>The ServiceEndpoint with name '{0}' could not be exported to WSDL because the Binding property is null. To fix this, set the Binding property to a valid Binding instance.</value>
+  </data>
+  <data name="PolicyExtensionExportError" xml:space="preserve">
+    <value>An exception was thrown in a call to a policy export extension.\r\nExtension: {0}\r\nError: {1}</value>
+  </data>
+  <data name="SFxBadMetadataLocationUri" xml:space="preserve">
+    <value>The URI supplied to ServiceMetadataBehavior via the ExternalMetadataLocation property or the externalMetadataLocation attribute in the serviceMetadata section in config must be a relative URI or an absolute URI with an http or https scheme. '{0}' was specified, which is a absolute URI with {1} scheme.</value>
+  </data>
+  <data name="SFxBindingSchemeDoesNotMatch" xml:space="preserve">
+    <value>The scheme '{0}' used by binding {1} does not match the required scheme '{2}'.</value>
+  </data>
+  <data name="SFxIncorrectMessageVersion" xml:space="preserve">
+    <value>MessageVersion '{0}' is not supported in this scenario.  Only MessageVersion '{1}' is supported.</value>
+  </data>
+  <data name="SFxMetadataReferenceInvalidLocation" xml:space="preserve">
+    <value>The value '{0}' is not valid for the Location property. The Location property must be a valid absolute or relative URI.</value>
+  </data>
+  <data name="SFxServiceMetadataBehaviorInstancingError" xml:space="preserve">
+    <value>The ChannelDispatcher with ListenUri '{0}' has endpoints with the following contracts: {1}. Metadata endpoints cannot share ListenUris. The conflicting endpoints were either specified in AddServiceEndpoint() calls, in a config file, or a combination of AddServiceEndpoint() and config.</value>
+  </data>
+  <data name="SFxServiceMetadataBehaviorNoHttpBaseAddress" xml:space="preserve">
+    <value>The HttpGetEnabled property of ServiceMetadataBehavior is set to true and the HttpGetUrl property is a relative address, but there is no http base address.  Either supply an http base address or set HttpGetUrl to an absolute address.</value>
+  </data>
+  <data name="SFxServiceMetadataBehaviorNoHttpsBaseAddress" xml:space="preserve">
+    <value>The HttpsGetEnabled property of ServiceMetadataBehavior is set to true and the HttpsGetUrl property is a relative address, but there is no https base address.  Either supply an https base address or set HttpsGetUrl to an absolute address.</value>
+  </data>
+  <data name="SFxServiceMetadataBehaviorUrlMustBeHttpOrRelative" xml:space="preserve">
+    <value>{0} must be a relative URI or an absolute URI with scheme '{1}'.  '{2}' is an absolute URI with scheme '{3}'.</value>
+  </data>
+  <data name="WarnDuplicateBindingQNameNameOnExport" xml:space="preserve">
+    <value>Similar ServiceEndpoints were exported. The WSDL export process was forced to suffix wsdl:binding names to avoid naming conflicts.\r\n Similar ServiceEndpoints means different binding instances having the Name: {0} and Namespace: {1} and either the same ContractDescription or at least the same contract Name: {2}.</value>
+  </data>
+  <data name="WsdlExporterIsFaulted" xml:space="preserve">
+    <value>A previous call to this WsdlExporter left it in a faulted state. It is no longer usable.</value>
+  </data>
+  <data name="WsdlExtensionContractExportError" xml:space="preserve">
+    <value>An exception was thrown in a call to a WSDL export extension: {0}\r\n contract: {1}</value>
+  </data>
+  <data name="WsdlExtensionEndpointExportError" xml:space="preserve">
+    <value>An exception was thrown in a call to a WSDL export extension: {0}\r\n Endpoint: {1}</value>
+  </data>
+  <data name="TheServiceMetadataExtensionInstanceCouldNot2_0" xml:space="preserve">
+    <value>The ServiceMetadataExtension instance could not be added to the ServiceHost instance because it has already been added to another ServiceHost instance.</value>
+  </data>
+  <data name="TheServiceMetadataExtensionInstanceCouldNot3_0" xml:space="preserve">
+    <value>The ServiceMetadataExtension instance could not be removed from the ServiceHost instance because it has not been added to any ServiceHost instance.</value>
+  </data>
+  <data name="TheServiceMetadataExtensionInstanceCouldNot4_0" xml:space="preserve">
+    <value>The ServiceMetadataExtension instance could not be removed from the ServiceHost instance because it has already been added to a different ServiceHost instance.</value>
+  </data>
+  <data name="SFxBadMetadataLocationNoAppropriateBaseAddress" xml:space="preserve">
+    <value>The URL supplied to ServiceMetadataBehavior via the ExternalMetadataLocation property or the externalMetadataLocation attribute in the serviceMetadata section in config was a relative URL and there is no base address with which to resolve it. '{0}' was specified.</value>
+  </data>
+  <data name="SFxDocExt_CS" xml:space="preserve">
+    <value>&lt;P class='intro'&gt;&lt;B&gt;C#&lt;/B&gt;&lt;/P&gt;</value>
+  </data>
+  <data name="SFxDocExt_Error" xml:space="preserve">
+    <value>The service encountered an error.</value>
+  </data>
+  <data name="SFxDocExt_MainPageComment" xml:space="preserve">
+    <value>Use the 'client' variable to call operations on the service.</value>
+  </data>
+  <data name="SFxDocExt_MainPageComment2" xml:space="preserve">
+    <value>Always close the client.</value>
+  </data>
+  <data name="SFxDocExt_MainPageIntro1a" xml:space="preserve">
+    <value>You have created a service.&lt;P class='intro'&gt;To test this service, you will need to create a client and use it to call the service. You can do this using the svcutil.exe tool from the command line with the following syntax:&lt;/P&gt;</value>
+  </data>
+  <data name="SFxDocExt_MainPageIntro1b" xml:space="preserve">
+    <value>You have created a service.&lt;P class='intro'&gt;To test this service, you will need to create a client and use it to call the service; however, metadata publishing via ?WSDL is currently disabled. This can be enabled via the service's configuration file. &lt;/P&gt;</value>
+  </data>
+  <data name="SFxDocExt_MainPageIntro2" xml:space="preserve">
+    <value>This will generate a configuration file and a code file that contains the client class. Add the two files to your client application and use the generated client class to call the Service. For example:&lt;BR/&gt;</value>
+  </data>
+  <data name="SFxDocExt_MainPageIntroSingleWsdl" xml:space="preserve">
+    <value>You can also access the service description as a single file:</value>
+  </data>
+  <data name="SFxDocExt_MainPageTitle" xml:space="preserve">
+    <value>{0} Service</value>
+  </data>
+  <data name="SFxDocExt_MainPageTitleNoServiceName" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataConfigComment1" xml:space="preserve">
+    <value>Note: the service name must match the configuration name for the service implementation.Note: the service name must match the configuration name for the service implementation.</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataConfigComment2" xml:space="preserve">
+    <value>Add the following endpoint.</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataConfigComment3" xml:space="preserve">
+    <value>Note: your service must have an http base address to add this endpoint.</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataConfigComment4" xml:space="preserve">
+    <value>Add the following element to your service behavior configuration.</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataSection1" xml:space="preserve">
+    <value>This is a Windows&amp;#169; Communication Foundation service.&lt;BR/&gt;&lt;BR/&gt;&lt;B&gt;Metadata publishing for this service is currently disabled.&lt;/B&gt;&lt;BR/&gt;&lt;BR/&gt;If you have access to the service, you can enable metadata publishing by completing the following steps to modify your web or application configuration file:&lt;BR/&gt;&lt;BR/&gt;1. Create the following service behavior configuration, or add the &amp;lt;serviceMetadata&amp;gt; element to an existing service behavior configuration:</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataSection2" xml:space="preserve">
+    <value>2. Add the behavior configuration to the service:</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataSection3" xml:space="preserve">
+    <value>Note: the service name must match the configuration name for the service implementation.&lt;BR/&gt;&lt;BR/&gt;3. Add the following endpoint to your service configuration:</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataSection4" xml:space="preserve">
+    <value>Note: your service must have an http base address to add this endpoint.&lt;BR/&gt;&lt;BR/&gt;The following is an example service configuration file with metadata publishing enabled:</value>
+  </data>
+  <data name="SFxDocExt_NoMetadataSection5" xml:space="preserve">
+    <value>For more information on publishing metadata please see the following documentation: &lt;a href=\"http://go.microsoft.com/fwlink/?LinkId=65455\"&gt;http://go.microsoft.com/fwlink/?LinkId=65455&lt;/a&gt;.</value>
+  </data>
+  <data name="SFxDocExt_VB" xml:space="preserve">
+    <value>&lt;P class='intro'&gt;&lt;B&gt;Visual Basic&lt;/B&gt;&lt;/P&gt;&lt;P class='intro'&gt;&lt;B&gt;Visual Basic&lt;/B&gt;&lt;/P&gt;</value>
+  </data>
+  <data name="SingleWsdlNotGenerated" xml:space="preserve">
+    <value>A single WSDL document could not be generated for this service. Multiple service contract namespaces were found ({0}). Ensure that all your service contracts have the same namespace.</value>
+  </data>
+  <data name="SFxBadMetadataMustBePolicy" xml:space="preserve">
+    <value>When calling the CreateFromPolicy method, the policy argument must be an XmlElement instance with LocalName '{1}' and NamespaceUri '{0}'. This XmlElement has LocalName '{3}' and NamespaceUri '{2}'.</value>
+  </data>
+  <data name="OnlyBodyReturnValuesSupported" xml:space="preserve">
+    <value>Only body return values are supported currently for protection, MessagePartDescription was specified.</value>
+  </data>
+</root>

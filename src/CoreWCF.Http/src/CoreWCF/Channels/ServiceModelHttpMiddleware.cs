@@ -94,7 +94,7 @@ namespace CoreWCF.Channels
                     }
                     if (binding.Elements.Find<HttpTransportBindingElement>() == null)
                     {
-                        _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding ao skipping");
+                        _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding so skipping");
                         continue; // Not an HTTP(S) dispatcher
                     }
 

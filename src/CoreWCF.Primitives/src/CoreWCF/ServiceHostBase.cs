@@ -347,6 +347,56 @@ namespace CoreWCF
             return via;
         }
 
+        internal Uri GetVia(string scheme, Uri address)
+        {
+            if (!address.IsAbsoluteUri)
+            {
+                Uri baseAddress = null;
+                foreach (var ba in BaseAddresses)
+                {
+                    if (ba.Scheme.Equals(scheme))
+                    {
+                        baseAddress = ba;
+                        break;
+                    }
+                }
+
+                if (baseAddress == null)
+                {
+                    return null;
+                }
+
+                return GetUri(baseAddress, address.OriginalString);
+            }
+
+            return address;
+        }
+
+        private static Uri GetUri(Uri baseUri, string path)
+        {
+            if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
+            {
+                int i = 1;
+                for (; i < path.Length; ++i)
+                {
+                    if (path[i] != '/' && path[i] != '\\')
+                    {
+                        break;
+                    }
+                }
+                path = path.Substring(i);
+            }
+
+            if (path.Length == 0)
+                return baseUri;
+
+            if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
+            {
+                baseUri = new Uri(baseUri.AbsoluteUri + "/");
+            }
+            return new Uri(baseUri, path);
+        }
+
         internal static Uri GetUri(Uri baseUri, Uri relativeUri)
         {
             string path = relativeUri.OriginalString;

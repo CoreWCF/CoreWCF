@@ -11,7 +11,10 @@ using CoreWCF.Runtime;
 namespace CoreWCF.Security
 {
     // This class is used to describe the message security requirements. It's only here as a placeholder
-    // to allow minimal changes to ported code.
+    // to allow minimal changes to ported code. It's needed for Message security which isn't currently supported.
+    // A lot of this code has been copied to CoreWCF.Metadata in the ChannelProtectionRequirementsHelper class.
+    // When Message security is enabled, that class will need to be modified as well to enable WSDL support for
+    // message protection.
     public class ChannelProtectionRequirements
     {
         public ChannelProtectionRequirements()
@@ -51,13 +54,13 @@ namespace CoreWCF.Security
         }
 
 
-        internal ScopedMessagePartSpecification IncomingSignatureParts { get; }
+        public ScopedMessagePartSpecification IncomingSignatureParts { get; }
 
-        internal ScopedMessagePartSpecification IncomingEncryptionParts { get; }
+        public ScopedMessagePartSpecification IncomingEncryptionParts { get; }
 
-        internal ScopedMessagePartSpecification OutgoingSignatureParts { get; }
+        public ScopedMessagePartSpecification OutgoingSignatureParts { get; }
 
-        internal ScopedMessagePartSpecification OutgoingEncryptionParts { get; }
+        public ScopedMessagePartSpecification OutgoingEncryptionParts { get; }
 
         public void Add(ChannelProtectionRequirements protectionRequirements)
         {

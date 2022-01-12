@@ -22,7 +22,6 @@ namespace CoreWCF.Channels.Framing
     public class FramingConnection
     {
         private readonly ConnectionContext _context;
-        private IDuplexPipe _transport;
 
         public FramingConnection(ConnectionContext context) : this(context, NullLogger.Instance) { }
 

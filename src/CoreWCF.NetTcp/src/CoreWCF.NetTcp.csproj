@@ -20,4 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CoreWCF\Description\" />
+  </ItemGroup>
 </Project>
