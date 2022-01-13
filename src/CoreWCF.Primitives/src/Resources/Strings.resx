@@ -8217,4 +8217,7 @@
   <data name="SynchronousUserNamePasswordValidationIsDeprecated" xml:space="preserve">
     <value>Implementers should implement ValidateAsync instead.</value>
   </data>
+  <data name="UnknownServiceConfiguration" xml:space="preserve">
+    <value>Could not find service '{0}' in configured services. Service must be registered using 'IServiceBuilder.AddService&lt;TService&gt;(...)' before registering a service endpoint using 'IServiceBuilder.AddServiceEndpoint&lt;TService, TContract&gt;(...)'</value>
+  </data>
 </root>
