@@ -132,7 +132,8 @@ namespace CoreWCF.BuildTools
                     CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
                     TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute")
+                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
+                    MicrosoftAspNetCoreMvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                 };
             }
 
@@ -242,6 +243,10 @@ namespace CoreWCF.BuildTools
                             string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                             if (fullName == "CoreWCF.InjectedAttribute")
+                            {
+                                return methodDeclarationSyntax;
+                            }
+                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                             {
                                 return methodDeclarationSyntax;
                             }
