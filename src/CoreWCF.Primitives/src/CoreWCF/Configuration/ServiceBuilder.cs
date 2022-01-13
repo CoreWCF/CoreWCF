@@ -48,6 +48,11 @@ namespace CoreWCF.Configuration
             return AddService(typeof(TService));
         }
 
+        public IServiceBuilder AddService<TService>(Action<ServiceOptions> options) where TService : class
+        {
+            return AddService(typeof(TService), options);
+        }
+
         public IServiceBuilder AddService(Type service)
         {
             if (service is null)
@@ -59,6 +64,22 @@ namespace CoreWCF.Configuration
             _services[serviceConfig.ServiceType] = serviceConfig;
             return this;
         }
+
+        public IServiceBuilder AddService(Type service, Action<ServiceOptions> options)
+        {
+            if (service is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(service)));
+            }
+            var serviceConfig = (IServiceConfiguration)ServiceProvider.GetRequiredService(
+                typeof(IServiceConfiguration<>).MakeGenericType(service));
+            _services[serviceConfig.ServiceType] = serviceConfig;
+            ServiceConfigurationDelegateHolder holder = (ServiceConfigurationDelegateHolder)ServiceProvider
+                .GetRequiredService(typeof(ServiceConfigurationDelegateHolder<>).MakeGenericType(service));
+            holder.AddServiceOptionsDelegate(options);
+            return this;
+        }
+
 
         public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address)
         {

@@ -233,6 +233,15 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceHostBaseCannotApplyConfigurationWithoutDescription));
             }
+
+            EnsureAuthenticationAuthorizationDebug(Description);
+        }
+
+        internal void EnsureAuthenticationAuthorizationDebug(ServiceDescription description)
+        {
+            //EnsureAuthentication(description);
+            EnsureAuthorization(description);
+            EnsureDebug(description);
         }
 
         internal virtual void BindInstance(InstanceContext instance)
@@ -288,6 +297,20 @@ namespace CoreWCF
         //    }
         //    return a;
         //}
+
+        ServiceDebugBehavior EnsureDebug(ServiceDescription description)
+        {
+            Fx.Assert(this.State == CommunicationState.Created || this.State == CommunicationState.Opening, "");
+            ServiceDebugBehavior m = description.Behaviors.Find<ServiceDebugBehavior>();
+
+            if (m == null)
+            {
+                m = new ServiceDebugBehavior();
+                description.Behaviors.Add(m);
+            }
+
+            return m;
+        }
 
         private ServiceCredentials EnsureCredentials(ServiceDescription description)
         {

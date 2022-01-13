@@ -3585,12 +3585,6 @@
   <data name="SFxDocExt_NoMetadataConfigComment4" xml:space="preserve">
     <value>Add the following element to your service behavior configuration.</value>
   </data>
-  <data name="SFxDocExt_CS" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;C#&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
-  <data name="SFxDocExt_VB" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;Visual Basic&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
   <data name="SFxDocExt_MainPageTitleNoServiceName" xml:space="preserve">
     <value>Service</value>
   </data>

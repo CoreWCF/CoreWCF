@@ -501,7 +501,7 @@ namespace CoreWCF.Description
             internal WSMexImpl(ServiceMetadataExtension parent, bool isListeningOnHttps, Uri listenUri)
             {
                 this.parent = parent;
-                this.IsListeningOnHttps = isListeningOnHttps;
+                IsListeningOnHttps = isListeningOnHttps;
                 this.listenUri = listenUri;
 
                 if (this.parent.ExternalMetadataLocation != null && this.parent.ExternalMetadataLocation != s_emptyUri)
@@ -611,6 +611,7 @@ namespace CoreWCF.Description
                 this.parent = parent;
                 this.listenUri = listenUri;
                 GetWsdlEnabled = parent.HttpsGetEnabled || parent.HttpGetEnabled;
+                HelpPageEnabled = parent.HelpPageEnabled;
             }
 
             public bool HelpPageEnabled { get; set; } = false;
@@ -969,7 +970,7 @@ namespace CoreWCF.Description
                         {
                             string query = WsdlQueryString;
                             if (wsdlDoc != defaultWsdl) // don't count the WSDL at ?WSDL
-                                query += "=wsdl" + (i++).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                query += "=wsdl" + (i++).ToString(CultureInfo.InvariantCulture);
 
                             docFromQueryInit.Add(query, wsdlDoc);
                             queryFromDocInit.Add(wsdlDoc, query);
@@ -981,7 +982,7 @@ namespace CoreWCF.Description
                         int i = 0;
                         foreach (XmlSchema xsdDoc in xsds.Schemas())
                         {
-                            string query = XsdQueryString + "=xsd" + (i++).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            string query = XsdQueryString + "=xsd" + (i++).ToString(CultureInfo.InvariantCulture);
                             docFromQueryInit.Add(query, xsdDoc);
                             queryFromDocInit.Add(xsdDoc, query);
                         }
@@ -1280,6 +1281,7 @@ namespace CoreWCF.Description
                     HelpPageWriter page = new HelpPageWriter(writer);
 
                     writer.WriteStartElement("HTML");
+                    writer.WriteAttributeString("lang", "en"); // We don't have localized strings so no need to look up "en"
                     writer.WriteStartElement("HEAD");
 
                     if (!string.IsNullOrEmpty(discoUrl))
@@ -1321,7 +1323,7 @@ namespace CoreWCF.Description
                     internal void WriteClass(string className)
                     {
                         writer.WriteStartElement("font");
-                        writer.WriteAttributeString("color", "teal");
+                        writer.WriteAttributeString("color", "black");
                         writer.WriteString(className);
                         writer.WriteEndElement(); // font
                     }
@@ -1329,7 +1331,7 @@ namespace CoreWCF.Description
                     internal void WriteComment(string comment)
                     {
                         writer.WriteStartElement("font");
-                        writer.WriteAttributeString("color", "green");
+                        writer.WriteAttributeString("color", "darkgreen");
                         writer.WriteString(comment);
                         writer.WriteEndElement(); // font
                     }
@@ -1364,13 +1366,11 @@ namespace CoreWCF.Description
                     {
                         writer.WriteStartElement("P");
                         writer.WriteAttributeString("class", "intro");
+                        writer.WriteRaw(SR.SFxDocExt_MainPageIntro2);
                         writer.WriteEndElement(); // P
 
-                        writer.WriteRaw(SR.SFxDocExt_MainPageIntro2);
-
-
                         // C#
-                        writer.WriteRaw(SR.SFxDocExt_CS);
+                        this.writer.WriteRaw("<h2 class='intro'>C#</h2><br />");
                         writer.WriteStartElement("PRE");
                         WriteKeyword("class ");
                         WriteClass("Test\n");
@@ -1390,11 +1390,11 @@ namespace CoreWCF.Description
                         writer.WriteString("    }\n");
                         writer.WriteString("}\n");
                         writer.WriteEndElement(); // PRE
-                        writer.WriteRaw(HttpGetImpl.HtmlBreak);
+                        writer.WriteRaw(HtmlBreak);
 
 
                         // VB
-                        writer.WriteRaw(SR.SFxDocExt_VB);
+                        writer.WriteRaw("<h2 class='intro'>Visual Basic</h2><br />");
                         writer.WriteStartElement("PRE");
                         WriteKeyword("Class ");
                         WriteClass("Test\n");
@@ -1431,22 +1431,23 @@ namespace CoreWCF.Description
                         writer.WriteString("P{MARGIN-TOP: 0px; MARGIN-BOTTOM: 12px; COLOR: #000000; FONT-FAMILY: Verdana}");
                         writer.WriteString("PRE{BORDER-RIGHT: #f0f0e0 1px solid; PADDING-RIGHT: 5px; BORDER-TOP: #f0f0e0 1px solid; MARGIN-TOP: -5px; PADDING-LEFT: 5px; FONT-SIZE: 1.2em; PADDING-BOTTOM: 5px; BORDER-LEFT: #f0f0e0 1px solid; PADDING-TOP: 5px; BORDER-BOTTOM: #f0f0e0 1px solid; FONT-FAMILY: Courier New; BACKGROUND-COLOR: #e5e5cc}");
                         writer.WriteString(".heading1{MARGIN-TOP: 0px; PADDING-LEFT: 15px; FONT-WEIGHT: normal; FONT-SIZE: 26px; MARGIN-BOTTOM: 0px; PADDING-BOTTOM: 3px; MARGIN-LEFT: -30px; WIDTH: 100%; COLOR: #ffffff; PADDING-TOP: 10px; FONT-FAMILY: Tahoma; BACKGROUND-COLOR: #003366}");
-                        writer.WriteString(".intro{MARGIN-LEFT: -15px}");
-                        writer.WriteEndElement(); // STYLE
+                        writer.WriteString(".intro{display: block; font-size: 1em;}");
+                        writer.WriteEndElement();
                     }
 
                     internal void WriteTitle(string title)
                     {
                         writer.WriteElementString("TITLE", title);
-                        writer.WriteEndElement(); // HEAD
+                        writer.WriteEndElement();
                         writer.WriteStartElement("BODY");
                         writer.WriteStartElement("DIV");
                         writer.WriteAttributeString("id", "content");
-                        writer.WriteStartElement("P");
+                        writer.WriteAttributeString("role", "main");
+                        writer.WriteStartElement("h1");
                         writer.WriteAttributeString("class", "heading1");
                         writer.WriteString(title);
-                        writer.WriteEndElement(); // P
-                        writer.WriteRaw(HttpGetImpl.HtmlBreak);
+                        writer.WriteEndElement();
+                        writer.WriteRaw(HtmlBreak);
 
                     }
 
@@ -1477,7 +1478,7 @@ namespace CoreWCF.Description
                     private void WriteMetadataAddress(string introductionText, string clientToolName, string wsdlUrl, bool linkMetadata)
                     {
                         writer.WriteRaw(introductionText);
-                        writer.WriteRaw(HttpGetImpl.HtmlBreak);
+                        writer.WriteRaw(HtmlBreak);
                         writer.WriteStartElement("PRE");
                         if (!string.IsNullOrEmpty(clientToolName))
                         {
@@ -1586,10 +1587,8 @@ SR.SFxDocExt_NoMetadataSection5        ));
                         var utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
                         using (var textWriter = new StreamWriter(memoryStream, encoding: utf8NoBomEncoding, bufferSize: 1024, leaveOpen: true))
                         {
-                            using (var xmlTextWriter = new XmlTextWriter(textWriter))
+                            using (var xmlTextWriter = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = false, OmitXmlDeclaration = true }))
                             {
-                                xmlTextWriter.Formatting = Formatting.Indented;
-                                xmlTextWriter.Indentation = 2;
                                 Write(xmlTextWriter);
                             }
                         }
@@ -1850,14 +1849,14 @@ SR.SFxDocExt_NoMetadataSection5        ));
             {
                 Uri uri;
                 if (removeBaseAddress &&
-                    text.StartsWith(ServiceMetadataExtension.BaseAddressPattern, StringComparison.Ordinal))
+                    text.StartsWith(BaseAddressPattern, StringComparison.Ordinal))
                 {
                     text = string.Empty;
                 }
                 else if (!removeBaseAddress &&
-                    text.Contains(ServiceMetadataExtension.BaseAddressPattern))
+                    text.Contains(BaseAddressPattern))
                 {
-                    text = text.Replace(ServiceMetadataExtension.BaseAddressPattern, newBaseAddress);
+                    text = text.Replace(BaseAddressPattern, newBaseAddress);
                 }
                 else if (Uri.TryCreate(text, UriKind.Absolute, out uri))
                 {

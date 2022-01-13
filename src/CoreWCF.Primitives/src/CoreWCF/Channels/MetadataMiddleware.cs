@@ -84,7 +84,7 @@ namespace CoreWCF.Channels
                     if ("GET".Equals(reqContext.Request.Method, StringComparison.OrdinalIgnoreCase))
                     {
                         // If request is a GET request, continue on the branchApp middleware chain
-                        // to handle requests for WSDL
+                        // to handle requests for WSDL, HelpPage etc
                         return branchNext(reqContext);
                     }
 
@@ -104,28 +104,65 @@ namespace CoreWCF.Channels
 
             foreach (Type serviceType in _serviceBuilder.Services)
             {
+                void MapMetadata(IApplicationBuilder app, string path, Action<IApplicationBuilder> configure)
+                {
+                    if (path.EndsWith("/"))
+                    {
+                        path = path.Substring(0, path.Length - 1);
+                    }
+
+                    if (string.IsNullOrEmpty(path) )
+                    {
+                        configure(app);
+                    }
+                    else
+                    {
+                        app.Map(path, configure);
+                    }
+                }
+
                 System.Collections.Generic.List<IServiceDispatcher> dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
                 foreach (IServiceDispatcher dispatcher in dispatchers)
                 {
-                    if (dispatcher.BaseAddress == null)
+                    bool extensionProvidedUrl = false;
+                    var metadataExtension = dispatcher.Host.Extensions.Find<ServiceMetadataExtension>();
+                    if (metadataExtension.HttpGetEnabled && metadataExtension.HttpGetUrl != null && metadataExtension.HttpGetUrl.AbsolutePath != "/")
                     {
-                        // TODO: Should we throw? Ignore?
-                        continue;
+                        extensionProvidedUrl = true;
+                        MapMetadata(branchApp, metadataExtension.HttpGetUrl.AbsolutePath, metadataExtension.ConfigureWith(metadataExtension.HttpGetUrl));
                     }
 
-                    //if (!(dispatcher.Binding is CustomBinding binding))
-                    //{
-                    //    binding = new CustomBinding(dispatcher.Binding);
-                    //}
-                    //var tbe = binding.Elements.Find<TransportBindingElement>();
-                    //if (!"http".Equals(tbe.Scheme, StringComparison.OrdinalIgnoreCase) && !"https".Equals(tbe.Scheme, StringComparison.OrdinalIgnoreCase))
-                    //{
-                    //    _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} with transport scheme {tbe.Scheme} is not an HTTP[S] binding so skipping");
-                    //    continue; // Not an HTTP(S) dispatcher
-                    //}
+                    if (metadataExtension.HttpsGetEnabled && metadataExtension.HttpsGetUrl != null && metadataExtension.HttpsGetUrl.AbsolutePath != "/"
+                        && !string.Equals(metadataExtension.HttpsGetUrl.AbsolutePath, metadataExtension.HttpGetUrl?.AbsolutePath))
+                    {
+                        extensionProvidedUrl = true;
+                        MapMetadata(branchApp, metadataExtension.HttpsGetUrl.AbsolutePath, metadataExtension.ConfigureWith(metadataExtension.HttpsGetUrl));
+                    }
 
-                    var metadataExtension = dispatcher.Host.Extensions.Find<ServiceMetadataExtension>();
-                    branchApp.Map(dispatcher.BaseAddress.AbsolutePath, metadataExtension.ConfigureWith(dispatcher.BaseAddress));
+                    if (metadataExtension.HttpHelpPageEnabled && metadataExtension.HttpHelpPageUrl != null && metadataExtension.HttpHelpPageUrl.AbsolutePath != "/"
+                        && !string.Equals(metadataExtension.HttpHelpPageUrl.AbsolutePath, metadataExtension.HttpGetUrl?.AbsolutePath))
+                    {
+                        extensionProvidedUrl = true;
+                        MapMetadata(branchApp, metadataExtension.HttpHelpPageUrl.AbsolutePath, metadataExtension.ConfigureWith(metadataExtension.HttpHelpPageUrl));
+                    }
+
+                    if (metadataExtension.HttpsHelpPageEnabled && metadataExtension.HttpsHelpPageUrl != null && metadataExtension.HttpsHelpPageUrl.AbsolutePath != "/"
+                        && !string.Equals(metadataExtension.HttpsHelpPageUrl.AbsolutePath, metadataExtension.HttpHelpPageUrl?.AbsolutePath))
+                    {
+                        extensionProvidedUrl = true;
+                        MapMetadata(branchApp, metadataExtension.HttpsHelpPageUrl.AbsolutePath, metadataExtension.ConfigureWith(metadataExtension.HttpsHelpPageUrl));
+                    }
+
+                    if (!extensionProvidedUrl)
+                    {
+                        if (dispatcher.BaseAddress == null)
+                        {
+                            // TODO: Should we throw? Ignore?
+                            continue;
+                        }
+
+                        branchApp.Map(dispatcher.BaseAddress.AbsolutePath, metadataExtension.ConfigureWith(dispatcher.BaseAddress));
+                    }
                 }
             }
 

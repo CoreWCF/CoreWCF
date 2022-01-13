@@ -40,7 +40,7 @@ namespace CoreWCF
             InitializeDescription(new UriSchemeKeyedCollection(serviceBuilder.BaseAddresses.ToArray()));
         }
 
-        public TService SingletonInstance { get; private set; }
+        public TService SingletonInstance { get; set; }
 
         internal override object DisposableInstance
         {

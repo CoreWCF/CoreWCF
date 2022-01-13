@@ -697,6 +697,8 @@ namespace CoreWCF.Description
             }
 
             ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
+            var options = new ServiceOptions<TService>(serviceHost);
+            options.ApplyOptions(configDelegate);
             configDelegate?.Configure(serviceHost);
             InitializeServiceHost(serviceHost, services);
 
