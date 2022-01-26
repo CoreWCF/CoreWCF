@@ -87,7 +87,7 @@ namespace CoreWCF.Dispatcher
 
         public ChannelDispatcher ChannelDispatcher { get; private set; }
 
-        internal MessageFilter ContractFilter
+        public MessageFilter ContractFilter
         {
             get { return _contractFilter; }
             set
@@ -170,7 +170,7 @@ namespace CoreWCF.Dispatcher
 
         public int FilterPriority { get; set; }
 
-        internal string Id { get; set; }
+        public string Id { get; set; }
 
         //internal string PerfCounterId
         //{

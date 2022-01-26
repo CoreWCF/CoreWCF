@@ -3,6 +3,7 @@
 
 using System;
 using CoreWCF.Channels;
+using CoreWCF.Description;
 
 namespace CoreWCF.Configuration
 {
@@ -12,5 +13,6 @@ namespace CoreWCF.Configuration
         public Binding Binding { get; set; }
         public Type Contract { get; set; }
         public Uri ListenUri { get; set; }
+        public Action<ServiceEndpoint> ConfigureEndpoint { get; set; }
     }
 }

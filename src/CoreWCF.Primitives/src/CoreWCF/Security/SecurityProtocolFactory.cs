@@ -901,7 +901,7 @@ namespace CoreWCF.Security
             {
                 if (!SupportsReplayDetection)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("DetectReplays", SR.Format(SR.SecurityProtocolCannotDoReplayDetection, this));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(DetectReplays), SR.Format(SR.SecurityProtocolCannotDoReplayDetection, this));
                 }
                 if (MaxClockSkew == TimeSpan.MaxValue || ReplayWindow == TimeSpan.MaxValue)
                 {

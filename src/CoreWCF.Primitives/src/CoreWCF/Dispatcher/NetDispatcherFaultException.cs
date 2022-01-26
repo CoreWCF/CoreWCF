@@ -5,7 +5,7 @@ using System;
 
 namespace CoreWCF.Dispatcher
 {
-    internal class NetDispatcherFaultException : FaultException
+    public class NetDispatcherFaultException : FaultException
     {
         public NetDispatcherFaultException(string reason, FaultCode code, Exception innerException)
             : base(reason, code, FaultCodeConstants.Actions.NetDispatcher, innerException)
@@ -14,6 +14,14 @@ namespace CoreWCF.Dispatcher
         public NetDispatcherFaultException(FaultReason reason, FaultCode code, Exception innerException)
             : base(reason, code, FaultCodeConstants.Actions.NetDispatcher, innerException)
         {
+        }
+
+        public static NetDispatcherFaultException CreateDeserializationFailedFault(string reason, Exception innerException)
+        {
+            reason = SR.Format(SR.SFxDeserializationFailed1, reason);
+            FaultCode code = new FaultCode(FaultCodeConstants.Codes.DeserializationFailed, FaultCodeConstants.Namespaces.NetDispatch);
+            code = FaultCode.CreateSenderFaultCode(code);
+            return new NetDispatcherFaultException(reason, code, innerException);
         }
     }
 }

@@ -176,7 +176,7 @@ namespace CoreWCF.Channels
             SoapHelper.SetSoapVersion(context, exporter, MessageVersion.Envelope);
         }
 
-        internal override bool CheckEncodingVersion(EnvelopeVersion version)
+        protected override bool CheckEncodingVersion(EnvelopeVersion version)
         {
             return _messageVersion.Envelope == version;
         }

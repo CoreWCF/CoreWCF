@@ -35,7 +35,7 @@ namespace CoreWCF.Dispatcher
             _authorizeClaims = new ConcurrentDictionary<string, List<Claim>>();
         }
 
-        internal DispatchOperation(DispatchRuntime parent, string name, string action, string replyAction) : this(parent, name, action)
+        public DispatchOperation(DispatchRuntime parent, string name, string action, string replyAction) : this(parent, name, action)
         {
             ReplyAction = replyAction;
             IsOneWay = false;
@@ -47,7 +47,7 @@ namespace CoreWCF.Dispatcher
 
         public SynchronizedCollection<FaultContractInfo> FaultContractInfos { get; }
 
-        internal IDispatchMessageFormatter Formatter
+        public IDispatchMessageFormatter Formatter
         {
             get { return InternalFormatter; }
             set
@@ -60,7 +60,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal IDispatchFaultFormatter FaultFormatter
+        public IDispatchFaultFormatter FaultFormatter
         {
             get
             {
