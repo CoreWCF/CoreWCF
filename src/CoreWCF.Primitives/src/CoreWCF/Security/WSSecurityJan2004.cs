@@ -257,7 +257,7 @@ namespace CoreWCF.Security
                     case SecurityTokenReferenceStyle.External:
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.CantInferReferenceForToken, EncryptedKey.ElementName.Value)));
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("tokenReferenceStyle"));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(tokenReferenceStyle)));
                 }
             }
 
@@ -295,7 +295,7 @@ namespace CoreWCF.Security
                 {
                     if (tokenResolver == null)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("tokenResolver"));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(tokenResolver)));
                     }
                     if (unwrappingTokenIdentifier == null || unwrappingTokenIdentifier.Count == 0)
                     {

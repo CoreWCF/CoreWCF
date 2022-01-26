@@ -16,7 +16,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
-    internal class XmlSerializerOperationBehavior : IOperationBehavior
+    public class XmlSerializerOperationBehavior : IOperationBehavior
     {
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -34,11 +34,10 @@ namespace CoreWCF.Description
             OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
-        internal XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute, Reflector parentReflector)
+        public XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute, string contractType)
             : this(operation, attribute)
         {
-            // used by System.ServiceModel.Web
-            OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
+            OperationReflector = new Reflector(contractType, null).ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
         private XmlSerializerOperationBehavior(Reflector.OperationReflector reflector, bool builtInOperationBehavior)

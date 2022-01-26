@@ -9,6 +9,7 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
+dotnet_style_require_accessibility_modifiers=for_non_interface_members:warning
 
 [project.json]
 indent_size = 2

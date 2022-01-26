@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
+using CoreWCF.Description;
 
 namespace CoreWCF.Configuration
 {
@@ -15,13 +16,22 @@ namespace CoreWCF.Configuration
         IServiceBuilder AddService<TService>() where TService : class;
         IServiceBuilder AddService(Type service);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address);
+        IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address);
+        IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri);
+        IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri);
+        IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address);
+        IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address);
+        IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri);
+        IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri);
+        IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint);
         IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri);
+        IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint);
     }
 }
