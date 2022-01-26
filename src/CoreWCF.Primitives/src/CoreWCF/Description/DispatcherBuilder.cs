@@ -701,6 +701,11 @@ namespace CoreWCF.Description
                     endpointConfig.Binding,
                     new EndpointAddress(uri));
 
+                if (endpointConfig.ConfigureEndpoint != null)
+                {
+                    serviceEndpoint.Behaviors.Add(new EndpointConfiguratorEndpointBehavior(endpointConfig.ConfigureEndpoint));
+                }
+
                 serviceHost.Description.Endpoints.Add(serviceEndpoint);
             }
 

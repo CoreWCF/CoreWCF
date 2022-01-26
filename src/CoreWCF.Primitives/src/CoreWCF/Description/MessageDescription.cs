@@ -27,6 +27,29 @@ namespace CoreWCF.Description
             _items = items;
         }
 
+        internal MessageDescription(MessageDescription other)
+        {
+            Action = other.Action;
+            Direction = other.Direction;
+            Items.Body = other.Items.Body.Clone();
+            foreach (MessageHeaderDescription mhd in other.Items.Headers)
+            {
+                Items.Headers.Add(mhd.Clone() as MessageHeaderDescription);
+            }
+            foreach (MessagePropertyDescription mpd in other.Items.Properties)
+            {
+                Items.Properties.Add(mpd.Clone() as MessagePropertyDescription);
+            }
+            MessageName = other.MessageName;
+            MessageType = other.MessageType;
+
+        }
+
+        public MessageDescription Clone()
+        {
+            return new MessageDescription(this);
+        }
+
         public string Action { get; internal set; }
 
         public MessageBodyDescription Body

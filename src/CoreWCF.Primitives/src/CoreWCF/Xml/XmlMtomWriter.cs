@@ -256,7 +256,7 @@ namespace CoreWCF.Xml
         public override void WriteValue(IStreamProvider value)
         {
             if (value == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("value"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
 
             if (Writer.WriteState == WriteState.Element)
             {
@@ -276,7 +276,7 @@ namespace CoreWCF.Xml
             if (Writer.WriteState == WriteState.Element)
             {
                 if (buffer == null)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("buffer"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(buffer)));
 
                 // Not checking upper bound because it will be caught by "count".  This is what XmlTextWriter does.
                 if (index < 0)

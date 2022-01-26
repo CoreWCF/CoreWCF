@@ -657,10 +657,16 @@ namespace CoreWCF.Channels
             return value != null;
         }
 
-        internal bool TryGetValue<TProperty>(string name, out TProperty property)
+        public bool TryGetValue<TProperty>(string name, out TProperty property)
         {
             if (TryGetValue(name, out object o))
             {
+                if (!(o is TProperty))
+                {
+                    property = default;
+                    return false;
+                }
+                    
                 property = (TProperty)o;
                 return true;
             }

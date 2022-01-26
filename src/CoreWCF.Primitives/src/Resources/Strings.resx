@@ -1596,6 +1596,12 @@
   <data name="BinaryEncoderSessionMalformed" xml:space="preserve">
     <value>The binary encoder session information is not properly formed.</value>
   </data>
+  <data name="MaxReceivedMessageSizeExceeded" xml:space="preserve">
+    <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
+  </data>
+  <data name="MaxSentMessageSizeExceeded" xml:space="preserve">
+    <value>The maximum message size quota for outgoing messages ({0}) has been exceeded.</value>
+  </data>
   <data name="FramingMaxMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages has been exceeded for the remote channel. See the server logs for more details.</value>
   </data>
@@ -9674,5 +9680,50 @@
   </data>
   <data name="GenericTypeNotExportable" xml:space="preserve">
     <value>Type '{0}' cannot be exported as a schema type because it is an open generic type. You can only export a generic type if all its generic parameter types are actual types.</value>
+  </data>
+  <data name="ArgumentNotInSetOfValidValues" xml:space="preserve">
+    <value>Specified argument was not in the set of valid values.</value>
+  </data>
+  <data name="ArgumentOutOfMinRange" xml:space="preserve">
+    <value>Specified argument was out of the range of valid values.  The value must be at least {0}.</value>
+  </data>
+  <data name="ArgumentPropertyShouldNotBeNullError" xml:space="preserve">
+    <value>Argument property '{0}' should not be null.</value>
+  </data>
+  <data name="ByteStreamMessageEncoderMessageVersionNotSupported" xml:space="preserve">
+    <value>The ByteStreamMessageEncoder does not support the MessageVersion '{0}'.</value>
+  </data>
+  <data name="ByteStreamMessageGetTypeNotSupported" xml:space="preserve">
+    <value>The GetBody method for type '{0}' is not supported. Please call GetBody with a type 'Stream' or 'byte[]' instead.</value>
+  </data>
+  <data name="ByteStreamReaderNotInByteStream" xml:space="preserve">
+    <value>The reader is not positioned within the byte stream. The reader must be positioned within the element '{0}'.</value>
+  </data>
+  <data name="ByteStreamWriteStartElementAlreadyCalled" xml:space="preserve">
+    <value>WriteStartElement has already been called on this encoder.</value>
+  </data>
+  <data name="GetByteArrayFromStreamContentNotAllowed" xml:space="preserve">
+    <value>The GetBody method for 'byte[]' is not supported because the message contains a Stream.</value>
+  </data>
+  <data name="XmlReaderClosed" xml:space="preserve">
+    <value>The XmlReader is closed.</value>
+  </data>
+  <data name="XmlStartElementNameExpected" xml:space="preserve">
+    <value>Start element '{0}' expected. Found '{1}'.</value>
+  </data>
+  <data name="XmlUnexpectedEndElement" xml:space="preserve">
+    <value>No matching start tag for end element.</value>
+  </data>
+  <data name="XmlWriterMustBeInElement" xml:space="preserve">
+    <value>WriteState '{0}' not valid. Caller must write start element before serializing in contentOnly mode.</value>
+  </data>
+  <data name="XmlWriterBackedStreamMethodNotSupported" xml:space="preserve">
+    <value>The '{0}' method is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertyGetNotSupported" xml:space="preserve">
+    <value>The get accessor of the '{0}' property is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertySetNotSupported" xml:space="preserve">
+    <value>The set accessor of the '{0}' property is not supported by the stream.</value>
   </data>
 </root>

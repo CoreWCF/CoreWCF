@@ -5,13 +5,13 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IDispatchFaultFormatter
+    public interface IDispatchFaultFormatter
     {
         MessageFault Serialize(FaultException faultException, out string action);
     }
 
     // Only used on full framework by WebHttpBehavior
-    internal interface IDispatchFaultFormatterWrapper
+    public interface IDispatchFaultFormatterWrapper
     {
         IDispatchFaultFormatter InnerFaultFormatter
         {

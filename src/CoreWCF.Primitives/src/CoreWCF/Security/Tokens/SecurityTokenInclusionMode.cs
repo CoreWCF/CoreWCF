@@ -28,7 +28,7 @@ namespace CoreWCF.Security.Tokens
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SecurityTokenInclusionMode)));
             }
         }

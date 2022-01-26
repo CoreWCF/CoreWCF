@@ -7,7 +7,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    internal class PrefixEndpointAddressMessageFilter : MessageFilter
+    public class PrefixEndpointAddressMessageFilter : MessageFilter
     {
         private readonly EndpointAddressMessageFilterHelper _helper;
         private readonly UriPrefixTable<object> _addressTable;

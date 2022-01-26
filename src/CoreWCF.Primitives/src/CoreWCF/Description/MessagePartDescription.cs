@@ -48,7 +48,13 @@ namespace CoreWCF.Description
             //this.uniquePartName = other.uniquePartName;
         }
 
-        internal virtual MessagePartDescription Clone()
+        internal MessagePartDescription(MessagePartDescription other, string name, string ns) : this(other)
+        {
+            XmlName = new XmlName(name, true /*isEncoded*/);
+            Namespace = ns;
+        }
+
+        public virtual MessagePartDescription Clone()
         {
             return new MessagePartDescription(this);
         }
