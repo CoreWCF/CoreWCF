@@ -73,7 +73,7 @@ namespace CoreWCF.Channels
 
         public int MaxBufferSize => _maxBufferSize;
 
-        internal TextMessageEncoderFactory.ContentEncoding[] ContentEncodingMap { get; }
+        internal ContentEncoding[] ContentEncodingMap { get; }
 
         internal XmlDictionaryWriter TakeStreamedWriter(Stream stream, string startInfo, string boundary, string startUri, bool writeMessageHeaders)
         {
@@ -345,7 +345,7 @@ namespace CoreWCF.Channels
             return (IsMTOMContentType(contentType) || IsTextContentType(contentType));
         }
 
-        internal override bool IsCharSetSupported(string charSet)
+        protected override bool IsCharSetSupported(string charSet)
         {
             if (charSet == null || charSet.Length == 0)
                 return true;

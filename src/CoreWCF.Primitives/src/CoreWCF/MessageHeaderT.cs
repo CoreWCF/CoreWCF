@@ -156,7 +156,7 @@ namespace CoreWCF
 
                 if (!(typedHeaderInstance is MessageHeader<T> header))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException("typedHeaderInstance"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(nameof(typedHeaderInstance)));
                 }
 
                 mustUnderstand = header.MustUnderstand;

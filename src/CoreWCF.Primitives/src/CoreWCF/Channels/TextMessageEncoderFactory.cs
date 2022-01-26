@@ -242,12 +242,6 @@ namespace CoreWCF.Channels
             return TextEncoderDefaults.TryGetEncoding(charSet, out encoding);
         }
 
-        internal class ContentEncoding
-        {
-            internal string contentType;
-            internal Encoding encoding;
-        }
-
         private class TextMessageEncoder : MessageEncoder
         {
 
@@ -341,7 +335,7 @@ namespace CoreWCF.Channels
             private object ThisLock { get; }
 
 
-            internal override bool IsCharSetSupported(string charSet)
+            protected override bool IsCharSetSupported(string charSet)
             {
                 Encoding tmp;
                 if (!TextEncoderDefaults.TryGetEncoding(charSet, out tmp))
@@ -772,5 +766,11 @@ namespace CoreWCF.Channels
                 }
             }
         }
+    }
+
+    internal class ContentEncoding
+    {
+        public string contentType;
+        public Encoding encoding;
     }
 }

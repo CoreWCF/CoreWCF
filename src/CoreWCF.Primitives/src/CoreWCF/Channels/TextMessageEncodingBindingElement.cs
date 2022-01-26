@@ -155,7 +155,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal override bool CheckEncodingVersion(EnvelopeVersion version)
+        protected override bool CheckEncodingVersion(EnvelopeVersion version)
         {
             return _messageVersion.Envelope == version;
         }

@@ -56,7 +56,7 @@ namespace CoreWCF.Channels
 
         public abstract MessageVersion Version { get; } // must never return null
 
-        internal virtual RecycledMessageState RecycledMessageState
+        public virtual RecycledMessageState RecycledMessageState
         {
             get { return null; }
         }
@@ -326,7 +326,7 @@ namespace CoreWCF.Channels
             return value;
         }
 
-        internal virtual XmlDictionaryReader GetReaderAtHeader()
+        public virtual XmlDictionaryReader GetReaderAtHeader()
         {
             XmlBuffer buffer = new XmlBuffer(int.MaxValue);
             XmlDictionaryWriter writer = buffer.OpenSection(XmlDictionaryReaderQuotas.Max);
@@ -420,7 +420,7 @@ namespace CoreWCF.Channels
             return OnCreateBufferedCopy(maxBufferSize, XmlDictionaryReaderQuotas.Max);
         }
 
-        internal MessageBuffer OnCreateBufferedCopy(int maxBufferSize, XmlDictionaryReaderQuotas quotas)
+        public MessageBuffer OnCreateBufferedCopy(int maxBufferSize, XmlDictionaryReaderQuotas quotas)
         {
             XmlBuffer msgBuffer = new XmlBuffer(maxBufferSize);
             XmlDictionaryWriter writer = msgBuffer.OpenSection(quotas);
@@ -1487,7 +1487,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal interface IBufferedMessageData
+    public interface IBufferedMessageData
     {
         MessageEncoder MessageEncoder { get; }
         ArraySegment<byte> Buffer { get; }
@@ -1619,7 +1619,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal override RecycledMessageState RecycledMessageState
+        public override RecycledMessageState RecycledMessageState
         {
             get { return _recycledMessageState; }
         }
@@ -1639,7 +1639,7 @@ namespace CoreWCF.Channels
             return reader;
         }
 
-        internal override XmlDictionaryReader GetReaderAtHeader()
+        public override XmlDictionaryReader GetReaderAtHeader()
         {
             if (!_headers.ContainsOnlyBufferedMessageHeaders)
             {
@@ -1876,7 +1876,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal struct XmlAttributeHolder
+    public struct XmlAttributeHolder
     {
         public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
@@ -1980,7 +1980,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal class RecycledMessageState
+    public class RecycledMessageState
     {
         private MessageHeaders _recycledHeaders;
         private MessageProperties _recycledProperties;
@@ -2045,7 +2045,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal class HeaderInfoCache
+    public class HeaderInfoCache
     {
         private const int maxHeaderInfos = 4;
         private HeaderInfo[] _headerInfos;
@@ -2162,7 +2162,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal class UriCache
+    public class UriCache
     {
         private const int MaxKeyLength = 128;
         private const int MaxEntries = 8;

@@ -44,7 +44,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(ProtectionLevel)));
             }
         }
@@ -73,7 +73,7 @@ namespace CoreWCF.Security
                 switch ((ProtectionLevel)p)
                 {
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("p", (int)p, typeof(ProtectionLevel)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(p), (int)p, typeof(ProtectionLevel)));
                     case ProtectionLevel.None:
                         return 2;
                     case ProtectionLevel.Sign:
@@ -105,7 +105,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SslProtocols)));
             }
         }

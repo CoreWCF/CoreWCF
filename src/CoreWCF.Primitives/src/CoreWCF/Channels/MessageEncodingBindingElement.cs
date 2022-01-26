@@ -58,7 +58,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal virtual bool CheckEncodingVersion(EnvelopeVersion version)
+        protected virtual bool CheckEncodingVersion(EnvelopeVersion version)
         {
             return false;
         }

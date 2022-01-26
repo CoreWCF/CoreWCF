@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
+using CoreWCF.Description;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -65,9 +66,19 @@ namespace CoreWCF.Configuration
             return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
         }
 
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, configureEndpoint);
+        }
+
         public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address)
         {
             return AddServiceEndpoint<TService>(typeof(TContract), binding, address);
+        }
+
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, configureEndpoint);
         }
 
         public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri)
@@ -75,9 +86,19 @@ namespace CoreWCF.Configuration
             return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
         }
 
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri, configureEndpoint);
+        }
+
         public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri)
         {
             return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri);
+        }
+
+        public IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(typeof(TContract), binding, address, listenUri, configureEndpoint);
         }
 
         public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address)
@@ -85,9 +106,19 @@ namespace CoreWCF.Configuration
             return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
         }
 
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null, configureEndpoint);
+        }
+
         public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address)
         {
             return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null);
+        }
+
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint<TService>(implementedContract, binding, address, (Uri)null, configureEndpoint);
         }
 
         public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri)
@@ -100,12 +131,32 @@ namespace CoreWCF.Configuration
             return AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri);
         }
 
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, string address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint)
+        {
+            if (address is null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(address)));
+            }
+
+            return AddServiceEndpoint<TService>(implementedContract, binding, new Uri(address, UriKind.RelativeOrAbsolute), listenUri, configureEndpoint);
+        }
+
         public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri)
         {
-            return AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri);
+            return AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri, null);
+        }
+
+        public IServiceBuilder AddServiceEndpoint<TService>(Type implementedContract, Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint)
+        {
+            return AddServiceEndpoint(typeof(TService), implementedContract, binding, address, listenUri, configureEndpoint);
         }
 
         public IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri)
+        {
+            return AddServiceEndpoint(service, implementedContract, binding, address, listenUri, null);
+        }
+
+        public IServiceBuilder AddServiceEndpoint(Type service, Type implementedContract, Binding binding, Uri address, Uri listenUri, Action<ServiceEndpoint> configureEndpoint)
         {
             if (service is null)
             {
@@ -129,7 +180,8 @@ namespace CoreWCF.Configuration
                     Address = address,
                     Binding = binding,
                     Contract = implementedContract,
-                    ListenUri = listenUri
+                    ListenUri = listenUri,
+                    ConfigureEndpoint = configureEndpoint
                 });
             }
             else

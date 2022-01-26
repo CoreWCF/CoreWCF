@@ -41,9 +41,9 @@ namespace CoreWCF
 
         internal XmlDictionaryString DictionaryActor { get; }
 
-        internal string Namespace { get; }
+        public string Namespace { get; }
 
-        internal XmlDictionaryString DictionaryNamespace { get; }
+        public XmlDictionaryString DictionaryNamespace { get; }
 
         public string NextDestinationActorValue { get; }
 

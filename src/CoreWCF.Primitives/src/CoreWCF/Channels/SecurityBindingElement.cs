@@ -779,7 +779,7 @@ namespace CoreWCF.Channels
         {
             if (bootstrapSecurity == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bootstrapBinding");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bootstrapSecurity));
             }
 
             SecurityBindingElement result;

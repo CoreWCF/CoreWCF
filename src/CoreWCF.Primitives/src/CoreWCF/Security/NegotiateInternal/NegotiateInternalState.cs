@@ -193,7 +193,7 @@ namespace CoreWCF.Security.NegotiateInternal
              */
             if (input == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("input");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(input));
             }
 
             byte[] _writeBuffer = new byte[4];

@@ -24,7 +24,7 @@ namespace CoreWCF.Description
             IsUnknownHeaderCollection = other.IsUnknownHeaderCollection;
         }
 
-        internal override MessagePartDescription Clone()
+        public override MessagePartDescription Clone()
         {
             return new MessageHeaderDescription(this);
         }
