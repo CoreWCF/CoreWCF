@@ -31,6 +31,8 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
   * [DesktopClient](src/Samples/DesktopClient) - Wraps StandardClient with a .NET Framework Console Application
   * [StandardClient](src/Samples/StandardClient) - .NET Standard based client for the server projects 
 
+The [Blog](https://corewcf.github.io/) has details on the design philosophy and which features are included in each new release.
+
 ### Daily Builds
 
 There are pre-release packages available for daily builds of main from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
