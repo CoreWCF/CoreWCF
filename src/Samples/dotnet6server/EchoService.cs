@@ -1,6 +1,5 @@
-using System.Threading.Tasks;
-using MyContracts;
 using CoreWCF;
+using MyContracts;
 
 namespace dotnet6Server
 {
@@ -21,10 +20,5 @@ namespace dotnet6Server
         public string FailEcho(string text)
             => throw new FaultException<EchoFault>(new EchoFault() { Text = "WCF Fault OK" }, new FaultReason("FailReason"));
 
-        [AuthorizeRole("CoreWCFGroupAdmin")]
-        public string EchoForPermission(string echo)
-        {
-            return echo;
-        }
     }
 }

@@ -1,18 +1,21 @@
-﻿using CoreWCF;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using CoreWCF;
 
 namespace MyContracts
 {
     [DataContract]
     public class EchoFault
     {
-        private string text;
+        [AllowNull]
+        private string _text;
 
         [DataMember]
+        [AllowNull]
         public string Text
         {
-            get { return text; }
-            set { text = value; }
+            get { return _text; }
+            set { _text = value; }
         }
     }
 
@@ -29,13 +32,12 @@ namespace MyContracts
         [FaultContract(typeof(EchoFault))]
         string FailEcho(string text);
 
-        [OperationContract]
-        string EchoForPermission(string text);
     }
 
     [DataContract]
     public class EchoMessage
     {
+        [AllowNull]
         [DataMember]
         public string Text { get; set; }
     }
