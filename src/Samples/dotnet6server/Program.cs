@@ -15,7 +15,7 @@ var app = builder.Build();
 app.UseServiceModel(builder =>
 {
     builder.AddService<EchoService>()
-    .AddServiceEndpoint<EchoService, IEchoService>(new BasicHttpBinding(), "/EchoService/basichttp")
+    .AddServiceEndpoint<EchoService, IEchoService>(new BasicHttpBinding(), "/EchoService/basichttp");
 });
 
 app.Run();
