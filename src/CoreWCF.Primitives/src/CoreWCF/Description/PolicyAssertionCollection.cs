@@ -16,7 +16,9 @@ namespace CoreWCF.Description
         public PolicyAssertionCollection(IEnumerable<XmlElement> elements)
         {
             if (elements == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
+            }
 
             AddRange(elements);
         }
@@ -25,23 +27,31 @@ namespace CoreWCF.Description
         {
             foreach (XmlElement element in elements)
             {
-                base.Add(element);
+                Add(element);
             }
         }
 
         public bool Contains(string localName, string namespaceUri)
         {
             if (localName == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(localName));
-            if (namespaceUri == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(namespaceUri));
+            }
 
-            for (int i = 0; i < this.Count; i++)
+            if (namespaceUri == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(namespaceUri));
+            }
+
+            for (int i = 0; i < Count; i++)
             {
                 XmlElement item = this[i];
                 if (item.LocalName == localName && item.NamespaceURI == namespaceUri)
+                {
                     return true;
+                }
             }
+
             return false;
         }
 
@@ -55,14 +65,19 @@ namespace CoreWCF.Description
             return Find(localName, namespaceUri, true);
         }
 
-        XmlElement Find(string localName, string namespaceUri, bool remove) 
+        XmlElement Find(string localName, string namespaceUri, bool remove)
         {
             if (localName == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(localName));
-            if (namespaceUri == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(namespaceUri));
+            }
 
-            for (int index = 0; index < this.Count; index++)
+            if (namespaceUri == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull((namespaceUri));
+            }
+
+            for (int index = 0; index < Count; index++)
             {
                 XmlElement item = this[index];
                 if (item.LocalName == localName && item.NamespaceURI == namespaceUri)
@@ -74,6 +89,7 @@ namespace CoreWCF.Description
                     return item;
                 }
             }
+
             return null;
         }
 
@@ -90,13 +106,18 @@ namespace CoreWCF.Description
         Collection<XmlElement> FindAll(string localName, string namespaceUri, bool remove)
         {
             if (localName == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(localName));
+            }
+
             if (namespaceUri == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(namespaceUri));
+            }
 
             Collection<XmlElement> collection = new Collection<XmlElement>();
 
-            for (int index = 0; index < this.Count; index++)
+            for (int index = 0; index < Count; index++)
             {
                 XmlElement item = this[index];
                 if (item.LocalName == localName && item.NamespaceURI == namespaceUri)
@@ -117,7 +138,9 @@ namespace CoreWCF.Description
         protected override void InsertItem(int index, XmlElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.InsertItem(index, item);
         }
@@ -125,10 +148,11 @@ namespace CoreWCF.Description
         protected override void SetItem(int index, XmlElement item)
         {
             if (item == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(item));
+            }
 
             base.SetItem(index, item);
         }
     }
-
 }

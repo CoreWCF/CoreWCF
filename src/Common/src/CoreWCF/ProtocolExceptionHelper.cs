@@ -16,18 +16,18 @@ namespace CoreWCF
                 {
                     MessageFault fault = MessageFault.CreateFault(message, 64 * 1024);
                     FaultReasonText reason = fault.Reason.GetMatchingTranslation(CultureInfo.CurrentCulture);
-                    string text = SR.Format(SR.ReceiveShutdownReturnedFault, reason.Text);
+                    string text = SRCommon.Format(SRCommon.ReceiveShutdownReturnedFault, reason.Text);
                     return new ProtocolException(text);
                 }
                 catch (QuotaExceededException)
                 {
-                    string text = SR.Format(SR.ReceiveShutdownReturnedLargeFault, message.Headers.Action);
+                    string text = SRCommon.Format(SRCommon.ReceiveShutdownReturnedLargeFault, message.Headers.Action);
                     return new ProtocolException(text);
                 }
             }
             else
             {
-                string text = SR.Format(SR.ReceiveShutdownReturnedMessage, message.Headers.Action);
+                string text = SRCommon.Format(SRCommon.ReceiveShutdownReturnedMessage, message.Headers.Action);
                 return new ProtocolException(text);
             }
         }

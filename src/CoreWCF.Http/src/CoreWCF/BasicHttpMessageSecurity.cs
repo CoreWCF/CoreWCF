@@ -29,7 +29,7 @@ namespace CoreWCF
             {
                 if (!BasicHttpMessageCredentialTypeHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
                 _clientCredentialType = value;
             }
@@ -42,7 +42,7 @@ namespace CoreWCF
             {
                 if (value == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("value");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
                 }
                 _algorithmSuite = value;
             }

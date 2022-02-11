@@ -25,5 +25,11 @@ namespace CoreWCF.Runtime.Diagnostics
             //if (DiagnosticUtility.ShouldTraceInformation)
             //    TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.SecurityIdentityVerificationFailure, SR.Format(SR.TraceCodeSecurityIdentityVerificationFailure), new IdentityVerificationFailureTraceRecord(identity, authContext, identityVerifier));
         }
+
+        internal static void TraceExportChannelBindingEntry()
+        {
+            //if (DiagnosticUtility.ShouldTraceInformation)
+            //    TraceUtility.TraceEvent(TraceEventType.Information, TraceCode.ExportSecurityChannelBindingEntry, SR.Format(SR.TraceCodeExportSecurityChannelBindingEntry), (object)null);
+        }
     }
 }

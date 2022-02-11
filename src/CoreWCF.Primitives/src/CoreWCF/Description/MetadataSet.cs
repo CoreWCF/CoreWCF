@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -12,28 +13,28 @@ namespace CoreWCF.Description
     [XmlRoot(MetadataStrings.MetadataExchangeStrings.Metadata, Namespace = MetadataStrings.MetadataExchangeStrings.Namespace)]
     public class MetadataSet : IXmlSerializable
     {
-        Collection<XmlAttribute> _attributes = new Collection<XmlAttribute>();
+        internal ServiceMetadataExtension.WriteFilter WriteFilter;
 
         public MetadataSet()
         {
         }
 
-        public MetadataSet(IEnumerable<MetadataSection> sections)
-            : this()
+        public MetadataSet(IEnumerable<MetadataSection> sections) : this()
         {
             if (sections != null)
+            {
                 foreach (MetadataSection section in sections)
+                {
                     MetadataSections.Add(section);
+                }
+            }
         }
 
         [XmlElement(MetadataStrings.MetadataExchangeStrings.MetadataSection, Namespace = MetadataStrings.MetadataExchangeStrings.Namespace)]
         public Collection<MetadataSection> MetadataSections { get; private set; } = new Collection<MetadataSection>();
 
         [XmlAnyAttribute]
-        public Collection<XmlAttribute> Attributes
-        {
-            get { return _attributes; }
-        }
+        public Collection<XmlAttribute> Attributes { get; private set; } = new Collection<XmlAttribute>();
 
         //Reader should write the <Metadata> element
         public void WriteTo(XmlWriter writer)
@@ -45,7 +46,9 @@ namespace CoreWCF.Description
         public static MetadataSet ReadFrom(XmlReader reader)
         {
             if (reader == null)
+            {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
+            }
 
             MetadataSetSerializer xs = new MetadataSetSerializer();
             return (MetadataSet)xs.Deserialize(reader);
@@ -60,7 +63,9 @@ namespace CoreWCF.Description
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
             if (reader == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
+            }
 
             MetadataSetSerializer xs = new MetadataSetSerializer();
             xs.ProcessOuterElement = false;
@@ -68,36 +73,155 @@ namespace CoreWCF.Description
             MetadataSet metadataSet = (MetadataSet)xs.Deserialize(reader);
 
             MetadataSections = metadataSet.MetadataSections;
-            _attributes = metadataSet.Attributes;
+            Attributes = metadataSet.Attributes;
         }
 
         //Reader has just written the <Metadata> element can still write attribs here
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
             WriteMetadataSet(writer, false);
-        } 
+        }
 
-        void WriteMetadataSet(XmlWriter writer, bool processOuterElement)
+        private void WriteMetadataSet(XmlWriter writer, bool processOuterElement)
         {
             if (writer == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
-            throw new NotImplementedException();
-            /*
-            if (this.WriteFilter != null)
             {
-                ServiceMetadataExtension.WriteFilter filter = this.WriteFilter.CloneWriteFilter();
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+
+            if (WriteFilter != null)
+            {
+                ServiceMetadataExtension.WriteFilter filter = WriteFilter.CloneWriteFilter();
                 filter.Writer = writer;
                 writer = filter;
             }
             MetadataSetSerializer xs = new MetadataSetSerializer();
             xs.ProcessOuterElement = processOuterElement;
 
-            xs.Serialize(writer, this);*/
+            xs.Serialize(writer, this);
         }
 
     }
 
 #pragma warning disable
+
+    /* The Following code is a generated XmlSerializer.  It was created by:
+     *      (*) Removing the IXmlSerializable from MetadataSet
+     *      (*) Changing typeof(WsdlNS.ServiceDescription) and typeof(XsdNS.XmlSchema) to typeof(string) and typeof(int) on the [XmlElement] attribute on 
+     *          MetadataSection.Metadata
+     *      (*) running "sgen /a:System.ServiceModel.dll /t:System.ServiceModel.Description.MetadataSet /k" to generate the code 
+     *      (*) Revert the above changes.
+     * 
+     * and then doing the following to fix it up:
+     * 
+     *      (*) Change the classes from public to internal
+     *      (*) Add ProcessOuterElement to MetadataSetSerializer, XmlSerializationReaderMetadataSet, and XmlSerializationWriterMetadataSet
+                       private bool processOuterElement = true;
+     
+                       public bool ProcessOuterElement
+                       {
+                           get { return processOuterElement; }
+                           set { processOuterElement = value; }
+                       }
+     *      (*) Set XmlSerializationWriterMetadataSet.ProcessOuterElement with MetadataSetSerializer.ProcessOuterElement
+     *          in MetadataSetSerializer.Serialize 
+     *          ((XmlSerializationWriterMetadataSet)writer).ProcessOuterElement = this.processOuterElement;
+     * 
+     *      (*) Set XmlSerializationReaderMetadataSet.ProcessOuterElement with MetadataSetSerializer.ProcessOuterElement
+     *          in MetadataSetSerializer.Deserialize 
+     *          ((XmlSerializationReaderMetadataSet)reader).ProcessOuterElement = this.processOuterElement;
+     *      (*) wrap anything in XmlSerializationWriterMetadataSet.Write*_Metadata or 
+     *          XmlSerializationWriterMetadataSet.Write*_MetadataSet that outputs the outer
+     *          element with "if(processOuterElement) { ... }"
+     *      (*) Add "!processOuterElement ||" to checks for name and namespace of the outer element
+     *          in XmlSerializationReaderMetadataSet.Read*_Metadata and XmlSerializationReaderMetadataSet.Read*_MetadataSet.
+     *      (*) In XmlSerializationReaderMetadataSet.Read*_MetadataSection change the if clause writing the XmlSchema from
+     *          
+     *          o.@Metadata = Reader.ReadElementString();
+     *          to
+                o.@Metadata = System.Xml.Schema.XmlSchema.Read(this.Reader, null);
+                if (this.Reader.NodeType == XmlNodeType.EndElement)
+                    ReadEndElement();
+     * 
+     * 
+     *      (*) In XmlSerializationWriterMetadataSet Write*_MetadataSection change
+     *
+     *          else if (o.@Metadata is global::System.Int32) {
+     *              WriteElementString(@"schema", @"http://www.w3.org/2001/XMLSchema", ((global::System.Int32)o.@Metadata));
+     *          }
+     *          to
+     * 
+                else if (o.@Metadata is global::System.Xml.Schema.XmlSchema)
+                {
+                    ((global::System.Xml.Schema.XmlSchema)o.@Metadata).Write(this.Writer);
+                }       
+     * 
+     *      (*) In XmlSerializationReaderMetadataSet.Read*_MetadataSection change 
+     *          
+     *          o.@Metadata = Reader.ReadElementString();
+     *          to
+     *          o.@Metadata = System.Web.Services.Description.ServiceDescription.Read(this.Reader);
+     * 
+     * 
+     *      (*) In XmlSerializationWriterMetadataSet Write*_MetadataSection change
+     *
+     *          if (o.@Metadata is global::System.String) {
+     *              WriteElementString(@"definitions", @"http://schemas.xmlsoap.org/wsdl/", ((global::System.String)o.@Metadata));
+     *          }
+     *          to
+     * 
+                if (o.@Metadata is global::System.Web.Services.Description.ServiceDescription) {
+                    ((global::System.Web.Services.Description.ServiceDescription)o.@Metadata).Write(this.Writer);
+                }         
+     * 
+     *      (*) In XmlSerializationWriterMetadataSet Write*_MetadataSet add 
+     *
+                XmlSerializerNamespaces xmlSerializerNamespaces = new XmlSerializerNamespaces();
+                xmlSerializerNamespaces.Add(MetadataStrings.MetadataExchangeStrings.Prefix, MetadataStrings.MetadataExchangeStrings.Namespace);
+                WriteNamespaceDeclarations(xmlSerializerNamespaces);
+     *          
+     *          immediately before 'if (needType) WriteXsiType(@"MetadataSet", @"http://schemas.xmlsoap.org/ws/2004/09/mex");'
+     * 
+     *      (*) In XmlSerializationWriterMetadataSet Write*_MetadataSection replace  
+     *          WriteStartElement(n, ns, o, false, null);
+     *          with
+     * 
+                XmlSerializerNamespaces xmlSerializerNamespaces = new XmlSerializerNamespaces();
+                xmlSerializerNamespaces.Add(string.Empty, string.Empty);
+
+                WriteStartElement(n, ns, o, true, xmlSerializerNamespaces);
+     *          
+     *      (*) In XmlSerializationWriterMetadataSet Write*_XmlSchema replace              
+     *          WriteStartElement(n, ns, o, false, o.@Namespaces);
+     *          with 
+     *          WriteStartElement(n, ns, o, true, o.@Namespaces);
+     * 
+     *       (*) Make sure you keep the #pragmas surrounding this block.
+     * 
+     *      (*) Make sure to replace all exception throw with standard throw using DiagnosticUtility.ExceptionUtility.ThrowHelperError;
+     *          change:
+     *
+     *          throw CreateUnknownTypeException(*);
+     *          to
+     *          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateUnknownTypeException(*));
+     *          
+     *          throw CreateUnknownNodeException();
+     *          to
+     *          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateUnknownNodeException());
+     * 
+     *          throw CreateInvalidAnyTypeException(elem);
+     *          to
+     *          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateInvalidAnyTypeException(elem));
+     * 
+     *          throw CreateInvalidEnumValueException(*);
+     *          to
+     *          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateInvalidEnumValueException(*));
+     * 
+     *          throw CreateUnknownConstantException(*);
+     *          to
+     *          throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateUnknownConstantException(*));
+     *
+     */
 
     internal class XmlSerializationWriterMetadataSet : System.Xml.Serialization.XmlSerializationWriter
     {
@@ -220,12 +344,11 @@ namespace CoreWCF.Description
             WriteAttribute(@"Dialect", @"", ((global::System.String)o.@Dialect));
             WriteAttribute(@"Identifier", @"", ((global::System.String)o.@Identifier));
             {
-                //if (o.@Metadata is global::System.Web.Services.Description.ServiceDescription)
-                //{
-                //    ((global::System.Web.Services.Description.ServiceDescription)o.@Metadata).Write(this.Writer);
-                //}
-                //else
-                if (o.@Metadata is global::System.Xml.Schema.XmlSchema)
+                if (o.@Metadata is global::System.Web.Services.Description.ServiceDescription)
+                {
+                    ((global::System.Web.Services.Description.ServiceDescription)o.@Metadata).Write(this.Writer);
+                }
+                else if (o.@Metadata is global::System.Xml.Schema.XmlSchema)
                 {
                     ((global::System.Xml.Schema.XmlSchema)o.@Metadata).Write(this.Writer);
                 }
@@ -393,7 +516,7 @@ namespace CoreWCF.Description
             System.Xml.XmlQualifiedName xsiType = checkType ? GetXsiType() : null;
             bool isNull = false;
             if (isNullable) isNull = ReadNull();
-            if (checkType) 
+            if (checkType)
             {
                 if (xsiType == null || ((object)((System.Xml.XmlQualifiedName)xsiType).Name == (object)id4_MetadataSection && (object)((System.Xml.XmlQualifiedName)xsiType).Namespace == (object)id2_Item))
                 {
@@ -454,7 +577,7 @@ namespace CoreWCF.Description
                     else if (!paramsRead[3] && ((object)Reader.LocalName == (object)id10_definitions && (object)Reader.NamespaceURI == (object)id11_Item))
                     {
                         {
-                          //  o.@Metadata = System.Web.Services.Description.ServiceDescription.Read(this.Reader);
+                            o.@Metadata = System.Web.Services.Description.ServiceDescription.Read(this.Reader);
                         }
                         paramsRead[3] = true;
                     }
@@ -885,7 +1008,7 @@ namespace CoreWCF.Description
                 if (readMethods == null)
                 {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp[@"CoreWCF.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:"] = @"Read68_Metadata";
+                    _tmp[@"System.ServiceModel.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:"] = @"Read68_Metadata";
                     if (readMethods == null) readMethods = _tmp;
                 }
                 return readMethods;
@@ -899,7 +1022,7 @@ namespace CoreWCF.Description
                 if (writeMethods == null)
                 {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp[@"CoreWCF.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:"] = @"Write68_Metadata";
+                    _tmp[@"System.ServiceModel.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:"] = @"Write68_Metadata";
                     if (writeMethods == null) writeMethods = _tmp;
                 }
                 return writeMethods;
@@ -913,7 +1036,7 @@ namespace CoreWCF.Description
                 if (typedSerializers == null)
                 {
                     System.Collections.Hashtable _tmp = new System.Collections.Hashtable();
-                    _tmp.Add(@"CoreWCF.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:", new MetadataSetSerializer());
+                    _tmp.Add(@"System.ServiceModel.Description.MetadataSet:http://schemas.xmlsoap.org/ws/2004/09/mex:Metadata:True:", new MetadataSetSerializer());
                     if (typedSerializers == null) typedSerializers = _tmp;
                 }
                 return typedSerializers;

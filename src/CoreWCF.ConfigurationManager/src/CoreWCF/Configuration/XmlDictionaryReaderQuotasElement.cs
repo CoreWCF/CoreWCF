@@ -88,7 +88,7 @@ namespace CoreWCF.Configuration
         //{
         //    if (readerQuotas == null)
         //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("readerQuotas");
+        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(readerQuotas));
         //    }
         //    if (readerQuotas.MaxDepth != EncoderDefaults.MaxDepth)
         //    {

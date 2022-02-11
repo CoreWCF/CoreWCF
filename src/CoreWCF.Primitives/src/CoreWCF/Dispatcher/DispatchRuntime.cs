@@ -86,7 +86,7 @@ namespace CoreWCF.Dispatcher
             };
         }
 
-        internal IInstanceContextProvider InstanceContextProvider
+        public IInstanceContextProvider InstanceContextProvider
         {
             get
             {

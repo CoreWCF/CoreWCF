@@ -19,7 +19,7 @@ namespace NetCoreServer
             WebHost.CreateDefaultBuilder(args)
             .UseKestrel(options => {
                 options.ListenLocalhost(8088);
-                options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
+                options.ListenLocalhost(8443, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {

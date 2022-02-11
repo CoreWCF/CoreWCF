@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
-//using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Xml;
@@ -2078,6 +2077,7 @@ namespace CoreWCF.Description
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };
+        internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
 
         internal const string ResponseSuffix = "Response";
 
