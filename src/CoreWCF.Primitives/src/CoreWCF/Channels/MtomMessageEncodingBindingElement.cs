@@ -5,17 +5,18 @@ using System;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using CoreWCF.Description;
 
 namespace CoreWCF.Channels
 {
-    public sealed class MtomMessageEncodingBindingElement : MessageEncodingBindingElement
+    public sealed class MtomMessageEncodingBindingElement : MessageEncodingBindingElement, IWsdlExportExtension, IPolicyExportExtension
     {
-        int _maxReadPoolSize;
-        int _maxWritePoolSize;
-        XmlDictionaryReaderQuotas _readerQuotas;
-        int _maxBufferSize;
-        Encoding _writeEncoding;
-        MessageVersion _messageVersion;
+        private int _maxReadPoolSize;
+        private int _maxWritePoolSize;
+        private XmlDictionaryReaderQuotas _readerQuotas;
+        private int _maxBufferSize;
+        private Encoding _writeEncoding;
+        private MessageVersion _messageVersion;
 
         public MtomMessageEncodingBindingElement() : this(MessageVersion.Default, TextEncoderDefaults.Encoding) { }
 
@@ -40,7 +41,7 @@ namespace CoreWCF.Channels
             _writeEncoding = writeEncoding;
         }
 
-        MtomMessageEncodingBindingElement(MtomMessageEncodingBindingElement elementToBeCloned)
+        private MtomMessageEncodingBindingElement(MtomMessageEncodingBindingElement elementToBeCloned)
             : base(elementToBeCloned)
         {
             _maxReadPoolSize = elementToBeCloned._maxReadPoolSize;
@@ -175,6 +176,31 @@ namespace CoreWCF.Channels
             {
                 return base.GetProperty<T>(context);
             }
+        }
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext policyContext)
+        {
+            if (policyContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(policyContext));
+            }
+            XmlDocument document = new XmlDocument();
+
+            policyContext.GetBindingAssertions().Add(document.CreateElement(
+                MessageEncodingPolicyConstants.OptimizedMimeSerializationPrefix,
+                MessageEncodingPolicyConstants.MtomEncodingName,
+                MessageEncodingPolicyConstants.OptimizedMimeSerializationNamespace));
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext context) { }
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SoapHelper.SetSoapVersion(context, exporter, MessageVersion.Envelope);
         }
 
         internal override bool CheckEncodingVersion(EnvelopeVersion version)

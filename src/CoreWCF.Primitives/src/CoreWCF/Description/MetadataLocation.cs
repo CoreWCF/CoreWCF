@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 
 namespace CoreWCF.Description
 {
-
     [XmlRoot(ElementName = MetadataStrings.MetadataExchangeStrings.Location, Namespace = MetadataStrings.MetadataExchangeStrings.Namespace)]
     public class MetadataLocation
     {
@@ -30,8 +29,7 @@ namespace CoreWCF.Description
             {
                 if (value != null)
                 {
-                    Uri uri;
-                    if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out uri))
+                    if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out _))
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(SR.Format(SR.SFxMetadataReferenceInvalidLocation, value));
                 }
 

@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="WcfServiceXmlGenerated" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="EchoXmlSerializerFormat">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="message" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoXmlSerializerFormatResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="EchoXmlSerializerFormatResult" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoXmlSerializerFormatSupportFaults">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="message" type="xs:string"/>
+            <xs:element minOccurs="1" maxOccurs="1" name="pleaseThrowException" type="xs:boolean"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoXmlSerializerFormatSupportFaultsResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="EchoXmlSerializerFormatSupportFaultsResult" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="GetDataUsingXmlSerializer">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="composite" type="tns:XmlCompositeType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:complexType name="XmlCompositeType">
+        <xs:sequence>
+          <xs:element minOccurs="1" maxOccurs="1" name="BoolValue" type="xs:boolean"/>
+          <xs:element minOccurs="0" maxOccurs="1" name="StringValue" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="GetDataUsingXmlSerializerResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="GetDataUsingXmlSerializerResult" type="tns:XmlCompositeType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoXmlVeryComplexType">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="complex" type="tns:XmlVeryComplexType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:complexType name="XmlVeryComplexType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="NonInstantiatedField" type="tns:NonInstantiatedType"/>
+          <xs:element minOccurs="1" maxOccurs="1" name="Id" type="xs:int"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NonInstantiatedType"/>
+      <xs:element name="EchoXmlVeryComplexTypeResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="EchoXmlVeryComplexTypeResult" type="tns:XmlVeryComplexType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormat_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlSerializerFormat"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormat_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlSerializerFormatResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormatSupportFaults_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlSerializerFormatSupportFaults"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormatSupportFaults_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlSerializerFormatSupportFaultsResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormatUsingRpc_InputMessage">
+    <wsdl:part name="message" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlSerializerFormatUsingRpc_OutputMessage">
+    <wsdl:part name="EchoXmlSerializerFormatUsingRpcResult" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_GetDataUsingXmlSerializer_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetDataUsingXmlSerializer"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_GetDataUsingXmlSerializer_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetDataUsingXmlSerializerResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlVeryComplexType_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlVeryComplexType"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfServiceXmlGenerated_EchoXmlVeryComplexType_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoXmlVeryComplexTypeResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="IWcfServiceXmlGenerated">
+    <wsdl:operation name="EchoXmlSerializerFormat">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormat" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormat_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormatResponse" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormat_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlSerializerFormatSupportFaults">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormatSupportFaults" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormatSupportFaults_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormatSupportFaultsResponse" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormatSupportFaults_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlSerializerFormatUsingRpc" parameterOrder="message">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormatUsingRpc" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormatUsingRpc_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfService/EchoXmlSerializerFormatUsingRpcResponse" message="tns:IWcfServiceXmlGenerated_EchoXmlSerializerFormatUsingRpc_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="GetDataUsingXmlSerializer">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/GetDataUsingXmlSerializer" message="tns:IWcfServiceXmlGenerated_GetDataUsingXmlSerializer_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfServiceXmlGenerated/GetDataUsingXmlSerializerResponse" message="tns:IWcfServiceXmlGenerated_GetDataUsingXmlSerializer_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlVeryComplexType">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/EchoXmlVeryComplexType" message="tns:IWcfServiceXmlGenerated_EchoXmlVeryComplexType_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfServiceXmlGenerated/EchoXmlVeryComplexTypeResponse" message="tns:IWcfServiceXmlGenerated_EchoXmlVeryComplexType_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IWcfServiceXmlGenerated" type="tns:IWcfServiceXmlGenerated">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc"/>
+    <wsdl:operation name="EchoXmlSerializerFormat">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/EchoXmlSerializerFormat" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlSerializerFormatSupportFaults">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/EchoXmlSerializerFormatSupportFaults" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlSerializerFormatUsingRpc">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/EchoXmlSerializerFormatUsingRpc" style="rpc"/>
+      <wsdl:input>
+        <soap:body use="literal" namespace="http://tempuri.org/"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" namespace="http://tempuri.org/"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDataUsingXmlSerializer">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/GetDataUsingXmlSerializer" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoXmlVeryComplexType">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/EchoXmlVeryComplexType" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="WcfServiceXmlGenerated">
+    <wsdl:port name="BasicHttpBinding_IWcfServiceXmlGenerated" binding="tns:BasicHttpBinding_IWcfServiceXmlGenerated">
+      <soap:address location="http://localhost/TestSite/endpointAddress.svc/basicHttp"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

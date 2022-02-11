@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using CoreWCF.Description;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Configuration
 {
@@ -12,6 +13,7 @@ namespace CoreWCF.Configuration
         private readonly ServiceBuilder _serviceBuilder;
         private readonly IServiceProvider _services;
         private List<IServiceDispatcher> _dispatchers;
+        private object _lock = new object();
 
         public ServiceConfiguration(ServiceBuilder serviceBuilder, IServiceProvider services)
         {
@@ -27,7 +29,18 @@ namespace CoreWCF.Configuration
         {
             if (_dispatchers == null)
             {
-                _dispatchers = DispatcherBuilder.BuildDispatcher<TService>(this, _services);
+                // The services can't be Open'd until after ASP.NET Core is running and listening for requests. The Open call
+                // is started and allowed to run in the background. If a request comes in before the dispatchers have finished
+                // being built, there are multiple problems which can occur such as adding an endpoint twice, or concurrent
+                // modification of collections, or trying to modify the service host after it has been opened.
+                // This double check lock ensures this doesn't happen.
+                lock (_lock)
+                {
+                    if (_dispatchers == null)
+                    {
+                        _dispatchers = DispatcherBuilder.BuildDispatcher<TService>(this, _services);
+                    }
+                }
             }
 
             return _dispatchers;

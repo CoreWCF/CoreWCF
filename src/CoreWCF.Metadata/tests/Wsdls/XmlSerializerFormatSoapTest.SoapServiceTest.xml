@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="SoapService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/encoded" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://tempuri.org/encoded">
+      <xs:complexType name="SoapComplexType">
+        <xs:sequence>
+          <xs:element minOccurs="1" maxOccurs="1" form="unqualified" name="BoolValue" type="xs:boolean"/>
+          <xs:element minOccurs="0" maxOccurs="1" form="unqualified" name="StringValue" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema elementFormDefault="qualified" targetNamespace="WcfService" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="WcfService">
+      <xs:complexType name="CustomerObject">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" form="unqualified" name="Name" type="xs:string"/>
+          <xs:element minOccurs="0" maxOccurs="1" form="unqualified" name="Data" type="xs:anyType"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AdditionalData">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" form="unqualified" name="Field" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="IWcfSoapService_CombineStringXmlSerializerFormatSoap_InputMessage">
+    <wsdl:part name="message1" type="xsd:string"/>
+    <wsdl:part name="message2" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfSoapService_CombineStringXmlSerializerFormatSoap_OutputMessage">
+    <wsdl:part name="CombineStringXmlSerializerFormatSoapResult" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfSoapService_EchoComositeTypeXmlSerializerFormatSoap_InputMessage">
+    <wsdl:part name="c" type="q1:SoapComplexType" xmlns:q1="http://tempuri.org/encoded"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfSoapService_EchoComositeTypeXmlSerializerFormatSoap_OutputMessage">
+    <wsdl:part name="EchoComositeTypeXmlSerializerFormatSoapResult" type="q2:SoapComplexType" xmlns:q2="http://tempuri.org/encoded"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfSoapService_ProcessCustomerData_InputMessage">
+    <wsdl:part name="CustomerData" type="q3:CustomerObject" xmlns:q3="WcfService"/>
+  </wsdl:message>
+  <wsdl:message name="IWcfSoapService_ProcessCustomerData_OutputMessage">
+    <wsdl:part name="ProcessCustomerDataReturn" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="PingEncodedRequest">
+    <wsdl:part name="Pinginfo" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="PingEncodedResponse">
+    <wsdl:part name="Return" type="xsd:int"/>
+  </wsdl:message>
+  <wsdl:portType name="IWcfSoapService">
+    <wsdl:operation name="CombineStringXmlSerializerFormatSoap" parameterOrder="message1 message2">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/CombineStringXmlSerializerFormatSoap" message="tns:IWcfSoapService_CombineStringXmlSerializerFormatSoap_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfService/CombineStringXmlSerializerFormatSoapResponse" message="tns:IWcfSoapService_CombineStringXmlSerializerFormatSoap_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoComositeTypeXmlSerializerFormatSoap" parameterOrder="c">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/EchoComositeTypeXmlSerializerFormatSoap" message="tns:IWcfSoapService_EchoComositeTypeXmlSerializerFormatSoap_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfService/EchoComositeTypeXmlSerializerFormatSoapResponse" message="tns:IWcfSoapService_EchoComositeTypeXmlSerializerFormatSoap_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="ProcessCustomerData" parameterOrder="CustomerData">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/ProcessCustomerData" message="tns:IWcfSoapService_ProcessCustomerData_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfSoapService/ProcessCustomerDataResponse" message="tns:IWcfSoapService_ProcessCustomerData_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWcfService/Ping" name="PingEncodedRequest" message="tns:PingEncodedRequest"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IWcfSoapService/PingResponse" name="PingEncodedResponse" message="tns:PingEncodedResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IWcfSoapService" type="tns:IWcfSoapService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc"/>
+    <wsdl:operation name="CombineStringXmlSerializerFormatSoap">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/CombineStringXmlSerializerFormatSoap" style="rpc"/>
+      <wsdl:input>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoComositeTypeXmlSerializerFormatSoap">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/EchoComositeTypeXmlSerializerFormatSoap" style="rpc"/>
+      <wsdl:input>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ProcessCustomerData">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/ProcessCustomerData" style="rpc"/>
+      <wsdl:input>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <soap:operation soapAction="http://tempuri.org/IWcfService/Ping" style="rpc"/>
+      <wsdl:input name="PingEncodedRequest">
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:input>
+      <wsdl:output name="PingEncodedResponse">
+        <soap:body use="encoded" namespace="http://tempuri.org/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SoapService">
+    <wsdl:port name="BasicHttpBinding_IWcfSoapService" binding="tns:BasicHttpBinding_IWcfSoapService">
+      <soap:address location="http://localhost/TestSite/endpointAddress.svc/basicHttp"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

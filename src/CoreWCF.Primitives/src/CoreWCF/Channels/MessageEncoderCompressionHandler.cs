@@ -18,7 +18,7 @@ namespace CoreWCF.Channels
             MemoryStream memoryStream = new MemoryStream(buffer.Array, buffer.Offset, buffer.Count);
             int maxDecompressedSize = (int)Math.Min(maxReceivedMessageSize, int.MaxValue);
 
-            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SR.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize, bufferManager))
+            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SRCommon.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize, bufferManager))
             {
                 bufferedOutStream.Write(buffer.Array, 0, buffer.Offset);
 
@@ -56,7 +56,7 @@ namespace CoreWCF.Channels
 
         internal static void CompressBuffer(ref ArraySegment<byte> buffer, BufferManager bufferManager, CompressionFormat compressionFormat)
         {
-            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SR.MaxSentMessageSizeExceeded, 1024, int.MaxValue, bufferManager))
+            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SRCommon.MaxSentMessageSizeExceeded, 1024, int.MaxValue, bufferManager))
             {
                 bufferedOutStream.Write(buffer.Array, 0, buffer.Offset);
 

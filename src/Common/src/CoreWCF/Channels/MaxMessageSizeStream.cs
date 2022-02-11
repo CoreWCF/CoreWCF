@@ -65,7 +65,7 @@ namespace CoreWCF.Channels
 
         public static Exception CreateMaxReceivedMessageSizeExceededException(long maxMessageSize)
         {
-            string message = SR.Format(SR.MaxReceivedMessageSizeExceeded, maxMessageSize);
+            string message = SRCommon.Format(SRCommon.MaxReceivedMessageSizeExceeded, maxMessageSize);
             Exception inner = new QuotaExceededException(message);
 
             return new CommunicationException(message, inner);
@@ -73,7 +73,7 @@ namespace CoreWCF.Channels
 
         internal static Exception CreateMaxSentMessageSizeExceededException(long maxMessageSize)
         {
-            string message = SR.Format(SR.MaxSentMessageSizeExceeded, maxMessageSize);
+            string message = SRCommon.Format(SRCommon.MaxSentMessageSizeExceeded, maxMessageSize);
             Exception inner = new QuotaExceededException(message);
 
             return new CommunicationException(message, inner);

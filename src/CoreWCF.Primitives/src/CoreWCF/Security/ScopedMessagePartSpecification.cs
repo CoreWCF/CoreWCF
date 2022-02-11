@@ -8,7 +8,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
-    internal class ScopedMessagePartSpecification
+    public class ScopedMessagePartSpecification
     {
         private readonly Dictionary<string, MessagePartSpecification> _actionParts;
         private Dictionary<string, MessagePartSpecification> _readOnlyNormalizedActionParts;

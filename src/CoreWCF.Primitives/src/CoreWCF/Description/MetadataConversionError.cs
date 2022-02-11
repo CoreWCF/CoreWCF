@@ -6,22 +6,23 @@ namespace CoreWCF.Description
     public class MetadataConversionError
     {
         public MetadataConversionError(string message) : this(message, false) { }
+
         public MetadataConversionError(string message, bool isWarning)
         {
-            if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
-            this.Message = message;
-            this.IsWarning = isWarning;
+            Message = message ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
+            IsWarning = isWarning;
         }
 
         public string Message { get; }
         public bool IsWarning { get; }
+
         public override bool Equals(object obj)
         {
             MetadataConversionError otherError = obj as MetadataConversionError;
             if (otherError == null)
                 return false;
-            return otherError.IsWarning == this.IsWarning && otherError.Message == this.Message;
+
+            return otherError.IsWarning == IsWarning && otherError.Message == Message;
         }
 
         public override int GetHashCode()
@@ -29,5 +30,4 @@ namespace CoreWCF.Description
             return Message.GetHashCode();
         }
     }
-
 }

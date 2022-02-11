@@ -61,7 +61,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal bool IsSystemEndpoint
+        public bool IsSystemEndpoint
         {
             get;
             set;
