@@ -5,11 +5,12 @@ using System;
 using System.ComponentModel;
 using System.Xml;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    public sealed class BinaryMessageEncodingBindingElement : MessageEncodingBindingElement
+    public sealed class BinaryMessageEncodingBindingElement : MessageEncodingBindingElement, IWsdlExportExtension, IPolicyExportExtension
     {
         private int _maxReadPoolSize;
         private int _maxWritePoolSize;
@@ -196,14 +197,6 @@ namespace CoreWCF.Channels
             return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
         }
 
-        // TODO: Make sure this verification code is executed during pipeline build
-        //public override IChannelListener<TChannel> BuildChannelListener<TChannel>(BindingContext context)
-        //{
-        //    VerifyCompression(context);
-        //    SetMaxReceivedMessageSizeFromTransport(context);
-        //    return InternalBuildChannelListener<TChannel>(context);
-        //}
-
         public override BindingElement Clone()
         {
             return new BinaryMessageEncodingBindingElement(this);
@@ -236,6 +229,30 @@ namespace CoreWCF.Channels
             {
                 return base.GetProperty<T>(context);
             }
+        }
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext policyContext)
+        {
+            if (policyContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(policyContext));
+            }
+            XmlDocument document = new XmlDocument();
+            policyContext.GetBindingAssertions().Add(document.CreateElement(
+                MessageEncodingPolicyConstants.BinaryEncodingPrefix,
+                MessageEncodingPolicyConstants.BinaryEncodingName,
+                MessageEncodingPolicyConstants.BinaryEncodingNamespace));
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext context) { }
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SoapHelper.SetSoapVersion(context, exporter, MessageVersion.Soap12WSAddressing10.Envelope);
         }
 
         protected override bool IsMatch(BindingElement b)
@@ -302,13 +319,23 @@ namespace CoreWCF.Channels
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeReaderQuotas()
         {
-            return (!EncoderDefaults.IsDefaultReaderQuotas(ReaderQuotas));
+            return !EncoderDefaults.IsDefaultReaderQuotas(ReaderQuotas);
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool ShouldSerializeMessageVersion()
         {
-            return (!_messageVersion.IsMatch(MessageVersion.Default));
+            return !_messageVersion.IsMatch(MessageVersion.Default);
+        }
+
+        private static class MessageEncodingPolicyConstants
+        {
+            public const string BinaryEncodingName = "BinaryEncoding";
+            public const string BinaryEncodingNamespace = "http://schemas.microsoft.com/ws/06/2004/mspolicy/netbinary1";
+            public const string BinaryEncodingPrefix = "msb";
+            public const string OptimizedMimeSerializationNamespace = "http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization";
+            public const string OptimizedMimeSerializationPrefix = "wsoma";
+            public const string MtomEncodingName = "OptimizedMimeSerialization";
         }
     }
 }

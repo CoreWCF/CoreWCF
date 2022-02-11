@@ -10,7 +10,7 @@ using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Description
 {
-    public class DataContractSerializerOperationBehavior : IOperationBehavior //, IWsdlExportExtension
+    public class DataContractSerializerOperationBehavior : IOperationBehavior, IWsdlExportExtension
     {
         private readonly OperationDescription _operation;
         internal bool ignoreExtensionDataObject = DataContractSerializerDefaults.IgnoreExtensionDataObject;
@@ -152,6 +152,26 @@ namespace CoreWCF.Description
             proxy.Formatter = (IClientMessageFormatter)GetFormatter(description, out bool formatRequest, out bool formatReply, true);
             proxy.SerializeRequest = formatRequest;
             proxy.DeserializeReply = formatReply;
+        }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (endpointContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointContext));
+
+            MessageContractExporter.ExportMessageBinding(exporter, endpointContext, typeof(DataContractSerializerMessageContractExporter), _operation);
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext contractContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (contractContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractContext));
+
+            new DataContractSerializerMessageContractExporter(exporter, contractContext, _operation, this).ExportMessageContract();
         }
     }
 }

@@ -1596,21 +1596,6 @@
   <data name="BinaryEncoderSessionMalformed" xml:space="preserve">
     <value>The binary encoder session information is not properly formed.</value>
   </data>
-  <data name="ReceiveShutdownReturnedFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
-  </data>
-  <data name="ReceiveShutdownReturnedLargeFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message with Action = '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
-  <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
-    <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
-  <data name="MaxReceivedMessageSizeExceeded" xml:space="preserve">
-    <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
-  </data>
-  <data name="MaxSentMessageSizeExceeded" xml:space="preserve">
-    <value>The maximum message size quota for outgoing messages ({0}) has been exceeded.</value>
-  </data>
   <data name="FramingMaxMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages has been exceeded for the remote channel. See the server logs for more details.</value>
   </data>
@@ -1896,14 +1881,8 @@
   <data name="HttpAuthDoesNotSupportRequestStreaming" xml:space="preserve">
     <value>HTTP request streaming cannot be used in conjunction with HTTP authentication.  Either disable request streaming or specify anonymous HTTP authentication.</value>
   </data>
-  <data name="ReplyAlreadySent" xml:space="preserve">
-    <value>A reply has already been sent from this RequestContext.</value>
-  </data>
   <data name="HttpInvalidListenURI" xml:space="preserve">
     <value>Unable to start the HTTP listener. The URI provided, '{0}', is invalid for listening. Check the base address of your service and verify that it is a valid URI.</value>
-  </data>
-  <data name="RequestContextAborted" xml:space="preserve">
-    <value>The requestContext has been aborted.</value>
   </data>
   <data name="ReceiveContextCannotBeUsed" xml:space="preserve">
     <value>The receive context, {0}, is in the {1} state.  Receive contexts cannot be used for sending delayed acks unless they are in the Received state.</value>
@@ -2672,9 +2651,6 @@
   </data>
   <data name="HttpsServerCertThumbprintMismatch" xml:space="preserve">
     <value>The server certificate with name '{0}' failed identity verification because its thumbprint ('{1}') does not match the one specified in the endpoint identity ('{2}').  As a result, the current HTTPS request has failed.  Please update the endpoint identity used on the client or the certificate used by the server.</value>
-  </data>
-  <data name="DuplicateRegistration" xml:space="preserve">
-    <value>A registration already exists for URI '{0}'.</value>
   </data>
   <data name="SecureChannelFailure" xml:space="preserve">
     <value>Could not establish secure channel for SSL/TLS with authority '{0}'.</value>
@@ -3609,12 +3585,6 @@
   <data name="SFxDocExt_NoMetadataConfigComment4" xml:space="preserve">
     <value>Add the following element to your service behavior configuration.</value>
   </data>
-  <data name="SFxDocExt_CS" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;C#&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
-  <data name="SFxDocExt_VB" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;Visual Basic&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
   <data name="SFxDocExt_MainPageTitleNoServiceName" xml:space="preserve">
     <value>Service</value>
   </data>
@@ -3803,9 +3773,6 @@
   </data>
   <data name="SFxInvalidAsyncResultState0" xml:space="preserve">
     <value>IAsyncResult's State must be the state argument passed to your Begin call.</value>
-  </data>
-  <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
-    <value>IAsyncResult not provided or of wrong type.</value>
   </data>
   <data name="SFxInvalidCallbackContractType" xml:space="preserve">
     <value>The CallbackContract {0} is invalid because it is not an interface type.</value>
@@ -7905,17 +7872,11 @@
   <data name="TimeoutInputQueueDequeue" xml:space="preserve">
     <value>A Dequeue operation timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name="TaskTimedOutError" xml:space="preserve">
-    <value>The task timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
   <data name="Xml_InvalidNodeType" xml:space="preserve">
     <value>'{0}' is an invalid XmlNodeType.</value>
   </data>
   <data name="InvalidSemaphoreExit" xml:space="preserve">
     <value>Object synchronization method was called from an unsynchronized block of code.</value>
-  </data>
-  <data name="TimeoutMustBeNonNegative" xml:space="preserve">
-    <value>Argument {0} must be a non-negative timeout value. Provided value was {1}.</value>
   </data>
   <data name="InvalidTypedProxyMethodHandle" xml:space="preserve">
     <value>The specified method handle is incorrect for the proxy of type '{0}'</value>
@@ -7943,9 +7904,6 @@
   </data>
   <data name="TimeoutMustBePositive" xml:space="preserve">
     <value>Argument {0} must be a positive timeout value. Provided value was {1}.</value>
-  </data>
-  <data name="LockTimeoutExceptionMessage" xml:space="preserve">
-    <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name="SecurityTokenRequirementDoesNotContainProperty" xml:space="preserve">
     <value>The token requirement does not contain a property '{0}'.</value>
@@ -8219,5 +8177,47 @@
   </data>
   <data name="UnknownServiceConfiguration" xml:space="preserve">
     <value>Could not find service '{0}' in configured services. Service must be registered using 'IServiceBuilder.AddService&lt;TService&gt;(...)' before registering a service endpoint using 'IServiceBuilder.AddServiceEndpoint&lt;TService, TContract&gt;(...)'</value>
+  </data>
+  <data name="WarnSkippingOperationWithSessionOpenNotificationEnabled" xml:space="preserve">
+    <value>An operation was skipped during export because the property '{0}' is set to '{1}'. This operation should be used for server only and should not be exposed from WSDL. \r\nContract Name:{2}\r\nContract Namespace:{3}\r\nOperation Name:{4}</value>
+  </data>
+  <data name="WarnSkippingOperationWithWildcardAction" xml:space="preserve">
+    <value>An operation was skipped during export because it has a wildcard action. This is not supported in WSDL.\r\nContract Name:{0}\r\nContract Namespace:{1}\r\nOperation Name:{2}</value>
+  </data>
+  <data name="XmlSerializerUnsupportedType" xml:space="preserve">
+    <value>{0} is an unsupported type. Please use [XmlIgnore] attribute to exclude members of this type from serialization graph.</value>
+  </data>
+  <data name="XmlConstructorInaccessible" xml:space="preserve">
+    <value>{0} cannot be serialized because it does not have a parameterless constructor.</value>
+  </data>
+  <data name="XmlUnsupportedOpenGenericType" xml:space="preserve">
+    <value>Type {0} is not supported because it has unbound generic parameters.  Only instantiated generic types can be serialized.</value>
+  </data>
+  <data name="XmlMappingsScopeMismatch" xml:space="preserve">
+    <value>Exported mappings must come from the same importer.</value>
+  </data>
+  <data name="XmlInternalError" xml:space="preserve">
+    <value>Internal error.</value>
+  </data>
+  <data name="XmlMissingSchema" xml:space="preserve">
+    <value>Missing schema targetNamespace="{0}".</value>
+  </data>
+  <data name="XmlDuplicateTypeName" xml:space="preserve">
+    <value>A type with the name {0} has already been added in namespace {1}.</value>
+  </data>
+  <data name="XmlSoapCannotIncludeInSchema" xml:space="preserve">
+    <value>The type {0} may not be exported to a schema because the IncludeInSchema property of the SoapType attribute is 'false'.</value>
+  </data>
+  <data name="XmlInvalidContent" xml:space="preserve">
+    <value>Invalid content {0}.</value>
+  </data>
+  <data name="DupContractInDataContractSet" xml:space="preserve">
+    <value>DataContract with name '{0}' and namespace '{1}' cannot be added to DataContractSet since another contract with the same data contract name is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="DupTypeContractInDataContractSet" xml:space="preserve">
+    <value>DataContract for type '{0}' cannot be added to DataContractSet since type '{1}' with the same data contract name '{2}' in namespace '{3}' is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="GenericTypeNotExportable" xml:space="preserve">
+    <value>Type '{0}' cannot be exported as a schema type because it is an open generic type. You can only export a generic type if all its generic parameter types are actual types.</value>
   </data>
 </root>

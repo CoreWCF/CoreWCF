@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject))">
+  <ItemGroup Condition="'$(IncludeCommonCode)' == 'true'">
     <Compile Include="$(CommonPath)/CoreWCF/**/*.cs" Exclude="$(CommonPath)/CoreWCF/SR.cs">
       <Visible>true</Visible>
       <Link>shared/CoreWCF/%(RecursiveDir)%(Filename)%(Extension)</Link>

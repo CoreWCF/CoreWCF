@@ -126,7 +126,7 @@ namespace CoreWCF
             //            : (Activity)null)
             //        _diagnosticTrace.TraceEvent(eventType, 131075,
             //            LegacyDiagnosticTrace.GenerateMsdnTraceCode("System.ServiceModel.Diagnostics",
-            //                "ThrowingException"), TraceSR.Format("ThrowingException"), extendedData, exception,
+            //                "ThrowingException"), TraceSRCommon.Format("ThrowingException"), extendedData, exception,
             //            (object)null);
             //    IDictionary data = exception.Data;
             //    if (data != null && !data.IsReadOnly && !data.IsFixedSize)

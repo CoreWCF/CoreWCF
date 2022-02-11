@@ -34,24 +34,24 @@ namespace CoreWCF.Channels
         //    return authScheme.IsSet(authTypeScheme);
         //}
 
-        //public static bool IsSingleton(this AuthenticationSchemes v)
-        //{
-        //    bool result;
-        //    switch (v)
-        //    {
-        //        case AuthenticationSchemes.Digest:
-        //        case AuthenticationSchemes.Negotiate:
-        //        case AuthenticationSchemes.Ntlm:
-        //        case AuthenticationSchemes.Basic:
-        //        case AuthenticationSchemes.Anonymous:
-        //            result = true;
-        //            break;
-        //        default:
-        //            result = false;
-        //            break;
-        //    }
-        //    return result;
-        //}
+        public static bool IsSingleton(this AuthenticationSchemes v)
+        {
+            bool result;
+            switch (v)
+            {
+                case AuthenticationSchemes.Digest:
+                case AuthenticationSchemes.Negotiate:
+                case AuthenticationSchemes.Ntlm:
+                case AuthenticationSchemes.Basic:
+                case AuthenticationSchemes.Anonymous:
+                    result = true;
+                    break;
+                default:
+                    result = false;
+                    break;
+            }
+            return result;
+        }
 
         public static bool IsSet(this AuthenticationSchemes thisPtr, AuthenticationSchemes authenticationSchemes)
         {

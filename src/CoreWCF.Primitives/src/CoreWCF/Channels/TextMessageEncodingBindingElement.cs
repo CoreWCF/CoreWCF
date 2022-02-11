@@ -4,10 +4,11 @@
 using System;
 using System.Text;
 using System.Xml;
+using CoreWCF.Description;
 
 namespace CoreWCF.Channels
 {
-    public sealed class TextMessageEncodingBindingElement : MessageEncodingBindingElement
+    public sealed class TextMessageEncodingBindingElement : MessageEncodingBindingElement, IWsdlExportExtension, IPolicyExportExtension
     {
         private int _maxReadPoolSize;
         private int _maxWritePoolSize;
@@ -153,6 +154,26 @@ namespace CoreWCF.Channels
             {
                 return base.GetProperty<T>(context);
             }
+        }
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext context) { }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SoapHelper.SetSoapVersion(context, exporter, MessageVersion.Envelope);
         }
 
         internal override bool CheckEncodingVersion(EnvelopeVersion version)

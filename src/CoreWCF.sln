@@ -52,6 +52,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.BuildTools.Roslyn4.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.BuildTools.Roslyn3.11.Tests", "CoreWCF.BuildTools\tests\CoreWCF.BuildTools.Roslyn3.11.Tests.csproj", "{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Metadata.Tests", "CoreWCF.Metadata\tests\CoreWCF.Metadata.Tests.csproj", "{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -206,6 +208,18 @@ Global
 		{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00}.Release|x64.Build.0 = Release|Any CPU
 		{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00}.Release|x86.ActiveCfg = Release|Any CPU
 		{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00}.Release|x86.Build.0 = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|x64.Build.0 = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -224,6 +238,7 @@ Global
 		{B33DB0C4-15AD-49E5-8F63-9A03E2DCC70C} = {0B5D4C83-181F-44AD-8F24-95599BFD66B8}
 		{ECAD36D8-53A0-43D8-9180-9E14FA2B2BA5} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
 		{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
+		{F3DA1D42-DB34-480B-924B-EEF32E3FFC12} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C86AC5B-B946-48AD-A3A5-0E1A29EDA4CF}

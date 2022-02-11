@@ -15,7 +15,7 @@ namespace CoreWCF
 {
     public abstract class ServiceHostBase : CommunicationObject, IExtensibleObject<ServiceHostBase>, IDisposable
     {
-        internal static readonly Uri EmptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
+        internal static readonly Uri s_emptyUri = new Uri(string.Empty, UriKind.RelativeOrAbsolute);
         private bool _initializeDescriptionHasFinished;
         private TimeSpan _closeTimeout = ServiceDefaults.ServiceHostCloseTimeout;
         private readonly ExtensionCollection<ServiceHostBase> _extensions;
@@ -233,6 +233,15 @@ namespace CoreWCF
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxServiceHostBaseCannotApplyConfigurationWithoutDescription));
             }
+
+            EnsureAuthenticationAuthorizationDebug(Description);
+        }
+
+        internal void EnsureAuthenticationAuthorizationDebug(ServiceDescription description)
+        {
+            //EnsureAuthentication(description);
+            EnsureAuthorization(description);
+            EnsureDebug(description);
         }
 
         internal virtual void BindInstance(InstanceContext instance)
@@ -288,6 +297,20 @@ namespace CoreWCF
         //    }
         //    return a;
         //}
+
+        private ServiceDebugBehavior EnsureDebug(ServiceDescription description)
+        {
+            Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
+            ServiceDebugBehavior m = description.Behaviors.Find<ServiceDebugBehavior>();
+
+            if (m == null)
+            {
+                m = new ServiceDebugBehavior();
+                description.Behaviors.Add(m);
+            }
+
+            return m;
+        }
 
         private ServiceCredentials EnsureCredentials(ServiceDescription description)
         {
@@ -345,6 +368,56 @@ namespace CoreWCF
                 via = GetUri(baseAddress, address);
             }
             return via;
+        }
+
+        internal Uri GetVia(string scheme, Uri address)
+        {
+            if (!address.IsAbsoluteUri)
+            {
+                Uri baseAddress = null;
+                foreach (var ba in BaseAddresses)
+                {
+                    if (ba.Scheme.Equals(scheme))
+                    {
+                        baseAddress = ba;
+                        break;
+                    }
+                }
+
+                if (baseAddress == null)
+                {
+                    return null;
+                }
+
+                return GetUri(baseAddress, address.OriginalString);
+            }
+
+            return address;
+        }
+
+        private static Uri GetUri(Uri baseUri, string path)
+        {
+            if (path.StartsWith("/", StringComparison.Ordinal) || path.StartsWith("\\", StringComparison.Ordinal))
+            {
+                int i = 1;
+                for (; i < path.Length; ++i)
+                {
+                    if (path[i] != '/' && path[i] != '\\')
+                    {
+                        break;
+                    }
+                }
+                path = path.Substring(i);
+            }
+
+            if (path.Length == 0)
+                return baseUri;
+
+            if (!baseUri.AbsoluteUri.EndsWith("/", StringComparison.Ordinal))
+            {
+                baseUri = new Uri(baseUri.AbsoluteUri + "/");
+            }
+            return new Uri(baseUri, path);
         }
 
         internal static Uri GetUri(Uri baseUri, Uri relativeUri)

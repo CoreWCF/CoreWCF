@@ -17,7 +17,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             TBindingConfiguration configElementKey = (TBindingConfiguration)element;

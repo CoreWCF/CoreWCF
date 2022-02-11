@@ -13,7 +13,9 @@ namespace CoreWCF.Configuration
         ICollection<Uri> BaseAddresses { get; }
 
         IServiceBuilder AddService<TService>() where TService : class;
+        IServiceBuilder AddService<TService>(Action<ServiceOptions> options) where TService : class;
         IServiceBuilder AddService(Type service);
+        IServiceBuilder AddService(Type service, Action<ServiceOptions> options);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, Uri address);
         IServiceBuilder AddServiceEndpoint<TService, TContract>(Binding binding, string address, Uri listenUri);
