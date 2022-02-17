@@ -30,6 +30,12 @@ Minor releases will not be breaking with respect to their major release. If you 
 
 When work starts on new major versions, that are not going to be 100% compatible, or will have fundamental changes, then they will be released as previews, and the packages will be marked as preview in nuget. For example 2.0 work will be released as a 2.0 preview, rather than as a 1.x.
 
+### .NET Versions
+
+Support for specific versions of the .NET runtime in Core WCF will be timeboxed by the support durations for those runtimes by Microsoft. For example .NET 5 will be supported until May 8 2022 (based on dates from [here](https://docs.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core)). 
+
+For engineering reasons, major releases may drop support for older versions of .NET runtime. This is so that Core WCF can take advanatge of runtime features that are not present in the older runtime.
+
 ## Microsoft support
 
 Microsoft support will be available for non-preview releases. Support will be for the latest minor release, with a 6 month support window for the previous major family when the next major family is released (eg 2.3 would continue to supported until 6 months after 3.0 is released). 
@@ -45,7 +51,7 @@ In the case of a security issue, fixes will be made available for:
 * The last minor release for the previous major if the current major was released within the last 6 months
 * As an update to an existing preview or in the next preview depending on timing considerations.
 
-Security issues should be reported via Microsoft Security Response Center (MSRC) as described in SECURITY.md, those issues will then be routed to the project maintainers.
+Security issues should be reported via email to security@corewcf.net as described in SECURITY.md, those issues will then be routed to the project maintainers.
 
 ## Release Steps
 
