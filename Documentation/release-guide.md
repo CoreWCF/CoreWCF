@@ -34,22 +34,27 @@ When work starts on new major versions, that are not going to be 100% compatible
 
 Support for specific versions of the .NET runtime in Core WCF will be timeboxed by the support durations for those runtimes by Microsoft. For example .NET 5 will be supported until May 8 2022 (based on dates from [here](https://docs.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core)). 
 
-For engineering reasons, major releases may drop support for older versions of .NET runtime. This is so that Core WCF can take advanatge of runtime features that are not present in the older runtime.
+For engineering reasons, major releases of CoreWCF may drop support for older versions of .NET runtime. This is so that Core WCF can take advanatge of runtime features that are not present in the older runtime. For example, the current plan is that shortly after 1.0 is shippped, work will start on 2.0 which will drop .NET Framework and .NET Core 3.1 support, this is because we need to take a dependency on newer ASP.NET core features that are not available down level.
 
 ## Microsoft support
 
-Microsoft support will be available for non-preview releases. Support will be for the latest minor release, with a 6 month support window for the previous major family when the next major family is released (eg 2.3 would continue to supported until 6 months after 3.0 is released). 
+- Microsoft support will be available for non-preview releases. (eg 2.0, 2.1 or 3.0)
+- Support will be for the latest minor release, with a 6 month support window for the previous major family when the next major family is released 
+  - eg 2.3 would continue to supported until 6 months after 3.0 is released. 
+- Microsoft support is intended for unexpected issues found during production deployment or operation. 
+  - Core WCF is a subset of WCF, so support is not intended to provide missing functionality found during app migration from WCF or new development.
+- Runtime support will be based on the support windows for versions of .NET or .NET Framework
+- Platform suppirt will be based on the support matrix for the underlying versions of .NET or .NET Core 
 
-Microsoft support is intended for unexpected issues found during production deployment or operation. It is not for missing or broken functionality found during app migration from WCF, new development or testing.
-
-Support may also be available from other entities in conjunction with the use of their software & services.
+As a community project, support may also be available from other entities in conjunction with the use of their software & services.
 
 ## Security issues
 
 In the case of a security issue, fixes will be made available for:
-* The last major.minor release
-* The last minor release for the previous major if the current major was released within the last 6 months
-* As an update to an existing preview or in the next preview depending on timing considerations.
+- The last major.minor release
+- The last minor release for the previous major if the current major was released within the last 6 months
+  - eg 2.3 would continue to supported until 6 months after 3.0 is released. 
+- As an update to an existing preview or in the next preview depending on timing considerations.
 
 Security issues should be reported via email to security@corewcf.net as described in SECURITY.md, those issues will then be routed to the project maintainers.
 
