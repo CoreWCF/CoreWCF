@@ -27,14 +27,15 @@ namespace CoreWCF
             {
                 MessageVersion = MessageVersion.Soap11
             };
+
+            _httpsTransport.WebSocketSettings = _httpTransport.WebSocketSettings;
         }
+
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
 
         // [System.ComponentModel.DefaultValueAttribute((long)524288)]
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
-        // [System.ComponentModel.DefaultValueAttribute(65536)]
-        // public int MaxBufferSize { get { return default(int); } set { } }
 
         [DefaultValue(TransportDefaults.MaxReceivedMessageSize)]
         public long MaxReceivedMessageSize
