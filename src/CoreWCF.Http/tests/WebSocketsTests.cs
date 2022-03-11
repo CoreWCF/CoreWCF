@@ -26,6 +26,31 @@ namespace NetHttp
         }
 
         [Fact]
+        public void NetHttpWebSocketsSettingsApplied()
+        {
+            var netHttpBinding = new NetHttpBinding();
+            var webSocketSettings = netHttpBinding.WebSocketSettings;
+            ModifyWebSocketSettings(webSocketSettings);
+            var htbe = netHttpBinding.CreateBindingElements().Find<CoreWCF.Channels.HttpTransportBindingElement>();
+            Assert.Equal(webSocketSettings, htbe.WebSocketSettings);
+            netHttpBinding = new NetHttpBinding(CoreWCF.Channels.BasicHttpSecurityMode.Transport);
+            webSocketSettings = netHttpBinding.WebSocketSettings;
+            ModifyWebSocketSettings(webSocketSettings);
+            var htsbe = netHttpBinding.CreateBindingElements().Find<CoreWCF.Channels.HttpsTransportBindingElement>();
+            Assert.Equal(webSocketSettings, htsbe.WebSocketSettings);
+
+            void ModifyWebSocketSettings(CoreWCF.Channels.WebSocketTransportSettings settings)
+            {
+                settings.SubProtocol = "foo";
+                settings.KeepAliveInterval = TimeSpan.FromMinutes(100);
+                settings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
+                settings.CreateNotificationOnConnection = true;
+                settings.DisablePayloadMasking = true;
+                settings.MaxPendingConnections = 12345;
+            }
+        }
+
+        [Fact]
         public void NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
