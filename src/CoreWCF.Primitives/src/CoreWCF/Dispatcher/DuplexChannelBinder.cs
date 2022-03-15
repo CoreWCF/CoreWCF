@@ -18,8 +18,6 @@ namespace CoreWCF.Dispatcher
     {
         private IDuplexChannel _channel;
         private IRequestReplyCorrelator _correlator;
-        private TimeSpan _defaultCloseTimeout;
-        private TimeSpan _defaultSendTimeout;
         private IdentityVerifier _identityVerifier;
         private int _pending;
         private List<IDuplexRequest> _requests;

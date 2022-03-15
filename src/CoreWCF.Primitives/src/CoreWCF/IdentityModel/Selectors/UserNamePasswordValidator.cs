@@ -29,7 +29,9 @@ namespace CoreWCF.IdentityModel.Selectors
 
         public virtual ValueTask ValidateAsync(string userName, string password)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             Validate(userName, password);
+#pragma warning restore CS0618 // Type or member is obsolete
             return new ValueTask();
         }
 

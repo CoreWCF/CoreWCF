@@ -11,8 +11,6 @@ namespace CoreWCF.Channels
 {
     public abstract class MessageEncoder
     {
-        private string _traceSourceString;
-
         public abstract string ContentType { get; }
 
         public abstract string MediaType { get; }
@@ -221,7 +219,7 @@ namespace CoreWCF.Channels
             //     _traceSourceString = Runtime.Diagnostics.DiagnosticTraceBase.CreateDefaultSourceString(this);
             // }
 
-            return _traceSourceString;
+            return null;
         }
     }
 }
