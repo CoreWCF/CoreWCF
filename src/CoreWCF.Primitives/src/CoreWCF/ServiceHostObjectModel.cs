@@ -255,7 +255,17 @@ namespace CoreWCF
             {
                 address = "https://localhost" + address.Substring(9);
             }
-
+            else if (address.StartsWith("https://*.", StringComparison.OrdinalIgnoreCase) ||
+                    address.StartsWith("http://*.", StringComparison.OrdinalIgnoreCase))
+            {
+                int colonIndex = address.IndexOf(':');
+                string beforeAsterisk = address.Substring(0, colonIndex + 3);
+                string rest = address.Substring(colonIndex + 4);
+                StringBuilder sb = new StringBuilder(beforeAsterisk);
+                sb.Append(System.Net.Dns.GetHostName());
+                sb.Append(rest);
+                address = sb.ToString();
+            }
             return new Uri(address);
         }
 
