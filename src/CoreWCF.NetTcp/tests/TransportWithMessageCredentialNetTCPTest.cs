@@ -155,7 +155,7 @@ namespace CoreWCF.NetTcp.Tests
                 host.Description.Behaviors.Add(srvCredentials);
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.NetTcpBinding serverBinding = new CoreWCF.NetTcpBinding(SecurityMode.TransportWithMessageCredential);
                 serverBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
@@ -172,17 +172,14 @@ namespace CoreWCF.NetTcp.Tests
 
             internal class CustomTestValidator : UserNamePasswordValidator
             {
-                public override void Validate(string userName, string password)
+                public override ValueTask ValidateAsync(string userName, string password)
                 {
-                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0 && password.Length > 0)
+                    if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
                     {
-                        //Write custom logic
-                        return;
+                        return new ValueTask(Task.CompletedTask);
                     }
-                    else
-                    {
-                        throw new Exception("Permission Denied");
-                    }
+
+                    return new ValueTask(Task.FromException(new Exception("Permission Denied")));
                 }
             }
         }

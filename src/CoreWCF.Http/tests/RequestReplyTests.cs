@@ -76,7 +76,7 @@ namespace CoreWCF.Http.Tests
             {
                 services.AddServiceModelServices();
             }
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

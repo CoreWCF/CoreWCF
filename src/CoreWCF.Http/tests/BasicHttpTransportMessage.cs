@@ -141,14 +141,14 @@ namespace BasicHttp
 
         internal class CustomTestValidator : UserNamePasswordValidator
         {
-            public override void Validate(string userName, string password)
+            public override ValueTask ValidateAsync(string userName, string password)
             {
                 if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    return;
+                    return new ValueTask(Task.CompletedTask);
                 }
 
-                throw new Exception("Permission Denied");
+                return new ValueTask(Task.FromException(new Exception("Permission Denied")));
             }
         }
 
@@ -231,7 +231,7 @@ namespace BasicHttp
                 return basicBinding;
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.BasicHttpBinding serverBinding = new CoreWCF.BasicHttpBinding(_basicHttpSecurityMode);
                 serverBinding.Security.Message.ClientCredentialType = _credentialType;
@@ -252,7 +252,7 @@ namespace BasicHttp
                 services.AddServiceModelServices();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding();
 

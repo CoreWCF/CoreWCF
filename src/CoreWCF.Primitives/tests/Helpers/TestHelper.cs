@@ -201,11 +201,16 @@ namespace Helpers
         public static void RegisterApplicationLifetime(this IServiceCollection services)
         {
 #if NETCOREAPP3_1_OR_GREATER
-            services.AddSingleton<Microsoft.Extensions.Hosting.IHostApplicationLifetime, Microsoft.Extensions.Hosting.Internal.ApplicationLifetime>();
-            var genericWebHostApplicationLifetimeType =
+            var applicationLifetimeType =
                 typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(
-                    "Microsoft.AspNetCore.Hosting.GenericWebHostApplicationLifetime");
-            services.AddSingleton(typeof(Microsoft.AspNetCore.Hosting.IApplicationLifetime), genericWebHostApplicationLifetimeType!);
+                "Microsoft.AspNetCore.Hosting.ApplicationLifetime");
+            services.AddSingleton(typeof(Microsoft.Extensions.Hosting.IHostApplicationLifetime), applicationLifetimeType);
+#pragma warning disable CS0618 // Type or member is obsolete
+            services.AddSingleton(provider =>
+                provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.AspNetCore.Hosting.IApplicationLifetime);
+            services.AddSingleton(provider =>
+                provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.Extensions.Hosting.IApplicationLifetime);
+#pragma warning restore CS0618 // Type or member is obsolete
 #else
             services.AddSingleton<Microsoft.AspNetCore.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
 #endif

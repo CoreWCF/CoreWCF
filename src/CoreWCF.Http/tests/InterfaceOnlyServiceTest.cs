@@ -97,7 +97,7 @@ namespace BasicHttp
                 services.AddSingleton<ServiceContract.IEchoService>(sp => sp.GetRequiredService<EchoServiceInterceptor>());
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {
