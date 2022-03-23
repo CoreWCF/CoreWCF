@@ -102,19 +102,16 @@ namespace CoreWCF.Channels
                     {
                         _app
                     };
-                    Type supportedChannelType = null;
                     IServiceDispatcher serviceDispatcher = null;
                     System.Collections.Generic.IList<Type> supportedChannels = dispatcher.SupportedChannelTypes;
                     for (int i = 0; i < supportedChannels.Count; i++)
                     {
                         Type channelType = supportedChannels[i];
-
                         if (channelType == typeof(IInputChannel))
                         {
                             if (binding.CanBuildServiceDispatcher<IInputChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IInputChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IInputChannel);
                                 break;
                             }
                         }
@@ -123,7 +120,6 @@ namespace CoreWCF.Channels
                             if (binding.CanBuildServiceDispatcher<IReplyChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IReplyChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IReplyChannel);
                             }
                         }
                         if (channelType == typeof(IDuplexChannel))
@@ -131,7 +127,6 @@ namespace CoreWCF.Channels
                             if (binding.CanBuildServiceDispatcher<IDuplexChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IDuplexChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IDuplexChannel);
                             }
                         }
                         if (channelType == typeof(IInputSessionChannel))
@@ -139,7 +134,6 @@ namespace CoreWCF.Channels
                             if (binding.CanBuildServiceDispatcher<IInputSessionChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IInputSessionChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IInputSessionChannel);
                             }
                         }
                         if (channelType == typeof(IReplySessionChannel))
@@ -147,7 +141,6 @@ namespace CoreWCF.Channels
                             if (binding.CanBuildServiceDispatcher<IReplySessionChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IReplySessionChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IReplySessionChannel);
                             }
                         }
                         if (channelType == typeof(IDuplexSessionChannel))
@@ -155,12 +148,17 @@ namespace CoreWCF.Channels
                             if (binding.CanBuildServiceDispatcher<IDuplexSessionChannel>(parameters))
                             {
                                 serviceDispatcher = binding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
-                                supportedChannelType = typeof(IDuplexSessionChannel);
                             }
                         }
                     }
 
-                    _logger.LogInformation($"Mapping CoreWCF branch app for path {dispatcher.BaseAddress.AbsolutePath}");
+                    if (serviceDispatcher is null)
+                    {
+                        _logger.LogError("Unable to map CoreWCF branch app for path {path}", dispatcher.BaseAddress.AbsolutePath);
+                        continue;
+                    }
+
+                    _logger.LogInformation("Mapping CoreWCF branch app for path {path}", dispatcher.BaseAddress.AbsolutePath);
                     branchApp.Map(dispatcher.BaseAddress.AbsolutePath, wcfApp =>
                     {
                         IServiceScopeFactory servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
