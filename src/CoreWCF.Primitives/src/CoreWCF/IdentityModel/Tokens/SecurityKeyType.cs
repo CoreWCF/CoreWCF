@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal enum SecurityKeyType
+    public enum SecurityKeyType
     {
         SymmetricKey,
         AsymmetricKey,

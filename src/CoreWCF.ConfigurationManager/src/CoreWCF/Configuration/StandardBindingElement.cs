@@ -7,7 +7,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    public abstract class StandardBindingElement : ServiceModelConfigurationElement, IDefaultCommunicationTimeouts
+    public abstract class StandardBindingElement : ServiceModelConfigurationElement, IDefaultCommunicationTimeouts, IStandardBindingElement
     {
         protected StandardBindingElement()
             : this(null)

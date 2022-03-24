@@ -19,7 +19,7 @@ namespace CoreWCF.Security.Tokens
         private const string wsidPrefix = "wsid";
         private const string wsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
         private static readonly string s_wsidPPIClaim = string.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", wsidNamespace);
-        internal const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
+        public const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
         internal const bool defaultUseStrTransform = false;
         private int _keySize;
         private SecurityKeyType _keyType = defaultKeyType;
@@ -87,13 +87,13 @@ namespace CoreWCF.Security.Tokens
 
         public Binding IssuerBinding { get; set; }
 
-        internal SecurityKeyType KeyType
+        public SecurityKeyType KeyType
         {
             get
             {
                 return _keyType;
             }
-            set
+            internal set
             {
                 SecurityKeyTypeHelper.Validate(value);
                 _keyType = value;

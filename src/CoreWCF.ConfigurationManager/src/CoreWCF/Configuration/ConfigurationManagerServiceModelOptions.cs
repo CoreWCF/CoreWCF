@@ -82,6 +82,7 @@ namespace CoreWCF.Configuration
             AddBinding(group.Bindings?.NetTcpBinding.Bindings);
             AddBinding(group.Bindings?.NetHttpBinding.Bindings);
             AddBinding(group.Bindings?.WSHttpBinding.Bindings);
+            AddBinding(group.Bindings?.CustomBinding.Bindings);
             AddEndpoint(group.Services?.Services);
         }
 
@@ -106,7 +107,7 @@ namespace CoreWCF.Configuration
 
         private void AddBinding(IEnumerable bindings)
         {
-            foreach (StandardBindingElement bindingElement in bindings.OfType<StandardBindingElement>())
+            foreach (IStandardBindingElement bindingElement in bindings.OfType<IStandardBindingElement>())
             {
                 Channels.Binding binding = bindingElement.CreateBinding();
                 _holder.AddBinding(binding);
