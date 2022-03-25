@@ -12,11 +12,6 @@ namespace CoreWCF.OpenApi.Attributes
     public sealed class OpenApiParameterAttribute : Attribute
     {
         /// <summary>
-        /// Is the parameter required.
-        /// </summary>
-        public bool IsRequired { get; set; }
-
-        /// <summary>
         /// A description of the parameter.
         /// </summary>
         public string Description { get; set; }

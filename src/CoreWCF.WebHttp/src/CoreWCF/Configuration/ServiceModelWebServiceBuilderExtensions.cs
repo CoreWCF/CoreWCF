@@ -236,7 +236,11 @@ namespace CoreWCF.Configuration
                 if (webHttpBehavior.HelpEnabled)
                 {
                     OpenApiDocumentProvider documentProvider = webHttpBehavior.ServiceProvider.GetRequiredService<OpenApiDocumentProvider>();
-                    documentProvider.Contracts.Add(implementedContract);
+                    documentProvider.Contracts.Add(new OpenApiContractInfo
+                    {
+                        Contract = implementedContract,
+                        ResponseFormat = webHttpBehavior.DefaultOutgoingResponseFormat
+                    });
                 }
             });
 

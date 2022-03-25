@@ -15,7 +15,7 @@ namespace CoreWCF.OpenApi.Attributes
         /// <summary>
         /// A status code that can be returned by an operation.
         /// </summary>
-        public HttpStatusCode StatusCode { get; set; }
+        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
 
         /// <summary>
         /// A type that can be returned by an operation.

@@ -89,14 +89,12 @@ namespace CoreWCF.Description
             }
         }
 
-        // TODO: Help
         public virtual bool HelpEnabled { get; set; }
 
         public virtual bool AutomaticFormatSelectionEnabled { get; set; }
 
         public virtual bool FaultExceptionEnabled { get; set; }
 
-        // TODO: Help
         internal Uri HelpUri { get; set; }
 
         public virtual void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
@@ -147,10 +145,9 @@ namespace CoreWCF.Description
                 }
             }
 
-            // TODO: Help
             if (HelpEnabled)
             {
-;               HelpUri = new UriTemplate(HelpPage.OperationListHelpPageUriTemplate).BindByPosition(endpoint.ListenUri);
+                HelpUri = new UriTemplate(HelpPage.OperationListHelpPageUriTemplate).BindByPosition(endpoint.ListenUri);
             }
 
             _contractNamespace = endpoint.Contract.Namespace;
@@ -251,7 +248,6 @@ namespace CoreWCF.Description
                 }
             }
 
-            // TODO: Help.
             if (HelpEnabled)
             {
                 HelpPage helpPage = new HelpPage();
