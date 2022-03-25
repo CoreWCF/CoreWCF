@@ -8,11 +8,8 @@
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
   <ItemGroup>

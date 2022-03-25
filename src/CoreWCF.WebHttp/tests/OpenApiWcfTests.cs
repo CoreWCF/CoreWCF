@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Threading.Tasks;
 using CoreWCF.OpenApi;
 using CoreWCF.OpenApi.Attributes;
 using CoreWCF.Web;
@@ -344,6 +345,137 @@ namespace CoreWCF.WebHttp.Tests
 
         // Responses
 
+        private interface IDefaultResponse
+        {
+            [WebGet(UriTemplate = "/path")]
+            public string Operation();
+        }
+
+        [Fact]
+        public void DefaultResponseAdded()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IDefaultResponse) });
+
+            json
+                .GetProperty("paths")
+                .GetProperty("/path")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .GetProperty("200");
+        }
+
+        [DataContract(Name = "SimpleResponse")]
+        private class SimpleResponse { }
+
+        private interface IDefaultResponseContentTypeFallthrough
+        {
+            [WebGet(UriTemplate = "/attribute", ResponseFormat = WebMessageFormat.Json)]
+            public SimpleResponse FromAttribute();
+
+            [WebGet(UriTemplate = "/behavior")]
+            public SimpleResponse FromBehavior();
+        }
+
+        [Fact]
+        public void DefaultResponseContentTypeFallsThrough()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IDefaultResponseContentTypeFallthrough) });
+
+            JsonElement response = json
+                .GetProperty("paths")
+                .GetProperty("/attribute")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .GetProperty("200");
+
+            response
+                .GetProperty("content")
+                .GetProperty("application/json")
+                .GetProperty("schema")
+                .GetProperty("$ref");
+
+            JsonElement json2 = GetJson(new OpenApiOptions(), new List<OpenApiContractInfo>
+            {
+                new OpenApiContractInfo
+                {
+                    Contract = typeof(IDefaultResponseContentTypeFallthrough),
+                    ResponseFormat = WebMessageFormat.Json
+                } 
+            });
+
+            JsonElement response2 = json2
+                .GetProperty("paths")
+                .GetProperty("/behavior")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .GetProperty("200");
+
+            response2
+                .GetProperty("content")
+                .GetProperty("application/json")
+                .GetProperty("schema")
+                .GetProperty("$ref");
+
+        }
+
+        private interface ITaskResponses
+        {
+            [WebGet(UriTemplate = "/noresponse")]
+            public Task NoResponse();
+
+            [WebGet(UriTemplate = "/response")]
+            public Task<SimpleResponse> Response();
+        }
+
+        [Fact]
+        public void DefaultResponseHandlesTaskResponses()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(ITaskResponses) });
+
+            JsonElement response = json
+                .GetProperty("paths")
+                .GetProperty("/response")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .GetProperty("200");
+
+            response
+                .GetProperty("content")
+                .GetProperty("application/xml")
+                .GetProperty("schema")
+                .GetProperty("$ref");
+
+            List<JsonProperty> response2 = json
+                .GetProperty("paths")
+                .GetProperty("/noresponse")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .EnumerateObject()
+                .ToList();
+
+            Assert.Empty(response2);
+        }
+
+        private interface IDefaultStatusCodeIsOk
+        {
+            [OpenApiResponse]
+            [WebGet(UriTemplate = "/path")]
+            public void Operation();
+        }
+
+        [Fact]
+        public void ResponseStatusCodeDefaultsOk()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IDefaultStatusCodeIsOk) });
+
+            json
+                .GetProperty("paths")
+                .GetProperty("/path")
+                .GetProperty("get")
+                .GetProperty("responses")
+                .GetProperty("200");
+        }
+
         private interface IStatusCodeResponseSet
         {
             [OpenApiResponse(StatusCode = HttpStatusCode.Accepted, Description = "description")]
@@ -367,9 +499,6 @@ namespace CoreWCF.WebHttp.Tests
 
             Assert.Equal("description", description);
         }
-
-        [DataContract(Name = "SimpleResponse")]
-        private class SimpleResponse { }
 
         private interface IComplexResponseSet
         {
@@ -476,12 +605,36 @@ namespace CoreWCF.WebHttp.Tests
                 .GetProperty("parameters"));
         }
 
+        private interface IParameterCanBeHiddenByAttribute
+        {
+            [WebInvoke(Method = "POST", UriTemplate = "/path")]
+            public void Operation(
+                [OpenApiHidden][OpenApiParameter(ContentTypes = new[] { "text/plain" })] string body);
+        }
+
+        [Fact]
+        public void ParameterCanBeHiddenByAttribute()
+        {
+            OpenApiOptions options = new OpenApiOptions
+            {
+                TagsToHide = new[] { "one" }
+            };
+
+            JsonElement json = GetJson(options, new List<Type> { typeof(IParameterCanBeHiddenByAttribute) });
+
+            Assert.Throws<KeyNotFoundException>(() => json
+                .GetProperty("paths")
+                .GetProperty("/path")
+                .GetProperty("post")
+                .GetProperty("parameters"));
+        }
+
         private interface IPathParametersSet
         {
             [WebGet(UriTemplate = "/path/{one}/{two}")]
             public void Operation(
-                [OpenApiParameter] string one,
-                [OpenApiParameter] string two);
+                string one,
+                string two);
         }
 
         [Fact]
@@ -514,8 +667,8 @@ namespace CoreWCF.WebHttp.Tests
         {
             [WebGet(UriTemplate = "/path?one={one}&two={two}")]
             public void Operation(
-                [OpenApiParameter] string one,
-                [OpenApiParameter(IsRequired = true)] string two);
+                string one,
+                string two);
         }
 
         [Fact]
@@ -534,6 +687,7 @@ namespace CoreWCF.WebHttp.Tests
             JsonElement param1 = parameters[0];
             Assert.Equal("one", param1.GetProperty("name").GetString());
             Assert.Equal("query", param1.GetProperty("in").GetString());
+            Assert.True(param1.GetProperty("required").GetBoolean());
             Assert.Equal("string", param1.GetProperty("schema").GetProperty("type").GetString());
 
             JsonElement param2 = parameters[1];
@@ -543,11 +697,81 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("string", param2.GetProperty("schema").GetProperty("type").GetString());
         }
 
+        private interface IParameterOptional
+        {
+            [WebGet(UriTemplate = "/path?one={one}")]
+            public void Operation(
+                string one = null);
+        }
+
+        [Fact]
+        public void ParameterCanBeOptional()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IParameterOptional) });
+
+            List<JsonElement> parameters = json
+                .GetProperty("paths")
+                .GetProperty("/path")
+                .GetProperty("get")
+                .GetProperty("parameters")
+                .EnumerateArray()
+                .ToList();
+
+            JsonElement param1 = parameters[0];
+            Assert.Throws<KeyNotFoundException>(() => param1.GetProperty("required"));
+        }
+
+        [DataContract(Name = "SimpleRequest")]
+        internal class SimpleRequest { }
+
+        private interface IRequestBodyContentTypeFallthrough
+        {
+            [WebInvoke(Method = "POST", UriTemplate = "/attribute", RequestFormat = WebMessageFormat.Json)]
+            public void FromAttribute(SimpleRequest request);
+
+            [WebInvoke(Method = "POST", UriTemplate = "/default")]
+            public void Default(SimpleRequest request);
+        }
+
+        [Fact]
+        public void DefaultRequestBodyContentTypeFallsThrough()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IRequestBodyContentTypeFallthrough) });
+
+            JsonElement body = json
+                .GetProperty("paths")
+                .GetProperty("/attribute")
+                .GetProperty("post")
+                .GetProperty("requestBody");
+
+            body
+                .GetProperty("content")
+                .GetProperty("application/json");
+
+            body
+                .GetProperty("content")
+                .GetProperty("text/json");
+
+            JsonElement body2 = json
+                .GetProperty("paths")
+                .GetProperty("/default")
+                .GetProperty("post")
+                .GetProperty("requestBody");
+
+            body2
+                .GetProperty("content")
+                .GetProperty("application/json");
+
+            body2
+                .GetProperty("content")
+                .GetProperty("text/json");
+        }
+
         private interface ISimpleRequestBodySet
         {
             [WebInvoke(Method = "POST", UriTemplate = "/path")]
             public void Operation(
-                [OpenApiParameter(IsRequired = true, ContentTypes = new[] { "text/plain" })] string body);
+                [OpenApiParameter(ContentTypes = new[] { "text/plain" })] string body);
         }
 
         [Fact]
@@ -575,9 +799,6 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("string", type);
             Assert.True(required);
         }
-
-        [DataContract(Name = "SimpleRequest")]
-        internal class SimpleRequest { }
 
         private interface IComplexRequestBodySet
         {
@@ -718,7 +939,7 @@ namespace CoreWCF.WebHttp.Tests
             string referenceTwo = json
                 .GetProperty("components")
                 .GetProperty("schemas")
-                .GetProperty("NestedClassTwo")
+                .GetProperty("NestedClassOne-NestedClassTwo")
                 .GetProperty("properties")
                 .GetProperty("Three")
                 .GetProperty("$ref")
@@ -727,10 +948,10 @@ namespace CoreWCF.WebHttp.Tests
             json
                 .GetProperty("components")
                 .GetProperty("schemas")
-                .GetProperty("NestedClassThree");
+                .GetProperty("NestedClassTwo-NestedClassThree");
 
-            Assert.Equal("#/components/schemas/NestedClassTwo", referenceOne);
-            Assert.Equal("#/components/schemas/NestedClassThree", referenceTwo);
+            Assert.Equal("#/components/schemas/NestedClassOne-NestedClassTwo", referenceOne);
+            Assert.Equal("#/components/schemas/NestedClassTwo-NestedClassThree", referenceTwo);
         }
 
         [DataContract(Name = "CollectionClass")]
@@ -776,10 +997,10 @@ namespace CoreWCF.WebHttp.Tests
             json
                 .GetProperty("components")
                 .GetProperty("schemas")
-                .GetProperty("CollectionInnerClass");
+                .GetProperty("CollectionClass-Array-CollectionInnerClass");
 
             Assert.Equal("array", type);
-            Assert.Equal("#/components/schemas/CollectionInnerClass", reference);
+            Assert.Equal("#/components/schemas/CollectionClass-Array-CollectionInnerClass", reference);
         }
 
         [DataContract(Name = "NoDataMemberClass")]
@@ -961,7 +1182,7 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("object", schemaType);
             JsonElement property = Assert.Single(required);
             Assert.Equal("Property", property.GetString());
-            Assert.Equal("#/components/schemas/ComplexPropertyInnerClass", reference);
+            Assert.Equal("#/components/schemas/ComplexPropertyClass-ComplexPropertyInnerClass", reference);
         }
 
         [DataContract(Name = "SimpleCollectionPropertyClass")]
@@ -1083,11 +1304,11 @@ namespace CoreWCF.WebHttp.Tests
             JsonElement property = Assert.Single(required);
             Assert.Equal("Property", property.GetString());
             Assert.Equal("array", type);
-            Assert.Equal("#/components/schemas/InnerComplexCollectionPropertyClass", itemType);
+            Assert.Equal("#/components/schemas/ComplexCollectionPropertyClass-Array-InnerComplexCollectionPropertyClass", itemType);
             Assert.Equal("description", description);
         }
 
-        private static JsonElement GetJson(OpenApiOptions options, IEnumerable<Type> contracts)
+        private static JsonElement GetJson(OpenApiOptions options, IEnumerable<OpenApiContractInfo> contracts)
         {
             OpenApiDocument document = OpenApiSchemaBuilder.BuildOpenApiSpecificationDocument(options, contracts);
             using (var textWriter = new StringWriter(CultureInfo.InvariantCulture))
@@ -1099,5 +1320,7 @@ namespace CoreWCF.WebHttp.Tests
                 return JsonDocument.Parse(json).RootElement;
             }
         }
+
+        private static JsonElement GetJson(OpenApiOptions options, IEnumerable<Type> contracts) => GetJson(options, contracts.Select(contract => new OpenApiContractInfo { Contract = contract }));
     }
 }
