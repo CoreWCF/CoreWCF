@@ -42,7 +42,6 @@ namespace CoreWCF.Dispatcher
             if (newLocation != null && to != null)
             {
                 // ...redirect
-                // TODO: Help
                 Message redirectResult = WebOperationContext.Current.CreateStreamResponse(s => HelpHtmlBuilder.CreateTransferRedirectPage(to.AbsoluteUri, newLocation.AbsoluteUri).Save(s, SaveOptions.OmitDuplicateNamespaces), HtmlMediaType);
                 WebOperationContext.Current.OutgoingResponse.Location = newLocation.AbsoluteUri;
                 WebOperationContext.Current.OutgoingResponse.StatusCode = HttpStatusCode.TemporaryRedirect;
@@ -73,12 +72,10 @@ namespace CoreWCF.Dispatcher
                 {
                     WebOperationContext.Current.OutgoingResponse.Headers[HttpResponseHeader.Allow] = allowedMethodsData.AllowHeader;
                 }
-                // TODO: Help
                 result = WebOperationContext.Current.CreateStreamResponse(s => HelpHtmlBuilder.CreateMethodNotAllowedPage(helpUri).Save(s, SaveOptions.OmitDuplicateNamespaces), HtmlMediaType);
             }
             else
             {
-                // TODO: Help
                 result = WebOperationContext.Current.CreateStreamResponse(s => HelpHtmlBuilder.CreateEndpointNotFound(helpUri).Save(s, SaveOptions.OmitDuplicateNamespaces), HtmlMediaType);
             }
 

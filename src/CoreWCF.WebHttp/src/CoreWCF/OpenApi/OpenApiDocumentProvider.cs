@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using CoreWCF.Web;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
@@ -20,7 +21,7 @@ namespace CoreWCF.OpenApi
             _options = options;
         }
 
-        public IList<Type> Contracts { get; } = new List<Type>();
+        public IList<OpenApiContractInfo> Contracts { get; } = new List<OpenApiContractInfo>();
 
         public OpenApiDocument GetSwagger(string documentName, string host = null, string basePath = null)
         {

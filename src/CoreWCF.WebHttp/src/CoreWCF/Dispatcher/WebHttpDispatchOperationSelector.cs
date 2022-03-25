@@ -45,7 +45,6 @@ namespace CoreWCF.Dispatcher
             _methodSpecificTables = new Dictionary<string, UriTemplateTable>();
             _templates = new Dictionary<string, UriTemplate>();
 
-            // TODO: Help.
             WebHttpBehavior webHttpBehavior = ((KeyedByTypeCollection<IEndpointBehavior>)endpoint.EndpointBehaviors).Find<WebHttpBehavior>();
             if (webHttpBehavior != null && webHttpBehavior.HelpEnabled)
             {
@@ -194,7 +193,6 @@ namespace CoreWCF.Dispatcher
                 return _catchAllOperationName;
             }
 
-            // TODO: Help
             if (_helpUriTable != null)
             {
                 UriTemplateMatch match = _helpUriTable.MatchSingle(to);
