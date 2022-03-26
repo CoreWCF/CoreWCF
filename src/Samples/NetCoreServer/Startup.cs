@@ -2,7 +2,6 @@
 using CoreWCF;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using CoreWCF.Samples.StandardCommon;
 
@@ -26,10 +25,12 @@ namespace NetCoreServer
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ServerLogic.EchoService, ServerLogic.EchoService>();
+            services.AddLogging();
             services.AddServiceModelServices();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(builder =>
             {
@@ -40,27 +41,24 @@ namespace NetCoreServer
                     return serverBindingHttpsUserPassword;
                 }
 
-                builder.ConfigureServiceHostBase<EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
+                builder.ConfigureServiceHostBase<ServerLogic.EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
 
                 void ConfigureSoapService<TService, TContract>(string serviceprefix) where TService : class
                 {
+                    void AddEndpoint(CoreWCF.Channels.Binding binding, Uri address) =>
+                        builder.AddServiceEndpoint<TService, TContract>(ApplyDebugTimeouts(binding), address.LocalPath);
+
                     Settings settings = new Settings().SetDefaults("localhost", serviceprefix);
-                    builder.AddService<TService>()
-                        .AddServiceEndpoint<TService, TContract>(
-                            GetTransportWithMessageCredentialBinding(), settings.wsHttpAddressValidateUserPassword.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new BasicHttpBinding(),
-                            settings.basicHttpAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.None),
-                            settings.wsHttpAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.Transport),
-                            settings.wsHttpsAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new NetTcpBinding(),
-                            settings.netTcpAddress.LocalPath);
+                    builder.AddService<TService>();
+                    AddEndpoint(GetTransportWithMessageCredentialBinding(), settings.wsHttpAddressValidateUserPassword);
+                    AddEndpoint(new BasicHttpBinding(), settings.basicHttpAddress);
+                    AddEndpoint(new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress);
+                    AddEndpoint(new WSHttpBinding(SecurityMode.Transport), settings.wsHttpsAddress);
+                    AddEndpoint(new NetTcpBinding(),settings.netTcpAddress);
                 }
 
-                ConfigureSoapService<EchoService, Contract.IEchoService>(nameof(EchoService));
+                ConfigureSoapService<ServerLogic.EchoService, Contract.IEchoService>(nameof(ServerLogic.EchoService));
             });
         }
     }
-
 }

@@ -63,9 +63,13 @@ namespace CoreWCF.ConfigurationManager.Tests
             }
         }
 
+#if NETCOREAPP1_0_OR_GREATER
         [Fact]
         [Trait("Category", "NetCoreOnly")]
+#endif
+#pragma warning disable xUnit1013 // Public method should be marked as test
         public void WSHttpBinding_WithDefaultSetting()
+#pragma warning restore xUnit1013 // Public method should be marked as test
         {
             string expectedName = "wsHttpBindingConfig";
             long expectedMaxReceivedMessageSize = 65536;

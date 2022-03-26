@@ -4,10 +4,8 @@
 using System;
 using CoreWCF;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace NetCoreServer
@@ -19,25 +17,24 @@ namespace NetCoreServer
             services.AddServiceModelServices();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-
             WSHttpBinding wSHttpBinding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
             wSHttpBinding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
             app.UseServiceModel(builder =>
             {
-                builder.AddService<EchoService>();
-                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(wSHttpBinding, "/wsHttp");
-                builder.AddServiceEndpoint<EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
+                builder.AddService<ServerLogic.EchoService>();
+                builder.AddServiceEndpoint<ServerLogic.EchoService, Contract.IEchoService>(wSHttpBinding, "/wsHttp");
+                builder.AddServiceEndpoint<ServerLogic.EchoService, Contract.IEchoService>(new NetTcpBinding(), "/nettcp");
                 Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
-                builder.ConfigureServiceHostBase<EchoService>(serviceHost);
+                builder.ConfigureServiceHostBase<ServerLogic.EchoService>(serviceHost);
             });
         }
 
         public void ChangeHostBehavior(ServiceHostBase host)
         {
             var srvCredentials = new CoreWCF.Description.ServiceCredentials();
-            LdapSettings _ldapSettings = new LdapSettings("yourownserver.mscore.local", "mscore.local", "yourowntoporg");
+            var _ldapSettings = new LdapSettings("yourownserver.mscore.local", "mscore.local", "yourowntoporg");
             srvCredentials.WindowsAuthentication.LdapSetting = _ldapSettings;
             host.Description.Behaviors.Add(srvCredentials);
         }

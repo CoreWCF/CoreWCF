@@ -5,7 +5,7 @@ using CoreWCF.Samples.StandardCommon;
 
 namespace DesktopServer
 {
-    class Program
+    internal static class Program
     {
         private static ServiceHost ConfigureWcfHost<TService, TContract>(string servicePrefix)
         {
@@ -40,7 +40,7 @@ namespace DesktopServer
 
         static void Main()
         {
-            ServiceHost hostEchoService = ConfigureWcfHost<EchoService, Contract.IEchoService>("EchoService");
+            ServiceHost hostEchoService = ConfigureWcfHost<ServerLogic.EchoService, Contract.IEchoService>("EchoService");
 
             hostEchoService.Open();
 

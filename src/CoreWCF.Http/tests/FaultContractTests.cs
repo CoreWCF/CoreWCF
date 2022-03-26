@@ -42,7 +42,7 @@ namespace CoreWCF.Http.Tests
 
                 //test variations count
                 int count = 9;
-                string faultToThrow = "Test fault thrown from a service";
+                const string faultToThrow = "Test fault thrown from a service";
 
                 //Variation_TwoWayMethod
                 try
@@ -55,7 +55,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_TwoWayVoidMethod
@@ -69,13 +69,13 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_TwoWayStreamMethod
                 try
                 {
-                    string testValue = "This is a string that will be converted to a byte array";
+                    const string testValue = "This is a string that will be converted to a byte array";
                     Stream inputStream = new MemoryStream();
                     byte[] bytes = Encoding.UTF8.GetBytes(testValue.ToCharArray());
                     foreach (byte b in bytes)
@@ -95,7 +95,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_TwoWayAsyncMethod
@@ -109,7 +109,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_MessageContractMethod
@@ -129,7 +129,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_UntypedMethod
@@ -164,7 +164,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 //Variation_TypedToUntypedMethodReturns
@@ -178,7 +178,7 @@ namespace CoreWCF.Http.Tests
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<string>>(e);
                     var ex = (System.ServiceModel.FaultException<string>)e;
-                    Assert.Equal(faultToThrow, ex.Detail.ToString());
+                    Assert.Equal(faultToThrow, ex.Detail);
                 }
 
                 Assert.Equal(0, count);
@@ -297,7 +297,7 @@ namespace CoreWCF.Http.Tests
                         case "complexfault":
                             count--;
                             ClientContract.ComplexFault cf = mf.GetDetail<ClientContract.ComplexFault>();
-                            string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                            const string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
                             Assert.Equal(exp, ComplexFaultToString(cf));
                             break;
                         default:
@@ -328,7 +328,7 @@ namespace CoreWCF.Http.Tests
                         case "complexfault":
                             count--;
                             ClientContract.ComplexFault cf = mf.GetDetail<ClientContract.ComplexFault>();
-                            string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                            const string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
                             Assert.Equal(exp, ComplexFaultToString(cf));
                             break;
                         default:
@@ -382,7 +382,7 @@ namespace CoreWCF.Http.Tests
                     Assert.Equal("SomeFault as innerfault", sf.message);
                     break;
                 case "complexfault":
-                    string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
+                    const string exp = "50:This is a test error string for fault tests.:123456789:SomeFault in complexfault:0123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113114115116117118119120121122123124125126127:2147483647-214748364801-150-50:123456789:SomeFault in complexfaultnull234:Second somefault in complexfault";
                     Assert.NotNull(e);
                     Assert.IsType<System.ServiceModel.FaultException<ClientContract.ComplexFault>>(e);
                     var cex = (System.ServiceModel.FaultException<ClientContract.ComplexFault>)e;

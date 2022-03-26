@@ -37,7 +37,6 @@ namespace CoreWCF.Samples.StandardCommon
             return builder.Uri;
         }
 
-
         public Settings SetDefaults(string hostname = DefaultHostName, string serviceprefix = default)
         {
             string baseHttpAddress = hostname + ":8088";
