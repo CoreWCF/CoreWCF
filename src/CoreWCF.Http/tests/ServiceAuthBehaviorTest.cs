@@ -69,7 +69,7 @@ namespace CoreWCF.Http.Tests
                 services.AddSingleton<ServiceAuthorizationManager, MyTestServiceAuthorizationManager>();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
                 var authPolicies = new List<IAuthorizationPolicy>

@@ -4,6 +4,8 @@ Core WCF is a port of Windows Communication Foundation (WCF) to .NET Core. The g
 
 ### Package Status
 
+The latest released packages can be found at Nuget.org:
+
 | Package                                                                                      | NuGet Stable                                                                                     | Downloads                                                                                     |
 |:---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
 | [CoreWCF.Primitives](https://www.nuget.org/packages/CoreWCF.Primitives/)                     | ![CoreWCF.Primitives](https://img.shields.io/nuget/v/CoreWCF.Primitives.svg)                     | ![CoreWCF.Primitives](https://img.shields.io/nuget/dt/CoreWCF.Primitives)                     |
@@ -21,7 +23,19 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 
 ### How do I get started?
 
-There are pre-release packages available from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
+* Install the Nuget packages listed above, either via the Package Manager Console or the UI.
+* The following sample projects show how to create a CoreWCF server or client
+  * [NetCoreServer](src/Samples/NetCoreServer) - Server Project for .NET Core
+  * [DesktopServer](src/Samples/DesktopServer) - .NET Framework 4.7.2 host using ServiceHost
+  * [NetCoreClient](src/Samples/NetCoreClient) - Wraps StandardClient with a .NET Core Console Application
+  * [DesktopClient](src/Samples/DesktopClient) - Wraps StandardClient with a .NET Framework Console Application
+  * [StandardClient](src/Samples/StandardClient) - .NET Standard based client for the server projects 
+
+The [Blog](https://corewcf.github.io/) has details on the design philosophy and which features are included in each new release.
+
+### Daily Builds
+
+There are pre-release packages available for daily builds of main from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
 
     https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json
 
@@ -36,10 +50,10 @@ If you are using a nuget.config file with only the default nuget.org package sou
   </packageSources>
 </configuration>
 ```
+
 ### How do I contribute?
 
 Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for details.
-
 
 ### License, etc.
 

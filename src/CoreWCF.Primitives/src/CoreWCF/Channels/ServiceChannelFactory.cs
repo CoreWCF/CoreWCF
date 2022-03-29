@@ -40,11 +40,14 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxChannelFactoryTypeMustBeInterface));
             }
 
+#pragma warning disable CS0618 // Type or member is obsolete
             return ServiceChannelProxy.CreateProxy<TChannel>(direction, serviceChannel);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         internal static ServiceChannel GetServiceChannel(object transparentProxy)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             if (transparentProxy is ServiceChannelProxy proxy)
             {
                 return proxy.GetServiceChannel();
@@ -53,6 +56,7 @@ namespace CoreWCF.Channels
             {
                 return null;
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

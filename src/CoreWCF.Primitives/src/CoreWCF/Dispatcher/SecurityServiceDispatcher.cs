@@ -546,7 +546,7 @@ namespace CoreWCF.Dispatcher
         public SecurityDuplexSessionChannelDispatcher(SecurityServiceDispatcher serviceDispatcher, IDuplexSessionChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
             : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
-            // sendUnsecuredFaults = channelManager.SendUnsecuredFaults;
+            _sendUnsecuredFaults = serviceDispatcher.SendUnsecuredFaults;
             SecurityServiceDispatcher = serviceDispatcher;
         }
 
@@ -563,11 +563,13 @@ namespace CoreWCF.Dispatcher
 
         public CommunicationState State => InnerDuplexChannel.State;
 
+#pragma warning disable CS0067 // The event is never used
         public event EventHandler Closing;
         public event EventHandler Faulted;
         public event EventHandler Opened;
         public event EventHandler Opening;
         public event EventHandler Closed;
+#pragma warning restore CS0067 // The event is never used
 
         public void Abort()
         {

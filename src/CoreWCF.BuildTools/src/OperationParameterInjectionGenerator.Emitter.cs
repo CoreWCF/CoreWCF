@@ -141,6 +141,20 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 indentor.Increment();
                 builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
                 builder.AppendLine($@"{indentor}if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");");
+
+                if (dependencies.Any(x => SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpContextSymbol)
+                    || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpRequestSymbol)
+                    || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpResponseSymbol)))
+                {
+                    builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)");
+                    indentor.Increment();
+                    builder.AppendLine($@"{indentor}&& @object is Microsoft.AspNetCore.Http.HttpContext context)");
+                    builder.AppendLine($@"{indentor}? context");
+                    builder.AppendLine($@"{indentor}: null;");
+                    indentor.Decrement();
+                    builder.AppendLine($@"{indentor}if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");");
+                }
+
                 builder.AppendLine($@"{indentor}if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)");
                 builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
@@ -149,7 +163,9 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 indentor.Increment();
 
                 string dependencyNamePrefix = "d";
-                AppendResolveDependencies("scope.ServiceProvider");
+                string serviceProviderName = "scope.ServiceProvider";
+
+                AppendResolveDependencies();
                 AppendInvokeUserProvidedImplementation();
 
                 if (operationContractSpec.MissingOperationContract.ReturnsVoid || SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol))
@@ -163,7 +179,9 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                 builder.AppendLine($@"{indentor}}}");
 
                 dependencyNamePrefix = "e";
-                AppendResolveDependencies("serviceProvider");
+                serviceProviderName = "serviceProvider";
+
+                AppendResolveDependencies();
                 AppendInvokeUserProvidedImplementation();
 
                 while (indentor.Level > 0)
@@ -174,12 +192,27 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
 
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
-                void AppendResolveDependencies(string serviceProviderName)
+                void AppendResolveDependencies()
                 {
                     for (int i = 0; i < dependencies.Length; i++)
                     {
                         dependencyNames[dependencies[i].Type] = $"{dependencyNamePrefix}{i}";
-                        builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
+                        if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpContextSymbol, dependencies[i].Type))
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpRequestSymbol, dependencies[i].Type))
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Request;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpResponseSymbol, dependencies[i].Type))
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
+                        }
+                        else
+                        {
+                            builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetService<{dependencies[i].Type}>();");
+                        }
                     }
                 }
 
@@ -194,7 +227,7 @@ namespace {operationContractSpec.ServiceContractImplementation.ContainingNamespa
                             builder.Append(", ");
                         }
 
-                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol))
+                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol))
                         {
                             builder.Append(dependencyNames[parameter.Type]);
                         }

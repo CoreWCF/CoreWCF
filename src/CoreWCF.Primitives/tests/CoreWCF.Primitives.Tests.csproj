@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="../../CoreWCF.NetTcp/src/CoreWCF.NetTcp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties/" />

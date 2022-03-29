@@ -22,6 +22,9 @@ namespace CoreWCF.BuildTools
             private readonly IDictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>> _operationContracts;
             private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
+            private readonly INamedTypeSymbol? _httpContextSymbol;
+            private readonly INamedTypeSymbol? _httpRequestSymbol;
+            private readonly INamedTypeSymbol? _httpResponseSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext sourceGenerationContext)
             {
@@ -34,6 +37,9 @@ namespace CoreWCF.BuildTools
                 _operationContracts = new Dictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>>(SymbolEqualityComparer.Default);
                 _sSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
                 _coreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+                _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
+                _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
+                _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
             }
 
             private OperationContractSpec? GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
@@ -88,7 +94,7 @@ namespace CoreWCF.BuildTools
                                     return null;
                                 }
 
-                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol);
+                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol, _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol);
                             }
                         }
                     }
@@ -126,7 +132,8 @@ namespace CoreWCF.BuildTools
                     CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
                     TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute")
+                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
+                    MicrosoftAspNetCoreMvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                 };
             }
 
@@ -236,6 +243,10 @@ namespace CoreWCF.BuildTools
                             string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                             if (fullName == "CoreWCF.InjectedAttribute")
+                            {
+                                return methodDeclarationSyntax;
+                            }
+                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                             {
                                 return methodDeclarationSyntax;
                             }

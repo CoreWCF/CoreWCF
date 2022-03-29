@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Security;
@@ -47,13 +48,7 @@ namespace CoreWCF.Channels.Framing
                 configuration =>
                 {
                     configuration.UseMiddleware<DuplexFramingMiddleware>();
-                    configuration.Use(next => async (connection) =>
-                    {
-                        UriPrefixTable<HandshakeDelegate> addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
-                        HandshakeDelegate serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
-                        await serviceHandshake(connection);
-                        await next(connection);
-                    });
+                    configuration.Use(next => connection => PerformServiceHandshake(configuration, connection, next));
                     configuration.UseMiddleware<ServerFramingDuplexSessionMiddleware>();
                     configuration.UseMiddleware<ServerSessionConnectionReaderMiddleware>();
                 });
@@ -61,13 +56,7 @@ namespace CoreWCF.Channels.Framing
                 configuration =>
                 {
                     configuration.UseMiddleware<SingletonFramingMiddleware>();
-                    configuration.Use(next => async (connection) =>
-                    {
-                        UriPrefixTable<HandshakeDelegate> addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
-                        HandshakeDelegate serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
-                        await serviceHandshake(connection);
-                        await next(connection);
-                    });
+                    configuration.Use(next => connection => PerformServiceHandshake(configuration, connection, next));
                     configuration.UseMiddleware<ServerFramingSingletonMiddleware>();
                     configuration.UseMiddleware<ServerSingletonConnectionReaderMiddleware>();
                 });
@@ -167,7 +156,22 @@ namespace CoreWCF.Channels.Framing
             };
         }
 
-        internal static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate> addressTable, Uri via)
+        private static async Task PerformServiceHandshake(IFramingConnectionHandshakeBuilder configuration, FramingConnection connection, HandshakeDelegate next)
+        {
+            UriPrefixTable<HandshakeDelegate> addressTable = configuration.HandshakeServices.GetRequiredService<UriPrefixTable<HandshakeDelegate>>();
+            HandshakeDelegate serviceHandshake = GetServiceHandshakeDelegate(addressTable, connection.Via);
+            if (serviceHandshake != null)
+            {
+                await serviceHandshake(connection);
+                await next(connection);
+            }
+            else
+            {
+                await connection.SendFaultAsync(FramingEncodingString.EndpointNotFoundFault, ServiceDefaults.SendTimeout, TransportDefaults.MaxDrainSize);
+            }
+        }
+
+        private static HandshakeDelegate GetServiceHandshakeDelegate(UriPrefixTable<HandshakeDelegate> addressTable, Uri via)
         {
             if (addressTable.TryLookupUri(via, HostNameComparisonMode.StrongWildcard, out HandshakeDelegate handshake))
             {
