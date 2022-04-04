@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <!--#if(nullableEnabled)-->
+    <Nullable>enable</Nullable>
+    <!--#endif-->
+    <!--#if(implicitUsings)-->
+    <ImplicitUsings>true</ImplicitUsings>
+    <!--#endif-->
+  </PropertyGroup>
+  <!--#if(implicitUsings)-->
+  <ItemGroup>
+    <Using Include="CoreWCF" />
+    <Using Include="CoreWCF.Configuration" />
+    <Using Include="CoreWCF.Channels" />
+    <Using Include="CoreWCF.Description" />
+    <Using Include="System.Runtime.Serialization " />
+    <Using Include="CoreWCFService" />
+    <Using Include="Microsoft.Extensions.DependencyInjection.Extensions"/>
+  </ItemGroup>
+  <!--#endif-->
+  <ItemGroup>
+    <!--#if(isNetFramework)-->
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
+    <!--#endif-->
+    <PackageReference Include="CoreWCF.Http" Version="@version" />
+  </ItemGroup>
+</Project>

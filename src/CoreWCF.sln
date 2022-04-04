@@ -53,6 +53,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.BuildTools.Roslyn3.11.Tests", "CoreWCF.BuildTools\tests\CoreWCF.BuildTools.Roslyn3.11.Tests.csproj", "{DAFA72E9-55C6-4E37-AF4A-4D672AE62F00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Metadata.Tests", "CoreWCF.Metadata\tests\CoreWCF.Metadata.Tests.csproj", "{F3DA1D42-DB34-480B-924B-EEF32E3FFC12}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.WebHttp", "CoreWCF.WebHttp\src\CoreWCF.WebHttp.csproj", "{5D03B21C-2BBB-4A0F-B199-602A1308F21F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.WebHttp.Tests", "CoreWCF.WebHttp\tests\CoreWCF.WebHttp.Tests.csproj", "{22803727-267C-49FE-A12B-2D5CF8780583}"

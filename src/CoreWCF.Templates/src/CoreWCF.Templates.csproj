@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>CoreWCF.Templates</PackageId>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <!-- clear SymbolPackFormat: https://github.com/NuGet/Home/issues/10372 -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <SymbolPackageFormat></SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" CopyToOutputDirectory="Always" />
+    <Content Remove="templates\**\*csproj.xml"/>
+    <Content Remove="templates\Directory.Build.props"/>
+    <Content Remove="templates\Directory.Build.targets"/>
+    <Content Remove="templates\.editorconfig"/>
+    <Compile Remove="templates\**\*"/>
+  </ItemGroup>
+
+  <UsingTask 
+    TaskName="ReplaceFileText" 
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+  <ParameterGroup>
+    <InputFilename ParameterType="System.String" Required="true" />
+    <OutputFilename ParameterType="System.String" Required="true" />
+    <MatchExpression ParameterType="System.String" Required="true" />
+    <ReplacementText ParameterType="System.String" Required="true" />
+  </ParameterGroup>
+  <Task>
+    <Using Namespace="System" />
+    <Using Namespace="System.IO" />
+    <Using Namespace="System.Text.RegularExpressions" />
+    <Code Type="Fragment" Language="cs">
+<![CDATA[
+    Log.LogMessage(MessageImportance.High, $"\nGenerating {OutputFilename} by replacing {MatchExpression} with {ReplacementText} in {InputFilename}\n");
+    File.WriteAllText(OutputFilename, Regex.Replace(File.ReadAllText(InputFilename), MatchExpression, ReplacementText));
+]]>
+    </Code>
+  </Task>
+</UsingTask>
+
+  <Target Name="GenerateContent" BeforeTargets="Build" DependsOnTargets="GetBuildVersion">
+    <Message Text="Generating CustomContent" Importance="high"/>
+    <ReplaceFileText 
+      InputFilename="$(MSBuildThisFileDirectory)templates\CoreWCFService\CoreWCFService.csproj.xml" 
+      OutputFilename="$(MSBuildThisFileDirectory)templates\CoreWCFService\CoreWCFService.csproj" 
+      MatchExpression="@version" 
+      ReplacementText="$(PackageVersion)" />
+    <ItemGroup>
+      <Content Include="templates\CoreWCFService\CoreWCFService.csproj" CopyToOutputDirectory="Always"></Content>
+    </ItemGroup>
+    <Message Text="%(Content.Identity)" Importance="high"/>
+    <Message Text="CustomContent Generated" Importance="high" />
+  </Target>
+</Project>
