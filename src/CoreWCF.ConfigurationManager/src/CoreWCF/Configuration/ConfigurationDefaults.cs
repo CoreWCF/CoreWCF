@@ -34,21 +34,6 @@ namespace CoreWCF.Configuration
         internal const int MaxOutboundConnectionsPerEndpoint = 10;
     }
 
-    internal static class EncoderDefaults
-    {
-        internal const int MaxReadPoolSize = 64;
-        internal const int MaxWritePoolSize = 16;
-
-        internal const CompressionFormat DefaultCompressionFormat = CompressionFormat.None;
-
-        internal const int MaxDepth = 32;
-        internal const int MaxStringContentLength = 8192;
-        internal const int MaxArrayLength = 16384;
-        internal const int MaxBytesPerRead = 4096;
-        internal const int MaxNameTableCharCount = 16384;
-
-    }
-
     internal static class HttpTransportDefaults
     {
         internal const bool AllowCookies = false;

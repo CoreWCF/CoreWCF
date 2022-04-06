@@ -19,7 +19,7 @@ namespace CoreWCF.Security.Tokens
         private const string WsidPrefix = "wsid";
         private const string WsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
         private static readonly string s_wsidPPIClaim = string.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", WsidNamespace);
-        internal const SecurityKeyType DefaultKeyType = SecurityKeyType.SymmetricKey;
+        public const SecurityKeyType DefaultKeyType = SecurityKeyType.SymmetricKey;
         internal const bool DefaultUseStrTransform = false;
         private int _keySize;
         private SecurityKeyType _keyType = DefaultKeyType;

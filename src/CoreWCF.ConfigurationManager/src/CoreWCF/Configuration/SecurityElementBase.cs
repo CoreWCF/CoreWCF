@@ -623,7 +623,7 @@ namespace CoreWCF.Configuration
             }
             else
             {
-                this._templateKeyType = IssuedSecurityTokenParameters.defaultKeyType;
+                this._templateKeyType = IssuedSecurityTokenParameters.DefaultKeyType;
             }
         }
 

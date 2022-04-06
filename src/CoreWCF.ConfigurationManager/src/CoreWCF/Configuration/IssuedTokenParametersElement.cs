@@ -58,7 +58,7 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.KeySize] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.KeyType, DefaultValue = IssuedSecurityTokenParameters.defaultKeyType)]
+        [ConfigurationProperty(ConfigurationStrings.KeyType, DefaultValue = IssuedSecurityTokenParameters.DefaultKeyType)]
         public SecurityKeyType KeyType
         {
             get { return (SecurityKeyType)base[ConfigurationStrings.KeyType]; }
