@@ -654,11 +654,8 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedConnectionBufferSize = 8192;
             HostNameComparisonMode expectedHostNameComparisonMode = HostNameComparisonMode.StrongWildcard;
             TimeSpan expectedChannelInitializationTimeout = TimeSpan.FromSeconds(30);
-            int expectedMaxPendingConnections = 24;
             TimeSpan expectedMaxOutputDelay = TimeSpan.FromMilliseconds(200);
-            int expectedMaxPendingAccepts = 16;
             TransferMode expectedTransferMode = TransferMode.Buffered;
-            int expectedListenBacklog = 96;
             PolicyEnforcement expectedPolicyEnforcement = PolicyEnforcement.Never;
 
             string xml = $@"
@@ -690,11 +687,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.Equal(expectedConnectionBufferSize, actualTransportElement.ConnectionBufferSize);
                     Assert.Equal(expectedHostNameComparisonMode, actualTransportElement.HostNameComparisonMode);
                     Assert.Equal(expectedChannelInitializationTimeout, actualTransportElement.ChannelInitializationTimeout);
-                    Assert.Equal(expectedMaxPendingConnections, actualTransportElement.MaxPendingConnections);
                     Assert.Equal(expectedMaxOutputDelay, actualTransportElement.MaxOutputDelay);
-                    Assert.Equal(expectedMaxPendingAccepts, actualTransportElement.MaxPendingAccepts);
                     Assert.Equal(expectedTransferMode, actualTransportElement.TransferMode);
-                    Assert.Equal(expectedListenBacklog, actualTransportElement.ListenBacklog);
                     Assert.Equal(expectedPolicyEnforcement, actualTransportElement.ExtendedProtectionPolicy.PolicyEnforcement);
 
                 }
