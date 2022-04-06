@@ -654,7 +654,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedConnectionBufferSize = 8192;
             HostNameComparisonMode expectedHostNameComparisonMode = HostNameComparisonMode.StrongWildcard;
             TimeSpan expectedChannelInitializationTimeout = TimeSpan.FromSeconds(30);
-            int expectedMaxPendingConnections = 96;
+            int expectedMaxPendingConnections = 24;
             TimeSpan expectedMaxOutputDelay = TimeSpan.FromMilliseconds(200);
             int expectedMaxPendingAccepts = 16;
             TransferMode expectedTransferMode = TransferMode.Buffered;
