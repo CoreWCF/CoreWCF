@@ -116,6 +116,65 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
+        public override bool CanCreateKeyIdentifierClause<T>()
+        {
+            ThrowIfDisposed();
+            if (typeof(T) == typeof(X509SubjectKeyIdentifierClause))
+                return X509SubjectKeyIdentifierClause.CanCreateFrom(_certificate);
+
+            return typeof(T) == typeof(X509ThumbprintKeyIdentifierClause) ||
+                   typeof(T) == typeof(X509IssuerSerialKeyIdentifierClause) ||
+                   typeof(T) == typeof(X509RawDataKeyIdentifierClause) ||
+                   base.CanCreateKeyIdentifierClause<T>();
+        }
+
+        public override T CreateKeyIdentifierClause<T>()
+        {
+            ThrowIfDisposed();
+            if (typeof(T) == typeof(X509SubjectKeyIdentifierClause))
+            {
+                X509SubjectKeyIdentifierClause x509KeyIdentifierClause;
+                if (X509SubjectKeyIdentifierClause.TryCreateFrom(_certificate, out x509KeyIdentifierClause))
+                    return x509KeyIdentifierClause as T;
+            }
+            else if (typeof(T) == typeof(X509ThumbprintKeyIdentifierClause))
+            {
+                return new X509ThumbprintKeyIdentifierClause(_certificate) as T;
+            }
+            else if (typeof(T) == typeof(X509IssuerSerialKeyIdentifierClause))
+            {
+                return new X509IssuerSerialKeyIdentifierClause(_certificate) as T;
+            }
+            else if (typeof(T) == typeof(X509RawDataKeyIdentifierClause))
+            {
+                return new X509RawDataKeyIdentifierClause(_certificate) as T;
+            }
+
+            return base.CreateKeyIdentifierClause<T>();
+        }
+
+        public override bool MatchesKeyIdentifierClause(SecurityKeyIdentifierClause keyIdentifierClause)
+        {
+            ThrowIfDisposed();
+            X509SubjectKeyIdentifierClause subjectKeyIdentifierClause = keyIdentifierClause as X509SubjectKeyIdentifierClause;
+            if (subjectKeyIdentifierClause != null)
+                return subjectKeyIdentifierClause.Matches(_certificate);
+
+            X509ThumbprintKeyIdentifierClause thumbprintKeyIdentifierClause = keyIdentifierClause as X509ThumbprintKeyIdentifierClause;
+            if (thumbprintKeyIdentifierClause != null)
+                return thumbprintKeyIdentifierClause.Matches(_certificate);
+
+            X509IssuerSerialKeyIdentifierClause issuerKeyIdentifierClause = keyIdentifierClause as X509IssuerSerialKeyIdentifierClause;
+            if (issuerKeyIdentifierClause != null)
+                return issuerKeyIdentifierClause.Matches(_certificate);
+
+            X509RawDataKeyIdentifierClause rawCertKeyIdentifierClause = keyIdentifierClause as X509RawDataKeyIdentifierClause;
+            if (rawCertKeyIdentifierClause != null)
+                return rawCertKeyIdentifierClause.Matches(_certificate);
+
+            return base.MatchesKeyIdentifierClause(keyIdentifierClause);
+        }
+
         public virtual void Dispose()
         {
             if (_disposable && !_disposed)

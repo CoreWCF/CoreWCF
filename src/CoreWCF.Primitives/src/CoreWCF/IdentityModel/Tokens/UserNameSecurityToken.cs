@@ -11,7 +11,6 @@ namespace CoreWCF.IdentityModel.Tokens
     {
         private readonly string _id;
         private readonly DateTime _effectiveTime;
-
         public UserNameSecurityToken(string userName, string password)
             : this(userName, password, SecurityUniqueId.Create().Value)
         {
@@ -35,26 +34,13 @@ namespace CoreWCF.IdentityModel.Tokens
             _effectiveTime = DateTime.UtcNow;
         }
 
-        public override string Id
-        {
-            get { return _id; }
-        }
+        public override string Id => _id;
 
-        public override ReadOnlyCollection<SecurityKey> SecurityKeys
-        {
-            get { return EmptyReadOnlyCollection<SecurityKey>.Instance; }
-        }
+        public override ReadOnlyCollection<SecurityKey> SecurityKeys => EmptyReadOnlyCollection<SecurityKey>.Instance;
 
-        public override DateTime ValidFrom
-        {
-            get { return _effectiveTime; }
-        }
+        public override DateTime ValidFrom => _effectiveTime;
 
-        public override DateTime ValidTo
-        {
-            // Never expire
-            get { return SecurityUtils.MaxUtcDateTime; }
-        }
+        public override DateTime ValidTo => SecurityUtils.MaxUtcDateTime;
 
         public string UserName { get; }
 

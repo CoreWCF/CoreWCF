@@ -110,7 +110,7 @@ namespace CoreWCF.Channels
             return IsContentTypeSupported(contentType, ContentType, MediaType);
         }
 
-        internal bool IsContentTypeSupported(string contentType, string supportedContentType, string supportedMediaType)
+        protected bool IsContentTypeSupported(string contentType, string supportedContentType, string supportedMediaType)
         {
             if (supportedContentType == contentType)
             {
@@ -197,12 +197,12 @@ namespace CoreWCF.Channels
             return true;
         }
 
-        internal virtual bool IsCharSetSupported(string charset)
+        protected virtual bool IsCharSetSupported(string charset)
         {
             return false;
         }
 
-        internal void ThrowIfMismatchedMessageVersion(Message message)
+        protected void ThrowIfMismatchedMessageVersion(Message message)
         {
             if (message.Version != MessageVersion)
             {

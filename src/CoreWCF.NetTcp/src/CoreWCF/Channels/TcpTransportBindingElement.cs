@@ -75,6 +75,8 @@ namespace CoreWCF.Channels
             }
         }
 
+        internal override string WsdlTransportUri => TransportPolicyConstants.TcpTransportUri;
+
         public override BindingElement Clone()
         {
             return new TcpTransportBindingElement(this);

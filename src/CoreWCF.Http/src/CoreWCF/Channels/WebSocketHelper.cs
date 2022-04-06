@@ -19,6 +19,8 @@ namespace CoreWCF.Channels
         internal const string ReceiveOperation = "ReceiveOperation";
         internal static readonly char[] ProtocolSeparators = new char[] { ',' };
         internal static readonly HashSet<char> InvalidSeparatorSet = new HashSet<char>(new char[] { '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=', '{', '}', ' ' });
+        private const string SchemeWs = "ws";
+        private const string SchemeWss = "wss";
 
         internal static int GetReceiveBufferSize(long maxReceivedMessageSize)
         {
@@ -175,6 +177,32 @@ namespace CoreWCF.Channels
             }
 
             return innerException == null ? new TimeoutException(errorMsg) : new TimeoutException(errorMsg, innerException);
+        }
+
+        internal static bool UseWebSocketTransport(WebSocketTransportUsage transportUsage, bool isContractDuplex)
+        {
+            return transportUsage == WebSocketTransportUsage.Always
+                || (transportUsage == WebSocketTransportUsage.WhenDuplex && isContractDuplex);
+        }
+
+        internal static Uri GetWebSocketUri(Uri httpUri)
+        {
+            Fx.Assert(httpUri != null, "RemoteAddress.Uri should not be null.");
+            UriBuilder builder = new UriBuilder(httpUri);
+
+            if (Uri.UriSchemeHttp.Equals(httpUri.Scheme, StringComparison.OrdinalIgnoreCase))
+            {
+                builder.Scheme = SchemeWs;
+            }
+            else
+            {
+                Fx.Assert(
+                    Uri.UriSchemeHttps.Equals(httpUri.Scheme, StringComparison.OrdinalIgnoreCase),
+                    "httpUri.Scheme should be http or https.");
+                builder.Scheme = SchemeWss;
+            }
+
+            return builder.Uri;
         }
     }
 }

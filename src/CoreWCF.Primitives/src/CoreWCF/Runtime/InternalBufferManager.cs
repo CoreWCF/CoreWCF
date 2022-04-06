@@ -373,9 +373,9 @@ namespace CoreWCF.Runtime
                 internal static BufferPool CreatePool(int bufferSize, int limit)
                 {
                     // To avoid many buffer drops during training of large objects which
-                    // get allocated on the LOH, we use the LargeBufferPool and for 
+                    // get allocated on the LOH, we use the LargeBufferPool and for
                     // bufferSize < 85000, the SynchronizedPool. However if bufferSize < 85000
-                    // and (bufferSize + array-overhead) > 85000, this would still use 
+                    // and (bufferSize + array-overhead) > 85000, this would still use
                     // the SynchronizedPool even though it is allocated on the LOH.
                     if (bufferSize < 85000)
                     {

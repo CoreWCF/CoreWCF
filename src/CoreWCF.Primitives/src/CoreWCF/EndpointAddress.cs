@@ -110,7 +110,7 @@ namespace CoreWCF
             Init(uri, identity, addressHeaders);
         }
 
-        internal EndpointAddress(Uri newUri, EndpointAddress oldEndpointAddress)
+        public EndpointAddress(Uri newUri, EndpointAddress oldEndpointAddress)
         {
             Init(oldEndpointAddress._addressingVersion, newUri, oldEndpointAddress.Identity, oldEndpointAddress._headers, oldEndpointAddress.Buffer, oldEndpointAddress._metadataSection, oldEndpointAddress._extensionSection, oldEndpointAddress._pspSection);
         }
@@ -152,11 +152,11 @@ namespace CoreWCF
             Init(uri, identity ?? ident2, headers, buffer, _metadataSection, extSection, _pspSection);
         }
 
-        //// metadataReader and extensionReader are assumed to not have a starting dummy wrapper element
-        //public EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers, XmlDictionaryReader metadataReader, XmlDictionaryReader extensionReader)
-        //    : this(uri, identity, headers, metadataReader, extensionReader, null)
-        //{
-        //}
+        // metadataReader and extensionReader are assumed to not have a starting dummy wrapper element
+        public EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers, XmlDictionaryReader metadataReader, XmlDictionaryReader extensionReader)
+            : this(uri, identity, headers, metadataReader, extensionReader, null)
+        {
+        }
 
         private void Init(Uri uri, EndpointIdentity identity, AddressHeader[] headers)
         {
@@ -513,11 +513,11 @@ namespace CoreWCF
             }
         }
 
-        //public static EndpointAddress ReadFrom(XmlDictionaryReader reader)
-        //{
-        //    AddressingVersion dummyVersion;
-        //    return ReadFrom(reader, out dummyVersion);
-        //}
+        public static EndpointAddress ReadFrom(XmlDictionaryReader reader)
+        {
+            AddressingVersion dummyVersion;
+            return ReadFrom(reader, out dummyVersion);
+        }
 
         internal static EndpointAddress ReadFrom(XmlDictionaryReader reader, out AddressingVersion version)
         {
@@ -533,10 +533,10 @@ namespace CoreWCF
             {
                 version = AddressingVersion.WSAddressing10;
             }
-            //else if (reader.IsNamespaceUri(AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
-            //{
-            //    version = AddressingVersion.WSAddressingAugust2004;
-            //}
+            else if (reader.IsNamespaceUri(AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                version = AddressingVersion.WSAddressingAugust2004;
+            }
             else if (reader.NodeType != XmlNodeType.Element)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
@@ -573,10 +573,10 @@ namespace CoreWCF
             {
                 version = AddressingVersion.WSAddressing10;
             }
-            //else if (reader.IsNamespaceUri(AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
-            //{
-            //    version = AddressingVersion.WSAddressingAugust2004;
-            //}
+            else if (reader.IsNamespaceUri(AddressingVersion.WSAddressingAugust2004.DictionaryNamespace))
+            {
+                version = AddressingVersion.WSAddressingAugust2004;
+            }
             else if (reader.NodeType != XmlNodeType.Element)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(
@@ -1084,6 +1084,47 @@ namespace CoreWCF
                     writer.WriteNode(reader, true);
                 }
             }
+        }
+
+        public void WriteContentsTo(AddressingVersion addressingVersion, XmlWriter writer)
+        {
+            XmlDictionaryWriter dictionaryWriter = XmlDictionaryWriter.CreateDictionaryWriter(writer);
+            WriteContentsTo(addressingVersion, dictionaryWriter);
+        }
+
+        public void WriteTo(AddressingVersion addressingVersion, XmlDictionaryWriter writer, XmlDictionaryString localName, XmlDictionaryString ns)
+        {
+            if (writer == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
+            }
+            if (addressingVersion == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+            if (localName == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(localName));
+            }
+            if (ns == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(ns));
+            }
+            writer.WriteStartElement(localName, ns);
+            WriteContentsTo(addressingVersion, writer);
+            writer.WriteEndElement();
+        }
+
+        public void WriteTo(AddressingVersion addressingVersion, XmlWriter writer)
+        {
+            XmlDictionaryString dictionaryNamespace = addressingVersion.DictionaryNamespace;
+            if (dictionaryNamespace == null)
+            {
+                dictionaryNamespace = XD.AddressingDictionary.Empty;
+            }
+
+            WriteTo(addressingVersion, XmlDictionaryWriter.CreateDictionaryWriter(writer),
+                XD.AddressingDictionary.EndpointReference, dictionaryNamespace);
         }
 
         public static bool operator ==(EndpointAddress address1, EndpointAddress address2)

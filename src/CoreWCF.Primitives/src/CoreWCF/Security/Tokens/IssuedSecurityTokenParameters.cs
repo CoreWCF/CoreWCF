@@ -16,13 +16,13 @@ namespace CoreWCF.Security.Tokens
 {
     public class IssuedSecurityTokenParameters : SecurityTokenParameters
     {
-        private const string wsidPrefix = "wsid";
-        private const string wsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
-        private static readonly string s_wsidPPIClaim = string.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", wsidNamespace);
-        public const SecurityKeyType defaultKeyType = SecurityKeyType.SymmetricKey;
-        internal const bool defaultUseStrTransform = false;
+        private const string WsidPrefix = "wsid";
+        private const string WsidNamespace = "http://schemas.xmlsoap.org/ws/2005/05/identity";
+        private static readonly string s_wsidPPIClaim = string.Format(CultureInfo.InvariantCulture, "{0}/claims/privatepersonalidentifier", WsidNamespace);
+        internal const SecurityKeyType DefaultKeyType = SecurityKeyType.SymmetricKey;
+        internal const bool DefaultUseStrTransform = false;
         private int _keySize;
-        private SecurityKeyType _keyType = defaultKeyType;
+        private SecurityKeyType _keyType = DefaultKeyType;
 
         protected IssuedSecurityTokenParameters(IssuedSecurityTokenParameters other)
             : base(other)
@@ -117,7 +117,7 @@ namespace CoreWCF.Security.Tokens
             }
         }
 
-        public bool UseStrTransform { get; set; } = defaultUseStrTransform;
+        public bool UseStrTransform { get; set; } = DefaultUseStrTransform;
 
         public Collection<ClaimTypeRequirement> ClaimTypeRequirements { get; } = new Collection<ClaimTypeRequirement>();
 
@@ -182,7 +182,7 @@ namespace CoreWCF.Security.Tokens
                         Collection<XmlElement> unrecognizedRequiredClaims = new Collection<XmlElement>();
                         foreach (XmlElement claimRequirement in requiredClaims)
                         {
-                            if (claimRequirement.LocalName == "ClaimType" && claimRequirement.NamespaceURI == wsidNamespace)
+                            if (claimRequirement.LocalName == "ClaimType" && claimRequirement.NamespaceURI == WsidNamespace)
                             {
                                 string claimValue = claimRequirement.GetAttribute("Uri", string.Empty);
                                 if (!string.IsNullOrEmpty(claimValue))
@@ -259,7 +259,7 @@ namespace CoreWCF.Security.Tokens
                 XmlDocument doc = new XmlDocument();
                 foreach (ClaimTypeRequirement claimType in ClaimTypeRequirements)
                 {
-                    XmlElement element = doc.CreateElement(wsidPrefix, "ClaimType", wsidNamespace);
+                    XmlElement element = doc.CreateElement(WsidPrefix, "ClaimType", WsidNamespace);
                     XmlAttribute attr = doc.CreateAttribute("Uri");
                     attr.Value = claimType.ClaimType;
                     element.Attributes.Append(attr);

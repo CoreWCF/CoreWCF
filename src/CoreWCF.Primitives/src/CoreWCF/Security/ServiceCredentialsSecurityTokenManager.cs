@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Channels;
@@ -235,62 +237,63 @@ namespace CoreWCF.Security
             return new X509SecurityTokenAuthenticator(authentication.GetCertificateValidator(), authentication.MapClientCertificateToWindowsAccount, authentication.IncludeWindowsGroups);
         }
 
-        //SamlSecurityTokenAuthenticator CreateSamlTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver outOfBandTokenResolver)
-        //{
-        //    if (recipientRequirement == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(recipientRequirement));
+        private SamlSecurityTokenAuthenticator CreateSamlTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, out SecurityTokenResolver outOfBandTokenResolver)
+        {
+            if (recipientRequirement == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(recipientRequirement));
 
-        //    Collection<SecurityToken> outOfBandTokens = new Collection<SecurityToken>();
-        //    if (parent.ServiceCertificate.Certificate != null)
-        //    {
-        //        outOfBandTokens.Add(new X509SecurityToken(parent.ServiceCertificate.Certificate));
-        //    }
-        //    List<SecurityTokenAuthenticator> supportingAuthenticators = new List<SecurityTokenAuthenticator>();
-        //    if ((parent.IssuedTokenAuthentication.KnownCertificates != null) && (parent.IssuedTokenAuthentication.KnownCertificates.Count > 0))
-        //    {
-        //        for (int i = 0; i < parent.IssuedTokenAuthentication.KnownCertificates.Count; ++i)
-        //        {
-        //            outOfBandTokens.Add(new X509SecurityToken(parent.IssuedTokenAuthentication.KnownCertificates[i]));
-        //        }
-        //    }
+            Collection<SecurityToken> outOfBandTokens = new Collection<SecurityToken>();
+            var parent = ServiceCredentials;
+            if (parent.ServiceCertificate.Certificate != null)
+            {
+                outOfBandTokens.Add(new X509SecurityToken(parent.ServiceCertificate.Certificate));
+            }
+            List<SecurityTokenAuthenticator> supportingAuthenticators = new List<SecurityTokenAuthenticator>();
+            if ((parent.IssuedTokenAuthentication.KnownCertificates != null) && (parent.IssuedTokenAuthentication.KnownCertificates.Count > 0))
+            {
+                for (int i = 0; i < parent.IssuedTokenAuthentication.KnownCertificates.Count; ++i)
+                {
+                    outOfBandTokens.Add(new X509SecurityToken(parent.IssuedTokenAuthentication.KnownCertificates[i]));
+                }
+            }
 
-        //    X509CertificateValidator validator = parent.IssuedTokenAuthentication.GetCertificateValidator();
-        //    supportingAuthenticators.Add(new X509SecurityTokenAuthenticator(validator));
+            X509CertificateValidator validator = parent.IssuedTokenAuthentication.GetCertificateValidator();
+            supportingAuthenticators.Add(new X509SecurityTokenAuthenticator(validator));
 
-        //    if (parent.IssuedTokenAuthentication.AllowUntrustedRsaIssuers)
-        //    {
-        //        supportingAuthenticators.Add(new RsaSecurityTokenAuthenticator());
-        //    }
+            if (parent.IssuedTokenAuthentication.AllowUntrustedRsaIssuers)
+            {
+                supportingAuthenticators.Add(new RsaSecurityTokenAuthenticator());
+            }
 
-        //    outOfBandTokenResolver = (outOfBandTokens.Count > 0) ? SecurityTokenResolver.CreateDefaultSecurityTokenResolver(new ReadOnlyCollection<SecurityToken>(outOfBandTokens), false) : null;
+            outOfBandTokenResolver = (outOfBandTokens.Count > 0) ? SecurityTokenResolver.CreateDefaultSecurityTokenResolver(new ReadOnlyCollection<SecurityToken>(outOfBandTokens), false) : null;
 
-        //    SamlSecurityTokenAuthenticator ssta;
+            SamlSecurityTokenAuthenticator ssta;
 
-        //    if ((recipientRequirement.SecurityBindingElement == null) || (recipientRequirement.SecurityBindingElement.LocalServiceSettings == null))
-        //    {
-        //        ssta = new SamlSecurityTokenAuthenticator(supportingAuthenticators);
-        //    }
-        //    else
-        //    {
-        //        ssta = new SamlSecurityTokenAuthenticator(supportingAuthenticators, recipientRequirement.SecurityBindingElement.LocalServiceSettings.MaxClockSkew);
-        //    }
+            if ((recipientRequirement.SecurityBindingElement == null) || (recipientRequirement.SecurityBindingElement.LocalServiceSettings == null))
+            {
+                ssta = new SamlSecurityTokenAuthenticator(supportingAuthenticators);
+            }
+            else
+            {
+                ssta = new SamlSecurityTokenAuthenticator(supportingAuthenticators, recipientRequirement.SecurityBindingElement.LocalServiceSettings.MaxClockSkew);
+            }
 
-        //    // set audience uri restrictions
-        //    ssta.AudienceUriMode = parent.IssuedTokenAuthentication.AudienceUriMode;
-        //    IList<string> allowedAudienceUris = ssta.AllowedAudienceUris;
-        //    if (parent.IssuedTokenAuthentication.AllowedAudienceUris != null)
-        //    {
-        //        for (int i = 0; i < parent.IssuedTokenAuthentication.AllowedAudienceUris.Count; i++)
-        //            allowedAudienceUris.Add(parent.IssuedTokenAuthentication.AllowedAudienceUris[i]);
-        //    }
+            // set audience uri restrictions
+            ssta.AudienceUriMode = parent.IssuedTokenAuthentication.AudienceUriMode;
+            IList<string> allowedAudienceUris = ssta.AllowedAudienceUris;
+            if (parent.IssuedTokenAuthentication.AllowedAudienceUris != null)
+            {
+                for (int i = 0; i < parent.IssuedTokenAuthentication.AllowedAudienceUris.Count; i++)
+                    allowedAudienceUris.Add(parent.IssuedTokenAuthentication.AllowedAudienceUris[i]);
+            }
 
-        //    if (recipientRequirement.ListenUri != null)
-        //    {
-        //        allowedAudienceUris.Add(recipientRequirement.ListenUri.AbsoluteUri);
-        //    }
+            if (recipientRequirement.ListenUri != null)
+            {
+               allowedAudienceUris.Add(recipientRequirement.ListenUri.AbsoluteUri);
+            }
 
-        //    return ssta;
-        //}
+            return ssta;
+        }
 
         private X509SecurityTokenProvider CreateServerX509TokenProvider()
         {
@@ -387,8 +390,7 @@ namespace CoreWCF.Security
                 || (tokenType == SecurityJan2004Strings.SamlUri)
                 || (tokenType == null && IsIssuedSecurityTokenRequirement(recipientRequirement)))
             {
-                throw new PlatformNotSupportedException("SamlToken");
-                //result = CreateSamlTokenAuthenticator(recipientRequirement, out outOfBandTokenResolver);
+                result = CreateSamlTokenAuthenticator(recipientRequirement, out outOfBandTokenResolver);
             }
 
             if (result == null)

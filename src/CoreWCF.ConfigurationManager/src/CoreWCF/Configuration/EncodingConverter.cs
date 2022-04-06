@@ -46,7 +46,7 @@ namespace CoreWCF.Configuration
                 }
                 if (retval == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("value", SR.ConfigInvalidEncodingValue);
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(value), SR.ConfigInvalidEncodingValue);
                 }
                 return retval;
             }

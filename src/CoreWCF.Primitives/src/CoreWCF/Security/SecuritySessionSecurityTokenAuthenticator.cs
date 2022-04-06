@@ -24,9 +24,9 @@ namespace CoreWCF.Security
 {
     internal class SecuritySessionSecurityTokenAuthenticator : CommunicationObjectSecurityTokenAuthenticator, IIssuanceSecurityTokenAuthenticator //, ILogonTokenCacheManager
     {
-        internal static readonly TimeSpan defaultSessionTokenLifetime = TimeSpan.MaxValue;
-        internal const int defaultMaxCachedSessionTokens = int.MaxValue;
-        internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
+        internal static readonly TimeSpan s_defaultSessionTokenLifetime = TimeSpan.MaxValue;
+        internal const int DefaultMaxCachedSessionTokens = int.MaxValue;
+        internal static readonly SecurityStandardsManager s_defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
         private bool _isClientAnonymous;
         private TimeSpan _sessionTokenLifetime;
         private ISecurityContextSecurityTokenCache _issuedTokenCache;
@@ -48,9 +48,9 @@ namespace CoreWCF.Security
         public SecuritySessionSecurityTokenAuthenticator()
         {
             SessionTokenAuthenticator = new SecurityContextSecurityTokenAuthenticator();
-            _sessionTokenLifetime = defaultSessionTokenLifetime;
+            _sessionTokenLifetime = s_defaultSessionTokenLifetime;
             _isClientAnonymous = false;
-            _standardsManager = defaultStandardsManager;
+            _standardsManager = s_defaultStandardsManager;
             _keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy;// AcceleratedTokenProvider.defaultKeyEntropyMode;
             _maximumConcurrentNegotiations = 128;// AcceleratedTokenAuthenticator.defaultServerMaxActiveNegotiations;
             _negotiationTimeout = TimeSpan.Parse("00:01:00", CultureInfo.InvariantCulture); // AcceleratedTokenAuthenticator.defaultServerMaxNegotiationLifetime;

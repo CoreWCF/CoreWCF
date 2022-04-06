@@ -6,6 +6,9 @@ using System.Linq;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Configuration;
+using CoreWCF.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -90,7 +93,21 @@ namespace CoreWCF.Configuration
             services.AddSingleton(typeof(TransportCompressionSupportHelper));
             services.AddSingleton(typeof(ServiceDescription<>));
             services.AddSingleton(typeof(ServiceModelOptions));
+            AddServicesForFederation(services);
             return services;
+        }
+
+        private static void AddServicesForFederation(IServiceCollection services)
+        {
+            services.AddTransient(provider => new ServiceCredentials(provider));
+            services.AddDataProtection();
+            services.AddSingleton<ProtectedDataCookieTransform>();
+            services.AddTransient<SecurityTokenHandler, SamlSecurityTokenHandler>();
+            services.AddTransient<SecurityTokenHandler, Saml2SecurityTokenHandler>();
+            services.AddTransient<SecurityTokenHandler, X509SecurityTokenHandler>();
+            services.AddTransient<SecurityTokenHandler, EncryptedSecurityTokenHandler>();
+            services.AddTransient<SecurityTokenHandler>(provider => new SessionSecurityTokenHandler(SessionSecurityTokenHandler.GetDefaultCookieTransforms(provider)));
+            services.AddTransient<IdentityConfiguration>();
         }
     }
 }

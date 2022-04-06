@@ -155,7 +155,7 @@ namespace CoreWCF.Runtime
         internal class InternalException : SystemException
         {
             public InternalException(string description)
-                : base($"ShipAssertExceptionMessage,{description}" /*InternalSR.ShipAssertExceptionMessage(description)*/)
+                : base($"ShipAssertExceptionMessage,{description}" /*InternalSRCommon.ShipAssertExceptionMessage(description)*/)
             {
             }
 
@@ -190,7 +190,7 @@ namespace CoreWCF.Runtime
             {
                 // Convert OOM into an exception that can be safely handled by higher layers.
                 throw Exception.AsError(exception);
-                //new InsufficientMemoryException(InternalSR.BufferAllocationFailed(size), exception));
+                //new InsufficientMemoryException(InternalSRCommon.BufferAllocationFailed(size), exception));
             }
         }
 

@@ -4,6 +4,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Xml;
+using CoreWCF.Description;
+using CoreWCF.Security;
+using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Channels
 {
@@ -85,6 +88,12 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
+            if (typeof(T) == typeof(ChannelProtectionRequirements))
+            {
+                ChannelProtectionRequirements myRequirements = GetProtectionRequirements(context);
+                myRequirements.Add(context.GetInnerProperty<ChannelProtectionRequirements>() ?? new ChannelProtectionRequirements());
+                return (T)(object)myRequirements;
+            }
 
             // to cover all our bases, let's iterate through the BindingParameters to make sure
             // we haven't missed a query (since we're the Transport and we're at the bottom)
@@ -117,6 +126,56 @@ namespace CoreWCF.Channels
             }
 
             return null;
+        }
+
+        private ChannelProtectionRequirements GetProtectionRequirements(AddressingVersion addressingVersion)
+        {
+            ChannelProtectionRequirements result = new ChannelProtectionRequirements();
+            result.IncomingSignatureParts.AddParts(addressingVersion.SignedMessageParts);
+            result.OutgoingSignatureParts.AddParts(addressingVersion.SignedMessageParts);
+            return result;
+        }
+
+        internal ChannelProtectionRequirements GetProtectionRequirements(BindingContext context)
+        {
+            AddressingVersion addressingVersion = AddressingVersion.WSAddressing10;
+            MessageEncodingBindingElement messageEncoderBindingElement = context.Binding.Elements.Find<MessageEncodingBindingElement>();
+            if (messageEncoderBindingElement != null)
+            {
+                addressingVersion = messageEncoderBindingElement.MessageVersion.Addressing;
+            }
+
+            return GetProtectionRequirements(addressingVersion);
+        }
+
+        public static void ExportWsdlEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext,
+            string wsdlTransportUri, EndpointAddress address, AddressingVersion addressingVersion)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (endpointContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointContext));
+            }
+
+            // Set SoapBinding Transport URI
+            if (wsdlTransportUri != null)
+            {
+                WsdlNS.SoapBinding soapBinding = SoapHelper.GetOrCreateSoapBinding(endpointContext, exporter);
+
+                if (soapBinding != null)
+                {
+                    soapBinding.Transport = wsdlTransportUri;
+                }
+            }
+
+            if (endpointContext.WsdlPort != null)
+            {
+                WsdlExporter.WSAddressingHelper.AddAddressToWsdlPort(endpointContext.WsdlPort, address, addressingVersion);
+            }
         }
 
         protected override bool IsMatch(BindingElement b)
