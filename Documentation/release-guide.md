@@ -53,7 +53,7 @@ For engineering reasons, major releases of CoreWCF may drop support for older ve
   - [CoreWCF.Http](https://www.nuget.org/packages/CoreWCF.Http)
   - [CoreWCF.NetTcp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.NetTcp/1.0.0-preview1)
   - [CoreWCF.WebHttp](https://www.nuget.org/packages/CoreWCF.WebHttp)
-  - [CoreWCF.ConfigurationManager 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.ConfigurationManager/1.0.0-preview1)
+  - [CoreWCF.ConfigurationManager](https://www.nuget.org/packages/CoreWCF.ConfigurationManager)
 
 As a community project, support may also be available from other entities in conjunction with the use of their software & services.
 
