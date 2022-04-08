@@ -38,13 +38,22 @@ For engineering reasons, major releases of CoreWCF may drop support for older ve
 
 ## Microsoft support
 
-- Microsoft support will be available for non-preview releases. (eg 2.0, 2.1 or 3.0)
-- Support will be for the latest minor release, with a 6 month support window for the previous major family when the next major family is released 
-  - eg 2.3 would continue to supported until 6 months after 3.0 is released. 
-- Microsoft support is intended for unexpected issues found during production deployment or operation. 
-  - Core WCF is a subset of WCF, so support is not intended to provide missing functionality found during app migration from WCF or new development.
-- Runtime support will be based on the support windows for versions of .NET or .NET Framework
-- Platform suppirt will be based on the support matrix for the underlying versions of .NET or .NET Core 
+- CoreWCF is a subset of WCF. Support is not intended to provide or assist with missing functionality found during app migration from WCF or in new development.
+- OS Platform support must match the OS platform support for the underlying versions of .NET or .NET Core.
+- CoreWCF will major and minor versions. Major versions can take breaking changes, minor versions will not (and we will fix accidental breaks in minor versions).
+  - E.g. 1.0 -> 2.0 is a major version update with breaking changes while 2.0 -> 2.1 is a minor update and no intentional breaking changes.
+- Major versions will declare what .NET runtime is supported and may drop support for an older .NET runtime that is still in support. 
+  - E.g. CoreWCF 1.0 may support 3.1 and 5.0 while CoreWCF 2.0 may only choose to support 6.0.
+- Minor versions always support the same .NET runtime as the parent major, they do not drop support for a .NET runtime that was supported by the parent major as long as the .NET runtime itself is still in support. 
+  - E.g. If CoreWCF  1.0 supported .NET Core 3.1 then Core WCF 1.1 will also support .NET Core 3.1 as long as .NET Core 3.1 remains in support. Core WCF 2.x will follow whatever was declared supported when 2.0 shipped. 
+- Minor versions will be supported for 6 months after the successor ships. 
+  - E.g. CoreWCF 1.0 will be supported for 6 months after CoreWCF 1.1 ships. During the overlap both versions would get security fixes, but non-sec fixes would be available only for the latest minor i.e. 1.1.
+- The following packages will be supported:
+  - [CoreWCF.Primitives 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.Primitives/1.0.0-preview1)
+  - [CoreWCF.Http 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.Http/1.0.0-preview1)
+  - [CoreWCF.NetTcp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.NetTcp/1.0.0-preview1)
+  - [CoreWCF.WebHttp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.WebHttp/1.0.0-preview1)
+  - [CoreWCF.ConfigurationManager 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.ConfigurationManager/1.0.0-preview1)
 
 As a community project, support may also be available from other entities in conjunction with the use of their software & services.
 
