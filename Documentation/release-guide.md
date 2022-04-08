@@ -39,7 +39,7 @@ For engineering reasons, major releases of CoreWCF may drop support for older ve
 ## Microsoft support
 
 - CoreWCF is a subset of WCF. Support is not intended to provide or assist with missing functionality found during app migration from WCF or in new development.
-- OS Platform support must match the OS platform support for the underlying versions of .NET or .NET Core.
+- OS Platform support for Core WCF matches OS platform support for the underlying versions of .NET or .NET Core. For e.g. if Core WCF 1.0 supports .NET 5.0 then Core WCF will support the same OS platforms as .NET 5.0 as long as those underlying OS versions are themselves in support by the OS vendor.  
 - CoreWCF will major and minor versions. Major versions can take breaking changes, minor versions will not (and we will fix accidental breaks in minor versions).
   - E.g. 1.0 -> 2.0 is a major version update with breaking changes while 2.0 -> 2.1 is a minor update and no intentional breaking changes.
 - Major versions will declare what .NET runtime is supported and may drop support for an older .NET runtime that is still in support. 
