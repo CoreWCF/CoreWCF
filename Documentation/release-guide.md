@@ -49,7 +49,7 @@ For engineering reasons, major releases of CoreWCF may drop support for older ve
 - Minor versions will be supported for 6 months after the successor ships. 
   - E.g. CoreWCF 1.0 will be supported for 6 months after CoreWCF 1.1 ships. During the overlap both versions would get security fixes, but non-sec fixes would be available only for the latest minor i.e. 1.1.
 - The following packages will be supported:
-  - [CoreWCF.Primitives 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.Primitives/1.0.0-preview1)
+  - [CoreWCF.Primitives](https://www.nuget.org/packages/CoreWCF.Primitives)
   - [CoreWCF.Http 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.Http/1.0.0-preview1)
   - [CoreWCF.NetTcp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.NetTcp/1.0.0-preview1)
   - [CoreWCF.WebHttp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.WebHttp/1.0.0-preview1)
