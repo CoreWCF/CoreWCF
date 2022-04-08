@@ -51,7 +51,7 @@ For engineering reasons, major releases of CoreWCF may drop support for older ve
 - The following packages will be supported:
   - [CoreWCF.Primitives](https://www.nuget.org/packages/CoreWCF.Primitives)
   - [CoreWCF.Http](https://www.nuget.org/packages/CoreWCF.Http)
-  - [CoreWCF.NetTcp 1.0.0-preview1](https://www.nuget.org/packages/CoreWCF.NetTcp/1.0.0-preview1)
+  - [CoreWCF.NetTcp](https://www.nuget.org/packages/CoreWCF.NetTcp)
   - [CoreWCF.WebHttp](https://www.nuget.org/packages/CoreWCF.WebHttp)
   - [CoreWCF.ConfigurationManager](https://www.nuget.org/packages/CoreWCF.ConfigurationManager)
 
