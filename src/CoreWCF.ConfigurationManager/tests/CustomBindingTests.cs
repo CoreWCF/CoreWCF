@@ -103,14 +103,29 @@ namespace CoreWCF.ConfigurationManager.Tests
 
         #region TextEncoding
 
-        [Fact]
-        public void CustomBinding_WithTextEncodingSettings()
+        private const string UnicodeBe = "UnicodeBE";
+        private const string Unicode = "unicode";
+        private const string Utf8 = "utf-8";
+        private static Encoding GetEncodingForTest(string encodingName)
+            => encodingName switch
+            {
+                UnicodeBe => Encoding.BigEndianUnicode,
+                Utf8 => Encoding.UTF8,
+                Unicode => Encoding.Unicode,
+                _ => Encoding.Default
+            };
+
+        [Theory]
+        [InlineData(UnicodeBe)]
+        [InlineData(Unicode)]
+        [InlineData(Utf8)]
+        public void CustomBinding_WithTextEncodingSettings(string encodingName)
         {
             string expectedName = "customBinding";
             int expectedMaxDepth = 2147483647;
             int expectedMaxReadPoolSize = 24;
             int expectedMaxWritePoolSize = 8;
-            Encoding expectedEncoding = Encoding.Unicode;
+            Encoding expectedEncoding = GetEncodingForTest(encodingName);
             MessageVersion expectedMessageVersion = MessageVersion.Soap11;
 
 
@@ -122,7 +137,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 <binding name=""{expectedName}"">
                     <textMessageEncoding maxReadPoolSize=""{expectedMaxReadPoolSize}""
                                          maxWritePoolSize=""{expectedMaxWritePoolSize}""
-                                         writeEncoding=""utf-16LE""
+                                         writeEncoding=""{expectedEncoding.HeaderName}""
                                          messageVersion=""Soap11"">
                         <readerQuotas maxDepth=""{expectedMaxDepth}"" />
                     </textMessageEncoding>

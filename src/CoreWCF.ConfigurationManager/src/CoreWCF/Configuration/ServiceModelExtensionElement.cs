@@ -15,39 +15,39 @@ namespace CoreWCF.Configuration
 
         internal void InternalInitializeDefault()
         {
-            this.InitializeDefault();
+            InitializeDefault();
         }
 
         public virtual void CopyFrom(ServiceModelExtensionElement from)
         {
-            if (this.IsReadOnly())
+            if (IsReadOnly())
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(string.Format(SR.ConfigReadOnly)));
             }
             if (from == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("from");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(from));
             }
         }
         
         internal void DeserializeInternal(XmlReader reader, bool serializeCollectionKey)
         {
-            this.DeserializeElement(reader, serializeCollectionKey);
+            DeserializeElement(reader, serializeCollectionKey);
         }
 
         internal bool IsModifiedInternal()
         {
-            return this.IsModified();
+            return IsModified();
         }
 
         internal void ResetModifiedInternal()
         {
-            this.ResetModified();
+            ResetModified();
         }
 
         internal void SetReadOnlyInternal()
         {
-            this.SetReadOnly();
+            SetReadOnly();
         }
     }
 }

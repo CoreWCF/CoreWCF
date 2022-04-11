@@ -15,8 +15,8 @@ namespace CoreWCF.Configuration
 
         public ClaimTypeElement(string claimType, bool isOptional)
         {
-            this.ClaimType = claimType;
-            this.IsOptional = isOptional;
+            ClaimType = claimType;
+            IsOptional = isOptional;
         }
 
         [ConfigurationProperty(ConfigurationStrings.ClaimType, DefaultValue = "", Options = ConfigurationPropertyOptions.IsRequired | ConfigurationPropertyOptions.IsKey)]

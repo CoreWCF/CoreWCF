@@ -15,11 +15,11 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             TextMessageEncodingBindingElement binding = (TextMessageEncodingBindingElement)bindingElement;
-            binding.MessageVersion = this.MessageVersion;
-            binding.WriteEncoding = this.WriteEncoding;
-            binding.MaxReadPoolSize = this.MaxReadPoolSize;
-            binding.MaxWritePoolSize = this.MaxWritePoolSize;
-            this.ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
+            binding.MessageVersion = MessageVersion;
+            binding.WriteEncoding = WriteEncoding;
+            binding.MaxReadPoolSize = MaxReadPoolSize;
+            binding.MaxWritePoolSize = MaxWritePoolSize;
+            ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
         }
 
         public override Type BindingElementType
@@ -32,16 +32,16 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             TextMessageEncodingElement source = (TextMessageEncodingElement)from;
-            this.MessageVersion = source.MessageVersion;
-            this.WriteEncoding = source.WriteEncoding;
-            this.MaxReadPoolSize = source.MaxReadPoolSize;
-            this.MaxWritePoolSize = source.MaxWritePoolSize;
+            MessageVersion = source.MessageVersion;
+            WriteEncoding = source.WriteEncoding;
+            MaxReadPoolSize = source.MaxReadPoolSize;
+            MaxWritePoolSize = source.MaxWritePoolSize;
         }
 
         protected internal override BindingElement CreateBindingElement()
         {
             TextMessageEncodingBindingElement binding = new TextMessageEncodingBindingElement();
-            this.ApplyConfiguration(binding);
+            ApplyConfiguration(binding);
             return binding;
         }
 
@@ -53,7 +53,7 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.WriteEncoding, binding.WriteEncoding);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxReadPoolSize, binding.MaxReadPoolSize);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxWritePoolSize, binding.MaxWritePoolSize);
-            this.ReaderQuotas.InitializeFrom(binding.ReaderQuotas);
+            ReaderQuotas.InitializeFrom(binding.ReaderQuotas);
         }
 
         [ConfigurationProperty(ConfigurationStrings.MaxReadPoolSize, DefaultValue = EncoderDefaults.MaxReadPoolSize)]

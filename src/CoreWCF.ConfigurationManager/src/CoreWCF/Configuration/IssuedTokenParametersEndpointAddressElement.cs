@@ -42,8 +42,8 @@ namespace CoreWCF.Configuration
         internal void Copy(IssuedTokenParametersEndpointAddressElement source)
         {
             base.Copy(source);
-            this.BindingConfiguration = source.BindingConfiguration;
-            this.Binding = source.Binding;
+            BindingConfiguration = source.BindingConfiguration;
+            Binding = source.Binding;
         }
 
     }

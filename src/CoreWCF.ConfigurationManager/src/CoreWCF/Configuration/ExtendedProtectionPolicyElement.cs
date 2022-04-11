@@ -11,14 +11,14 @@ namespace CoreWCF.Configuration
     {
         public ExtendedProtectionPolicyElement()
         {
-            this.properties.Add(this.policyEnforcement);
-            this.properties.Add(this.protectionScenario);
-            this.properties.Add(this.customServiceNames);
+            _properties.Add(_policyEnforcement);
+            _properties.Add(_protectionScenario);
+            _properties.Add(_customServiceNames);
         }
             
         protected override ConfigurationPropertyCollection Properties
         {
-            get { return this.properties; }
+            get { return _properties; }
         }
 
         [ConfigurationProperty(ExtendedProtectionConfigurationStrings.PolicyEnforcement)]
@@ -26,11 +26,11 @@ namespace CoreWCF.Configuration
         {
             get
             {
-                return (PolicyEnforcement)this[this.policyEnforcement];
+                return (PolicyEnforcement)this[_policyEnforcement];
             }
             set
             {
-                this[this.policyEnforcement] = value;
+                this[_policyEnforcement] = value;
             }
         }
 
@@ -39,11 +39,11 @@ namespace CoreWCF.Configuration
         {
             get
             {
-                return (ProtectionScenario)this[this.protectionScenario];
+                return (ProtectionScenario)this[_protectionScenario];
             }
             set
             {
-                this[this.protectionScenario] = value;
+                this[_protectionScenario] = value;
             }
         }
 
@@ -52,7 +52,7 @@ namespace CoreWCF.Configuration
         {
             get
             {
-                return (ServiceNameElementCollection)this[this.customServiceNames];
+                return (ServiceNameElementCollection)this[_customServiceNames];
             }
         }
 
@@ -79,7 +79,7 @@ namespace CoreWCF.Configuration
             return new ExtendedProtectionPolicy(PolicyEnforcement, ProtectionScenario, spns);
         }
 
-        ConfigurationPropertyCollection properties = new ConfigurationPropertyCollection();
+        private readonly ConfigurationPropertyCollection _properties = new ConfigurationPropertyCollection();
 
         private static PolicyEnforcement DefaultPolicyEnforcement
         {
@@ -89,17 +89,17 @@ namespace CoreWCF.Configuration
             }
         }
 
-        readonly ConfigurationProperty policyEnforcement =
+        private readonly ConfigurationProperty _policyEnforcement =
             new ConfigurationProperty(ExtendedProtectionConfigurationStrings.PolicyEnforcement,
                 typeof(PolicyEnforcement), DefaultPolicyEnforcement,
                 ConfigurationPropertyOptions.None);
 
-        readonly ConfigurationProperty protectionScenario =
+        private readonly ConfigurationProperty _protectionScenario =
             new ConfigurationProperty(ExtendedProtectionConfigurationStrings.ProtectionScenario,
                 typeof(ProtectionScenario), ProtectionScenario.TransportSelected,
                 ConfigurationPropertyOptions.None);
 
-        readonly ConfigurationProperty customServiceNames =
+        private readonly ConfigurationProperty _customServiceNames =
             new ConfigurationProperty(ExtendedProtectionConfigurationStrings.CustomServiceNames,
                 typeof(ServiceNameElementCollection), null,
                 ConfigurationPropertyOptions.None);

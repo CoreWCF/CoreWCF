@@ -26,7 +26,7 @@ namespace CoreWCF.Configuration
             base.ApplyConfiguration(bindingElement);
             WindowsStreamSecurityBindingElement windowsBindingElement =
                 (WindowsStreamSecurityBindingElement)bindingElement;
-            windowsBindingElement.ProtectionLevel = this.ProtectionLevel;
+            windowsBindingElement.ProtectionLevel = ProtectionLevel;
         }
 
         protected internal override BindingElement CreateBindingElement()
@@ -34,7 +34,7 @@ namespace CoreWCF.Configuration
             WindowsStreamSecurityBindingElement windowsBindingElement
                 = new WindowsStreamSecurityBindingElement();
 
-            this.ApplyConfiguration(windowsBindingElement);
+            ApplyConfiguration(windowsBindingElement);
             return windowsBindingElement;
         }
 
@@ -48,7 +48,7 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             WindowsStreamSecurityElement source = (WindowsStreamSecurityElement)from;
-            this.ProtectionLevel = source.ProtectionLevel;
+            ProtectionLevel = source.ProtectionLevel;
         }
 
         protected internal override void InitializeFrom(BindingElement bindingElement)

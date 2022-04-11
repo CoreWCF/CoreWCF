@@ -5,7 +5,7 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    public class WSHttpSecurityElement : ServiceModelConfigurationElement
+    public class WsHttpSecurityElement : ServiceModelConfigurationElement
     {
         [ConfigurationProperty(ConfigurationStrings.Mode, DefaultValue = SecurityMode.Message)]
         public SecurityMode Mode
@@ -15,9 +15,9 @@ namespace CoreWCF.Configuration
         }
 
         [ConfigurationProperty(ConfigurationStrings.Transport)]
-        public WSHttpTransportSecurityElement Transport
+        public WsHttpTransportSecurityElement Transport
         {
-            get { return (WSHttpTransportSecurityElement)base[ConfigurationStrings.Transport]; }
+            get { return (WsHttpTransportSecurityElement)base[ConfigurationStrings.Transport]; }
         }
 
         [ConfigurationProperty(ConfigurationStrings.Message)]

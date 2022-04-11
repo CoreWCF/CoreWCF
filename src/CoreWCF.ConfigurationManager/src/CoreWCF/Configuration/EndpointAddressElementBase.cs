@@ -35,17 +35,17 @@ namespace CoreWCF.Configuration
 
         internal protected void Copy(EndpointAddressElementBase source)
         {
-            if (this.IsReadOnly())
+            if (IsReadOnly())
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigReadOnly)));
             }
             if (null == source)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
 
-            this.Address = source.Address;
-            this.Headers.Headers = source.Headers.Headers;
+            Address = source.Address;
+            Headers.Headers = source.Headers.Headers;
             //TODO: Add Identity Support
             //PropertyInformationCollection properties = source.ElementInformation.Properties;
             //if (properties[ConfigurationStrings.Identity].ValueOrigin != PropertyValueOrigin.Default)
@@ -58,11 +58,11 @@ namespace CoreWCF.Configuration
         {
             if (null == endpointAddress)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("endpointAddress");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointAddress));
             }
 
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.Address, endpointAddress.Uri);
-            this.Headers.InitializeFrom(endpointAddress.Headers);
+            Headers.InitializeFrom(endpointAddress.Headers);
             //TODO: Add Identity Support
             //if (null != endpointAddress.Identity)
             //{

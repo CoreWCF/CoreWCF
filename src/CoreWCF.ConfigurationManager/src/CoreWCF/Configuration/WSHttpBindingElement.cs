@@ -6,14 +6,14 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    public class WSHttpBindingElement : WSHttpBindingBaseElement
+    public class WsHttpBindingElement : WsHttpBindingBaseElement
     {
-        public WSHttpBindingElement(string name)
+        public WsHttpBindingElement(string name)
         : base(name)
         {
         }
 
-        public WSHttpBindingElement()
+        public WsHttpBindingElement()
             : this(null)
         {
         }
@@ -27,9 +27,9 @@ namespace CoreWCF.Configuration
         }
 
         [ConfigurationProperty(ConfigurationStrings.Security)]
-        public WSHttpSecurityElement Security
+        public WsHttpSecurityElement Security
         {
-            get { return (WSHttpSecurityElement)base[ConfigurationStrings.Security]; }
+            get { return (WsHttpSecurityElement)base[ConfigurationStrings.Security]; }
         }
 
         public override Binding CreateBinding()

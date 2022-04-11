@@ -114,10 +114,10 @@ namespace CoreWCF.Configuration
 
     internal static class TextEncoderDefaults
     {
-        internal static readonly Encoding Encoding = Encoding.GetEncoding(TextEncoderDefaults.EncodingString, new EncoderExceptionFallback(), new DecoderExceptionFallback());
+        internal static readonly Encoding s_encoding = Encoding.GetEncoding(TextEncoderDefaults.EncodingString, new EncoderExceptionFallback(), new DecoderExceptionFallback());
         internal const string EncodingString = "utf-8";
-        internal static readonly Encoding[] SupportedEncodings = new Encoding[] { Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode };
-        internal const string MessageVersionString = ConfigurationStrings.Soap12WSAddressing10;
+        internal static readonly Encoding[] s_supportedEncodings = new Encoding[] { Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode };
+        internal const string MessageVersionString = ConfigurationStrings.Soap12WsAddressing10;
     }
 
     internal static class TransportDefaults
@@ -149,7 +149,7 @@ namespace CoreWCF.Configuration
         // after we create the half-open channel. The default value is set as the default one as MaxConcurrentSessions to make it work
         // well in burst scenarios.
         internal const int DefaultMaxConcurrentSessions = 100;
-        internal static readonly int MaxPendingConnectionsCpuCount = DefaultMaxConcurrentSessions * Environment.ProcessorCount;
+        internal static readonly int s_maxPendingConnectionsCpuCount = DefaultMaxConcurrentSessions * Environment.ProcessorCount;
 
         internal const string WebSocketConnectionHeaderValue = "Upgrade";
         internal const string WebSocketUpgradeHeaderValue = "websocket";

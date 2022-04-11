@@ -19,12 +19,12 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             MtomMessageEncodingBindingElement binding = (MtomMessageEncodingBindingElement)bindingElement;
-            binding.MessageVersion = this.MessageVersion;
-            binding.WriteEncoding = this.WriteEncoding;
-            binding.MaxReadPoolSize = this.MaxReadPoolSize;
-            binding.MaxWritePoolSize = this.MaxWritePoolSize;
-            this.ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
-            binding.MaxBufferSize = this.MaxBufferSize;
+            binding.MessageVersion = MessageVersion;
+            binding.WriteEncoding = WriteEncoding;
+            binding.MaxReadPoolSize = MaxReadPoolSize;
+            binding.MaxWritePoolSize = MaxWritePoolSize;
+            ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
+            binding.MaxBufferSize = MaxBufferSize;
         }
 
         public override Type BindingElementType
@@ -37,17 +37,17 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             MtomMessageEncodingElement source = (MtomMessageEncodingElement)from;
-            this.MessageVersion = source.MessageVersion;
-            this.WriteEncoding = source.WriteEncoding;
-            this.MaxReadPoolSize = source.MaxReadPoolSize;
-            this.MaxWritePoolSize = source.MaxWritePoolSize;
-            this.MaxBufferSize = source.MaxBufferSize;
+            MessageVersion = source.MessageVersion;
+            WriteEncoding = source.WriteEncoding;
+            MaxReadPoolSize = source.MaxReadPoolSize;
+            MaxWritePoolSize = source.MaxWritePoolSize;
+            MaxBufferSize = source.MaxBufferSize;
         }
 
         protected internal override BindingElement CreateBindingElement()
         {
             MtomMessageEncodingBindingElement binding = new MtomMessageEncodingBindingElement();
-            this.ApplyConfiguration(binding);
+            ApplyConfiguration(binding);
             return binding;
         }
 
@@ -59,7 +59,7 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.WriteEncoding, binding.WriteEncoding);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxReadPoolSize, binding.MaxReadPoolSize);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxWritePoolSize, binding.MaxWritePoolSize);
-            this.ReaderQuotas.InitializeFrom(binding.ReaderQuotas);
+            ReaderQuotas.InitializeFrom(binding.ReaderQuotas);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxBufferSize, binding.MaxBufferSize);
         }
 

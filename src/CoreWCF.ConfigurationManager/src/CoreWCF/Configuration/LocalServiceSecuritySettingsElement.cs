@@ -124,32 +124,32 @@ namespace CoreWCF.Configuration
         {
             if (settings == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("settings");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(settings));
             }
-            if (PropertyValueOrigin.Default != this.ElementInformation.Properties[ConfigurationStrings.DetectReplays].ValueOrigin)
-                settings.DetectReplays = this.DetectReplays;
-            settings.IssuedCookieLifetime = this.IssuedCookieLifetime;
-            settings.MaxClockSkew = this.MaxClockSkew;
-            settings.MaxPendingSessions = this.MaxPendingSessions;
-            settings.MaxStatefulNegotiations = this.MaxStatefulNegotiations;
-            settings.NegotiationTimeout = this.NegotiationTimeout;
-            settings.ReconnectTransportOnFailure = this.ReconnectTransportOnFailure;
-            settings.ReplayCacheSize = this.ReplayCacheSize;
-            settings.ReplayWindow = this.ReplayWindow;
-            settings.SessionKeyRenewalInterval = this.SessionKeyRenewalInterval;
-            settings.SessionKeyRolloverInterval = this.SessionKeyRolloverInterval;
-            settings.InactivityTimeout = this.InactivityTimeout;
-            settings.TimestampValidityDuration = this.TimestampValidityDuration;
-            settings.MaxCachedCookies = this.MaxCachedCookies;
+            if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.DetectReplays].ValueOrigin)
+                settings.DetectReplays = DetectReplays;
+            settings.IssuedCookieLifetime = IssuedCookieLifetime;
+            settings.MaxClockSkew = MaxClockSkew;
+            settings.MaxPendingSessions = MaxPendingSessions;
+            settings.MaxStatefulNegotiations = MaxStatefulNegotiations;
+            settings.NegotiationTimeout = NegotiationTimeout;
+            settings.ReconnectTransportOnFailure = ReconnectTransportOnFailure;
+            settings.ReplayCacheSize = ReplayCacheSize;
+            settings.ReplayWindow = ReplayWindow;
+            settings.SessionKeyRenewalInterval = SessionKeyRenewalInterval;
+            settings.SessionKeyRolloverInterval = SessionKeyRolloverInterval;
+            settings.InactivityTimeout = InactivityTimeout;
+            settings.TimestampValidityDuration = TimestampValidityDuration;
+            settings.MaxCachedCookies = MaxCachedCookies;
         }
 
         internal void InitializeFrom(LocalServiceSecuritySettings settings)
         {
             if (settings == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("settings");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(settings));
             }
-            this.DetectReplays = settings.DetectReplays; // can't use default value optimization here because runtime default doesn't match config default
+            DetectReplays = settings.DetectReplays; // can't use default value optimization here because runtime default doesn't match config default
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.IssuedCookieLifetime, settings.IssuedCookieLifetime);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxClockSkew, settings.MaxClockSkew);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxPendingSessions, settings.MaxPendingSessions);
@@ -169,23 +169,23 @@ namespace CoreWCF.Configuration
         {
             if (source == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.DetectReplays].ValueOrigin)
-                this.DetectReplays = source.DetectReplays;
-            this.IssuedCookieLifetime = source.IssuedCookieLifetime;
-            this.MaxClockSkew = source.MaxClockSkew;
-            this.MaxPendingSessions = source.MaxPendingSessions;
-            this.MaxStatefulNegotiations = source.MaxStatefulNegotiations;
-            this.NegotiationTimeout = source.NegotiationTimeout;
-            this.ReconnectTransportOnFailure = source.ReconnectTransportOnFailure;
-            this.ReplayCacheSize = source.ReplayCacheSize;
-            this.ReplayWindow = source.ReplayWindow;
-            this.SessionKeyRenewalInterval = source.SessionKeyRenewalInterval;
-            this.SessionKeyRolloverInterval = source.SessionKeyRolloverInterval;
-            this.InactivityTimeout = source.InactivityTimeout;
-            this.TimestampValidityDuration = source.TimestampValidityDuration;
-            this.MaxCachedCookies = source.MaxCachedCookies;
+                DetectReplays = source.DetectReplays;
+            IssuedCookieLifetime = source.IssuedCookieLifetime;
+            MaxClockSkew = source.MaxClockSkew;
+            MaxPendingSessions = source.MaxPendingSessions;
+            MaxStatefulNegotiations = source.MaxStatefulNegotiations;
+            NegotiationTimeout = source.NegotiationTimeout;
+            ReconnectTransportOnFailure = source.ReconnectTransportOnFailure;
+            ReplayCacheSize = source.ReplayCacheSize;
+            ReplayWindow = source.ReplayWindow;
+            SessionKeyRenewalInterval = source.SessionKeyRenewalInterval;
+            SessionKeyRolloverInterval = source.SessionKeyRolloverInterval;
+            InactivityTimeout = source.InactivityTimeout;
+            TimestampValidityDuration = source.TimestampValidityDuration;
+            MaxCachedCookies = source.MaxCachedCookies;
         }
     }
 }

@@ -158,26 +158,26 @@ namespace CoreWCF.Configuration
             HttpTransportBindingElement binding = (HttpTransportBindingElement)bindingElement;
 
             //binding.AllowCookies = this.AllowCookies;
-            binding.AuthenticationScheme = this.AuthenticationScheme;
+            binding.AuthenticationScheme = AuthenticationScheme;
             //binding.BypassProxyOnLocal = this.BypassProxyOnLocal;
             //binding.DecompressionEnabled = this.DecompressionEnabled;
-            binding.KeepAliveEnabled = this.KeepAliveEnabled;
+            binding.KeepAliveEnabled = KeepAliveEnabled;
             //binding.HostNameComparisonMode = this.HostNameComparisonMode;
-            PropertyInformationCollection propertyInfo = this.ElementInformation.Properties;
+            PropertyInformationCollection propertyInfo = ElementInformation.Properties;
             if (propertyInfo[ConfigurationStrings.MaxBufferSize].ValueOrigin != PropertyValueOrigin.Default)
             {
-                binding.MaxBufferSize = this.MaxBufferSize;
+                binding.MaxBufferSize = MaxBufferSize;
             }
             //binding.MaxPendingAccepts = this.MaxPendingAccepts;
             //binding.ProxyAddress = this.ProxyAddress;
             //binding.ProxyAuthenticationScheme = this.ProxyAuthenticationScheme;
-            binding.Realm = this.Realm;
+            binding.Realm = Realm;
             //binding.RequestInitializationTimeout = this.RequestInitializationTimeout;
-            binding.TransferMode = this.TransferMode;
+            binding.TransferMode = TransferMode;
             //binding.UnsafeConnectionNtlmAuthentication = this.UnsafeConnectionNtlmAuthentication;
             //binding.UseDefaultWebProxy = this.UseDefaultWebProxy;
-            binding.ExtendedProtectionPolicy = ConfigurationChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
-            this.WebSocketSettings.ApplyConfiguration(binding.WebSocketSettings);
+            binding.ExtendedProtectionPolicy = ConfigurationChannelBindingUtility.BuildPolicy(ExtendedProtectionPolicy);
+            WebSocketSettings.ApplyConfiguration(binding.WebSocketSettings);
             //if (this.MessageHandlerFactory != null)
             //{
             //    binding.MessageHandlerFactory = HttpMessageHandlerFactory.CreateFromConfigurationElement(this.MessageHandlerFactory);
@@ -191,22 +191,22 @@ namespace CoreWCF.Configuration
             HttpTransportElement source = (HttpTransportElement)from;
             //this.AllowCookies = source.AllowCookies;
             //this.RequestInitializationTimeout = source.RequestInitializationTimeout;
-            this.AuthenticationScheme = source.AuthenticationScheme;
+            AuthenticationScheme = source.AuthenticationScheme;
             //this.BypassProxyOnLocal = source.BypassProxyOnLocal;
             //this.DecompressionEnabled = source.DecompressionEnabled;
-            this.KeepAliveEnabled = source.KeepAliveEnabled;
+            KeepAliveEnabled = source.KeepAliveEnabled;
             //this.HostNameComparisonMode = source.HostNameComparisonMode;
-            this.MaxBufferSize = source.MaxBufferSize;
+            MaxBufferSize = source.MaxBufferSize;
             //this.MaxPendingAccepts = source.MaxPendingAccepts;
             //this.ProxyAddress = source.ProxyAddress;
             //this.ProxyAuthenticationScheme = source.ProxyAuthenticationScheme;
-            this.Realm = source.Realm;
-            this.TransferMode = source.TransferMode;
+            Realm = source.Realm;
+            TransferMode = source.TransferMode;
             //this.UnsafeConnectionNtlmAuthentication = source.UnsafeConnectionNtlmAuthentication;
             //this.UseDefaultWebProxy = source.UseDefaultWebProxy;
-            this.WebSocketSettings = source.WebSocketSettings;
+            WebSocketSettings = source.WebSocketSettings;
             //this.MessageHandlerFactory = source.MessageHandlerFactory;
-            ConfigurationChannelBindingUtility.CopyFrom(source.ExtendedProtectionPolicy, this.ExtendedProtectionPolicy);
+            ConfigurationChannelBindingUtility.CopyFrom(source.ExtendedProtectionPolicy, ExtendedProtectionPolicy);
         }
 
         protected override TransportBindingElement CreateDefaultBindingElement()
@@ -233,13 +233,13 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.TransferMode, source.TransferMode);
             //SetPropertyValueIfNotDefaultValue(ConfigurationStrings.UnsafeConnectionNtlmAuthentication, source.UnsafeConnectionNtlmAuthentication);
             //SetPropertyValueIfNotDefaultValue(ConfigurationStrings.UseDefaultWebProxy, source.UseDefaultWebProxy);
-            this.WebSocketSettings.InitializeFrom(source.WebSocketSettings);
+            WebSocketSettings.InitializeFrom(source.WebSocketSettings);
             //if (source.MessageHandlerFactory != null)
             //{
             //    this.MessageHandlerFactory = source.MessageHandlerFactory.GenerateConfigurationElement();
             //}
 
-            ConfigurationChannelBindingUtility.InitializeFrom(source.ExtendedProtectionPolicy, this.ExtendedProtectionPolicy);
+            ConfigurationChannelBindingUtility.InitializeFrom(source.ExtendedProtectionPolicy, ExtendedProtectionPolicy);
         }
     }
 }

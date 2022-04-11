@@ -12,9 +12,9 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             TransportBindingElement binding = (TransportBindingElement)bindingElement;
-            binding.ManualAddressing = this.ManualAddressing;
-            binding.MaxBufferPoolSize = this.MaxBufferPoolSize;
-            binding.MaxReceivedMessageSize = this.MaxReceivedMessageSize;
+            binding.ManualAddressing = ManualAddressing;
+            binding.MaxBufferPoolSize = MaxBufferPoolSize;
+            binding.MaxReceivedMessageSize = MaxReceivedMessageSize;
         }
 
         public override void CopyFrom(ServiceModelExtensionElement from)
@@ -22,15 +22,15 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             TransportElement source = (TransportElement)from;
-            this.ManualAddressing = source.ManualAddressing;
-            this.MaxBufferPoolSize = source.MaxBufferPoolSize;
-            this.MaxReceivedMessageSize = source.MaxReceivedMessageSize;
+            ManualAddressing = source.ManualAddressing;
+            MaxBufferPoolSize = source.MaxBufferPoolSize;
+            MaxReceivedMessageSize = source.MaxReceivedMessageSize;
         }
 
         protected internal override BindingElement CreateBindingElement()
         {
-            TransportBindingElement binding = this.CreateDefaultBindingElement();
-            this.ApplyConfiguration(binding);
+            TransportBindingElement binding = CreateDefaultBindingElement();
+            ApplyConfiguration(binding);
             return binding;
         }
 

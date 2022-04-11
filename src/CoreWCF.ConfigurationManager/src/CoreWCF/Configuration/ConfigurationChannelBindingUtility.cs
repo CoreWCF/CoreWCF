@@ -4,10 +4,7 @@
 using System;
 using System.Net;
 using System.Net.Security;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Authentication.ExtendedProtection;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
@@ -23,6 +20,7 @@ namespace CoreWCF.Configuration
         {
             return ReferenceEquals(policy, s_defaultPolicy);
         }
+
         public static void CopyFrom(ExtendedProtectionPolicyElement source, ExtendedProtectionPolicyElement destination)
         {
             destination.PolicyEnforcement = source.PolicyEnforcement;
@@ -168,30 +166,24 @@ namespace CoreWCF.Configuration
             // Explicitly cast to IDisposable to avoid the SecurityException.
             IDisposable disposable = (IDisposable)channelBinding;
             channelBinding = null;
-            if (disposable != null)
-            {
-                disposable.Dispose();
-            }
+            disposable?.Dispose();
+
         }
 
         private class DuplicatedChannelBinding : ChannelBinding
         {
-            [SecurityCritical]
-            int _size;
+            private int _size;
 
-            DuplicatedChannelBinding()
+            private DuplicatedChannelBinding()
             {
 
             }
 
             public override int Size
             {
-                [SecuritySafeCritical]
-                get { return this._size; }
-            }
 
-            
-            [SecuritySafeCritical]
+                get { return _size; }
+            }
             internal static ChannelBinding CreateCopy(ChannelBinding source)
             {
                 Fx.Assert(source != null, "source ChannelBinding should have been checked for null previously");
@@ -215,8 +207,7 @@ namespace CoreWCF.Configuration
 
                 return duplicate;
             }
-
-            [SecurityCritical]
+            
             private unsafe void Initialize(ChannelBinding source)
             {
                 //allocates the memory pointed to by this.handle
@@ -224,34 +215,27 @@ namespace CoreWCF.Configuration
                 AllocateMemory(source.Size);
 
                 byte* sourceBuffer = (byte*)source.DangerousGetHandle().ToPointer();
-                byte* destinationBuffer = (byte*)this.handle.ToPointer();
+                byte* destinationBuffer = (byte*)handle.ToPointer();
 
                 for (int i = 0; i < source.Size; i++)
                 {
                     destinationBuffer[i] = sourceBuffer[i];
                 }
 
-                this._size = source.Size;
+                _size = source.Size;
             }
 
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             private void AllocateMemory(int bytesToAllocate)
             {
                 Fx.Assert(bytesToAllocate > 0, "bytesToAllocate must be positive");
 
-                //this protects us from problems like an appdomain shutdown occuring 
-                //after allocating the native memory but before the handle gets set (which would result in a memory leak)
-                RuntimeHelpers.PrepareConstrainedRegions();
-                try { }
-                finally
-                {
-                    base.SetHandle(Marshal.AllocHGlobal(bytesToAllocate));
-                }
+                base.SetHandle(Marshal.AllocHGlobal(bytesToAllocate));
+
             }
 
             protected override bool ReleaseHandle()
             {
-                Marshal.FreeHGlobal(this.handle);
+                Marshal.FreeHGlobal(handle);
                 base.SetHandle(IntPtr.Zero);
                 return true;
             }

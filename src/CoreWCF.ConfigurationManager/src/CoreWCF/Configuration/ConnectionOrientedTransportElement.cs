@@ -77,24 +77,24 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             ConnectionOrientedTransportBindingElement binding = (ConnectionOrientedTransportBindingElement)bindingElement;
-            binding.ConnectionBufferSize = this.ConnectionBufferSize;
-            binding.HostNameComparisonMode = this.HostNameComparisonMode;
-            binding.ChannelInitializationTimeout = this.ChannelInitializationTimeout;
-            PropertyInformationCollection propertyInfo = this.ElementInformation.Properties;
+            binding.ConnectionBufferSize = ConnectionBufferSize;
+            binding.HostNameComparisonMode = HostNameComparisonMode;
+            binding.ChannelInitializationTimeout = ChannelInitializationTimeout;
+            PropertyInformationCollection propertyInfo = ElementInformation.Properties;
             if (propertyInfo[ConfigurationStrings.MaxBufferSize].ValueOrigin != PropertyValueOrigin.Default)
             {
-                binding.MaxBufferSize = this.MaxBufferSize;
+                binding.MaxBufferSize = MaxBufferSize;
             }
-            if (this.MaxPendingConnections != ConnectionOrientedTransportDefaults.MaxPendingConnectionsConst)
+            if (MaxPendingConnections != ConnectionOrientedTransportDefaults.MaxPendingConnectionsConst)
             {
-                binding.MaxPendingConnections = this.MaxPendingConnections;
+                binding.MaxPendingConnections = MaxPendingConnections;
             }
-            binding.MaxOutputDelay = this.MaxOutputDelay;
-            if (this.MaxPendingAccepts != ConnectionOrientedTransportDefaults.MaxPendingAcceptsConst)
+            binding.MaxOutputDelay = MaxOutputDelay;
+            if (MaxPendingAccepts != ConnectionOrientedTransportDefaults.MaxPendingAcceptsConst)
             {
-                binding.MaxPendingAccepts = this.MaxPendingAccepts;
+                binding.MaxPendingAccepts = MaxPendingAccepts;
             }
-            binding.TransferMode = this.TransferMode;
+            binding.TransferMode = TransferMode;
         }
 
         public override void CopyFrom(ServiceModelExtensionElement from)
@@ -102,14 +102,14 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             ConnectionOrientedTransportElement source = (ConnectionOrientedTransportElement)from;
-            this.ConnectionBufferSize = source.ConnectionBufferSize;
-            this.HostNameComparisonMode = source.HostNameComparisonMode;
-            this.ChannelInitializationTimeout = source.ChannelInitializationTimeout;
-            this.MaxBufferSize = source.MaxBufferSize;
-            this.MaxPendingConnections = source.MaxPendingConnections;
-            this.MaxOutputDelay = source.MaxOutputDelay;
-            this.MaxPendingAccepts = source.MaxPendingAccepts;
-            this.TransferMode = source.TransferMode;
+            ConnectionBufferSize = source.ConnectionBufferSize;
+            HostNameComparisonMode = source.HostNameComparisonMode;
+            ChannelInitializationTimeout = source.ChannelInitializationTimeout;
+            MaxBufferSize = source.MaxBufferSize;
+            MaxPendingConnections = source.MaxPendingConnections;
+            MaxOutputDelay = source.MaxOutputDelay;
+            MaxPendingAccepts = source.MaxPendingAccepts;
+            TransferMode = source.TransferMode;
         }
 
         protected internal override void InitializeFrom(BindingElement bindingElement)
@@ -122,13 +122,13 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxBufferSize, binding.MaxBufferSize);
             if (binding.MaxPendingConnections > 0)
             {
-                ConfigurationProperty maxPendingConnectionsProperty = this.Properties[ConfigurationStrings.MaxPendingConnections];
+                ConfigurationProperty maxPendingConnectionsProperty = Properties[ConfigurationStrings.MaxPendingConnections];
                 SetPropertyValue(maxPendingConnectionsProperty, binding.MaxPendingConnections, /*ignoreLocks = */ false);
             }
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxOutputDelay, binding.MaxOutputDelay);
             if (binding.MaxPendingAccepts > 0)
             {
-                ConfigurationProperty maxPendingAcceptsProperty = this.Properties[ConfigurationStrings.MaxPendingAccepts];
+                ConfigurationProperty maxPendingAcceptsProperty = Properties[ConfigurationStrings.MaxPendingAccepts];
                 SetPropertyValue(maxPendingAcceptsProperty, binding.MaxPendingAccepts, /*ignoreLocks = */ false);
             }
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.TransferMode, binding.TransferMode);

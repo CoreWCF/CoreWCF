@@ -9,6 +9,7 @@ namespace CoreWCF.Configuration
     public abstract class BindingElementExtensionElement : ServiceModelExtensionElement
     {
         protected internal abstract BindingElement CreateBindingElement();
+
         public abstract Type BindingElementType { get; }
 
         protected internal virtual void InitializeFrom(BindingElement bindingElement)
@@ -20,6 +21,5 @@ namespace CoreWCF.Configuration
         {
 
         }
-
     }
 }

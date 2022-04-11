@@ -12,7 +12,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
             ClaimTypeElement claimElement = (ClaimTypeElement)element;
             return claimElement.ClaimType;

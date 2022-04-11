@@ -16,8 +16,7 @@ namespace CoreWCF.Configuration
 
         internal string Key
         {
-            get { return this.Name; }
+            get { return Name; }
         }
-
     }
 }

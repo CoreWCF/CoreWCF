@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace CoreWCF.Configuration
 {
-    public class TimeSpanOrInfiniteConverter : TimeSpanConverter
+    internal class TimeSpanOrInfiniteConverter : TimeSpanConverter
     {
         public override object ConvertTo(ITypeDescriptorContext ctx, CultureInfo ci, object value, Type type)
         {

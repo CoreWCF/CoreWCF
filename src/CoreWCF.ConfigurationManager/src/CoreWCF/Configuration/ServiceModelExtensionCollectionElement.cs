@@ -19,7 +19,7 @@ namespace CoreWCF.Configuration
 
         internal ServiceModelExtensionCollectionElement(string extensionCollectionName)
         {
-            this._extensionCollectionName = extensionCollectionName;
+            _extensionCollectionName = extensionCollectionName;
         }
 
         public TServiceModelExtensionElement this[int index]
@@ -33,7 +33,7 @@ namespace CoreWCF.Configuration
             {
                 if (extensionType == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("extensionType");
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(extensionType));
                 }
 
                 if (!CollectionElementBaseType.IsAssignableFrom(extensionType))
@@ -92,7 +92,7 @@ namespace CoreWCF.Configuration
             }
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             element.ExtensionCollectionName = _extensionCollectionName;
@@ -133,7 +133,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             Type elementType = element.GetType();
@@ -175,7 +175,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
             return ContainsKey(element.GetType());
         }
@@ -184,7 +184,7 @@ namespace CoreWCF.Configuration
         {
             if (elementType == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementType");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elementType));
             }
             return (this[elementType] != null);
         }
@@ -193,7 +193,7 @@ namespace CoreWCF.Configuration
         {
             if (string.IsNullOrEmpty(elementName))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elementName");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elementName));
             }
             bool retval = false;
             foreach (TServiceModelExtensionElement element in this)
@@ -215,7 +215,7 @@ namespace CoreWCF.Configuration
         {
             if (elements == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("elements");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(elements));
             }
             if (start < 0 || start >= elements.Length)
             {
@@ -294,7 +294,7 @@ namespace CoreWCF.Configuration
             return retval;
         }
 
-        [SecuritySafeCritical]
+        
         private Type GetExtensionType(ContextInformation evaluationContext, string name)
         {
             ExtensionElementCollection collection = ExtensionsSection.LookupCollection(_extensionCollectionName, evaluationContext);
@@ -334,7 +334,7 @@ namespace CoreWCF.Configuration
             }
         }
 
-        [SecuritySafeCritical]
+        
         protected override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {
             DeserializeElementCore(reader);
@@ -426,7 +426,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
             bool retval = false;
             if (Contains(element))
@@ -509,6 +509,7 @@ namespace CoreWCF.Configuration
                     Properties.Add(property);
                 }
             }
+
             foreach (TServiceModelExtensionElement extension in Items)
             {
                 string configuredSectionName = extension.ConfigurationElementName;
@@ -519,6 +520,5 @@ namespace CoreWCF.Configuration
                 }
             }
         }
-
     }
 }

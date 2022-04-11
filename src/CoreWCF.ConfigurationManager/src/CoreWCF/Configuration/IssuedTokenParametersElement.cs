@@ -16,8 +16,8 @@ namespace CoreWCF.Configuration
 {
     internal sealed class IssuedTokenParametersElement : ServiceModelConfigurationElement
     {
-        Collection<IssuedTokenParametersElement> optionalIssuedTokenParameters = null;
-        
+        private Collection<IssuedTokenParametersElement> _optionalIssuedTokenParameters = null;
+
         [ConfigurationProperty(ConfigurationStrings.DefaultMessageSecurityVersion)]
         [TypeConverter(typeof(MessageSecurityVersionConverter))]
         public MessageSecurityVersion DefaultMessageSecurityVersion
@@ -58,7 +58,7 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.KeySize] = value; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.KeyType, DefaultValue = IssuedSecurityTokenParameters.DefaultKeyType)]
+        [ConfigurationProperty(ConfigurationStrings.KeyType, DefaultValue = SecurityBindingDefaults.DefaultKeyType)]
         public SecurityKeyType KeyType
         {
             get { return (SecurityKeyType)base[ConfigurationStrings.KeyType]; }
@@ -73,7 +73,7 @@ namespace CoreWCF.Configuration
                 // This should be protected at the callers site.  If assumption is invalid, then
                 // configuration system is in an indeterminate state.  Need to stop in a manner that
                 // user code can not capture.
-                if (this.IsReadOnly())
+                if (IsReadOnly())
                 {
                     Fx.Assert("IssuedTokenParametersElement.OptionalIssuedTokenParameters should only be called by Admin APIs");
                     DiagnosticUtility.FailFast("IssuedTokenParametersElement.OptionalIssuedTokenParameters should only be called by Admin APIs");
@@ -81,11 +81,11 @@ namespace CoreWCF.Configuration
 
                 // No need to worry about a race condition here-- this method is not meant to be called by multi-threaded
                 // apps. It is only supposed to be called by svcutil and single threaded equivalents.
-                if (this.optionalIssuedTokenParameters == null)
+                if (_optionalIssuedTokenParameters == null)
                 {
-                    this.optionalIssuedTokenParameters = new Collection<IssuedTokenParametersElement>();
+                    _optionalIssuedTokenParameters = new Collection<IssuedTokenParametersElement>();
                 }
-                return this.optionalIssuedTokenParameters;
+                return _optionalIssuedTokenParameters;
             }
         }
 
@@ -118,49 +118,50 @@ namespace CoreWCF.Configuration
             if (parameters == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("parameters"));
 
-            if (this.AdditionalRequestParameters != null)
+            if (AdditionalRequestParameters != null)
             {
-                foreach (XmlElementElement e in this.AdditionalRequestParameters)
+                foreach (XmlElementElement e in AdditionalRequestParameters)
                 {
                     parameters.AdditionalRequestParameters.Add(e.XmlElement);
                 }
             }
 
-            if (this.ClaimTypeRequirements != null)
+            if (ClaimTypeRequirements != null)
             {
-                foreach (ClaimTypeElement c in this.ClaimTypeRequirements)
+                foreach (ClaimTypeElement c in ClaimTypeRequirements)
                 {
                     parameters.ClaimTypeRequirements.Add(new ClaimTypeRequirement(c.ClaimType, c.IsOptional));
                 }
             }
 
-            parameters.KeySize = this.KeySize;
-            //TODO: This is an internal property
-            //parameters.KeyType = this.KeyType;
-            parameters.DefaultMessageSecurityVersion = this.DefaultMessageSecurityVersion;
-            parameters.UseStrTransform = this.UseStrTransform;
+            parameters.KeySize = KeySize;
+            parameters.KeyType = this.KeyType;
+            parameters.DefaultMessageSecurityVersion = DefaultMessageSecurityVersion;
+            parameters.UseStrTransform = UseStrTransform;
 
-            if (!string.IsNullOrEmpty(this.TokenType))
+            if (!string.IsNullOrEmpty(TokenType))
             {
-                parameters.TokenType = this.TokenType;
+                parameters.TokenType = TokenType;
             }
-            if (PropertyValueOrigin.Default != this.ElementInformation.Properties[ConfigurationStrings.Issuer].ValueOrigin)
+            if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.Issuer].ValueOrigin)
             {
+                throw new PlatformNotSupportedException(nameof(Issuer));
                 //TODO: Implement IssuedTokenParameters
                 //this.Issuer.Validate();
 
                 //TODO: Implement IssuedTokenParameters
                 //parameters.IssuerAddress = ConfigLoader.LoadEndpointAddress(this.Issuer);
 
-                if (!string.IsNullOrEmpty(this.Issuer.Binding))
+                if (!string.IsNullOrEmpty(Issuer.Binding))
                 {
                     //TODO: Implement IssuedTokenParameters
                     //parameters.IssuerBinding = ConfigLoader.LookupBinding(this.Issuer.Binding, this.Issuer.BindingConfiguration, this.EvaluationContext);
                 }
             }
 
-            if (PropertyValueOrigin.Default != this.ElementInformation.Properties[ConfigurationStrings.IssuerMetadata].ValueOrigin)
+            if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.IssuerMetadata].ValueOrigin)
             {
+                throw new PlatformNotSupportedException(nameof(IssuerMetadata));
                 //TODO: Implement IssuedTokenParameters
                 //parameters.IssuerMetadataAddress = ConfigLoader.LoadEndpointAddress(this.IssuerMetadata);
             }
@@ -168,16 +169,20 @@ namespace CoreWCF.Configuration
 
         internal void Copy(IssuedTokenParametersElement source)
         {
-            if (this.IsReadOnly())
+            if (IsReadOnly())
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigReadOnly)));
             }
             if (null == source)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
 
-            //TODO: Implement IssuedTokenParameters
+            //TODO: Implement IssuedTokenParameters  remove PlatformNotSupportedException and implement Additional Parameters
+            if (source.AdditionalRequestParameters.Count > 0)
+            {
+                throw new PlatformNotSupportedException(nameof(AdditionalRequestParameters));
+            }
             //foreach (XmlElementElement xmlElement in source.AdditionalRequestParameters)
             //{
             //    XmlElementElement newElement = new XmlElementElement();
@@ -185,25 +190,30 @@ namespace CoreWCF.Configuration
             //    this.AdditionalRequestParameters.Add(newElement);
             //}
 
-            //TODO: Implement IssuedTokenParameters
+            //TODO: Implement IssuedTokenParameters remove PlatformNotSupportedException and implement ClaimTypeElement
+            if (source.ClaimTypeRequirements.Count > 0)
+            {
+                throw new PlatformNotSupportedException(nameof(ClaimTypeRequirements));
+
+            }
             //foreach (ClaimTypeElement c in source.ClaimTypeRequirements)
             //{
             //    this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
             //}
 
-            this.KeySize = source.KeySize;
-            this.KeyType = source.KeyType;
-            this.TokenType = source.TokenType;
-            this.DefaultMessageSecurityVersion = source.DefaultMessageSecurityVersion;
-            this.UseStrTransform = source.UseStrTransform;
+            KeySize = source.KeySize;
+            KeyType = source.KeyType;
+            TokenType = source.TokenType;
+            DefaultMessageSecurityVersion = source.DefaultMessageSecurityVersion;
+            UseStrTransform = source.UseStrTransform;
 
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.Issuer].ValueOrigin)
             {
-                this.Issuer.Copy(source.Issuer);
+                Issuer.Copy(source.Issuer);
             }
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.IssuerMetadata].ValueOrigin)
             {
-                this.IssuerMetadata.Copy(source.IssuerMetadata);
+                IssuerMetadata.Copy(source.IssuerMetadata);
             }
         }
 
@@ -212,12 +222,11 @@ namespace CoreWCF.Configuration
             IssuedSecurityTokenParameters result = new IssuedSecurityTokenParameters();
             if (!createTemplateOnly)
             {
-                this.ApplyConfiguration(result);
+                ApplyConfiguration(result);
             }
             else
             {
-                //TODO: This is an internal property
-                //result.KeyType = templateKeyType;
+                result.KeyType = templateKeyType;
             }
             return result;
         }
@@ -225,7 +234,7 @@ namespace CoreWCF.Configuration
         internal void InitializeFrom(IssuedSecurityTokenParameters source, bool initializeNestedBindings)
         {
             if (null == source)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
 
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.KeyType, source.KeyType);
             if (source.KeySize > 0)
@@ -236,18 +245,20 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.UseStrTransform, source.UseStrTransform);
 
             if (source.IssuerAddress != null)
-                this.Issuer.InitializeFrom(source.IssuerAddress);
+                Issuer.InitializeFrom(source.IssuerAddress);
 
             if (source.DefaultMessageSecurityVersion != null)
                 SetPropertyValueIfNotDefaultValue(ConfigurationStrings.DefaultMessageSecurityVersion, source.DefaultMessageSecurityVersion);
 
             if (source.IssuerBinding != null && initializeNestedBindings)
             {
-                this.Issuer.BindingConfiguration = this.Issuer.Address.ToString();
+                Issuer.BindingConfiguration = Issuer.Address.ToString();
+
 
                 //TODO: Implement IssuedTokenParameters
+                throw new PlatformNotSupportedException(nameof(IssuedTokenParametersEndpointAddressElement));
                 //string bindingSectionName;
-                
+
                 //BindingsSection.TryAdd(this.Issuer.BindingConfiguration,
                 //    source.IssuerBinding,
                 //    out bindingSectionName);
@@ -256,18 +267,20 @@ namespace CoreWCF.Configuration
 
             if (source.IssuerMetadataAddress != null)
             {
-                this.IssuerMetadata.InitializeFrom(source.IssuerMetadataAddress);
+                IssuerMetadata.InitializeFrom(source.IssuerMetadataAddress);
             }
 
             foreach (XmlElement element in source.AdditionalRequestParameters)
             {
                 //TODO: Implement IssuedTokenParameters
+                throw new PlatformNotSupportedException(nameof(AdditionalRequestParameters));
                 //this.AdditionalRequestParameters.Add(new XmlElementElement(element));
             }
 
             foreach (ClaimTypeRequirement c in source.ClaimTypeRequirements)
             {
                 //TODO: Implement IssuedTokenParameters
+                throw new PlatformNotSupportedException(nameof(ClaimTypeRequirements));
                 //this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
             }
 
@@ -292,7 +305,7 @@ namespace CoreWCF.Configuration
         protected override bool SerializeToXmlElement(XmlWriter writer, string elementName)
         {
             bool writeMe = base.SerializeToXmlElement(writer, elementName);
-            bool writeComment = this.OptionalIssuedTokenParameters.Count > 0;
+            bool writeComment = OptionalIssuedTokenParameters.Count > 0;
             if (writeComment && writer != null)
             {
                 MemoryStream memoryStream = new MemoryStream();
@@ -300,7 +313,7 @@ namespace CoreWCF.Configuration
                 {
                     commentWriter.Formatting = Formatting.Indented;
                     commentWriter.WriteStartElement(ConfigurationStrings.AlternativeIssuedTokenParameters);
-                    foreach (IssuedTokenParametersElement element in this.OptionalIssuedTokenParameters)
+                    foreach (IssuedTokenParametersElement element in OptionalIssuedTokenParameters)
                     {
                         element.SerializeToXmlElement(commentWriter, ConfigurationStrings.IssuedTokenParameters);
                     }
@@ -319,7 +332,7 @@ namespace CoreWCF.Configuration
             if (sourceElement is IssuedTokenParametersElement)
             {
                 IssuedTokenParametersElement source = (IssuedTokenParametersElement)sourceElement;
-                this.optionalIssuedTokenParameters = source.optionalIssuedTokenParameters;
+                _optionalIssuedTokenParameters = source._optionalIssuedTokenParameters;
             }
 
             base.Unmerge(sourceElement, parentElement, saveMode);

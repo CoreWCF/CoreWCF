@@ -9,18 +9,18 @@ namespace CoreWCF.Configuration
     public abstract class NamedServiceModelExtensionCollectionElement<TServiceModelExtensionElement> : ServiceModelExtensionCollectionElement<TServiceModelExtensionElement>
         where TServiceModelExtensionElement : ServiceModelExtensionElement
     {
-        ConfigurationPropertyCollection _properties = null;
+        private ConfigurationPropertyCollection _properties = null;
 
         protected NamedServiceModelExtensionCollectionElement(string extensionCollectionName, string name)
             : base(extensionCollectionName)
         {
             if (!string.IsNullOrEmpty(name))
             {
-                this.Name = name;
+                Name = name;
             }
             else
             {
-                this.Name = string.Empty;
+                Name = string.Empty;
             }
         }
 
@@ -43,12 +43,12 @@ namespace CoreWCF.Configuration
         {
             get
             {
-                if (this._properties == null)
+                if (_properties == null)
                 {
-                    this._properties = base.Properties;
-                    this._properties.Add(new ConfigurationProperty(ConfigurationStrings.Name, typeof(string), null, null, new StringValidator(0, 2147483647, null), System.Configuration.ConfigurationPropertyOptions.IsKey));
+                    _properties = base.Properties;
+                    _properties.Add(new ConfigurationProperty(ConfigurationStrings.Name, typeof(string), null, null, new StringValidator(0, 2147483647, null), System.Configuration.ConfigurationPropertyOptions.IsKey));
                 }
-                return this._properties;
+                return _properties;
             }
         }
     }

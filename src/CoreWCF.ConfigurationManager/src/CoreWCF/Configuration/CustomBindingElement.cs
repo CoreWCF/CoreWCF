@@ -24,7 +24,7 @@ namespace CoreWCF.Configuration
             set
             {
                 base[ConfigurationStrings.CloseTimeout] = value;
-                this.SetIsModified();
+                SetIsModified();
             }
         }
 
@@ -36,7 +36,7 @@ namespace CoreWCF.Configuration
             set
             {
                 base[ConfigurationStrings.OpenTimeout] = value;
-                this.SetIsModified();
+                SetIsModified();
             }
         }
 
@@ -48,7 +48,7 @@ namespace CoreWCF.Configuration
             set
             {
                 base[ConfigurationStrings.ReceiveTimeout] = value;
-                this.SetIsModified();
+                SetIsModified();
             }
         }
 
@@ -60,7 +60,7 @@ namespace CoreWCF.Configuration
             set
             {
                 base[ConfigurationStrings.SendTimeout] = value;
-                this.SetIsModified();
+                SetIsModified();
             }
         }
 
@@ -68,23 +68,23 @@ namespace CoreWCF.Configuration
         {
             if (null == element)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             BindingElementExtensionElement existingElement = null;
-            if (!this.CanAddEncodingElement(element, ref existingElement))
+            if (!CanAddEncodingElement(element, ref existingElement))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigMessageEncodingAlreadyInBinding,
                     existingElement.ConfigurationElementName,
                     existingElement.GetType().AssemblyQualifiedName)));
             }
-            else if (!this.CanAddStreamUpgradeElement(element, ref existingElement))
+            else if (!CanAddStreamUpgradeElement(element, ref existingElement))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigStreamUpgradeElementAlreadyInBinding,
                     existingElement.ConfigurationElementName,
                     existingElement.GetType().AssemblyQualifiedName)));
             }
-            else if (!this.CanAddTransportElement(element, ref existingElement))
+            else if (!CanAddTransportElement(element, ref existingElement))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigTransportAlreadyInBinding,
                     existingElement.ConfigurationElementName,
@@ -100,7 +100,7 @@ namespace CoreWCF.Configuration
         {
             if (null == binding)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("binding");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(binding));
             }
             if (binding.GetType() != typeof(CustomBinding))
             {
@@ -109,30 +109,30 @@ namespace CoreWCF.Configuration
                     binding.GetType().AssemblyQualifiedName));
             }
 
-            binding.Name = this.Name;
-            binding.CloseTimeout = this.CloseTimeout;
-            binding.OpenTimeout = this.OpenTimeout;
-            binding.ReceiveTimeout = this.ReceiveTimeout;
-            binding.SendTimeout = this.SendTimeout;
+            binding.Name = Name;
+            binding.CloseTimeout = CloseTimeout;
+            binding.OpenTimeout = OpenTimeout;
+            binding.ReceiveTimeout = ReceiveTimeout;
+            binding.SendTimeout = SendTimeout;
 
-            this.OnApplyConfiguration(binding);
+            OnApplyConfiguration(binding);
         }
 
         public override bool CanAdd(BindingElementExtensionElement element)
         {
             if (null == element)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             BindingElementExtensionElement existingElement = null;
-            return !this.ContainsKey(element.GetType()) && this.CanAddEncodingElement(element, ref existingElement) &&
-                this.CanAddStreamUpgradeElement(element, ref existingElement) && this.CanAddTransportElement(element, ref existingElement);
+            return !ContainsKey(element.GetType()) && CanAddEncodingElement(element, ref existingElement) &&
+                CanAddStreamUpgradeElement(element, ref existingElement) && CanAddTransportElement(element, ref existingElement);
         }
 
         private bool CanAddEncodingElement(BindingElementExtensionElement element, ref BindingElementExtensionElement existingElement)
         {
-            return this.CanAddExclusiveElement(typeof(MessageEncodingBindingElement), element.BindingElementType, ref existingElement);
+            return CanAddExclusiveElement(typeof(MessageEncodingBindingElement), element.BindingElementType, ref existingElement);
         }
 
         private bool CanAddExclusiveElement(Type exclusiveType, Type bindingElementType, ref BindingElementExtensionElement existingElement)
@@ -155,12 +155,12 @@ namespace CoreWCF.Configuration
 
         private bool CanAddStreamUpgradeElement(BindingElementExtensionElement element, ref BindingElementExtensionElement existingElement)
         {
-            return this.CanAddExclusiveElement(typeof(StreamUpgradeBindingElement), element.BindingElementType, ref existingElement);
+            return CanAddExclusiveElement(typeof(StreamUpgradeBindingElement), element.BindingElementType, ref existingElement);
         }
 
         private bool CanAddTransportElement(BindingElementExtensionElement element, ref BindingElementExtensionElement existingElement)
         {
-            return this.CanAddExclusiveElement(typeof(TransportBindingElement), element.BindingElementType, ref existingElement);
+            return CanAddExclusiveElement(typeof(TransportBindingElement), element.BindingElementType, ref existingElement);
         }
 
         private void OnApplyConfiguration(Binding binding)
@@ -175,7 +175,7 @@ namespace CoreWCF.Configuration
         public Binding CreateBinding()
         {
             CustomBinding customBinding = new CustomBinding();
-            this.ApplyConfiguration(customBinding);
+            ApplyConfiguration(customBinding);
             return customBinding;
         }
         

@@ -35,8 +35,8 @@ namespace CoreWCF.Configuration
             base.ApplyConfiguration(bindingElement);
             SslStreamSecurityBindingElement sslBindingElement =
                 (SslStreamSecurityBindingElement)bindingElement;
-            sslBindingElement.RequireClientCertificate = this.RequireClientCertificate;
-            sslBindingElement.SslProtocols = this.SslProtocols;
+            sslBindingElement.RequireClientCertificate = RequireClientCertificate;
+            sslBindingElement.SslProtocols = SslProtocols;
         }
 
         protected internal override BindingElement CreateBindingElement()
@@ -44,7 +44,7 @@ namespace CoreWCF.Configuration
             SslStreamSecurityBindingElement sslBindingElement
                 = new SslStreamSecurityBindingElement();
 
-            this.ApplyConfiguration(sslBindingElement);
+            ApplyConfiguration(sslBindingElement);
             return sslBindingElement;
         }
 
@@ -58,8 +58,8 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             SslStreamSecurityElement source = (SslStreamSecurityElement)from;
-            this.RequireClientCertificate = source.RequireClientCertificate;
-            this.SslProtocols = source.SslProtocols;
+            RequireClientCertificate = source.RequireClientCertificate;
+            SslProtocols = source.SslProtocols;
         }
 
         protected internal override void InitializeFrom(BindingElement bindingElement)

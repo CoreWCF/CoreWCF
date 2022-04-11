@@ -13,7 +13,7 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             HttpsTransportBindingElement binding = (HttpsTransportBindingElement)bindingElement;
-            binding.RequireClientCertificate = this.RequireClientCertificate;
+            binding.RequireClientCertificate = RequireClientCertificate;
         }
 
         public override Type BindingElementType
@@ -26,7 +26,7 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             HttpsTransportElement source = (HttpsTransportElement)from;
-            this.RequireClientCertificate = source.RequireClientCertificate;
+            RequireClientCertificate = source.RequireClientCertificate;
         }
 
         protected override TransportBindingElement CreateDefaultBindingElement()
@@ -47,6 +47,5 @@ namespace CoreWCF.Configuration
             get { return (bool)base[ConfigurationStrings.RequireClientCertificate]; }
             set { base[ConfigurationStrings.RequireClientCertificate] = value; }
         }
-
     }
 }

@@ -9,14 +9,14 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Configuration
 {
-    public abstract class WSHttpBindingBaseElement : StandardBindingElement
+    public abstract class WsHttpBindingBaseElement : StandardBindingElement
     {
-        protected WSHttpBindingBaseElement(string name)
+        protected WsHttpBindingBaseElement(string name)
             : base(name)
         {
         }
 
-        protected WSHttpBindingBaseElement()
+        protected WsHttpBindingBaseElement()
             : this(null)
         {
         }

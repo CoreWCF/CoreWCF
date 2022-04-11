@@ -13,15 +13,15 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             TcpTransportBindingElement binding = (TcpTransportBindingElement)bindingElement;
-            PropertyInformationCollection propertyInfo = this.ElementInformation.Properties;
-            if (this.ListenBacklog != TcpTransportDefaults.ListenBacklogConst)
+            PropertyInformationCollection propertyInfo = ElementInformation.Properties;
+            if (ListenBacklog != TcpTransportDefaults.ListenBacklogConst)
             {
-                binding.ListenBacklog = this.ListenBacklog;
+                binding.ListenBacklog = ListenBacklog;
             }
             //binding.PortSharingEnabled = this.PortSharingEnabled;
             //binding.TeredoEnabled = this.TeredoEnabled;
-            this.ConnectionPoolSettings.ApplyConfiguration(binding.ConnectionPoolSettings);
-            binding.ExtendedProtectionPolicy = ConfigurationChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
+            ConnectionPoolSettings.ApplyConfiguration(binding.ConnectionPoolSettings);
+            binding.ExtendedProtectionPolicy = ConfigurationChannelBindingUtility.BuildPolicy(ExtendedProtectionPolicy);
         }
 
         public override Type BindingElementType
@@ -34,11 +34,11 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             TcpTransportElement source = (TcpTransportElement)from;
-            this.ListenBacklog = source.ListenBacklog;
+            ListenBacklog = source.ListenBacklog;
             //this.PortSharingEnabled = source.PortSharingEnabled;
             //this.TeredoEnabled = source.TeredoEnabled;
-            this.ConnectionPoolSettings.CopyFrom(source.ConnectionPoolSettings);
-            ConfigurationChannelBindingUtility.CopyFrom(source.ExtendedProtectionPolicy, this.ExtendedProtectionPolicy);
+            ConnectionPoolSettings.CopyFrom(source.ConnectionPoolSettings);
+            ConfigurationChannelBindingUtility.CopyFrom(source.ExtendedProtectionPolicy, ExtendedProtectionPolicy);
         }
 
         protected override TransportBindingElement CreateDefaultBindingElement()
@@ -51,13 +51,13 @@ namespace CoreWCF.Configuration
             base.InitializeFrom(bindingElement);
             TcpTransportBindingElement binding = (TcpTransportBindingElement)bindingElement;
 
-            ConfigurationProperty listenBacklogProperty = this.Properties[ConfigurationStrings.ListenBacklog];
+            ConfigurationProperty listenBacklogProperty = Properties[ConfigurationStrings.ListenBacklog];
             SetPropertyValue(listenBacklogProperty, binding.ListenBacklog, false /*ignore locks*/);
             
             //SetPropertyValueIfNotDefaultValue(ConfigurationStrings.PortSharingEnabled, binding.PortSharingEnabled);
             //SetPropertyValueIfNotDefaultValue(ConfigurationStrings.TeredoEnabled, binding.TeredoEnabled);
-            this.ConnectionPoolSettings.InitializeFrom(binding.ConnectionPoolSettings);
-            ConfigurationChannelBindingUtility.InitializeFrom(binding.ExtendedProtectionPolicy, this.ExtendedProtectionPolicy);
+            ConnectionPoolSettings.InitializeFrom(binding.ConnectionPoolSettings);
+            ConfigurationChannelBindingUtility.InitializeFrom(binding.ExtendedProtectionPolicy, ExtendedProtectionPolicy);
         }
 
         [ConfigurationProperty(ConfigurationStrings.ListenBacklog, DefaultValue = TcpTransportDefaults.ListenBacklogConst)]

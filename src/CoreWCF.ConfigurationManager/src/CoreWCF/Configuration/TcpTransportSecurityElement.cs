@@ -48,7 +48,7 @@ namespace CoreWCF.Configuration
             security.ClientCredentialType = ClientCredentialType;
             //security.ProtectionLevel = this.ProtectionLevel;
             //security.ExtendedProtectionPolicy = ChannelBindingUtility.BuildPolicy(this.ExtendedProtectionPolicy);
-            security.SslProtocols = this.SslProtocols;
+            security.SslProtocols = SslProtocols;
         }
     }
 }

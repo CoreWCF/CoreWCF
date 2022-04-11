@@ -75,12 +75,12 @@ namespace CoreWCF.Configuration
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(settings));
             }
 
-            settings.TransportUsage = this.TransportUsage;
-            settings.CreateNotificationOnConnection = this.CreateNotificationOnConnection;
-            settings.KeepAliveInterval = this.KeepAliveInterval;
-            settings.SubProtocol = string.IsNullOrEmpty(this.SubProtocol) ? null : this.SubProtocol;
-            settings.DisablePayloadMasking = this.DisablePayloadMasking;
-            settings.MaxPendingConnections = this.MaxPendingConnections;
+            settings.TransportUsage = TransportUsage;
+            settings.CreateNotificationOnConnection = CreateNotificationOnConnection;
+            settings.KeepAliveInterval = KeepAliveInterval;
+            settings.SubProtocol = string.IsNullOrEmpty(SubProtocol) ? null : SubProtocol;
+            settings.DisablePayloadMasking = DisablePayloadMasking;
+            settings.MaxPendingConnections = MaxPendingConnections;
         }
     }
 }

@@ -6,9 +6,9 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    internal class ExtensionElement : ConfigurationElement
+    public class ExtensionElement : ConfigurationElement
     {
-        string typeName;
+        private string _typeName;
 
         public ExtensionElement()
         {
@@ -19,10 +19,10 @@ namespace CoreWCF.Configuration
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("name");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
             }
 
-            this.Name = name;
+            Name = name;
         }
 
         public ExtensionElement(string name, string type)
@@ -30,10 +30,10 @@ namespace CoreWCF.Configuration
         {
             if (string.IsNullOrEmpty(type))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("type");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(type));
             }
 
-            this.Type = type;
+            Type = type;
         }
 
         [ConfigurationProperty(ConfigurationStrings.Name, Options = ConfigurationPropertyOptions.IsRequired | ConfigurationPropertyOptions.IsKey)]
@@ -69,12 +69,12 @@ namespace CoreWCF.Configuration
         {
             get
             {
-                if (string.IsNullOrEmpty(this.typeName))
+                if (string.IsNullOrEmpty(_typeName))
                 {
-                    this.typeName = GetTypeName(this.Type);
+                    _typeName = GetTypeName(Type);
                 }
 
-                return this.typeName;
+                return _typeName;
             }
         }
 

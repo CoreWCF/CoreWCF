@@ -55,11 +55,11 @@ namespace CoreWCF.Configuration
         {
             base.ApplyConfiguration(bindingElement);
             BinaryMessageEncodingBindingElement binding = (BinaryMessageEncodingBindingElement)bindingElement;
-            binding.MaxSessionSize = this.MaxSessionSize;
-            binding.MaxReadPoolSize = this.MaxReadPoolSize;
-            binding.MaxWritePoolSize = this.MaxWritePoolSize;
-            this.ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
-            binding.CompressionFormat = this.CompressionFormat;
+            binding.MaxSessionSize = MaxSessionSize;
+            binding.MaxReadPoolSize = MaxReadPoolSize;
+            binding.MaxWritePoolSize = MaxWritePoolSize;
+            ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
+            binding.CompressionFormat = CompressionFormat;
         }
 
         public override void CopyFrom(ServiceModelExtensionElement from)
@@ -67,10 +67,10 @@ namespace CoreWCF.Configuration
             base.CopyFrom(from);
 
             BinaryMessageEncodingElement source = (BinaryMessageEncodingElement)from;
-            this.MaxSessionSize = source.MaxSessionSize;
-            this.MaxReadPoolSize = source.MaxReadPoolSize;
-            this.MaxWritePoolSize = source.MaxWritePoolSize;
-            this.CompressionFormat = source.CompressionFormat;
+            MaxSessionSize = source.MaxSessionSize;
+            MaxReadPoolSize = source.MaxReadPoolSize;
+            MaxWritePoolSize = source.MaxWritePoolSize;
+            CompressionFormat = source.CompressionFormat;
         }
 
         protected internal override void InitializeFrom(BindingElement bindingElement)
@@ -80,14 +80,14 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxSessionSize, binding.MaxSessionSize);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxReadPoolSize, binding.MaxReadPoolSize);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxWritePoolSize, binding.MaxWritePoolSize);
-            this.ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
+            ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.CompressionFormat, binding.CompressionFormat);
         }
 
         protected internal override BindingElement CreateBindingElement()
         {
             BinaryMessageEncodingBindingElement binding = new BinaryMessageEncodingBindingElement();
-            this.ApplyConfiguration(binding);
+            ApplyConfiguration(binding);
             return binding;
         }
     }

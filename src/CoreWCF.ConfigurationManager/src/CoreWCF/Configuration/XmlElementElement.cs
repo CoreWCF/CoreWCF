@@ -17,27 +17,27 @@ namespace CoreWCF.Configuration
 
         public XmlElementElement(XmlElement element) : this()
         {
-            this.XmlElement = element;
+            XmlElement = element;
         }
 
         public void Copy(XmlElementElement source)
         {
-            if (this.IsReadOnly())
+            if (IsReadOnly())
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigReadOnly)));
             }
             if (null == source)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
 
             if (null != source.XmlElement)
             {
-                this.XmlElement = (XmlElement)source.XmlElement.Clone();
+                XmlElement = (XmlElement)source.XmlElement.Clone();
             }
         }
 
-       [SecuritySafeCritical]
+       
         protected override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {
             DeserializeElementCore(reader);
@@ -46,17 +46,17 @@ namespace CoreWCF.Configuration
         private void DeserializeElementCore(XmlReader reader)
         {
             XmlDocument doc = new XmlDocument();
-            this.XmlElement = (XmlElement)doc.ReadNode(reader);
+            XmlElement = (XmlElement)doc.ReadNode(reader);
         }
 
         internal void ResetInternal(XmlElementElement element)
         {
-            this.Reset(element);
+            Reset(element);
         }
 
         protected override bool SerializeToXmlElement(XmlWriter writer, string elementName)
         {
-            bool dataToWrite = this.XmlElement != null;
+            bool dataToWrite = XmlElement != null;
             if (dataToWrite && writer != null)
             {
                 if (!string.Equals(elementName, ConfigurationStrings.XmlElement, StringComparison.Ordinal))
@@ -64,7 +64,7 @@ namespace CoreWCF.Configuration
                     writer.WriteStartElement(elementName);
                 }
 
-                using (XmlNodeReader reader = new XmlNodeReader(this.XmlElement))
+                using (XmlNodeReader reader = new XmlNodeReader(XmlElement))
                 {
                     writer.WriteNode(reader, false);
                 }
@@ -79,17 +79,17 @@ namespace CoreWCF.Configuration
 
         protected override void PostDeserialize()
         {
-            this.Validate();
+            Validate();
             base.PostDeserialize();
         }
 
         private void Validate()
         {
-            if (this.XmlElement == null)
+            if (XmlElement == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ConfigurationErrorsException(SR.Format(SR.ConfigXmlElementMustBeSet),
-                    this.ElementInformation.Source,
-                    this.ElementInformation.LineNumber));
+                    ElementInformation.Source,
+                    ElementInformation.LineNumber));
             }
         }
 

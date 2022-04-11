@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Configuration;
-using System.Security;
 using System.Xml;
 using CoreWCF.Channels;
 
@@ -18,13 +17,13 @@ namespace CoreWCF.Configuration
         {
             if (source == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("source");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
 
             PropertyInformationCollection properties = source.ElementInformation.Properties;
             if (properties[ConfigurationStrings.Headers].ValueOrigin != PropertyValueOrigin.Default)
             {
-                this.Headers = source.Headers;
+                Headers = source.Headers;
             }
         }
 
@@ -50,24 +49,30 @@ namespace CoreWCF.Configuration
             }
         }
 
-        [SecuritySafeCritical]
+
         protected override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {
-            DeserializeElementCore(reader);
+            DeserializeElementCore(XmlDictionaryReader.CreateDictionaryReader(reader));
         }
 
-        private void DeserializeElementCore(XmlReader reader)
+        private void DeserializeElementCore(XmlDictionaryReader reader)
         {
-            //TODO Find proper way to handle this this.Headers = AddressHeaderCollection.ReadServiceParameters(XmlDictionaryReader.CreateDictionaryReader(reader));
+            Headers = new AddressHeaderCollection(new[] { new XmlElementBackedAddressHeader(reader) });
         }
 
-       protected override bool SerializeToXmlElement(XmlWriter writer, string elementName)
+        protected override bool SerializeToXmlElement(XmlWriter writer, string elementName)
         {
-            bool dataToWrite = this.Headers.Count != 0;
+            bool dataToWrite = Headers.Count != 0;
             if (dataToWrite && writer != null)
             {
                 writer.WriteStartElement(elementName);
-                //TODO Find proper way to handle this this.Headers.WriteContentsTo(XmlDictionaryWriter.CreateDictionaryWriter(writer));
+
+                XmlDictionaryWriter dictionaryWriter = XmlDictionaryWriter.CreateDictionaryWriter(writer);
+                foreach (AddressHeader header in Headers)
+                {
+                    header.WriteAddressHeader(dictionaryWriter);
+                }
+
                 writer.WriteEndElement();
             }
             return dataToWrite;

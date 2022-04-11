@@ -5,7 +5,7 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    public class WSHttpTransportSecurityElement : ServiceModelConfigurationElement
+    public class WsHttpTransportSecurityElement : ServiceModelConfigurationElement
     {
         [ConfigurationProperty(ConfigurationStrings.ClientCredentialType, DefaultValue = HttpClientCredentialType.Windows)]
         public HttpClientCredentialType ClientCredentialType

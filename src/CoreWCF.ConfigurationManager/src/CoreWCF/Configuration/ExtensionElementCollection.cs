@@ -7,37 +7,36 @@ using System.Configuration;
 namespace CoreWCF.Configuration
 {
     [ConfigurationCollection(typeof(ExtensionElement), CollectionType = ConfigurationElementCollectionType.BasicMap)]
-    internal class ExtensionElementCollection : ServiceModelConfigurationElementCollection<ExtensionElement>
+    public class ExtensionElementCollection : ServiceModelConfigurationElementCollection<ExtensionElement>
     {
         public ExtensionElementCollection()
             : base(ConfigurationElementCollectionType.BasicMap, ConfigurationStrings.Add)
         {
         }
 
-
         internal ExtensionElement GetElementExtension(object key)
         {
-            return (ExtensionElement)this.BaseGet(key);
+            return (ExtensionElement)BaseGet(key);
         }
         internal void Add(ConfigurationElement element)
         {
-            this.BaseAdd(element);
+            BaseAdd(element);
         }
 
         protected override void BaseAdd(ConfigurationElement element)
         {
-            if (!this.InheritedElementExists((ExtensionElement)element))
+            if (!InheritedElementExists((ExtensionElement)element))
             {
-                this.EnforceUniqueElement((ExtensionElement)element);
+                EnforceUniqueElement((ExtensionElement)element);
                 base.BaseAdd(element);
             }
         }
 
         protected override void BaseAdd(int index, ConfigurationElement element)
         {
-            if (!this.InheritedElementExists((ExtensionElement)element))
+            if (!InheritedElementExists((ExtensionElement)element))
             {
-                this.EnforceUniqueElement((ExtensionElement)element);
+                EnforceUniqueElement((ExtensionElement)element);
                 base.BaseAdd(index, element);
             }
         }
@@ -46,7 +45,7 @@ namespace CoreWCF.Configuration
         {
             if (null == element)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             ExtensionElement configElementKey = (ExtensionElement)element;
@@ -55,7 +54,7 @@ namespace CoreWCF.Configuration
 
         internal bool ContainsKey(object key)
         {
-            return this.BaseGet(key) != null;
+            return BaseGet(key) != null;
         }
 
         private bool InheritedElementExists(ExtensionElement element)
@@ -64,10 +63,10 @@ namespace CoreWCF.Configuration
             // The idea is to allow duplicate identical extension definition in different level (i.e. app level and machine level)
             // We however do not allow them on the same level.
             // Identical extension is defined by same name and type.
-            object newElementKey = this.GetElementKey(element);
-            if (this.ContainsKey(newElementKey))
+            object newElementKey = GetElementKey(element);
+            if (ContainsKey(newElementKey))
             {
-                ExtensionElement oldElement = (ExtensionElement)this.BaseGet(newElementKey);
+                ExtensionElement oldElement = (ExtensionElement)BaseGet(newElementKey);
                 if (oldElement != null)
                 {
                     // Is oldElement present in the different level of original config

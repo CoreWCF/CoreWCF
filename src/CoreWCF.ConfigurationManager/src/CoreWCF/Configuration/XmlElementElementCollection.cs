@@ -16,15 +16,15 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             return ((XmlElementElement)element).XmlElement.OuterXml;
         }
 
         protected override void Unmerge(ConfigurationElement sourceElement,
-                                                 ConfigurationElement parentElement,
-                                                 ConfigurationSaveMode saveMode)
+                                        ConfigurationElement parentElement,
+                                        ConfigurationSaveMode saveMode)
         {
             if (sourceElement != null)
             {
@@ -34,11 +34,11 @@ namespace CoreWCF.Configuration
                 for (int i = 0; i < source.Count; ++i)
                 {
                     XmlElementElement element = (XmlElementElement)source.BaseGet(i);
-                    if (parent?.BaseGet(this.GetElementKey(element)) == null)
+                    if (parent?.BaseGet(GetElementKey(element)) == null)
                     {
                         XmlElementElement xmlElement = new XmlElementElement();
                         xmlElement.ResetInternal(element);
-                        this.BaseAdd(xmlElement);
+                        BaseAdd(xmlElement);
                     }
                 }
             }
@@ -47,7 +47,7 @@ namespace CoreWCF.Configuration
         protected override bool OnDeserializeUnrecognizedElement(string elementName, XmlReader reader)
         {
             XmlDocument doc = new XmlDocument();
-            this.BaseAdd(new XmlElementElement((XmlElement)doc.ReadNode(reader)));
+            BaseAdd(new XmlElementElement((XmlElement)doc.ReadNode(reader)));
             return true;
         }
     }
