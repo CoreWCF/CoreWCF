@@ -1308,6 +1308,74 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("description", description);
         }
 
+        private enum SimpleEnum
+        {
+            One,
+            Two
+        }
+
+        [DataContract(Name = "EnumPropertyClass")]
+        private class EnumPropertyClass
+        {
+            [DataMember(Name = "Property")]
+            [OpenApiProperty(Description = "description", IsRequired = true)]
+            public SimpleEnum Property { get; set; }
+        }
+
+        private interface IEnumPropertyAdded
+        {
+            [WebInvoke(Method = "POST", UriTemplate = "/path")]
+            void Operation([OpenApiParameter(ContentTypes = new[] { "application/json" })] EnumPropertyClass body);
+        }
+
+        [Fact]
+        public void EnumCollectionPropertyAdded()
+        {
+            JsonElement json = GetJson(new OpenApiOptions(), new List<Type> { typeof(IEnumPropertyAdded) });
+
+            JsonElement schema = json
+                .GetProperty("components")
+                .GetProperty("schemas")
+                .GetProperty("EnumPropertyClass");
+
+            string schemaType = schema
+                .GetProperty("type")
+                .GetString();
+
+            List<JsonElement> required = schema
+                .GetProperty("required")
+                .EnumerateArray()
+                .ToList();
+
+            string type = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("type")
+                .GetString();
+
+            List<string> values = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("enum")
+                .EnumerateArray()
+                .Select(value => value.GetString())
+                .ToList();
+
+            string description = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("description")
+                .GetString();
+
+            Assert.Equal("object", schemaType);
+            JsonElement property = Assert.Single(required);
+            Assert.Equal("Property", property.GetString());
+            Assert.Equal("string", type);
+            Assert.Equal("One", values[0]);
+            Assert.Equal("Two", values[1]);
+            Assert.Equal("description", description);
+        }
+
         private static JsonElement GetJson(OpenApiOptions options, IEnumerable<OpenApiContractInfo> contracts)
         {
             OpenApiDocument document = OpenApiSchemaBuilder.BuildOpenApiSpecificationDocument(options, contracts);
