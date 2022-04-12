@@ -231,6 +231,10 @@ namespace CoreWCF.Configuration
             {
                 KeyedByTypeCollection<IEndpointBehavior> behaviors = (KeyedByTypeCollection<IEndpointBehavior>)serviceEndpoint.EndpointBehaviors;
                 WebHttpBehavior webHttpBehavior = behaviors.Find<WebHttpBehavior>();
+                if (webHttpBehavior is null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServiceModelWebServiceNotRegistered)));
+                }
                 configureWebBehavior?.Invoke(webHttpBehavior);
 
                 if (webHttpBehavior.HelpEnabled)
