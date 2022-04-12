@@ -375,6 +375,9 @@
   <data name="SerializingRequestNotSupportedByFormatter" xml:space="preserve">
     <value>The formatter '{0}' does not support serializing requests.</value>
   </data>
+  <data name="ServiceModelWebServiceNotRegistered" xml:space="preserve">
+    <value>Service Model Web Service not registered, call IServiceCollection.AddServiceModelWebServices() in Startup.cs.</value>
+  </data>
   <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
     <value>IAsyncResult not provided or of wrong type.</value>
   </data>
