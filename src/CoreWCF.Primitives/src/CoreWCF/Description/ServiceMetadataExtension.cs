@@ -760,28 +760,27 @@ namespace CoreWCF.Description
 
             private string FindQuery(IQueryCollection queries)
             {
-                string query = null;
-                foreach (var q in queries)
+                if (queries.TryGetValue(WsdlQueryString, out var wsdlValues))
                 {
-                    if (string.Compare(q.Key, WsdlQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (string.Compare(q.Key, XsdQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (string.Compare(q.Key, SingleWsdlQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (_parent.HelpPageEnabled && (string.Compare(q.Key, DiscoQueryString, StringComparison.OrdinalIgnoreCase) == 0))
-                    {
-                        query = q.Key;
-                    }
+                    return string.Join("=", WsdlQueryString, wsdlValues);
                 }
 
-                return query;
+                if (queries.TryGetValue(XsdQueryString, out var xsdValues))
+                {
+                    return string.Join("=", XsdQueryString, xsdValues);
+                }
+
+                if (queries.TryGetValue(SingleWsdlQueryString, out _))
+                {
+                    return SingleWsdlQueryString;
+                }
+
+                if (_parent.HelpPageEnabled && queries.ContainsKey(DiscoQueryString))
+                {
+                    return DiscoQueryString;
+                }
+
+                return null;
             }
 
             private async Task<bool> ProcessHttpRequest(HttpContext requestContext)
