@@ -37,8 +37,27 @@ namespace CoreWCF.Runtime.Serialization
         {
             var dataContract = DataContractEx.GetDataContract(type);
             EnsureTypeNotGeneric(dataContract.UnderlyingType);
-            var addTypeMethodInfo = s_dataContractSetType.GetMethod("Add", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { DataContractEx.DataContractType }, null);
-            addTypeMethodInfo.Invoke(Wrapped, new object[] { dataContract.WrappedDataContract });
+            if (!IsDataContractInSet(dataContract))
+            {
+                var addTypeMethodInfo = s_dataContractSetType.GetMethod("Add", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { DataContractEx.DataContractType }, null);
+                addTypeMethodInfo.Invoke(Wrapped, new object[] { dataContract.WrappedDataContract });
+            }
+        }
+
+        private bool IsDataContractInSet(DataContractEx dataContract)
+        {
+            if (dataContract.IsBuiltInDataContract)
+            {
+                return true;
+            }
+            var qualifiedName = dataContract.StableName;
+            if (Contracts.Contains(qualifiedName))
+            {
+                object existingDataContract = DataContractEx.Wrap(Contracts[qualifiedName]);
+                return existingDataContract.Equals(dataContract.WrappedDataContract);
+            }
+
+            return false;
         }
 
         internal static void EnsureTypeNotGeneric(Type type)
@@ -51,7 +70,7 @@ namespace CoreWCF.Runtime.Serialization
         {
             foreach(object contractObj in Contracts.Values)
             {
-                DataContractEx.FixupEnumDataContract(contractObj);
+                DataContractEx.Wrap(contractObj);
             }
         }
 

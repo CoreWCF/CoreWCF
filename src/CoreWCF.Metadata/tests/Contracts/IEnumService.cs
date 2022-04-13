@@ -9,8 +9,11 @@ namespace ServiceContract
     [ServiceContract(Namespace = Constants.NS, Name = "EnumService")]
     public interface IEnumService
     {
-        [OperationContract] void AcceptWrapped(TestWrappedEnum accept);
-        [OperationContract] TestWrappedEnum RequestWrapped();
+        [OperationContract]
+        void AcceptWrapped(TestWrappedEnum accept);
+
+        [OperationContract]
+        TestWrappedEnum RequestWrapped();
     }
 
     [DataContract]
