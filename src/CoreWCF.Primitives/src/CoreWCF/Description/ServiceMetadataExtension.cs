@@ -16,6 +16,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Description
@@ -760,14 +761,21 @@ namespace CoreWCF.Description
 
             private string FindQuery(IQueryCollection queries)
             {
-                if (queries.TryGetValue(WsdlQueryString, out var wsdlValues))
+                string CombineKeyAndValues(string key, string values)
                 {
-                    return string.Join("=", WsdlQueryString, wsdlValues);
+                    return string.IsNullOrWhiteSpace(values)
+                        ? key
+                        : $"{key}={values}";
                 }
 
-                if (queries.TryGetValue(XsdQueryString, out var xsdValues))
+                if (queries.TryGetValue(WsdlQueryString, out var values))
                 {
-                    return string.Join("=", XsdQueryString, xsdValues);
+                    return CombineKeyAndValues(WsdlQueryString, values);
+                }
+
+                if (queries.TryGetValue(XsdQueryString, out values))
+                {
+                    return CombineKeyAndValues(XsdQueryString, values);
                 }
 
                 if (queries.TryGetValue(SingleWsdlQueryString, out _))
