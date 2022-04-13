@@ -7,7 +7,7 @@ using System.Net.WebSockets;
 
 namespace CoreWCF.Channels
 {
-    public static class TransportDefaults
+    internal static class TransportDefaults
     {
         internal const long MaxReceivedMessageSize = 65536;
         internal const int MaxBufferSize = (int)MaxReceivedMessageSize;

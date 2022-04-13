@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
@@ -63,6 +64,8 @@ namespace CoreWCF.Description
         }
 
         public string Namespace { get; set; } = NamingHelper.DefaultNamespace;
+
+        internal IServiceProvider ServiceProvider { get; set; }
 
         // This was KeyedByTypeCollection, maybe change to Collection<IServiceBehavior>
         public KeyedByTypeCollection<IServiceBehavior> Behaviors { get; } = new KeyedByTypeCollection<IServiceBehavior>();
@@ -189,6 +192,20 @@ namespace CoreWCF.Description
         //    return constructor.Invoke(null, null);
         //}
 
+        internal ServiceCredentials EnsureCredentials()
+        {
+           // 
+            ServiceCredentials c = Behaviors.Find<ServiceCredentials>();
+
+            if (c == null)
+            {
+                c = ServiceProvider?.GetRequiredService<ServiceCredentials>() ?? new ServiceCredentials();
+                Behaviors.Add(c);
+            }
+
+            return c;
+        }
+
         private static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
         {
             ServiceBehaviorAttribute attr = description.Behaviors.Find<ServiceBehaviorAttribute>();
@@ -302,6 +319,7 @@ namespace CoreWCF.Description
         public ServiceDescription(IEnumerable<IServiceBehavior> injectedBehaviors, IServiceProvider services)
         {
             ServiceType = typeof(TService);
+            ServiceProvider = services;
             AddBehaviors<TService>(this, injectedBehaviors);
             SetupSingleton<TService>(this, services);
         }

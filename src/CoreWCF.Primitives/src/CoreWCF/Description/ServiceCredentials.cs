@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Configuration;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -15,6 +19,8 @@ namespace CoreWCF.Description
         private bool _isReadOnly = false;
         private readonly bool _saveBootstrapTokenInSession = true;
         private ExceptionMapper _exceptionMapper;
+        private IServiceProvider _provider;
+        private IdentityConfiguration _identityConfiguration;
 
         public ServiceCredentials()
         {
@@ -25,6 +31,7 @@ namespace CoreWCF.Description
             IssuedTokenAuthentication = new IssuedTokenServiceCredential();
             SecureConversationAuthentication = new SecureConversationServiceCredential();
             _exceptionMapper = new ExceptionMapper();
+            UseIdentityConfiguration = false;
         }
 
         protected ServiceCredentials(ServiceCredentials other)
@@ -33,6 +40,7 @@ namespace CoreWCF.Description
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             }
+            _provider = other._provider;
             UserNameAuthentication = new UserNamePasswordServiceCredential(other.UserNameAuthentication);
             ClientCertificate = new X509CertificateInitiatorServiceCredential(other.ClientCertificate);
             ServiceCertificate = new X509CertificateRecipientServiceCredential(other.ServiceCertificate);
@@ -41,6 +49,13 @@ namespace CoreWCF.Description
             SecureConversationAuthentication = new SecureConversationServiceCredential(other.SecureConversationAuthentication);
             _saveBootstrapTokenInSession = other._saveBootstrapTokenInSession;
             _exceptionMapper = other._exceptionMapper;
+            _identityConfiguration = other._identityConfiguration;
+            UseIdentityConfiguration = other.UseIdentityConfiguration;
+        }
+
+        internal ServiceCredentials(IServiceProvider provider):this()
+        {
+            _provider = provider;
         }
 
         public UserNamePasswordServiceCredential UserNameAuthentication { get; }
@@ -54,6 +69,24 @@ namespace CoreWCF.Description
         public IssuedTokenServiceCredential IssuedTokenAuthentication { get; }
 
         public SecureConversationServiceCredential SecureConversationAuthentication { get; }
+
+        public IdentityConfiguration IdentityConfiguration
+        {
+            get
+            {
+                if(_identityConfiguration == null)
+                {
+                    _identityConfiguration = _provider.GetRequiredService<IdentityConfiguration>();
+                }
+                return _identityConfiguration;
+            }
+            set
+            {
+                _identityConfiguration = value;
+            }
+        }
+
+        public bool UseIdentityConfiguration { get; set; }
 
         /// <summary>
         /// Gets or sets the ExceptionMapper to be used when throwing exceptions.
@@ -78,7 +111,22 @@ namespace CoreWCF.Description
 
         internal override SecurityTokenManager CreateSecurityTokenManager()
         {
-            return new ServiceCredentialsSecurityTokenManager(Clone());
+            if (UseIdentityConfiguration)
+            {
+                var list = new List<CookieTransform>
+                {
+                    new DeflateCookieTransform(),
+                    _provider.GetRequiredService<ProtectedDataCookieTransform>()
+                };
+                //
+                // Note: the token manager we create here is always a wrapper over the default collection of token handlers
+                //
+                return new FederatedSecurityTokenManager(Clone(), list.AsReadOnly());
+            }
+            else
+            {
+                return new ServiceCredentialsSecurityTokenManager(Clone());
+            }
         }
 
         protected virtual ServiceCredentials CloneCore()

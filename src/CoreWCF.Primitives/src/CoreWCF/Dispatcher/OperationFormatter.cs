@@ -13,11 +13,11 @@ using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
-    internal abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
+    public abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
         private readonly XmlDictionaryString _action;
         private readonly XmlDictionaryString _replyAction;
-        protected StreamFormatter requestStreamFormatter, replyStreamFormatter;
+        internal StreamFormatter requestStreamFormatter, replyStreamFormatter;
 
         public OperationFormatter(OperationDescription description, bool isRpc, bool isEncoded)
         {
@@ -198,14 +198,14 @@ namespace CoreWCF.Dispatcher
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, xe.Message),
                         xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, fe.Message),
                         fe));
             }
@@ -511,14 +511,6 @@ namespace CoreWCF.Dispatcher
             {
                 replyAction = AddToDictionary(dictionary, replyActionString);
             }
-        }
-
-        internal static NetDispatcherFaultException CreateDeserializationFailedFault(string reason, Exception innerException)
-        {
-            reason = SR.Format(SR.SFxDeserializationFailed1, reason);
-            FaultCode code = new FaultCode(FaultCodeConstants.Codes.DeserializationFailed, FaultCodeConstants.Namespaces.NetDispatch);
-            code = FaultCode.CreateSenderFaultCode(code);
-            return new NetDispatcherFaultException(reason, code, innerException);
         }
 
         internal static void TraceAndSkipElement(XmlReader xmlReader)

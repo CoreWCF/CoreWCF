@@ -5,12 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
@@ -181,10 +179,10 @@ namespace CoreWCF
                     return true;
                 }
 
-                //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
-                //{
-                //    return true;
-                //}
+                if (_behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
+                {
+                    return true;
+                }
 
                 return false;
             }
@@ -196,10 +194,10 @@ namespace CoreWCF
                     return ReflectedContractCollection.GetConfigKey(_reflectedContracts[implementedContract]);
                 }
 
-                //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
-                //{
-                //    return ServiceMetadataBehavior.MexContractName;
-                //}
+                if (_behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
+                {
+                    return ServiceMetadataBehavior.MexContractName;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SfxReflectedContractKeyNotFound2, implementedContract.FullName, string.Empty)));
             }

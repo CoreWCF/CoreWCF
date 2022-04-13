@@ -12,10 +12,7 @@ namespace CoreWCF.Security
         {
         }
 
-        public override TrustDictionary SerializerDictionary
-        {
-            get { return DXD.TrustDec2005Dictionary; }
-        }
+        public override TrustDictionary SerializerDictionary => DXD.TrustDec2005Dictionary;
 
         public class DriverDec2005 : DriverFeb2005
         {
@@ -24,21 +21,9 @@ namespace CoreWCF.Security
             {
             }
 
-            //public override TrustDictionary DriverDictionary
-            //{
-            //    get
-            //    {
-            //        return DXD.TrustDec2005Dictionary;
-            //    }
-            //}
+            public override TrustDictionary DriverDictionary => DXD.TrustDec2005Dictionary;
 
-            //public override XmlDictionaryString RequestSecurityTokenResponseFinalAction
-            //{
-            //    get
-            //    {
-            //        return DXD.TrustDec2005Dictionary.RequestSecurityTokenCollectionIssuanceFinalResponse;
-            //    }
-            //}
+            public override XmlDictionaryString RequestSecurityTokenResponseFinalAction => DXD.TrustDec2005Dictionary.RequestSecurityTokenCollectionIssuanceFinalResponse;
 
             internal virtual bool IsSecondaryParametersElement(XmlElement element)
             {

@@ -85,7 +85,7 @@ namespace CoreWCF.Description
             if (listenUri == null)
             {
                 // TODO: Make sure the InternalBaseAddresses are populated with the relevant base address for the transport via DI
-                listenUri = GetVia(endpoint.Binding.Scheme, ServiceHostBase.EmptyUri, serviceHost.InternalBaseAddresses);
+                listenUri = GetVia(endpoint.Binding.Scheme, ServiceHostBase.s_emptyUri, serviceHost.InternalBaseAddresses);
             }
             if (listenUri == null)
             {
@@ -175,7 +175,6 @@ namespace CoreWCF.Description
             foreach (KeyValuePair<ListenUriInfo, StuffPerListenUriInfo> stuff in stuffPerListenUriInfo)
             {
                 Uri listenUri = stuff.Key.ListenUri;
-                ListenUriMode listenUriMode = stuff.Key.ListenUriMode;
                 BindingParameterCollection parameters = stuff.Value.Parameters;
                 Binding binding = stuff.Value.Endpoints[0].Binding;
                 EndpointIdentity identity = stuff.Value.Endpoints[0].Address.Identity;
@@ -221,7 +220,6 @@ namespace CoreWCF.Description
                 for (int i = 0; i < stuff.Value.Endpoints.Count; i++)
                 {
                     ServiceEndpoint endpoint = stuff.Value.Endpoints[i];
-                    string viaString = listenUri.AbsoluteUri;
 
                     //EndpointFilterProvider provider = new EndpointFilterProvider();
                     EndpointDispatcher dispatcher = BuildEndpointDispatcher(description, endpoint);
@@ -679,6 +677,15 @@ namespace CoreWCF.Description
             ServiceHostObjectModel<TService> serviceHost;
             serviceHost = services.GetRequiredService<ServiceHostObjectModel<TService>>();
 
+            ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
+            var options = new ServiceOptions<TService>(serviceHost);
+            foreach (var serverUriAddress in serverUriAddresses)
+            {
+                options.BaseAddresses.Add(serverUriAddress);
+            }
+
+            options.ApplyOptions(configDelegate);
+
             // TODO: Create internal behavior which configures any extensibilities which exist in serviceProvider, eg IMessageInspector
             foreach (ServiceEndpointConfiguration endpointConfig in serviceConfig.Endpoints)
             {
@@ -694,10 +701,14 @@ namespace CoreWCF.Description
                     endpointConfig.Binding,
                     new EndpointAddress(uri));
 
+                if (endpointConfig.ConfigureEndpoint != null)
+                {
+                    serviceEndpoint.Behaviors.Add(new EndpointConfiguratorEndpointBehavior(endpointConfig.ConfigureEndpoint));
+                }
+
                 serviceHost.Description.Endpoints.Add(serviceEndpoint);
             }
 
-            ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
             configDelegate?.Configure(serviceHost);
             InitializeServiceHost(serviceHost, services);
 

@@ -5,7 +5,7 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IDispatchOperationSelector
+    public interface IDispatchOperationSelector
     {
         string SelectOperation(ref Message message);
     }

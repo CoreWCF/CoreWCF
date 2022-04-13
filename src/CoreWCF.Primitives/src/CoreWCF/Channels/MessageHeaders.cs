@@ -22,7 +22,7 @@ namespace CoreWCF.Channels
         private const int MaxRecycledArrayLength = 8;
         private static XmlDictionaryString[] s_localNames;
 
-        internal const string WildcardAction = "*";
+        public const string WildcardAction = "*";
 
         // The highest node and attribute counts reached by the BVTs were 1829 and 667 respectively.
         private const int MaxBufferedHeaderNodes = 4096;
@@ -96,7 +96,7 @@ namespace CoreWCF.Channels
             CollectionVersion = 0;
         }
 
-        internal MessageHeaders(MessageVersion version, XmlDictionaryReader reader, IBufferedMessageData bufferedMessageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
+        public MessageHeaders(MessageVersion version, XmlDictionaryReader reader, IBufferedMessageData bufferedMessageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
         {
             _headers = new Header[InitialHeaderCount];
             Init(version, reader, bufferedMessageData, recycledMessageState, understoodHeaders, understoodHeadersModified);
@@ -157,12 +157,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal bool CanRecycle
+        public bool CanRecycle
         {
             get { return _headers.Length <= MaxRecycledArrayLength; }
         }
 
-        internal bool ContainsOnlyBufferedMessageHeaders
+        public bool ContainsOnlyBufferedMessageHeaders
         {
             get { return (_bufferedMessageData != null && CollectionVersion == 0); }
         }
@@ -365,7 +365,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal UnderstoodHeaders UnderstoodHeaders
+        public UnderstoodHeaders UnderstoodHeaders
         {
             get
             {
@@ -1298,7 +1298,7 @@ namespace CoreWCF.Channels
             CollectionVersion = 0;
         }
 
-        internal void Init(MessageVersion version, XmlDictionaryReader reader, IBufferedMessageData bufferedMessageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
+        public void Init(MessageVersion version, XmlDictionaryReader reader, IBufferedMessageData bufferedMessageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
         {
             _nodeCount = 0;
             _attrCount = 0;
@@ -1422,7 +1422,7 @@ namespace CoreWCF.Channels
             CollectionVersion++;
         }
 
-        internal bool IsUnderstood(int i)
+        public bool IsUnderstood(int i)
         {
             return (_headers[i].HeaderProcessing & HeaderProcessing.Understood) != 0;
         }

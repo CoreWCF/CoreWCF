@@ -14,6 +14,27 @@ namespace CoreWCF.Description
             Parts = new MessagePartDescriptionCollection();
         }
 
+        internal MessageBodyDescription(MessageBodyDescription other)
+        {
+            WrapperName = other.WrapperName;
+            WrapperNamespace = other.WrapperNamespace;
+            Parts = new MessagePartDescriptionCollection();
+            foreach (MessagePartDescription mpd in other.Parts)
+            {
+                Parts.Add(mpd.Clone());
+            }
+
+            if (other.ReturnValue != null)
+            {
+                ReturnValue = other.ReturnValue.Clone();
+            }
+        }
+
+        internal MessageBodyDescription Clone()
+        {
+            return new MessageBodyDescription(this);
+        }
+
         public MessagePartDescriptionCollection Parts { get; }
 
         [DefaultValue(null)]

@@ -106,6 +106,11 @@ namespace CoreWCF.Runtime
             return TraceException(new ArgumentNullException(paramName));
         }
 
+        public ArgumentNullException ArgumentNull(string paramName, string message)
+        {
+            return TraceException(new ArgumentNullException(paramName, message));
+        }
+
         private TException TraceException<TException>(TException exception)
             where TException : Exception
         {
@@ -128,6 +133,17 @@ namespace CoreWCF.Runtime
         public ArgumentOutOfRangeException ArgumentOutOfRange(string paramName, object actualValue, string message)
         {
             return TraceException(new ArgumentOutOfRangeException(paramName, actualValue, message));
+        }
+
+        // When throwing ObjectDisposedException, it is highly recommended that you use this ctor
+        // [C#]
+        // public ObjectDisposedException(string objectName, string message);
+        // And provide null for objectName but meaningful and relevant message for message. 
+        // It is recommended because end user really does not care or can do anything on the disposed object, commonly an internal or private object.
+        public ObjectDisposedException ObjectDisposed(string message)
+        {
+            // pass in null, not disposedObject.GetType().FullName as per the above guideline
+            return TraceException(new ObjectDisposedException(null, message));
         }
 
         public void TraceUnhandledException(Exception exception)

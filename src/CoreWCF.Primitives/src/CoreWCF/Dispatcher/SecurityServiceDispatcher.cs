@@ -58,7 +58,7 @@ namespace CoreWCF.Dispatcher
 
         public ICollection<Type> SupportedChannelTypes => InnerServiceDispatcher.SupportedChannelTypes;
 
-        public object ThisLock { get; } = new object();
+        private AsyncLock ThisLock { get; } = new AsyncLock();
 
         public SecurityProtocolFactory SecurityProtocolFactory
         {
@@ -143,20 +143,20 @@ namespace CoreWCF.Dispatcher
         {
             if (SessionMode)
             {
-                // this.SessionServerSettings.SessionProtocolFactory.ListenUri = this.Uri;
+                SessionServerSettings.SessionProtocolFactory.ListenUri = InnerServiceDispatcher.BaseAddress;
                 SessionServerSettings.SecurityServiceDispatcher = this;
             }
             else
             {
                 ThrowIfProtocolFactoryNotSet();
-                //  this.securityProtocolFactory.ListenUri = this.Uri;
+                _securityProtocolFactory.ListenUri = InnerServiceDispatcher.BaseAddress;
             }
             _settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(_securityProtocolFactory, _sessionServerSettings, SessionMode);//, this.InnerChannelListener);
             if (_sessionServerSettings != null)
             {
                 _sessionServerSettings.SettingsLifetimeManager = _settingsLifetimeManager;
             }
-            _settingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout);
+            _settingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout).GetAwaiter().GetResult();
             //this.hasSecurityStateReference = true;
         }
 
@@ -238,7 +238,10 @@ namespace CoreWCF.Dispatcher
         /// <returns></returns>
         internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
         {
-            return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+            lock (ThisLock)
+            {
+                return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+            }
         }
 
         //Reference OnAcceptChannel/SecurityChannelListner
@@ -466,10 +469,9 @@ namespace CoreWCF.Dispatcher
             }
             else
             {
-                IServiceChannelDispatcher serviceChannelDispatcher =
-                     await SecurityServiceDispatcher.GetInnerServiceChannelDispatcher(this);
-                await serviceChannelDispatcher.DispatchAsync(securedMessage);
-
+                    IServiceChannelDispatcher serviceChannelDispatcher =
+                    await SecurityServiceDispatcher.GetInnerServiceChannelDispatcher(this);
+                    await serviceChannelDispatcher.DispatchAsync(securedMessage);
             }
         }
 
@@ -506,30 +508,26 @@ namespace CoreWCF.Dispatcher
 
     internal abstract class SecurityDuplexChannel<UChannel> : ServerSecurityChannelDispatcher<UChannel> where UChannel : class, IDuplexChannel
     {
-        private readonly IDuplexChannel _innerDuplexChannel;
         private readonly IServiceProvider _serviceProvider;
         public SecurityDuplexChannel(SecurityServiceDispatcher serviceDispatcher, UChannel innerChannel, SecurityProtocol securityProtocol, SecurityListenerSettingsLifetimeManager settingsLifetimeManager)
           : base(serviceDispatcher, innerChannel, securityProtocol, settingsLifetimeManager)
         {
-            _innerDuplexChannel = innerChannel;
+            InnerDuplexChannel = innerChannel;
             SecurityProtocol = securityProtocol;
             _serviceProvider = InnerDuplexChannel.GetProperty<IServiceScopeFactory>().CreateScope().ServiceProvider;
         }
 
         public EndpointAddress RemoteAddress
         {
-            get { return _innerDuplexChannel.RemoteAddress; }
+            get { return InnerDuplexChannel.RemoteAddress; }
         }
 
         public Uri Via
         {
-            get { return _innerDuplexChannel.Via; }
+            get { return InnerDuplexChannel.Via; }
         }
 
-        protected IDuplexChannel InnerDuplexChannel
-        {
-            get { return _innerDuplexChannel; }
-        }
+        protected IDuplexChannel InnerDuplexChannel { get; }
 
         public Task SendAsync(Message message, TimeSpan timeout)
         {

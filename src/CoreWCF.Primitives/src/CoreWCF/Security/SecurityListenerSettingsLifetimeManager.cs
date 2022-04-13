@@ -44,7 +44,7 @@ namespace CoreWCF.Security
                 _sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
             }
 
-            if (_securityProtocolFactory != null)
+            if (_securityProtocolFactory != null && _securityProtocolFactory.CommunicationObject.State == CommunicationState.Created)
              {
                 _securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
              }

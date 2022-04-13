@@ -3,7 +3,6 @@
 
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.ConfigurationManager.Tests
@@ -19,7 +18,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             services.AddServiceModelConfigurationManagerFile(pathToXml);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel();
         }

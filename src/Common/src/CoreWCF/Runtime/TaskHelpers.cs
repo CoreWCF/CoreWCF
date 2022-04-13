@@ -90,7 +90,7 @@ namespace CoreWCF.Runtime
             }
             else
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.SFxInvalidCallbackIAsyncResult));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SRCommon.SFxInvalidCallbackIAsyncResult));
             }
         }
 
@@ -102,7 +102,7 @@ namespace CoreWCF.Runtime
             }
             else
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.SFxInvalidCallbackIAsyncResult));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SRCommon.SFxInvalidCallbackIAsyncResult));
             }
         }
 
@@ -272,7 +272,7 @@ namespace CoreWCF.Runtime
 
             if (timedOut)
             {
-                throw Fx.Exception.AsError(new TimeoutException(SR.Format(SR.TaskTimedOutError, timeout)));
+                throw Fx.Exception.AsError(new TimeoutException(SRCommon.Format(SRCommon.TaskTimedOutError, timeout)));
             }
         }
 
