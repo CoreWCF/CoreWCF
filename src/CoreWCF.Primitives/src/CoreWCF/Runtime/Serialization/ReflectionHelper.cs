@@ -38,8 +38,7 @@ namespace CoreWCF.Runtime.Serialization
         internal static Func<TParam, TReturn> CreateStaticMethodCallLambda<TParam, TReturn>(MethodInfo methodInfo)
         {
             var paramExpression = Expression.Parameter(typeof(TParam), "param");
-            // Passing null as instance expression as static method call
-            Expression callExpr = Expression.Call(null, methodInfo, paramExpression);
+            Expression callExpr = Expression.Call(methodInfo, paramExpression);
             if (typeof(TReturn) != typeof(object))
             {
                 callExpr = Expression.Convert(callExpr, typeof(TReturn));
