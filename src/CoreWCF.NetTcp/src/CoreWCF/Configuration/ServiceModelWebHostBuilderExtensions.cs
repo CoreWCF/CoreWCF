@@ -101,7 +101,10 @@ namespace CoreWCF.Configuration
             foreach (ListenOptions listenOptions in ListenOptions)
             {
                 IPEndPoint endpoint = listenOptions.IPEndPoint;
-                var baseAddress = new Uri($"net.tcp://{endpoint.Address}:{endpoint.Port}/");
+                string address = endpoint.Address.ToString();
+                if (endpoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    address = $"[{address}]";
+                var baseAddress = new Uri($"net.tcp://{address}:{endpoint.Port}/");
                 _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
                 _serviceBuilder.BaseAddresses.Add(baseAddress);
             }

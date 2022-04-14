@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore;
@@ -13,22 +14,25 @@ namespace CoreWCF.ConfigurationManager.Tests
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper)
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress, int port)
             where TStartup : class
         {
-            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
+            IWebHostBuilder result = WebHost.CreateDefaultBuilder(Array.Empty<string>());
 #if DEBUG
-            .ConfigureLogging((ILoggingBuilder logging) =>
+            result = result.ConfigureLogging((ILoggingBuilder logging) =>
             {
                 logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
-            })
+            });
 #endif // DEBUG
-            .UseNetTcp(6687)
-            .UseStartup<TStartup>();
+            if (ipAddress == IPAddress.Any)
+                result = result.UseNetTcp(port);
+            else
+                result = result.UseNetTcp(ipAddress, port);
+            return result
+              .UseStartup<TStartup>();
         }
-  
     }
 }
