@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
+using System.Net;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Xunit;
@@ -21,18 +22,26 @@ namespace CoreWCF.ConfigurationManager.Tests
         [Fact]
         public void AddOneEndpointInContainer()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                var resolver = new DependencyResolverHelper(host);
-                IServiceBuilder serviceBuilder = resolver.GetService<IServiceBuilder>();
+            AddOneEndpointInContainerCore(IPAddress.Any, 6687, "net.tcp://0.0.0.0:6687/");
+        }
 
-                Assert.Single(serviceBuilder.Services);
-                Assert.Single(serviceBuilder.BaseAddresses);
-                Assert.Equal(typeof(SomeService).FullName, serviceBuilder.Services.Single().FullName);
-                Assert.Equal("net.tcp://0.0.0.0:6687/", serviceBuilder.BaseAddresses.Single().AbsoluteUri);
-            }
+        [Fact]
+        public void AddOneEndpointInContainerIPv6()
+        {
+            AddOneEndpointInContainerCore(IPAddress.IPv6Any, 6688, "net.tcp://[::]:6688/");
+        }
+
+        private void AddOneEndpointInContainerCore(IPAddress ipAddress, int port, string expectedBaseUri)
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, ipAddress, port).Build();
+            host.Start();
+            var resolver = new DependencyResolverHelper(host);
+            IServiceBuilder serviceBuilder = resolver.GetService<IServiceBuilder>();
+
+            Assert.Single(serviceBuilder.Services);
+            Assert.Single(serviceBuilder.BaseAddresses);
+            Assert.Equal(typeof(SomeService).FullName, serviceBuilder.Services.Single().FullName);
+            Assert.Equal(expectedBaseUri, serviceBuilder.BaseAddresses.Single().AbsoluteUri);
         }
     }
 }
