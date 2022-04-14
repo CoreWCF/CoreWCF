@@ -144,48 +144,10 @@ namespace CoreWCF.Description
 
             foreach (XmlSchema schema in GeneratedXmlSchemas.Schemas())
             {
-                RemoveKeyValuePair(schema);
-
-                if (schema.Items.Count > 0)
-                {
-                    set.MetadataSections.Add(MetadataSection.CreateFromSchema(schema));
-                }
+                set.MetadataSections.Add(MetadataSection.CreateFromSchema(schema));
             }
 
             return set;
-        }
-
-        // Workaround for DataContract adding an extra schema entry for KeyValue<K,V>. See GitHub
-        // issue https://github.com/dotnet/runtime/issues/67949 for details.
-        private static void RemoveKeyValuePair(XmlSchema schema)
-        {
-            if (schema.TargetNamespace == "http://schemas.datacontract.org/2004/07/System.Collections.Generic")
-            {
-                var schemaObjectsToRemove = new List<XmlSchemaObject>();
-                foreach (XmlSchemaObject schemaObject in schema.Items)
-                {
-                    if (schemaObject is XmlSchemaElement schemaElement)
-                    {
-                        if (schemaElement.SchemaTypeName.Namespace == "http://schemas.datacontract.org/2004/07/System.Collections.Generic" &&
-                            schemaElement.SchemaTypeName.Name.StartsWith("KeyValuePairOf"))
-                        {
-                            schemaObjectsToRemove.Add(schemaObject);
-                        }
-                    }
-                    else if (schemaObject is XmlSchemaComplexType schemaComplexType)
-                    {
-                        if (schemaComplexType.Name.StartsWith("KeyValuePairOf"))
-                        {
-                            schemaObjectsToRemove.Add(schemaObject);
-                        }
-                    }
-                }
-
-                foreach (var schemaObject in schemaObjectsToRemove)
-                {
-                    schema.Items.Remove(schemaObject);
-                }
-            }
         }
 
         public WsdlNS.ServiceDescriptionCollection GeneratedWsdlDocuments { get; } = new WsdlNS.ServiceDescriptionCollection();
