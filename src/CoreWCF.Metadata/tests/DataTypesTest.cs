@@ -30,5 +30,11 @@ namespace CoreWCF.Metadata.Tests
         {
             await TestHelper.RunSingleWsdlTestAsync<PrimitivesService, IPrimitivesService>(new BasicHttpBinding(), _output);
         }
+
+        [Fact]
+        public async Task ComplexTypesWithCollectionsDataContract()
+        {
+            await TestHelper.RunSingleWsdlTestAsync<ComplexTypesWithCollectionsService, IComplexTypesWithCollectionsService>(new BasicHttpBinding(), _output);
+        }
     }
 }
