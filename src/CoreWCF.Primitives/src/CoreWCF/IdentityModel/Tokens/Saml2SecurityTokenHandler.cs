@@ -285,7 +285,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     {
                         if (_keyInfoSerializer == null)
                         {
-                            SecurityTokenHandlerCollection sthc = ContainingCollection ?? SecurityTokenHandlerCollection.CreateDefaultSecurityTokenHandlerCollection();
+                            SecurityTokenHandlerCollection sthc = ContainingCollection ?? throw new NotSupportedException();
                             _keyInfoSerializer = new SecurityTokenSerializerAdapter(sthc);
                         }
                     }
