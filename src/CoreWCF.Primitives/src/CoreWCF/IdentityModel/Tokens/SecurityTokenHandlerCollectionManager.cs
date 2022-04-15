@@ -91,19 +91,6 @@ namespace CoreWCF.IdentityModel.Tokens
         }
 
         /// <summary>
-        /// Creates the default set of SecurityTokenHandlers.
-        /// </summary>
-        /// <returns>A SecurityTokenHandlerCollectionManager with a default collection of token handlers.</returns>
-        public static SecurityTokenHandlerCollectionManager CreateDefaultSecurityTokenHandlerCollectionManager()
-        {
-            SecurityTokenHandlerCollection defaultHandlers = SecurityTokenHandlerCollection.CreateDefaultSecurityTokenHandlerCollection();
-            SecurityTokenHandlerCollectionManager defaultManager = new SecurityTokenHandlerCollectionManager(ConfigurationStrings.DefaultServiceName);
-            defaultManager._collections.Clear();
-            defaultManager._collections.Add(SecurityTokenHandlerCollectionManager.Usage.Default, defaultHandlers);
-            return defaultManager;
-        }
-
-        /// <summary>
         /// Checks if a SecurityTokenHandlerCollection exists for the given usage.
         /// </summary>
         /// <param name=nameof(usage)>A string that represents the usage of the SecurityTokenHandlerCollection.</param>
