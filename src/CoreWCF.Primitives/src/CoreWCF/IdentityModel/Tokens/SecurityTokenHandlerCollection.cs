@@ -157,20 +157,6 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
-        /// <summary>
-        /// Creates a system default collection of basic SecurityTokenHandlers, each of which has the system default configuration.
-        /// The SecurityTokenHandlers in this collection must be configured with service specific data before they can be used.
-        /// </summary>
-        /// <returns>A SecurityTokenHandlerCollection with default basic SecurityTokenHandlers.</returns>
-        public static SecurityTokenHandlerCollection CreateDefaultSecurityTokenHandlerCollection()
-        {
-            SecurityTokenHandlerCollection collection = new SecurityTokenHandlerCollection(new SecurityTokenHandlerConfiguration());
-            foreach(SecurityTokenHandler handler in s_defaultSecurityTokenHandlerCollection)
-            {
-                collection.Add(handler);
-            }
-            return collection;
-        }
 
         //TODO - Check which one is important apart from Saml and port accordingly..
 
