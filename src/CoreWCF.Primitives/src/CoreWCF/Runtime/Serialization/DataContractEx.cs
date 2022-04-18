@@ -113,12 +113,12 @@ namespace CoreWCF.Runtime.Serialization
         private static DataContractEx GetGetOnlyCollectionDataContractStub(int id, RuntimeTypeHandle typeHandle, Type type, int mode)
         {
             var methodInfo = DataContractType.GetMethod("GetGetOnlyCollectionDataContract", BindingFlags.Static | BindingFlags.NonPublic, null,
-                new Type[] { typeof(int), typeof(RuntimeTypeHandle), typeof(Type),  }, null);
+                new Type[] { typeof(int), typeof(RuntimeTypeHandle), typeof(Type), SerializationModeType }, null);
             var idParam = Expression.Parameter(typeof(int), "id");
             var typeHandleParam = Expression.Parameter(typeof(RuntimeTypeHandle), "typeHandle");
             var typeParam = Expression.Parameter(typeof(Type), "type");
             var intModeParam = Expression.Parameter(typeof(int), "mode");
-            var serializationModeParam = Expression.Constant(intModeParam, SerializationModeType); 
+            var serializationModeParam = Expression.Constant(Enum.ToObject(SerializationModeType, mode), SerializationModeType); 
 
             // Passing null as instance expression as static method call
             Expression callExpr = Expression.Call(methodInfo, idParam, typeHandleParam, typeParam, serializationModeParam);
