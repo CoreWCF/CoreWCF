@@ -119,6 +119,10 @@ namespace CoreWCF.Channels.Framing
         MTOM = 0x6,
         Binary = 0x7,
         BinarySession = 0x8,
+        ExtendedBinaryGZip = 0x9,
+        ExtendedBinarySessionGZip = 0xA,
+        ExtendedBinaryDeflate = 0xB,
+        ExtendedBinarySessionDeflate = 0xC
     }
 
     internal static class FramingEncodingString
