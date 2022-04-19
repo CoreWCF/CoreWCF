@@ -118,7 +118,7 @@ namespace CoreWCF.Runtime.Serialization
             var typeHandleParam = Expression.Parameter(typeof(RuntimeTypeHandle), "typeHandle");
             var typeParam = Expression.Parameter(typeof(Type), "type");
             var intModeParam = Expression.Parameter(typeof(int), "mode");
-            var serializationModeParam = Expression.Constant(Enum.ToObject(SerializationModeType, mode), SerializationModeType); 
+            var serializationModeParam = Expression.Convert(Expression.Constant(mode), SerializationModeType);
 
             // Passing null as instance expression as static method call
             Expression callExpr = Expression.Call(methodInfo, idParam, typeHandleParam, typeParam, serializationModeParam);
