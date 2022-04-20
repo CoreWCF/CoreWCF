@@ -50,5 +50,10 @@ namespace CoreWCF.Configuration
             BaseAdd(new XmlElementElement((XmlElement)doc.ReadNode(reader)));
             return true;
         }
+
+        internal void Add(XmlElementElement element)
+        {
+            base.BaseAdd(element);
+        }
     }
 }

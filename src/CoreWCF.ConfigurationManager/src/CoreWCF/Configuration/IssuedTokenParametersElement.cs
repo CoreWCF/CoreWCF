@@ -14,7 +14,7 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Configuration
 {
-    internal sealed class IssuedTokenParametersElement : ServiceModelConfigurationElement
+    public sealed class IssuedTokenParametersElement : ServiceModelConfigurationElement
     {
         private Collection<IssuedTokenParametersElement> _optionalIssuedTokenParameters = null;
 
@@ -116,7 +116,7 @@ namespace CoreWCF.Configuration
         internal void ApplyConfiguration(IssuedSecurityTokenParameters parameters)
         {
             if (parameters == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("parameters"));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(parameters)));
 
             if (AdditionalRequestParameters != null)
             {
@@ -145,6 +145,8 @@ namespace CoreWCF.Configuration
             }
             if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.Issuer].ValueOrigin)
             {
+                //TODO: ? I am not sure of the best way of loading the Issuer EndPoint and Binding
+                
                 throw new PlatformNotSupportedException(nameof(Issuer));
                 //TODO: Implement IssuedTokenParameters
                 //this.Issuer.Validate();
@@ -177,29 +179,18 @@ namespace CoreWCF.Configuration
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(source));
             }
-
-            //TODO: Implement IssuedTokenParameters  remove PlatformNotSupportedException and implement Additional Parameters
-            if (source.AdditionalRequestParameters.Count > 0)
+            
+            foreach (XmlElementElement xmlElement in source.AdditionalRequestParameters)
             {
-                throw new PlatformNotSupportedException(nameof(AdditionalRequestParameters));
+                XmlElementElement newElement = new XmlElementElement();
+                newElement.Copy(xmlElement);
+                this.AdditionalRequestParameters.Add(newElement);
             }
-            //foreach (XmlElementElement xmlElement in source.AdditionalRequestParameters)
-            //{
-            //    XmlElementElement newElement = new XmlElementElement();
-            //    newElement.Copy(xmlElement);
-            //    this.AdditionalRequestParameters.Add(newElement);
-            //}
 
-            //TODO: Implement IssuedTokenParameters remove PlatformNotSupportedException and implement ClaimTypeElement
-            if (source.ClaimTypeRequirements.Count > 0)
+            foreach (ClaimTypeElement c in source.ClaimTypeRequirements)
             {
-                throw new PlatformNotSupportedException(nameof(ClaimTypeRequirements));
-
+                this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
             }
-            //foreach (ClaimTypeElement c in source.ClaimTypeRequirements)
-            //{
-            //    this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
-            //}
 
             KeySize = source.KeySize;
             KeyType = source.KeyType;
@@ -272,16 +263,12 @@ namespace CoreWCF.Configuration
 
             foreach (XmlElement element in source.AdditionalRequestParameters)
             {
-                //TODO: Implement IssuedTokenParameters
-                throw new PlatformNotSupportedException(nameof(AdditionalRequestParameters));
-                //this.AdditionalRequestParameters.Add(new XmlElementElement(element));
+                this.AdditionalRequestParameters.Add(new XmlElementElement(element));
             }
 
             foreach (ClaimTypeRequirement c in source.ClaimTypeRequirements)
             {
-                //TODO: Implement IssuedTokenParameters
-                throw new PlatformNotSupportedException(nameof(ClaimTypeRequirements));
-                //this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
+                this.ClaimTypeRequirements.Add(new ClaimTypeElement(c.ClaimType, c.IsOptional));
             }
 
             //TODO: Implement IssuedTokenParameters

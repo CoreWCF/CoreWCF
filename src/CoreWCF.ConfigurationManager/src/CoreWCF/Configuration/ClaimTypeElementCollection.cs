@@ -17,5 +17,10 @@ namespace CoreWCF.Configuration
             ClaimTypeElement claimElement = (ClaimTypeElement)element;
             return claimElement.ClaimType;
         }
+
+        internal void Add(ClaimTypeElement claimTypeElement)
+        {
+            base.BaseAdd(claimTypeElement);
+        }
     }
 }

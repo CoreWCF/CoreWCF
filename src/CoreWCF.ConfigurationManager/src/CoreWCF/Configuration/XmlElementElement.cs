@@ -3,9 +3,7 @@
 
 using System;
 using System.Configuration;
-using System.Security;
 using System.Xml;
-using CoreWCF.Runtime;
 
 namespace CoreWCF.Configuration
 {
@@ -37,7 +35,6 @@ namespace CoreWCF.Configuration
             }
         }
 
-       
         protected override void DeserializeElement(XmlReader reader, bool serializeCollectionKey)
         {
             DeserializeElementCore(reader);

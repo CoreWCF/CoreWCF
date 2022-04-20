@@ -35,16 +35,16 @@ namespace CoreWCF.Configuration
                 MessageVersion retval;
                 switch (messageVersion)
                 {
-                    case ConfigurationStrings.Soap11WsAddressing10:
+                    case ConfigurationStrings.Soap11WSAddressing10:
                         retval = MessageVersion.Soap11WSAddressing10;
                         break;
-                    case ConfigurationStrings.Soap12WsAddressing10:
+                    case ConfigurationStrings.Soap12WSAddressing10:
                         retval = MessageVersion.Soap12WSAddressing10;
                         break;
-                    case ConfigurationStrings.Soap11WsAddressingAugust2004:
+                    case ConfigurationStrings.Soap11WSAddressingAugust2004:
                         retval = MessageVersion.Soap11WSAddressingAugust2004;
                         break;
-                    case ConfigurationStrings.Soap12WsAddressingAugust2004:
+                    case ConfigurationStrings.Soap12WSAddressingAugust2004:
                         retval = MessageVersion.Soap12WSAddressingAugust2004;
                         break;
                     case ConfigurationStrings.Soap11:
@@ -79,19 +79,19 @@ namespace CoreWCF.Configuration
                 }
                 else if (messageVersion.Equals(MessageVersion.Soap11WSAddressing10))
                 {
-                    retval = ConfigurationStrings.Soap11WsAddressing10;
+                    retval = ConfigurationStrings.Soap11WSAddressing10;
                 }
                 else if (messageVersion.Equals(MessageVersion.Soap12WSAddressing10))
                 {
-                    retval = ConfigurationStrings.Soap12WsAddressing10;
+                    retval = ConfigurationStrings.Soap12WSAddressing10;
                 }
                 else if (messageVersion .Equals(MessageVersion.Soap11WSAddressingAugust2004))
                 {
-                    retval = ConfigurationStrings.Soap11WsAddressingAugust2004;
+                    retval = ConfigurationStrings.Soap11WSAddressingAugust2004;
                 }
                 else if (messageVersion.Equals(MessageVersion.Soap12WSAddressingAugust2004))
                 {
-                    retval = ConfigurationStrings.Soap12WsAddressingAugust2004;
+                    retval = ConfigurationStrings.Soap12WSAddressingAugust2004;
                 }
                 else if (messageVersion.Equals(MessageVersion.Soap11))
                 {

@@ -35,22 +35,22 @@ namespace CoreWCF.Configuration
                 MessageSecurityVersion retval;
                 switch (version)
                 {
-                    case ConfigurationStrings.WsSecurity11WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11:
+                    case ConfigurationStrings.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11:
                         retval = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
                         break;
-                    case ConfigurationStrings.WsSecurity10WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11BasicSecurityProfile10:
+                    case ConfigurationStrings.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10:
                         retval = MessageSecurityVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
                         break;
-                    case ConfigurationStrings.WsSecurity11WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11BasicSecurityProfile10:
+                    case ConfigurationStrings.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10:
                         retval = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
                         break;
-                    case ConfigurationStrings.WsSecurity10WsTrust13WsSecureConversation13WsSecurityPolicy12BasicSecurityProfile10:
+                    case ConfigurationStrings.WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10:
                         retval = MessageSecurityVersion.WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10;
                         break;
-                    case ConfigurationStrings.WsSecurity11WsTrust13WsSecureConversation13WsSecurityPolicy12:
+                    case ConfigurationStrings.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12:
                         retval = MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12;
                         break;
-                    case ConfigurationStrings.WsSecurity11WsTrust13WsSecureConversation13WsSecurityPolicy12BasicSecurityProfile10:
+                    case ConfigurationStrings.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10:
                         retval = MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10;
                         break;
                     case ConfigurationStrings.Default:
@@ -77,27 +77,27 @@ namespace CoreWCF.Configuration
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11)
                 {
-                    retval = ConfigurationStrings.WsSecurity11WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11;
+                    retval = ConfigurationStrings.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10)
                 {
-                    retval = ConfigurationStrings.WsSecurity10WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11BasicSecurityProfile10;
+                    retval = ConfigurationStrings.WSSecurity10WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10)
                 {
-                    retval = ConfigurationStrings.WsSecurity11WsTrustFebruary2005WsSecureConversationFebruary2005WsSecurityPolicy11BasicSecurityProfile10;
+                    retval = ConfigurationStrings.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11BasicSecurityProfile10;
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10)
                 {
-                    retval = ConfigurationStrings.WsSecurity10WsTrust13WsSecureConversation13WsSecurityPolicy12BasicSecurityProfile10;
+                    retval = ConfigurationStrings.WSSecurity10WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10;
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12)
                 {
-                    retval = ConfigurationStrings.WsSecurity11WsTrust13WsSecureConversation13WsSecurityPolicy12;
+                    retval = ConfigurationStrings.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12;
                 }
                 else if (securityVersion == MessageSecurityVersion.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10)
                 {
-                    retval = ConfigurationStrings.WsSecurity11WsTrust13WsSecureConversation13WsSecurityPolicy12BasicSecurityProfile10;
+                    retval = ConfigurationStrings.WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10;
                 }
                 else
                 {

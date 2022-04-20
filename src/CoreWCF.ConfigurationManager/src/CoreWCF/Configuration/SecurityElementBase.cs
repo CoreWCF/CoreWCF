@@ -101,19 +101,11 @@ namespace CoreWCF.Configuration
             set { base[ConfigurationStrings.KeyEntropyMode] = value; }
         }
 
-        //TODO: Implement IssuedTokenParameters
-        //[ConfigurationProperty(ConfigurationStrings.IssuedTokenParameters)]
-        //public IssuedTokenParametersElement IssuedTokenParameters
-        //{
-        //    get { return (IssuedTokenParametersElement)base[ConfigurationStrings.IssuedTokenParameters]; }
-        //}
-
-        //TODO If Local Client Settings are Supported
-        //[ConfigurationProperty(ConfigurationStrings.LocalClientSettings)]
-        //public LocalClientSecuritySettingsElement LocalClientSettings
-        //{
-        //    get { return (LocalClientSecuritySettingsElement)base[ConfigurationStrings.LocalClientSettings]; }
-        //}
+        [ConfigurationProperty(ConfigurationStrings.IssuedTokenParameters)]
+        public IssuedTokenParametersElement IssuedTokenParameters
+        {
+            get { return (IssuedTokenParametersElement)base[ConfigurationStrings.IssuedTokenParameters]; }
+        }
 
         [ConfigurationProperty(ConfigurationStrings.LocalServiceSettings)]
         public LocalServiceSecuritySettingsElement LocalServiceSettings
@@ -257,9 +249,8 @@ namespace CoreWCF.Configuration
                 RequireDerivedKeys = source.RequireDerivedKeys;
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.IncludeTimestamp].ValueOrigin)
                 IncludeTimestamp = source.IncludeTimestamp;
-            //TODO: Implement IssuedTokenParameters
-            //if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.IssuedTokenParameters].ValueOrigin)
-            //    this.IssuedTokenParameters.Copy(source.IssuedTokenParameters);
+            if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.IssuedTokenParameters].ValueOrigin)
+                this.IssuedTokenParameters.Copy(source.IssuedTokenParameters);
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.MessageProtectionOrder].ValueOrigin)
                 MessageProtectionOrder = source.MessageProtectionOrder;
             if (PropertyValueOrigin.Default != source.ElementInformation.Properties[ConfigurationStrings.ProtectTokens].ValueOrigin)
@@ -303,17 +294,17 @@ namespace CoreWCF.Configuration
                     result = SecurityBindingElement.CreateCertificateOverTransportBindingElement(MessageSecurityVersion);
                     break;
                 //case AuthenticationMode.IssuedToken:
-                //    result = SecurityBindingElement.CreateIssuedTokenBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, this.templateKeyType));
+                //    result = SecurityBindingElement.CreateIssuedTokenBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, _templateKeyType));
                 //    break;
-                //case AuthenticationMode.IssuedTokenForCertificate:
-                //    result = SecurityBindingElement.CreateIssuedTokenForCertificateBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, this.templateKeyType));
-                //    break;
-                //case AuthenticationMode.IssuedTokenForSslNegotiated:
-                //    result = SecurityBindingElement.CreateIssuedTokenForSslBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, this.templateKeyType), this.RequireSecurityContextCancellation);
-                //    break;
-                //case AuthenticationMode.IssuedTokenOverTransport:
-                //    result = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, this.templateKeyType));
-                //    break;
+                case AuthenticationMode.IssuedTokenForCertificate:
+                    result = SecurityBindingElement.CreateIssuedTokenForCertificateBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, _templateKeyType));
+                    break;
+                case AuthenticationMode.IssuedTokenForSslNegotiated:
+                    result = SecurityBindingElement.CreateIssuedTokenForSslBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, _templateKeyType), this.RequireSecurityContextCancellation);
+                    break;
+                case AuthenticationMode.IssuedTokenOverTransport:
+                    result = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(this.IssuedTokenParameters.Create(createTemplateOnly, _templateKeyType));
+                    break;
                 //case AuthenticationMode.Kerberos:
                 //    result = SecurityBindingElement.CreateKerberosBindingElement();
                 //    break;
@@ -544,7 +535,7 @@ namespace CoreWCF.Configuration
             //AddBindingTemplate(bindingTemplates, AuthenticationMode.AnonymousForCertificate);
             //AddBindingTemplate(bindingTemplates, AuthenticationMode.AnonymousForSslNegotiated);
             AddBindingTemplate(bindingTemplates, AuthenticationMode.CertificateOverTransport);
-            //if (this.templateKeyType == SecurityKeyType.SymmetricKey)
+            //if (_templateKeyType == SecurityKeyType.SymmetricKey)
             //{
             //    AddBindingTemplate(bindingTemplates, AuthenticationMode.IssuedToken);
             //}
@@ -691,7 +682,6 @@ namespace CoreWCF.Configuration
                         initializationFailure = true;
                     else
                         requireDerivedKeys = ssbe.ProtectionTokenParameters.RequireDerivedKeys;
-
                 }
             }
             else
@@ -720,8 +710,6 @@ namespace CoreWCF.Configuration
 
             _willX509IssuerReferenceAssertionBeWritten = DoesSecurityBindingElementContainClauseTypeofIssuerSerial(sbe);
             RequireDerivedKeys = requireDerivedKeys.GetValueOrDefault(SecurityBindingDefaults.DefaultRequireDerivedKeys);
-            // TODO if LocalClientSettings are supported
-            // this.LocalClientSettings.InitializeFrom(sbe.LocalClientSettings);
             LocalServiceSettings.InitializeFrom(sbe.LocalServiceSettings);
 
             if (!initializationFailure)

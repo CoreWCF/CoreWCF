@@ -5,7 +5,7 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    internal sealed class IssuedTokenParametersEndpointAddressElement : EndpointAddressElementBase
+    public sealed class IssuedTokenParametersEndpointAddressElement : EndpointAddressElementBase
     {
         public IssuedTokenParametersEndpointAddressElement()
         {

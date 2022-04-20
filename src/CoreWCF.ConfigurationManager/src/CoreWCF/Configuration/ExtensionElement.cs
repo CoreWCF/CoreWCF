@@ -6,7 +6,7 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    public class ExtensionElement : ConfigurationElement
+    internal class ExtensionElement : ConfigurationElement
     {
         private string _typeName;
 

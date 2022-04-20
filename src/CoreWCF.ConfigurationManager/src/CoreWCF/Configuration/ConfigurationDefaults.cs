@@ -117,7 +117,7 @@ namespace CoreWCF.Configuration
         internal static readonly Encoding s_encoding = Encoding.GetEncoding(TextEncoderDefaults.EncodingString, new EncoderExceptionFallback(), new DecoderExceptionFallback());
         internal const string EncodingString = "utf-8";
         internal static readonly Encoding[] s_supportedEncodings = new Encoding[] { Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode };
-        internal const string MessageVersionString = ConfigurationStrings.Soap12WsAddressing10;
+        internal const string MessageVersionString = ConfigurationStrings.Soap12WSAddressing10;
     }
 
     internal static class TransportDefaults

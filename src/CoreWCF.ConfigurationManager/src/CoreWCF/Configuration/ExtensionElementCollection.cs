@@ -7,7 +7,7 @@ using System.Configuration;
 namespace CoreWCF.Configuration
 {
     [ConfigurationCollection(typeof(ExtensionElement), CollectionType = ConfigurationElementCollectionType.BasicMap)]
-    public class ExtensionElementCollection : ServiceModelConfigurationElementCollection<ExtensionElement>
+    internal class ExtensionElementCollection : ServiceModelConfigurationElementCollection<ExtensionElement>
     {
         public ExtensionElementCollection()
             : base(ConfigurationElementCollectionType.BasicMap, ConfigurationStrings.Add)

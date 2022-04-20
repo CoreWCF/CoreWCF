@@ -9,7 +9,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Configuration
 {
-    public sealed class ExtensionsSection : ConfigurationSection
+    internal sealed class ExtensionsSection : ConfigurationSection
     {
         private static readonly Lazy<ExtensionsSection> s_extensionsSection = new Lazy<ExtensionsSection>(LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -45,7 +45,7 @@ namespace CoreWCF.Configuration
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.BasicHttpBindingCollectionElementName, typeof(BasicHttpBindingCollectionElement).AssemblyQualifiedName));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.CustomBindingCollectionElementName, typeof(CustomBindingCollectionElement).AssemblyQualifiedName));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.NetTcpBindingCollectionElementName, typeof(NetTcpBindingCollectionElement).AssemblyQualifiedName));
-            BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.WsHttpBindingCollectionElementName, typeof(WsHttpBindingCollectionElement).AssemblyQualifiedName));
+            BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.WSHttpBindingCollectionElementName, typeof(WSHttpBindingCollectionElement).AssemblyQualifiedName));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.UdpBindingCollectionElementName, ConfigurationStrings.UdpBindingCollectionElementType));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.NetHttpBindingCollectionElementName, typeof(NetHttpBindingCollectionElement).AssemblyQualifiedName));
         }

@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Configuration
 {
-    public class WsHttpBindingCollectionElement : StandardBindingCollectionElement<WSHttpBinding, WsHttpBindingElement>
+    public class WSHttpBindingCollectionElement : StandardBindingCollectionElement<WSHttpBinding, WSHttpBindingElement>
     {
     }
 }

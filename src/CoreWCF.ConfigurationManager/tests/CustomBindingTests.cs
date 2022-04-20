@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text;
@@ -16,7 +17,6 @@ namespace CoreWCF.ConfigurationManager.Tests
 {
     public class CustomBindingTests : TestBase
     {
-
         #region CustomBinding
 
         [Fact]
@@ -103,32 +103,24 @@ namespace CoreWCF.ConfigurationManager.Tests
 
         #region TextEncoding
 
-        private const string UnicodeBe = "UnicodeBE";
-        private const string Unicode = "unicode";
-        private const string Utf8 = "utf-8";
-        private static Encoding GetEncodingForTest(string encodingName)
-            => encodingName switch
-            {
-                UnicodeBe => Encoding.BigEndianUnicode,
-                Utf8 => Encoding.UTF8,
-                Unicode => Encoding.Unicode,
-                _ => Encoding.Default
-            };
+        public static IEnumerable<object[]> GetEncodingForTest()
+        {
+            yield return new object[] { Encoding.BigEndianUnicode };
+            yield return new object[] { Encoding.UTF8 };
+            yield return new object[] { Encoding.Unicode };
+        }
 
         [Theory]
-        [InlineData(UnicodeBe)]
-        [InlineData(Unicode)]
-        [InlineData(Utf8)]
-        public void CustomBinding_WithTextEncodingSettings(string encodingName)
+        [MemberData(nameof(GetEncodingForTest))]
+        public void CustomBinding_WithTextEncodingSettings(Encoding encoding)
         {
             string expectedName = "customBinding";
             int expectedMaxDepth = 2147483647;
             int expectedMaxReadPoolSize = 24;
             int expectedMaxWritePoolSize = 8;
-            Encoding expectedEncoding = GetEncodingForTest(encodingName);
+            Encoding expectedEncoding = encoding;
             MessageVersion expectedMessageVersion = MessageVersion.Soap11;
-
-
+            
             string xml = $@"
 <configuration> 
     <system.serviceModel>         

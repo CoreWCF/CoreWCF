@@ -25,10 +25,10 @@ namespace CoreWCF.Configuration
             get { return (NetHttpBindingCollectionElement)base[ConfigurationStrings.NetHttpBindingCollectionElementName]; }
         }
 
-        [ConfigurationProperty(ConfigurationStrings.WsHttpBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
-        public WsHttpBindingCollectionElement wsHttpBinding
+        [ConfigurationProperty(ConfigurationStrings.WSHttpBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
+        public WSHttpBindingCollectionElement wsHttpBinding
         {
-            get { return (WsHttpBindingCollectionElement)base[ConfigurationStrings.WsHttpBindingCollectionElementName]; }
+            get { return (WSHttpBindingCollectionElement)base[ConfigurationStrings.WSHttpBindingCollectionElementName]; }
         }
 
         [ConfigurationProperty(ConfigurationStrings.CustomBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
