@@ -11,8 +11,8 @@ namespace CoreWCF.Runtime.Serialization
 {
     internal class XsdDataContractExporterEx
     {
-        XmlSchemaSet _schemas;
-        DataContractSetEx _dataContractSet;
+        private XmlSchemaSet _schemas;
+        private DataContractSetEx _dataContractSet;
 
         public XsdDataContractExporterEx()
         {
@@ -23,7 +23,7 @@ namespace CoreWCF.Runtime.Serialization
             _schemas = schemas;
         }
 
-        XmlSchemaSet GetSchemaSet()
+        private XmlSchemaSet GetSchemaSet()
         {
             if (_schemas == null)
             {
@@ -33,7 +33,7 @@ namespace CoreWCF.Runtime.Serialization
             return _schemas;
         }
 
-        DataContractSetEx DataContractSet
+        private DataContractSetEx DataContractSet
         {
             get
             {
@@ -76,7 +76,8 @@ namespace CoreWCF.Runtime.Serialization
             type = GetSurrogatedType(type);
             DataContractEx dataContract = DataContractEx.GetDataContract(type);
             DataContractSetEx.EnsureTypeNotGeneric(dataContract.UnderlyingType);
-            if (dataContract.IsXmlDataContract && dataContract.XmlDataContractIsAnonymous)
+            XmlDataContractEx xmlDataContract = dataContract as XmlDataContractEx;
+            if (xmlDataContract != null && xmlDataContract.IsAnonymous)
                 return XmlQualifiedName.Empty;
             return dataContract.StableName;
         }
@@ -89,8 +90,9 @@ namespace CoreWCF.Runtime.Serialization
             type = GetSurrogatedType(type);
             DataContractEx dataContract = DataContractEx.GetDataContract(type);
             DataContractSetEx.EnsureTypeNotGeneric(dataContract.UnderlyingType);
-            if (dataContract.IsXmlDataContract && dataContract.XmlDataContractIsAnonymous)
-                return dataContract.XmlDataContractXsdType;
+            XmlDataContractEx xmlDataContract = dataContract as XmlDataContractEx;
+            if (xmlDataContract != null && xmlDataContract.IsAnonymous)
+                return xmlDataContract.XsdType;
             return null;
         }
 
@@ -112,7 +114,7 @@ namespace CoreWCF.Runtime.Serialization
             }
         }
 
-        Type GetSurrogatedType(Type type)
+        private Type GetSurrogatedType(Type type)
         {
             //IDataContractSurrogate dataContractSurrogate;
             //if (options != null && (dataContractSurrogate = Options.GetSurrogate()) != null)
@@ -120,12 +122,12 @@ namespace CoreWCF.Runtime.Serialization
             return type;
         }
 
-        void AddType(Type type)
+        private void AddType(Type type)
         {
             DataContractSet.Add(type);
         }
 
-        void Export()
+        private void Export()
         {
             DataContractSet.FixupEnumDataContracts();
             var schemaExporterType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.SchemaExporter");
