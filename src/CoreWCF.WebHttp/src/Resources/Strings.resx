@@ -375,6 +375,9 @@
   <data name="SerializingRequestNotSupportedByFormatter" xml:space="preserve">
     <value>The formatter '{0}' does not support serializing requests.</value>
   </data>
+  <data name="ServiceModelWebServicesNotRegistered" xml:space="preserve">
+    <value>Unable to find the endpoint behavior WebHttpBehavior for endpoint address '{0}'. This is possibly caused by not calling ServiceModelWebServiceCollectionExtensions.AddServiceModelWebServices(IServiceCollection services).</value>
+  </data>
   <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
     <value>IAsyncResult not provided or of wrong type.</value>
   </data>

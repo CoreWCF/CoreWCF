@@ -456,7 +456,7 @@ namespace CoreWCF.IdentityModel.Tokens
         /// </summary>
         private SecurityTokenHandlerCollection CreateBootstrapTokenHandlerCollection()
         {
-            SecurityTokenHandlerCollection tokenHandlerCollection = ContainingCollection ?? SecurityTokenHandlerCollection.CreateDefaultSecurityTokenHandlerCollection();
+            SecurityTokenHandlerCollection tokenHandlerCollection = ContainingCollection ?? throw new NotSupportedException();
             return tokenHandlerCollection;
         }
 
