@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
@@ -25,24 +24,28 @@ namespace CoreWCF.NetTcp.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void EchoStringTest(MessageVersion messageVersion, System.ServiceModel.Channels.MessageVersion clientMessageVersion)
+        public void CompressionFormatTest(
+            MessageVersion messageVersion,
+            System.ServiceModel.Channels.MessageVersion clientMessageVersion,
+            CompressionFormat compressionFormat,
+            System.ServiceModel.Channels.CompressionFormat clientCompressionFormat)
         {
-            string testString = new string('a', 10);
-            var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
+            string testString = new string('a', 10000);
+            var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Tests.Startup>(_output);
             webHostBuilder.ConfigureServices(services => services.AddServiceModelServices());
             webHostBuilder.Configure(app =>
             {
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(Startup.GetServerBinding(messageVersion), "/MessageVersionTest.svc");
+                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(GetServerBinding(messageVersion, compressionFormat), "/MessageVersionTest.svc");
                 });
             });
             var host = webHostBuilder.Build();
             using (host)
             {
                 host.Start();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(Startup.GetClientBinding(clientMessageVersion),
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(GetClientBinding(clientMessageVersion, clientCompressionFormat),
                     new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + "/MessageVersionTest.svc"));
                 ClientContract.ITestService channel = factory.CreateChannel();
                 var result = channel.EchoString(testString);
@@ -53,8 +56,32 @@ namespace CoreWCF.NetTcp.Tests
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            yield return new object[] { MessageVersion.Soap12WSAddressing10, System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10) };
-            yield return new object[] { MessageVersion.Soap12WSAddressingAugust2004, System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004 };
+            yield return new object[]
+            {
+                MessageVersion.Soap12WSAddressing10,
+                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
+                CompressionFormat.GZip,
+                System.ServiceModel.Channels.CompressionFormat.GZip
+            };
+            yield return new object[] {
+                MessageVersion.Soap12WSAddressingAugust2004,
+                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
+                CompressionFormat.GZip,
+                System.ServiceModel.Channels.CompressionFormat.GZip
+            };
+            yield return new object[]
+            {
+                MessageVersion.Soap12WSAddressing10,
+                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
+                CompressionFormat.Deflate,
+                System.ServiceModel.Channels.CompressionFormat.Deflate
+            };
+            yield return new object[] {
+                MessageVersion.Soap12WSAddressingAugust2004,
+                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
+                CompressionFormat.Deflate,
+                System.ServiceModel.Channels.CompressionFormat.Deflate
+            };
         }
 
         internal class Startup
@@ -65,32 +92,34 @@ namespace CoreWCF.NetTcp.Tests
             }
 
             public void Configure(IApplicationBuilder app) { }
+        }
 
-            internal static Binding GetServerBinding(MessageVersion messageVersion)
-            {
-                var netTcpBinding = new NetTcpBinding();
-                netTcpBinding.Security.Mode = SecurityMode.None;
+        internal static Binding GetServerBinding(MessageVersion messageVersion, CompressionFormat compressionFormat)
+        {
+            var netTcpBinding = new NetTcpBinding();
+            netTcpBinding.Security.Mode = SecurityMode.None;
 
-                var customBinding = new CustomBinding(netTcpBinding);
-                var binaryEncoding = customBinding.Elements.Find<BinaryMessageEncodingBindingElement>();
-                binaryEncoding.CompressionFormat = CompressionFormat.GZip;
-                binaryEncoding.MessageVersion = messageVersion;
+            var customBinding = new CustomBinding(netTcpBinding);
+            var binaryEncoding = customBinding.Elements.Find<BinaryMessageEncodingBindingElement>();
+            binaryEncoding.MessageVersion = messageVersion;
+            binaryEncoding.CompressionFormat = compressionFormat;
 
-                return customBinding;
-            }
+            return customBinding;
+        }
 
-            internal static System.ServiceModel.Channels.Binding GetClientBinding(System.ServiceModel.Channels.MessageVersion clientMessageVersion)
-            {
-                var netTcpBinding = new System.ServiceModel.NetTcpBinding();
-                netTcpBinding.Security.Mode = System.ServiceModel.SecurityMode.None;
+        internal static System.ServiceModel.Channels.Binding GetClientBinding(
+            System.ServiceModel.Channels.MessageVersion clientMessageVersion,
+            System.ServiceModel.Channels.CompressionFormat compressionFormat)
+        {
+            var netTcpBinding = new System.ServiceModel.NetTcpBinding();
+            netTcpBinding.Security.Mode = System.ServiceModel.SecurityMode.None;
 
-                var customBinding = new System.ServiceModel.Channels.CustomBinding(netTcpBinding);
-                var binaryEncoding = customBinding.Elements.Find<System.ServiceModel.Channels.BinaryMessageEncodingBindingElement>();
-                binaryEncoding.CompressionFormat = System.ServiceModel.Channels.CompressionFormat.GZip;
-                binaryEncoding.MessageVersion = clientMessageVersion;
+            var customBinding = new System.ServiceModel.Channels.CustomBinding(netTcpBinding);
+            var binaryEncoding = customBinding.Elements.Find<System.ServiceModel.Channels.BinaryMessageEncodingBindingElement>();
+            binaryEncoding.MessageVersion = clientMessageVersion;
+            binaryEncoding.CompressionFormat = compressionFormat;
 
-                return customBinding;
-            }
+            return customBinding;
         }
     }
 }
