@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
@@ -58,75 +59,30 @@ namespace CoreWCF.NetTcp.Tests
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            yield return new object[]
+            foreach (CompressionFormat compression in Enum.GetValues(typeof(CompressionFormat)))
             {
-                MessageVersion.Soap12WSAddressing10,
-                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
-                CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip,
-                TransferMode.Buffered,
-                System.ServiceModel.TransferMode.Buffered
-            };
-            yield return new object[] {
-                MessageVersion.Soap12WSAddressingAugust2004,
-                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
-                CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip,
-                TransferMode.Buffered,
-                System.ServiceModel.TransferMode.Buffered
-            };
-            yield return new object[]
-            {
-                MessageVersion.Soap12WSAddressing10,
-                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
-                CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip,
-                TransferMode.Streamed,
-                System.ServiceModel.TransferMode.Streamed
-            };
-            yield return new object[] {
-                MessageVersion.Soap12WSAddressingAugust2004,
-                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
-                CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip,
-                TransferMode.Streamed,
-                System.ServiceModel.TransferMode.Streamed
-            };
-
-            yield return new object[]
-            {
-                MessageVersion.Soap12WSAddressing10,
-                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
-                CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate,
-                TransferMode.Buffered,
-                System.ServiceModel.TransferMode.Buffered
-            };
-            yield return new object[] {
-                MessageVersion.Soap12WSAddressingAugust2004,
-                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
-                CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate,
-                TransferMode.Buffered,
-                System.ServiceModel.TransferMode.Buffered
-            };
-            yield return new object[]
-            {
-                MessageVersion.Soap12WSAddressing10,
-                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
-                CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate,
-                TransferMode.Streamed,
-                System.ServiceModel.TransferMode.Streamed
-            };
-            yield return new object[] {
-                MessageVersion.Soap12WSAddressingAugust2004,
-                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
-                CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate,
-                TransferMode.Streamed,
-                System.ServiceModel.TransferMode.Streamed
-            };
+                foreach (TransferMode transferMode in Enum.GetValues(typeof(TransferMode)))
+                {
+                    yield return new object[]
+                    {
+                        MessageVersion.Soap12WSAddressing10,
+                        System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
+                        compression,
+                        (System.ServiceModel.Channels.CompressionFormat)compression,
+                        transferMode,
+                        (System.ServiceModel.TransferMode)transferMode
+                    };
+                    yield return new object[]
+                    {
+                        MessageVersion.Soap12WSAddressingAugust2004,
+                        System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
+                        compression,
+                        (System.ServiceModel.Channels.CompressionFormat)compression,
+                        transferMode,
+                        (System.ServiceModel.TransferMode)transferMode
+                    };
+                }
+            }
         }
 
         internal class Startup
