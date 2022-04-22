@@ -386,12 +386,12 @@ namespace CoreWCF.Channels.Framing
                     return FramingEncodingString.Binary;
                 case FramingEncodingType.BinarySession:
                     return FramingEncodingString.BinarySession;
-                //case FramingEncodingType.ExtendedBinaryGZip:
-                //    return FramingEncodingString.ExtendedBinaryGZip;
+                case FramingEncodingType.ExtendedBinaryGZip:
+                    return FramingEncodingString.ExtendedBinaryGZip;
                 case FramingEncodingType.ExtendedBinarySessionGZip:
                     return FramingEncodingString.ExtendedBinarySessionGZip;
-                //case FramingEncodingType.ExtendedBinaryDeflate:
-                //    return FramingEncodingString.ExtendedBinaryDeflate;
+                case FramingEncodingType.ExtendedBinaryDeflate:
+                    return FramingEncodingString.ExtendedBinaryDeflate;
                 case FramingEncodingType.ExtendedBinarySessionDeflate:
                     return FramingEncodingString.ExtendedBinarySessionDeflate;
                 default:

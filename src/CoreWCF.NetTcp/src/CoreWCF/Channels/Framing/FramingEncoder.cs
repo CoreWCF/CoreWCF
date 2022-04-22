@@ -134,18 +134,18 @@ namespace CoreWCF.Channels.Framing
             {
                 return new EncodedContentType(FramingEncodingType.ExtendedBinarySessionDeflate);
             }
-            //else if (contentType == FramingEncodingString.ExtendedBinaryDeflate)
-            //{
-            //    return new EncodedContentType(FramingEncodingType.ExtendedBinaryDeflate);
-            //}
+            else if (contentType == FramingEncodingString.ExtendedBinaryDeflate)
+            {
+                return new EncodedContentType(FramingEncodingType.ExtendedBinaryDeflate);
+            }
             else if (contentType == FramingEncodingString.ExtendedBinarySessionGZip)
             {
                 return new EncodedContentType(FramingEncodingType.ExtendedBinarySessionGZip);
             }
-            //else if (contentType == FramingEncodingString.ExtendedBinaryGZip)
-            //{
-            //    return new EncodedContentType(FramingEncodingType.ExtendedBinaryGZip);
-            //}
+            else if (contentType == FramingEncodingString.ExtendedBinaryGZip)
+            {
+                return new EncodedContentType(FramingEncodingType.ExtendedBinaryGZip);
+            }
             else if(contentType == FramingEncodingString.BinarySession)
             {
                 return new EncodedContentType(FramingEncodingType.BinarySession);
