@@ -28,9 +28,11 @@ namespace CoreWCF.NetTcp.Tests
             MessageVersion messageVersion,
             System.ServiceModel.Channels.MessageVersion clientMessageVersion,
             CompressionFormat compressionFormat,
-            System.ServiceModel.Channels.CompressionFormat clientCompressionFormat)
+            System.ServiceModel.Channels.CompressionFormat clientCompressionFormat,
+            TransferMode transferMode,
+            System.ServiceModel.TransferMode clientTransferMode)
         {
-            string testString = new string('a', 10000);
+            string testString = new string('a', 8000);
             var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Tests.Startup>(_output);
             webHostBuilder.ConfigureServices(services => services.AddServiceModelServices());
             webHostBuilder.Configure(app =>
@@ -38,14 +40,14 @@ namespace CoreWCF.NetTcp.Tests
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(GetServerBinding(messageVersion, compressionFormat), "/MessageVersionTest.svc");
+                    builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(GetServerBinding(messageVersion, compressionFormat, transferMode), "/MessageVersionTest.svc");
                 });
             });
             var host = webHostBuilder.Build();
             using (host)
             {
                 host.Start();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(GetClientBinding(clientMessageVersion, clientCompressionFormat),
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(GetClientBinding(clientMessageVersion, clientCompressionFormat, clientTransferMode),
                     new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + "/MessageVersionTest.svc"));
                 ClientContract.ITestService channel = factory.CreateChannel();
                 var result = channel.EchoString(testString);
@@ -61,26 +63,69 @@ namespace CoreWCF.NetTcp.Tests
                 MessageVersion.Soap12WSAddressing10,
                 System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
                 CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip
+                System.ServiceModel.Channels.CompressionFormat.GZip,
+                TransferMode.Buffered,
+                System.ServiceModel.TransferMode.Buffered
             };
             yield return new object[] {
                 MessageVersion.Soap12WSAddressingAugust2004,
                 System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
                 CompressionFormat.GZip,
-                System.ServiceModel.Channels.CompressionFormat.GZip
+                System.ServiceModel.Channels.CompressionFormat.GZip,
+                TransferMode.Buffered,
+                System.ServiceModel.TransferMode.Buffered
+            };
+            yield return new object[]
+            {
+                MessageVersion.Soap12WSAddressing10,
+                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
+                CompressionFormat.GZip,
+                System.ServiceModel.Channels.CompressionFormat.GZip,
+                TransferMode.Streamed,
+                System.ServiceModel.TransferMode.Streamed
+            };
+            yield return new object[] {
+                MessageVersion.Soap12WSAddressingAugust2004,
+                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
+                CompressionFormat.GZip,
+                System.ServiceModel.Channels.CompressionFormat.GZip,
+                TransferMode.Streamed,
+                System.ServiceModel.TransferMode.Streamed
+            };
+
+            yield return new object[]
+            {
+                MessageVersion.Soap12WSAddressing10,
+                System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
+                CompressionFormat.Deflate,
+                System.ServiceModel.Channels.CompressionFormat.Deflate,
+                TransferMode.Buffered,
+                System.ServiceModel.TransferMode.Buffered
+            };
+            yield return new object[] {
+                MessageVersion.Soap12WSAddressingAugust2004,
+                System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
+                CompressionFormat.Deflate,
+                System.ServiceModel.Channels.CompressionFormat.Deflate,
+                TransferMode.Buffered,
+                System.ServiceModel.TransferMode.Buffered
             };
             yield return new object[]
             {
                 MessageVersion.Soap12WSAddressing10,
                 System.ServiceModel.Channels.MessageVersion.CreateVersion(System.ServiceModel.EnvelopeVersion.Soap12, System.ServiceModel.Channels.AddressingVersion.WSAddressing10),
                 CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate
+                System.ServiceModel.Channels.CompressionFormat.Deflate,
+                TransferMode.Streamed,
+                System.ServiceModel.TransferMode.Streamed
             };
             yield return new object[] {
                 MessageVersion.Soap12WSAddressingAugust2004,
                 System.ServiceModel.Channels.MessageVersion.Soap12WSAddressingAugust2004,
                 CompressionFormat.Deflate,
-                System.ServiceModel.Channels.CompressionFormat.Deflate
+                System.ServiceModel.Channels.CompressionFormat.Deflate,
+                TransferMode.Streamed,
+                System.ServiceModel.TransferMode.Streamed
             };
         }
 
@@ -94,10 +139,14 @@ namespace CoreWCF.NetTcp.Tests
             public void Configure(IApplicationBuilder app) { }
         }
 
-        internal static Binding GetServerBinding(MessageVersion messageVersion, CompressionFormat compressionFormat)
+        internal static Binding GetServerBinding(
+            MessageVersion messageVersion,
+            CompressionFormat compressionFormat,
+            TransferMode transferMode)
         {
             var netTcpBinding = new NetTcpBinding();
             netTcpBinding.Security.Mode = SecurityMode.None;
+            netTcpBinding.TransferMode = transferMode;
 
             var customBinding = new CustomBinding(netTcpBinding);
             var binaryEncoding = customBinding.Elements.Find<BinaryMessageEncodingBindingElement>();
@@ -109,10 +158,12 @@ namespace CoreWCF.NetTcp.Tests
 
         internal static System.ServiceModel.Channels.Binding GetClientBinding(
             System.ServiceModel.Channels.MessageVersion clientMessageVersion,
-            System.ServiceModel.Channels.CompressionFormat compressionFormat)
+            System.ServiceModel.Channels.CompressionFormat compressionFormat,
+            System.ServiceModel.TransferMode transferMode)
         {
             var netTcpBinding = new System.ServiceModel.NetTcpBinding();
             netTcpBinding.Security.Mode = System.ServiceModel.SecurityMode.None;
+            netTcpBinding.TransferMode = transferMode;
 
             var customBinding = new System.ServiceModel.Channels.CustomBinding(netTcpBinding);
             var binaryEncoding = customBinding.Elements.Find<System.ServiceModel.Channels.BinaryMessageEncodingBindingElement>();
