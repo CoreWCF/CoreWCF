@@ -379,6 +379,7 @@ namespace CoreWCF.Description
         internal const string SMOperationContractAttributeFullName = "System.ServiceModel.OperationContractAttribute";
         internal const string SMMessageContractAttributeFullName = "System.ServiceModel.MessageContractAttribute";
         internal const string SMMessageHeaderAttributeFullName = "System.ServiceModel.MessageHeaderAttribute";
+        internal const string SMMessageHeaderArrayAttributeFullName = "System.ServiceModel.MessageHeaderArrayAttribute";
         internal const string SMMessagePropertyAttributeFullName = "System.ServiceModel.MessagePropertyAttribute";
         internal const string SMMessageBodyMemberAttributeFullName = "System.ServiceModel.MessageBodyMemberAttribute";
         internal const string SMMessageParameterAttributeFullName = "System.ServiceModel.MessageParameterAttribute";

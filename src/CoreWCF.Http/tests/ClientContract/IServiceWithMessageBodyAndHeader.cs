@@ -23,6 +23,9 @@ namespace ClientContract
 
         [MessageHeader]
         public string APIKey { get; set; }
+
+        [MessageHeaderArray]
+        public string[] HeaderArrayValues { get; set; }
     }
 
 
@@ -34,5 +37,8 @@ namespace ClientContract
 
         [MessageHeader]
         public string SayHi { get; set; }
+
+        [MessageHeaderArray]
+        public string[] HeaderArrayValues { get; set; }
     }
 }
