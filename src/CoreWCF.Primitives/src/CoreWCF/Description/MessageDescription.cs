@@ -42,7 +42,6 @@ namespace CoreWCF.Description
             }
             MessageName = other.MessageName;
             MessageType = other.MessageType;
-
         }
 
         public MessageDescription Clone()

@@ -23,21 +23,23 @@ namespace CoreWCF.Description
             return false;
         }
 
+        private static HashSet<string> s_eligibleMessageList = new HashSet<string>()
+            {
+                ServiceReflector.CWCFMessageHeaderAttribute,
+                ServiceReflector.CWCFMessageHeaderArrayAttribute,
+                ServiceReflector.CWCFMessageBodyMemberAttribute,
+                ServiceReflector.CWCFMessagePropertyAttribute,
+                ServiceReflector.SMMessageHeaderAttributeFullName,
+                ServiceReflector.SMMessageHeaderArrayAttributeFullName,
+                ServiceReflector.SMMessageBodyMemberAttributeFullName,
+                ServiceReflector.SMMessagePropertyAttributeFullName
+            };
+
         internal static bool IsEligibleMember(MemberInfo memberInfo)
         {
-            HashSet<string> eligibleMessageList = new HashSet<string>()
-            {
-                 ServiceReflector.CWCFMesssageHeaderAttribute
-                , ServiceReflector.CWCFMesssageHeaderArrayAttribute
-                ,ServiceReflector.CWCFMesssageBodyMemberAttribute
-                ,ServiceReflector.CWCFMesssagePropertyAttribute
-                ,ServiceReflector.SMMessageBodyMemberAttributeFullName
-                , ServiceReflector.SMMessageContractAttributeFullName
-                ,ServiceReflector.SMMessageHeaderAttributeFullName
-            };
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
-                if (eligibleMessageList.Contains(attr.GetType().FullName))
+                if (s_eligibleMessageList.Contains(attr.GetType().FullName))
                 {
                     return true;
                 }
@@ -52,6 +54,7 @@ namespace CoreWCF.Description
                 if ((attr.GetType() == typeof(MessageHeaderAttribute))
                     || (attr.GetType() == typeof(MessageHeaderArrayAttribute))
                     || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderAttributeFullName, true) == 0)
+                    || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessageHeaderArrayAttributeFullName, true) == 0)
                     )
                 {
                     return true;
