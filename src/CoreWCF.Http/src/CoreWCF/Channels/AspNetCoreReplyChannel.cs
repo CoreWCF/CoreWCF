@@ -91,6 +91,28 @@ namespace CoreWCF.Channels
 
         internal async Task HandleRequest(HttpContext context)
         {
+            try
+            {
+                await HandleRequestCore(context);
+            }
+            catch (ProtocolException)
+            {
+                // Emulate behavior of WCF when hosted on IIS/HTTP.SYS
+                // Scoping to only ProtocolException as this is a known bad request
+                // TODO: Add logging
+                if (context.Response.HasStarted)
+                {
+                    // Can't modify the headers if the response has started already so just rethrow
+                    throw;
+                }
+
+                context.Response.StatusCode = 400;
+                context.Response.ContentLength = 0;
+            }
+        }
+
+        internal async Task HandleRequestCore(HttpContext context)
+        {
             if (ChannelDispatcher == null)
             {
                 // TODO: Look for existing SR which would work here. Cleanup how the exception is thrown.
