@@ -51,7 +51,8 @@ namespace CoreWCF.Description
                 }
                 else if (attributeType == typeof(MessageHeaderAttribute))
                 {
-                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName)).ToArray();
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName) ||
+                                                           attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderArrayAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
                     {
                         result[i] = ConvertFromServiceModelMessageHeaderAttribute(result[i]);
@@ -65,7 +66,7 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelMessageBodyMemberAttribute(result[i]);
                     }
                 }
-                else if (attributeType == typeof(MessageBodyMemberAttribute))
+                else if (attributeType == typeof(MessagePropertyAttribute))
                 {
                     result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
@@ -161,7 +162,10 @@ namespace CoreWCF.Description
 
         private static MessageHeaderAttribute ConvertFromServiceModelMessageHeaderAttribute(object attr)
         {
-            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName), "Expected attribute of type System.ServiceModel.MessageHeader");
+            string attributeFullName = attr.GetType().FullName;
+            Fx.Assert(attributeFullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName) ||
+                      attributeFullName.Equals(ServiceReflector.SMMessageHeaderArrayAttributeFullName),
+                      "Expected attribute of type System.ServiceModel.MessageHeaderAttribute or System.ServiceModel.MessageHeaderArrayAttribute");
 
             bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
             if (hasProtectionLevel)
@@ -170,24 +174,35 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.ServiceContractAttribute.ProtectionLevel"));
             }
 
-            var messageHeader = new MessageHeaderAttribute();
+            MessageHeaderAttribute messageHeader;
+            Type declaringPropertyType; // Used so that we call GetProperty on the SM MessageHeaderAttribute type and not the array variant
+            if (attributeFullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName))
+            {
+                messageHeader = new MessageHeaderAttribute();
+                declaringPropertyType = attr.GetType();
+            }
+            else
+            {
+                messageHeader = new MessageHeaderArrayAttribute();
+                declaringPropertyType = attr.GetType().BaseType;
+            }
 
-            string tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Actor));
+            string tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Actor));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Actor = tmpStr;
             }
-            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Name));
+            tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Name = tmpStr;
             }
-            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Namespace));
+            tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Namespace));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Namespace = tmpStr;
             }
-            messageHeader.MustUnderstand = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.MustUnderstand));
+            messageHeader.MustUnderstand = GetProperty<bool>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.MustUnderstand));
             messageHeader.Relay = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.Relay));
             return messageHeader;
         }
@@ -334,21 +349,25 @@ namespace CoreWCF.Description
         private static TProp GetProperty<TProp>(object obj, string propName)
         {
             Fx.Assert(obj != null, "Expected non-null object");
+            return GetProperty<TProp>(obj, obj.GetType(), propName);
+        }
+
+        private static TProp GetProperty<TProp>(object obj, Type declaringPropertyType, string propName)
+        {
+            Fx.Assert(obj != null, "Expected non-null object");
             PropertyInfo propInfo;
             if (typeof(TProp).IsEnum)
             {
-                propInfo = obj.GetType().GetProperty(propName);
+                propInfo = declaringPropertyType.GetProperty(propName);
                 Fx.Assert(propInfo != null, $"Could not find property with name {propName} on object of type {obj.GetType().FullName}");
                 return (TProp)Enum.ToObject(typeof(TProp), propInfo.GetValue(obj));
             }
             else
             {
-                propInfo = obj.GetType().GetProperty(propName, typeof(TProp));
+                propInfo = declaringPropertyType.GetProperty(propName, typeof(TProp));
                 Fx.Assert(propInfo != null, $"Could not find property with name {propName} of type {typeof(TProp).FullName} on object of type {obj.GetType().FullName}");
                 return (TProp)propInfo.GetValue(obj);
             }
         }
-
-        
     }
 }
