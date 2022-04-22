@@ -854,6 +854,31 @@ namespace CoreWCF.OpenApi
                         }
                     }
                 }
+                else if (property.PropertyType.IsEnum)
+                {
+                    List<IOpenApiAny> enumValues = new List<IOpenApiAny>();
+                    foreach (object value in Enum.GetValues(property.PropertyType))
+                    {
+                        enumValues.Add(new OpenApiString(value.ToString()));
+                    }
+
+                    definitionSchema.Properties.Add(name, new OpenApiSchema
+                    {
+                        Type = "string",
+                        Description = memberPropertiesAttribute?.Description,
+                        Enum = enumValues,
+                        // The URI type might mangle the namespace so we do this manually.
+                        Extensions = new Dictionary<string, IOpenApiExtension>
+                        {
+                            {"xml", new OpenApiObject
+                                {
+                                    {"namespace", new OpenApiString(ns)},
+                                    {"prefix", new OpenApiString(prefix)}
+                                }
+                            }
+                        }
+                    });
+                }
                 else
                 {
                     definitionSchema.Properties.Add(name, new OpenApiSchema
@@ -891,12 +916,8 @@ namespace CoreWCF.OpenApi
             {
                 return $"{DataContractNamespace}{type.Namespace}";
             }
-            else if (ns != "")
-            {
-                return ns;
-            }
 
-            return null;
+            return ns;
         }
 
         /// <summary>

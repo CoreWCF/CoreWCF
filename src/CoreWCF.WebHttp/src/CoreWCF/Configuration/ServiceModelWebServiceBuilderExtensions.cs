@@ -230,7 +230,7 @@ namespace CoreWCF.Configuration
             builder.AddServiceEndpoint(service, implementedContract, binding, address, listenUri, serviceEndpoint =>
             {
                 KeyedByTypeCollection<IEndpointBehavior> behaviors = (KeyedByTypeCollection<IEndpointBehavior>)serviceEndpoint.EndpointBehaviors;
-                WebHttpBehavior webHttpBehavior = behaviors.Find<WebHttpBehavior>();
+                WebHttpBehavior webHttpBehavior = behaviors.Find<WebHttpBehavior>() ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ServiceModelWebServicesNotRegistered, address)));
                 configureWebBehavior?.Invoke(webHttpBehavior);
 
                 if (webHttpBehavior.HelpEnabled)

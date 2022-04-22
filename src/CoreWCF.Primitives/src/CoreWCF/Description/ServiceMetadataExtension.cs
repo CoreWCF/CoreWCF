@@ -16,6 +16,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Description
@@ -760,28 +761,34 @@ namespace CoreWCF.Description
 
             private string FindQuery(IQueryCollection queries)
             {
-                string query = null;
-                foreach (var q in queries)
+                string CombineKeyAndValues(string key, string values)
                 {
-                    if (string.Compare(q.Key, WsdlQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (string.Compare(q.Key, XsdQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (string.Compare(q.Key, SingleWsdlQueryString, StringComparison.OrdinalIgnoreCase) == 0)
-                    {
-                        query = q.Key;
-                    }
-                    else if (_parent.HelpPageEnabled && (string.Compare(q.Key, DiscoQueryString, StringComparison.OrdinalIgnoreCase) == 0))
-                    {
-                        query = q.Key;
-                    }
+                    return string.IsNullOrWhiteSpace(values)
+                        ? key
+                        : $"{key}={values}";
                 }
 
-                return query;
+                if (queries.TryGetValue(WsdlQueryString, out var values))
+                {
+                    return CombineKeyAndValues(WsdlQueryString, values);
+                }
+
+                if (queries.TryGetValue(XsdQueryString, out values))
+                {
+                    return CombineKeyAndValues(XsdQueryString, values);
+                }
+
+                if (queries.TryGetValue(SingleWsdlQueryString, out _))
+                {
+                    return SingleWsdlQueryString;
+                }
+
+                if (_parent.HelpPageEnabled && queries.ContainsKey(DiscoQueryString))
+                {
+                    return DiscoQueryString;
+                }
+
+                return null;
             }
 
             private async Task<bool> ProcessHttpRequest(HttpContext requestContext)
