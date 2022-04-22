@@ -9,9 +9,7 @@ namespace CoreWCF.Description
 {
     public class PolicyAssertionCollection : Collection<XmlElement>
     {
-        public PolicyAssertionCollection()
-        {
-        }
+        public PolicyAssertionCollection() { }
 
         public PolicyAssertionCollection(IEnumerable<XmlElement> elements)
         {
@@ -65,7 +63,7 @@ namespace CoreWCF.Description
             return Find(localName, namespaceUri, true);
         }
 
-        XmlElement Find(string localName, string namespaceUri, bool remove)
+        private XmlElement Find(string localName, string namespaceUri, bool remove)
         {
             if (localName == null)
             {
@@ -103,7 +101,7 @@ namespace CoreWCF.Description
             return FindAll(localName, namespaceUri, true);
         }
 
-        Collection<XmlElement> FindAll(string localName, string namespaceUri, bool remove)
+        private Collection<XmlElement> FindAll(string localName, string namespaceUri, bool remove)
         {
             if (localName == null)
             {

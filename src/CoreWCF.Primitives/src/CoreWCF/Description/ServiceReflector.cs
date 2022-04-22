@@ -365,8 +365,8 @@ namespace CoreWCF.Description
         internal const BindingFlags ServiceModelBindingFlags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
         internal const string BeginMethodNamePrefix = "Begin";
         internal const string EndMethodNamePrefix = "End";
-        internal static readonly Type VoidType = typeof(void);
         internal const string AsyncMethodNameSuffix = "Async";
+        internal static readonly Type VoidType = typeof(void);
         internal static readonly Type taskType = typeof(Task);
         internal static readonly Type taskTResultType = typeof(Task<>);
         internal static readonly Type CancellationTokenType = typeof(CancellationToken);
@@ -387,11 +387,10 @@ namespace CoreWCF.Description
         internal const string SMFaultContractAttributeFullName = "System.ServiceModel.FaultContractAttribute";
         internal const string SMServiceKnownTypeAttributeFullName = "System.ServiceModel.ServiceKnownTypeAttribute";
 
-        internal static readonly string CWCFMesssageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
-        internal static readonly string CWCFMesssageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";
-        internal static readonly string CWCFMesssageBodyMemberAttribute = "CoreWCF.MessageBodyMemberAttribute";
-        internal static readonly string CWCFMesssagePropertyAttribute = "CoreWCF.MessagePropertyAttribute";
-        internal static readonly string CWCFMesssageContractAttribute = "CoreWCF.MessageContractAttribute";
+        internal const string CWCFMessageHeaderAttribute = "CoreWCF.MessageHeaderAttribute";
+        internal const string CWCFMessageHeaderArrayAttribute = "CoreWCF.MessageHeaderArrayAttribute";
+        internal const string CWCFMessageBodyMemberAttribute = "CoreWCF.MessageBodyMemberAttribute";
+        internal const string CWCFMessagePropertyAttribute = "CoreWCF.MessagePropertyAttribute";
 
         internal static Type GetOperationContractProviderType(MethodInfo method)
         {

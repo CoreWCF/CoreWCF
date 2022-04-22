@@ -25,10 +25,10 @@ namespace CoreWCF.Description
 
         private static HashSet<string> s_eligibleMessageList = new HashSet<string>()
             {
-                ServiceReflector.CWCFMesssageHeaderAttribute,
-                ServiceReflector.CWCFMesssageHeaderArrayAttribute,
-                ServiceReflector.CWCFMesssageBodyMemberAttribute,
-                ServiceReflector.CWCFMesssagePropertyAttribute,
+                ServiceReflector.CWCFMessageHeaderAttribute,
+                ServiceReflector.CWCFMessageHeaderArrayAttribute,
+                ServiceReflector.CWCFMessageBodyMemberAttribute,
+                ServiceReflector.CWCFMessagePropertyAttribute,
                 ServiceReflector.SMMessageHeaderAttributeFullName,
                 ServiceReflector.SMMessageHeaderArrayAttributeFullName,
                 ServiceReflector.SMMessageBodyMemberAttributeFullName,
