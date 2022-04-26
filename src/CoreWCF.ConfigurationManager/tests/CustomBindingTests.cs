@@ -120,7 +120,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedMaxWritePoolSize = 8;
             Encoding expectedEncoding = encoding;
             MessageVersion expectedMessageVersion = MessageVersion.Soap11;
-            
+
             string xml = $@"
 <configuration> 
     <system.serviceModel>         
@@ -629,7 +629,7 @@ namespace CoreWCF.ConfigurationManager.Tests
 
                     CustomBinding actualBinding = settingHolder.ResolveBinding(nameof(CustomBinding), expectedName) as CustomBinding;
                     TcpTransportBindingElement actualTransportElement = actualBinding.Elements.Find<TcpTransportBindingElement>();
-                    
+
                     Assert.Equal(expectedName, actualBinding.Name);
                     Assert.Equal(expectedMaxReceivedMessageSize, actualTransportElement.MaxReceivedMessageSize);
                     Assert.Equal(expectedMaxBufferSize, actualTransportElement.MaxBufferSize);
@@ -758,11 +758,74 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.NotNull(actualSecurityBindingElement);
                     Assert.NotNull(actualSecurityBindingElement.LocalServiceSettings);
                     Assert.Equal(expectedSecurityAlgorithmSuite, actualSecurityBindingElement.DefaultAlgorithmSuite);
-                    Assert.Equal(expectedEnableUnsecuredResponse,actualSecurityBindingElement.EnableUnsecuredResponse);
+                    Assert.Equal(expectedEnableUnsecuredResponse, actualSecurityBindingElement.EnableUnsecuredResponse);
                     Assert.NotNull(actualSecurityBindingElement.EndpointSupportingTokenParameters.Endorsing.First() as SecureConversationSecurityTokenParameters);
-                    
+
 
                     Assert.Equal(expectedName, actualBinding.Name);
+                }
+            }
+        }
+
+
+        [Fact]
+        public void CustomBinding_WithSecurity_TestIssuer_Throws_PlatformUnsupportedException()
+        {
+            string expectedName = "customBinding";
+
+
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>         
+        <bindings>         
+            <customBinding>
+                <binding name=""{expectedName}"">
+                    <security authenticationMode=""IssuedTokenForCertificate"">
+                        <issuedTokenParameters>
+                            <issuer address=""https://github.com/CoreWCF/CoreWCF"" binding=""basicHttpBinding"" bindingConfiguration=""basicHttpBinding""/>
+                        </issuedTokenParameters> 
+                    </security>
+                 </binding>
+            </customBinding>                             
+        </bindings>                             
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    Assert.Throws<PlatformNotSupportedException>(() => GetConfigurationHolder(provider));
+                }
+            }
+        }
+
+        [Fact]
+        public void CustomBinding_WithSecurity_TestIssuerMetaData()
+        {
+            string expectedName = "customBinding";
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>         
+        <bindings>         
+            <customBinding>
+                <binding name=""{expectedName}"">
+                    <security authenticationMode=""IssuedTokenForCertificate"">
+                        <issuedTokenParameters>
+                            <issuerMetadata address=""https://github.com/CoreWCF/CoreWCF""/> 
+                        </issuedTokenParameters> 
+                    </security>
+                 </binding>
+            </customBinding>                             
+        </bindings>                             
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    Assert.Throws<PlatformNotSupportedException>(() => GetConfigurationHolder(provider));
                 }
             }
         }
