@@ -24,7 +24,7 @@ namespace CoreWCF.Security
 
         public ServiceCredentials ServiceCredentials { get; }
 
-        internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
+        public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
             if (version == null)
             {

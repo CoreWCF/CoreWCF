@@ -1286,7 +1286,7 @@ namespace CoreWCF.Security
                 return _innerTokenManager.CreateSecurityTokenProvider(requirement);
             }
 
-            internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
+            public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
             {
                 return _innerTokenManager.CreateSecurityTokenSerializer(version);
             }
