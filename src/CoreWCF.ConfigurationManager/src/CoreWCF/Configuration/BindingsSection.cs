@@ -26,9 +26,15 @@ namespace CoreWCF.Configuration
         }
 
         [ConfigurationProperty(ConfigurationStrings.WSHttpBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
-        public WSHttpBindingCollectionElement WSHttpBinding
+        public WSHttpBindingCollectionElement wsHttpBinding
         {
             get { return (WSHttpBindingCollectionElement)base[ConfigurationStrings.WSHttpBindingCollectionElementName]; }
+        }
+
+        [ConfigurationProperty(ConfigurationStrings.CustomBindingCollectionElementName, Options = ConfigurationPropertyOptions.None)]
+        public CustomBindingCollectionElement CustomBinding
+        {
+            get { return (CustomBindingCollectionElement)base[ConfigurationStrings.CustomBindingCollectionElementName]; }
         }
     }
 }

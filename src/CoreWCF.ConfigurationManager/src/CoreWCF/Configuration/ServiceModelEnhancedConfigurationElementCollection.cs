@@ -12,7 +12,7 @@ namespace CoreWCF.Configuration
         internal ServiceModelEnhancedConfigurationElementCollection(string elementName)
             : base(ConfigurationElementCollectionType.AddRemoveClearMap, elementName)
         {
-            this.AddElementName = elementName;
+            AddElementName = elementName;
         }
     }
 }

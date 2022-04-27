@@ -25,6 +25,8 @@ namespace CoreWCF.Configuration
                     return new WSHttpBinding();
                 case "netHttpBinding":
                     return new NetHttpBinding();
+                case "customBinding":
+                    return new CustomBinding();
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
             }

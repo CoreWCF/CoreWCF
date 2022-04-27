@@ -142,7 +142,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             {
                 ServiceModelSectionGroup section = GetSectionFromXml(fs);
 
-                WSHttpBindingElement actualBinding = section.Bindings.WSHttpBinding.Bindings.Cast<WSHttpBindingElement>().First();
+                WSHttpBindingElement actualBinding = section.Bindings.wsHttpBinding.Bindings.Cast<WSHttpBindingElement>().First();
 
                 Assert.Equal(expectedName, actualBinding.Name);
                 Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);
