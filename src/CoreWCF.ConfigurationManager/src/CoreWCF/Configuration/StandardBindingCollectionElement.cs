@@ -8,7 +8,7 @@ namespace CoreWCF.Configuration
 {
     public class StandardBindingCollectionElement<TStandardBinding, TBindingConfiguration> : BindingCollectionElement
         where TStandardBinding : Binding
-        where TBindingConfiguration : StandardBindingElement, new()
+        where TBindingConfiguration : ConfigurationElement, IDefaultCommunicationTimeouts, IStandardBindingElement, new()
     {
 
         [ConfigurationProperty(ConfigurationStrings.DefaultCollectionName, Options = ConfigurationPropertyOptions.IsDefaultCollection)]
