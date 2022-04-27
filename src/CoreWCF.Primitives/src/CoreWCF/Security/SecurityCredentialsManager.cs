@@ -10,6 +10,6 @@ namespace CoreWCF.Security
         protected SecurityCredentialsManager() { }
 
         // TODO: Resolve solution to SecurityTokenManager which lives in System.IdentityModel.Selectors not existing on .Net standard
-        internal abstract SecurityTokenManager CreateSecurityTokenManager();
+        public abstract SecurityTokenManager CreateSecurityTokenManager();
     }
 }
