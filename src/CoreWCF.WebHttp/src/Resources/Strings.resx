@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AtMostOneRequestBodyParameterAllowedForStream" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has multiple request body parameters, one of which is a Stream. When the Stream is a parameter, there can be no other parameters in the body.</value>
+  </data>
+  <data name="AtMostOneRequestBodyParameterAllowedForUnwrappedMessages" xml:space="preserve">
+    <value>Operation '{0}' of contract '{1}' specifies multiple request body parameters to be serialized without any wrapper elements. At most one body parameter can be serialized without wrapper elements. Either remove the extra body parameters or set the BodyStyle property on the WebGetAttribute/WebInvokeAttribute to Wrapped.</value>
+  </data>
+  <data name="BindUriTemplateToNullOrEmptyPathParam" xml:space="preserve">
+    <value>The path variable '{0}' in the UriTemplate must be bound to a non-empty string value.</value>
+  </data>
+  <data name="BufferedOutputStreamQuotaExceeded" xml:space="preserve">
+    <value>The size quota for this stream ({0}) has been exceeded.</value>
+  </data>
+  <data name="BufferIsNotRightSizeForBufferManager" xml:space="preserve">
+    <value>This buffer cannot be returned to the buffer manager because it is the wrong size.</value>
+  </data>
+  <data name="CannotDeserializeBody" xml:space="preserve">
+    <value>Unable to deserialize XML body with root name '{0}' and root namespace '{1}' (for operation '{2}' and contract ('{3}',  '{4}')) using {5}. Ensure that the type corresponding to the XML is added to the known types collection of the service.</value>
+  </data>
+  <data name="CannotSerializeType" xml:space="preserve">
+    <value>Type '{0}' of operation '{1}' and contract ('{2}', '{3}') could not be serialized. Ensure that the type can be serialized using {4} and add the type to the known types collection of the service if required.</value>
+  </data>
+  <data name="CertificateUnsupportedForHttpTransportCredentialOnly" xml:space="preserve">
+    <value>Certificate-based client authentication is not supported in TransportCredentialOnly security mode. Select the Transport security mode.</value>
+  </data>
+  <data name="ConditionalRetrieveGetAndHeadOnly" xml:space="preserve">
+    <value>CheckConditionalRetrieve() can not be used with the HTTP method '{0}'.  Only the HTTP methods GET and HEAD are valid with CheckConditionalRetrieve().</value>
+  </data>
+  <data name="ConditionalUpdatePutPostAndDeleteOnly" xml:space="preserve">
+    <value>CheckConditionalUpdate() can not be used with the HTTP method '{0}'.  Only the HTTP methods PUT, POST and DELETE are valid with CheckConditionalUpdate().</value>
+  </data>
+  <data name="ConfigInvalidEncodingValue" xml:space="preserve">
+    <value>{0} is not a valid encoding string for System.Text.Encoding.GetEncoding(string).</value>
+  </data>
+  <data name="CrossDomainJavascriptAuthNotSupported" xml:space="preserve">
+    <value>Cross domain javascript callback is not supported in authenticated services.</value>
+  </data>
+  <data name="CrossDomainJavascriptNotsupported" xml:space="preserve">
+    <value>CrossDomainScriptAccessEnabled cannot be used in Clients.</value>
+  </data>
+  <data name="DefaultContentFormatNotAllowedInProperty" xml:space="preserve">
+    <value>The default WebContentFormat cannot be used to construct a WebBodyFormatMessageProperty. Specify an explicit format (for example XML, JSON or Raw) instead.</value>
+  </data>
+  <data name="DuplicateRegistration" xml:space="preserve">
+    <value>A registration already exists for URI '{0}'.</value>
+  </data>
+  <data name="EncoderBadContentType" xml:space="preserve">
+    <value>Cannot process contentType.</value>
+  </data>
+  <data name="EncoderEnvelopeVersionMismatch" xml:space="preserve">
+    <value>The envelope version of the incoming message ({0}) does not match that of the encoder ({1}). Make sure the binding is configured with the same version as the expected messages.</value>
+  </data>
+  <data name="EncoderUnrecognizedCharSet" xml:space="preserve">
+    <value>Unrecognized charSet '{0}' in contentType.</value>
+  </data>
+  <data name="EndpointAddressCannotBeNull" xml:space="preserve">
+    <value>The ServiceEndpoint's Address is null.  Address must be an absolute uri.</value>
+  </data>
+  <data name="ErrorEncounteredInContentTypeMapper" xml:space="preserve">
+    <value>An unexpected exception was encountered when using the WebContentTypeMapper.</value>
+  </data>
+  <data name="FormatterCannotBeUsedForReplyMessages" xml:space="preserve">
+    <value>This message formatter cannot be used to process response messages.</value>
+  </data>
+  <data name="FormatterCannotBeUsedForRequestMessages" xml:space="preserve">
+    <value>This message formatter cannot be used to process request messages.</value>
+  </data>
+  <data name="GETCannotHaveBody" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' uses GET, but also has body parameter '{2}'. GET operations cannot have a body. Either make the parameter '{2}' a UriTemplate parameter, or switch from WebGetAttribute to WebInvokeAttribute.</value>
+  </data>
+  <data name="GETCannotHaveMCParameter" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' uses GET, but also has a parameter of MessageContract type '{2}'. GET operations cannot have a body. To use a MessageContract parameter type, switch from WebGetAttribute to WebInvokeAttribute.</value>
+  </data>
+  <data name="HelpPageEndpointNotFound" xml:space="preserve">
+    <value>Endpoint not found.</value>
+  </data>
+  <data name="HelpPageEndpointNotFoundWithLink" xml:space="preserve">
+    <value>&lt;p&gt;Endpoint not found. Please see the &lt;a rel="help-page" href="{0}"&gt;service help page&lt;/a&gt; for constructing valid requests to the service.&lt;/p&gt;</value>
+  </data>
+  <data name="HelpPageHtml" xml:space="preserve">
+    <value>BODY { color: #000000; background-color: white; font-family: Verdana; margin-left: 0px; margin-top: 0px; } #content { margin-left: 30px; font-size: .70em; padding-bottom: 2em; } A:link { color: #336699; font-weight: bold; text-decoration: underline; } A:visited { color: #6699cc; font-weight: bold; text-decoration: underline; } A:active { color: #336699; font-weight: bold; text-decoration: underline; } .heading1 { background-color: #003366; border-bottom: #336699 6px solid; color: #ffffff; font-family: Tahoma; font-size: 26px; font-weight: normal;margin: 0em 0em 10px -20px; padding-bottom: 8px; padding-left: 30px;padding-top: 16px;} pre { font-size:small; background-color: #e5e5cc; padding: 5px; font-family: Courier New; margin-top: 0px; border: 1px #f0f0e0 solid; white-space: pre-wrap; white-space: -pre-wrap; word-wrap: break-word; } table { border-collapse: collapse; border-spacing: 0px; font-family: Verdana;} table th { border-right: 2px white solid; border-bottom: 2px white solid; font-weight: bold; background-color: #cecf9c;} table td { border-right: 2px white solid; border-bottom: 2px white solid; background-color: #e5e5cc;}</value>
+  </data>
+  <data name="HelpPageMethodNotAllowed" xml:space="preserve">
+    <value>Method not allowed.</value>
+  </data>
+  <data name="HelpPageMethodNotAllowedWithLink" xml:space="preserve">
+    <value>&lt;p&gt;Method not allowed. Please see the &lt;a rel="help-page" href="{0}"&gt;service help page&lt;/a&gt; for constructing valid requests to the service.&lt;/p&gt;</value>
+  </data>
+  <data name="HelpPageRedirect" xml:space="preserve">
+    <value>&lt;p&gt;There is no operation listening for &lt;a href="{0}"&gt;{0}&lt;/a&gt;, but there is an operation listening for &lt;a href="{1}"&gt;{1}&lt;/a&gt;, so you are being redirected there.&lt;/p&gt;</value>
+  </data>
+  <data name="HelpPageRequestErrorTitle" xml:space="preserve">
+    <value>Request Error</value>
+  </data>
+  <data name="HelpPageTitleText" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="HelpServerErrorProcessingRequest" xml:space="preserve">
+    <value>The server encountered an error processing the request. See server logs for more details.</value>
+  </data>
+  <data name="HelpServerErrorProcessingRequestWithDetails" xml:space="preserve">
+    <value>The server encountered an error processing the request. The exception message is '{0}'. See server logs for more details. The exception stack trace is:</value>
+  </data>
+  <data name="HelpServerErrorProcessingRequestWithDetailsAndLink" xml:space="preserve">
+    <value>&lt;p&gt;The server encountered an error processing the request. Please see the &lt;a rel="help-page" href="{0}"&gt;service help page&lt;/a&gt; for constructing valid requests to the service. The exception message is '{1}'. See server logs for more details. The exception stack trace is: &lt;/p&gt;</value>
+  </data>
+  <data name="HelpServerErrorProcessingRequestWithLink" xml:space="preserve">
+    <value>&amp;lt;p&amp;gt;The server encountered an error processing the request. Please see the &amp;lt;a rel="help-page" href="{0}"&amp;gt;service help page&amp;lt;/a&amp;gt; for constructing valid requests to the service.&amp;lt;/p&amp;gt;</value>
+  </data>
+  <data name="HttpClientCredentialTypeInvalid" xml:space="preserve">
+    <value>There is no {0} on the incoming Message.</value>
+  </data>
+  <data name="HttpContextNoIncomingMessageProperty" xml:space="preserve">
+    <value>There is no {0} on the incoming Message.</value>
+  </data>
+  <data name="HttpUnhandledOperationInvokerCalledWithoutMessage" xml:space="preserve">
+    <value>A message was dispatched to the UnhandledDispatchOperation, but was invoked without a Message as input.  This error might be caused by a behavior that provided a bad IDispatchMessageFormatter for the EndpointDispatcher's DispatchRuntime's UnhandledDispatchOperation's Formatter.</value>
+  </data>
+  <data name="InvalidHttpMessageFormat" xml:space="preserve">
+    <value>Incoming message for operation '{0}' (contract '{1}' with namespace '{2}') contains an unrecognized http body format value '{3}'. The expected body format value is '{4}'. This can be because a WebContentTypeMapper has not been configured on the binding. See the documentation of WebContentTypeMapper for more details.</value>
+  </data>
+  <data name="InvalidHttpMessageFormat3" xml:space="preserve">
+    <value>Incoming message for operation '{0}'  contains an unrecognized http body format value '{1}'. The expected body format value is '{2}'. This can be because a WebContentTypeMapper has not been configured on the binding. See the documentation of WebContentTypeMapper for more details.</value>
+  </data>
+  <data name="InvalidMessageContractWithoutWrapperName" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has a MessageContract parameter (of type '{2}') without a wrapper name and with more than one body element. MessageContract parameters without a wrapper element are supported only if they have zero or one body element.</value>
+  </data>
+  <data name="InvalidMethodWithSOAPHeaders" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' uses a MessageContract that has SOAP headers. SOAP headers are not supported by the None MessageVersion.</value>
+  </data>
+  <data name="JsonFormatRequiresDataContract" xml:space="preserve">
+    <value>Operation '{0}' (in contract '{1}' with namespace '{2}') specifies the http body format to be JSON but the serialization mechanism for the operation is not DataContract. JSON format is only supported with DataContract serialization. If you have an XmlSerializerFormatAttribute on the operation consider replacing it with DataContractFormatAttribute.</value>
+  </data>
+  <data name="JsonFormatterExpectedAttributeNull" xml:space="preserve">
+    <value>OperationFormatter encountered an invalid Message body. Expected to find an attribute with name 'type' and value 'null'. Found value '{0}'.</value>
+  </data>
+  <data name="JsonFormatterExpectedAttributeObject" xml:space="preserve">
+    <value>OperationFormatter encountered an invalid Message body. Expected to find an attribute with name 'type' and value 'object'. Found value '{0}'.</value>
+  </data>
+  <data name="JsonOnlySupportsMessageVersionNone" xml:space="preserve">
+    <value>MessageVersion must be set to None in WebMessageEncodingBindingElement. Other message versions are not supported.</value>
+  </data>
+  <data name="JsonValueMustBeInRange" xml:space="preserve">
+    <value>The value of this argument must fall within the range {0} to {1}.</value>
+  </data>
+  <data name="LockTimeoutExceptionMessage" xml:space="preserve">
+    <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
+  </data>
+  <data name="ManualAddressingCannotBeFalseWithTransportBindingElement" xml:space="preserve">
+    <value>In the endpoint at '{0}', in order to use '{1}', the '{2}' of the binding must have ManualAddressing set to true.</value>
+  </data>
+  <data name="MaxReceivedMessageSizeExceeded" xml:space="preserve">
+    <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
+  </data>
+  <data name="MaxSentMessageSizeExceeded" xml:space="preserve">
+    <value>The maximum message size quota for outgoing messages ({0}) has been exceeded.</value>
+  </data>
+  <data name="MCAtMostOneRequestBodyParameterAllowedForUnwrappedMessages" xml:space="preserve">
+    <value>Operation '{0}' of contract '{1}' specifies MessageContract type '{2}' which has IsWrapped as false but has multiple request body parameters. At most one body parameter can be serialized without wrapper elements. Either remove the extra body parameters or set the IsWrapped property on the MessageContractAttribute to true.</value>
+  </data>
+  <data name="MessageBodyIsStream" xml:space="preserve">
+    <value>... stream ...</value>
+  </data>
+  <data name="MessageBodyMissing" xml:space="preserve">
+    <value>A body element was not found inside the message envelope.</value>
+  </data>
+  <data name="MessageBodyReaderInvalidReadState" xml:space="preserve">
+    <value>The body reader is in ReadState '{0}' and cannot be consumed.</value>
+  </data>
+  <data name="MessageBufferIsClosed" xml:space="preserve">
+    <value>Message buffer is closed.</value>
+  </data>
+  <data name="MessageClosed" xml:space="preserve">
+    <value>Message is closed.</value>
+  </data>
+  <data name="MessageFormatPropertyNotFound" xml:space="preserve">
+    <value>Incoming message for operation '{0}' (contract '{1}' with namespace '{2}') does not contain a WebBodyFormatMessageProperty. This can be because a WebContentTypeMapper or a WebMessageEncodingBindingElement has not been configured on the binding. See the documentation of WebContentTypeMapper and WebMessageEncodingBindingElement for more details.</value>
+  </data>
+  <data name="MessageFormatPropertyNotFound2" xml:space="preserve">
+    <value>Message does not contain the http body format property. The encoder expects the http format property to be '{0}'.</value>
+  </data>
+  <data name="MessageFormatPropertyNotFound3" xml:space="preserve">
+    <value>Incoming message does not contain a WebBodyFormatMessageProperty. This can be because a WebContentTypeMapper or a WebMessageEncodingBindingElement has not been configured on the binding. See the documentation of WebContentTypeMapper and WebMessageEncodingBindingElement for more details.</value>
+  </data>
+  <data name="MessageTextEncodingNotSupported" xml:space="preserve">
+    <value>The text encoding '{0}' used in the text message format is not supported.</value>
+  </data>
+  <data name="MessageVersionUnknown" xml:space="preserve">
+    <value>Unrecognized message version.</value>
+  </data>
+  <data name="MultipleOperationsInContractWithPathMethod" xml:space="preserve">
+    <value>In contract '{0}', there are multiple operations with Method '{2}' and a UriTemplate that is equivalent to '{1}'. Each operation requires a unique combination of UriTemplate and Method to unambiguously dispatch messages. Use WebGetAttribute or WebInvokeAttribute to alter the UriTemplate and Method values of an operation.</value>
+  </data>
+  <data name="MultipleWebAttributes" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has both WebGetAttribute and WebInvokeAttribute; only one can be present.</value>
+  </data>
+  <data name="NoOutOrRefParametersAllowedWithStreamResult" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has a Stream return value and also has out or ref parameters. When Stream is the return value of the operation, it cannot have ref or out parameters.</value>
+  </data>
+  <data name="NoOutOrRefStreamParametersAllowed" xml:space="preserve">
+    <value>Parameter '{0}' of operation '{1}' in contract '{2}' is a Stream, and is also a ref or out parameter. Stream cannot be a ref or out parameter.</value>
+  </data>
+  <data name="ObjectDisposed" xml:space="preserve">
+    <value>The {0} object has been disposed.</value>
+  </data>
+  <data name="ObjectIsReadOnly" xml:space="preserve">
+    <value>Object is read-only.</value>
+  </data>
+  <data name="OnlyDataContractAndXmlSerializerTypesInUnWrappedMode" xml:space="preserve">
+    <value>WebGetAttribute/WebInvokeAttribute supports setting the BodyStyle property to Bare only with DataContract and XmlSerializer serializable types. Operation '{0}' does not specify serialization using any of these formats. Add a DataContractFormatAttribute or XmlSerializerFormatAttribute to this operation to specify one of these serialization formats.</value>
+  </data>
+  <data name="OnlyReturnValueBodyParameterAllowedForUnwrappedMessages" xml:space="preserve">
+    <value>Operation '{0}' of contract '{1}' specifies at least one response body parameter that is not a return value of the operation. Only the return value is allowed when the BodyStyle property of WebGetAttribute/WebInvokeAttribute is set to Bare. Either remove the extra response body parameters or set the BodyStyle property to Wrapped.</value>
+  </data>
+  <data name="OperationDoesNotSupportFormat" xml:space="preserve">
+    <value>The operation '{0}' does not support '{1}' as a response format.</value>
+  </data>
+  <data name="OperationNameNotFound" xml:space="preserve">
+    <value>Could not find operation name in the message properties.</value>
+  </data>
+  <data name="OperationSelectorNotWebSelector" xml:space="preserve">
+    <value>This operation is supported only when the operation selector is of type '{0}'.</value>
+  </data>
+  <data name="ParameterIsNotStreamType" xml:space="preserve">
+    <value>Parameter type '{0}' of operation '{1}' (contract '{2}' with namespace '{3}') is not of type Stream. Ensure that the parameter is of type Stream or derives from Stream.</value>
+  </data>
+  <data name="QueryStringFormatterOperationNotSupportedServerSide" xml:space="preserve">
+    <value>This operation formatter can only be used for deserializing requests; serializing replies is not supported since query strings are not used to represent parameters in replies.</value>
+  </data>
+  <data name="ReadNotSupported" xml:space="preserve">
+    <value>Read is not supported on this stream.</value>
+  </data>
+  <data name="ReceiveShutdownReturnedFault" xml:space="preserve">
+    <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
+  </data>
+  <data name="ReceiveShutdownReturnedLargeFault" xml:space="preserve">
+    <value>The channel received an unexpected fault input message with Action = '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
+  </data>
+  <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
+    <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
+  </data>
+  <data name="ReplyAlreadySent" xml:space="preserve">
+    <value>ReplyAlreadySent</value>
+  </data>
+  <data name="RequestContextAborted" xml:space="preserve">
+    <value>The requestContext has been aborted.</value>
+  </data>
+  <data name="RpcEncodedNotSupportedForNoneMessageVersion" xml:space="preserve">
+    <value>Operation '{0}', belonging to contract ('{1}', '{2}') has an XmlSerializerFormatAttribute configured with OperationUse Encoded or OperationStyle Rpc. OperationUse Encoded and OperationStyle Rpc are not supported for web bindings. Configure the endpoint with a SOAP binding (like WSHttpBinding) in order to use these options.</value>
+  </data>
+  <data name="SeekNotSupported" xml:space="preserve">
+    <value>Seek is not supported on this stream.</value>
+  </data>
+  <data name="SerializingReplyNotSupportedByFormatter" xml:space="preserve">
+    <value>The formatter '{0}' does not support serializing replies.</value>
+  </data>
+  <data name="SerializingRequestNotSupportedByFormatter" xml:space="preserve">
+    <value>The formatter '{0}' does not support serializing requests.</value>
+  </data>
+  <data name="ServiceModelWebServicesNotRegistered" xml:space="preserve">
+    <value>Unable to find the endpoint behavior WebHttpBehavior for endpoint address '{0}'. This is possibly caused by not calling ServiceModelWebServiceCollectionExtensions.AddServiceModelWebServices(IServiceCollection services).</value>
+  </data>
+  <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
+    <value>IAsyncResult not provided or of wrong type.</value>
+  </data>
+  <data name="SFxInvalidMessageBody" xml:space="preserve">
+    <value>OperationFormatter encountered an invalid Message body. Expected to find node type 'Element' with name '{0}' and namespace '{1}'. Found node type '{2}' with name '{3}' and namespace '{4}'</value>
+  </data>
+  <data name="SFxInvalidMessageBodyErrorDeserializingParameter" xml:space="preserve">
+    <value>There was an error while trying to deserialize parameter {0}:{1}.  Please see InnerException for more details.</value>
+  </data>
+  <data name="SFxInvalidMessageBodyErrorDeserializingParameterMore" xml:space="preserve">
+    <value>There was an error while trying to deserialize parameter {0}:{1}. The InnerException message was '{2}'.  Please see InnerException for more details.</value>
+  </data>
+  <data name="SFxInvalidMessageBodyErrorSerializingParameter" xml:space="preserve">
+    <value>There was an error while trying to serialize parameter {0}:{1}. The InnerException message was '{2}'.  Please see InnerException for more details.</value>
+  </data>
+  <data name="StreamBodyMemberNotSupported" xml:space="preserve">
+    <value>'{0}' does not allow the use of Streams with the MessageContract programming model. The service '{1}' defines an operation '{2}' that uses the MessageContract type '{3}'. '{3}' contains MessageBodyMember '{4}' of type Stream.</value>
+  </data>
+  <data name="TaskTimedOutError" xml:space="preserve">
+    <value>The task timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
+  </data>
+  <data name="TimeoutMustBeNonNegative" xml:space="preserve">
+    <value>Argument {0} must be a non-negative timeout value. Provided value was {1}.</value>
+  </data>
+  <data name="TimeoutMustBePositive" xml:space="preserve">
+    <value>Argument {0} must be a positive timeout value. Provided value was {1}.</value>
+  </data>
+  <data name="TypeIsNotParameterTypeAndIsNotPresentInKnownTypes" xml:space="preserve">
+    <value>Cannot serialize parameter of type '{0}' (for operation '{1}', contract '{2}') because it is not the exact type '{3}' in the method signature and is not in the known types collection. In order to serialize the parameter, add the type to the known types collection for the operation using ServiceKnownTypeAttribute.</value>
+  </data>
+  <data name="TypeNotSupportedByQueryStringConverter" xml:space="preserve">
+    <value>Type '{0}' is not supported by '{1}'.</value>
+  </data>
+  <data name="UnknownWebEncodingFormat" xml:space="preserve">
+    <value>The incoming HTTP message, with content type '{0}', was mapped to an unknown content format '{1}' by the ContentTypeMapper. Configure the WebMessageEncodingBindingElement with a WebContentTypeMapper that maps the content type to a known WebContentFormat.</value>
+  </data>
+  <data name="UnrecognizedHttpMessageFormat" xml:space="preserve">
+    <value>The incoming message has an unexpected message format '{0}'. The expected message formats for the operation are {1}. This can be because a WebContentTypeMapper has not been configured on the binding. See the documentation of WebContentTypeMapper for more details.</value>
+  </data>
+  <data name="UriTemplateMissingVar" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has a UriTemplate that expects a parameter named '{2}', but there is no input parameter with that name on the operation.</value>
+  </data>
+  <data name="UriTemplatePathVarMustBeString" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has a path variable named '{2}' which does not have type 'string'.  Variables for UriTemplate path segments must have type 'string'.</value>
+  </data>
+  <data name="UriTemplateQueryVarMustBeConvertible" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has a query variable named '{2}' of type '{3}', but type '{3}' is not convertible by '{4}'.  Variables for UriTemplate query values must have types that can be converted by '{4}'.</value>
+  </data>
+  <data name="UriTemplateVarCaseDistinction" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' has multiple parameters named '{2}' that vary only in uppercase versus lowercase.  The parameter names must be distinct.</value>
+  </data>
+  <data name="UTAdditionalDefaultIsInvalid" xml:space="preserve">
+    <value>Changing an inline default value with information from the additional default values is not supported; the default value to the variable '{0}' was already provided as part of the UriTemplate '{1}'. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTBadBaseAddress" xml:space="preserve">
+    <value>baseAddress must an absolute Uri.</value>
+  </data>
+  <data name="UTBindByNameCalledWithEmptyKey" xml:space="preserve">
+    <value>The BindByName method of UriTemplate was called with an empty name in the collection of arguments for the bind. Note that the NameValueCollection or the Dictionary passed to BindByName cannot contain an empty (or null) name as a key. See the documentation of UriTemplate for more details.</value>
+  </data>
+  <data name="UTBindByPositionNoVariables" xml:space="preserve">
+    <value>UriTemplate '{0}' contains no variables; yet the BindByPosition method was called with {1} values.</value>
+  </data>
+  <data name="UTBindByPositionWrongCount" xml:space="preserve">
+    <value>UriTemplate '{0}' contains {1} path variables and {2} query variables but {3} values were passed to the BindByPosition method. The number of values passed to BindByPosition should be greater than or equal to the number of path variables in the template and cannot be greater than the total number of variables in the template.</value>
+  </data>
+  <data name="UTBothLiteralAndNameValueCollectionKey" xml:space="preserve">
+    <value>The UriTemplate contains a literal value for query key '{0}', but that key also is present in the NameValueCollection. Either remove that key from the NameValueCollection, or else change the UriTemplate to not have a query literal for that key.</value>
+  </data>
+  <data name="UTCSRLookupBeforeMatch" xml:space="preserve">
+    <value>UTCSR - Lookup was called before match</value>
+  </data>
+  <data name="UTDefaultValuesAreImmutable" xml:space="preserve">
+    <value>The default values of UriTemplate are immutable; they cannot be modified after the construction of the UriTemplate instance. See the documentation of UriTemplate for more details.</value>
+  </data>
+  <data name="UTDefaultValueToCompoundSegmentVar" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate compound path segment '{1}' provides a default value to variable '{2}'. Note that UriTemplate doesn't support default values to variables in compound segments. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTDefaultValueToCompoundSegmentVarFromAdditionalDefaults" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the path variable '{1}', defined as part of a compound path segment has been provided with a default value as part of the additional defaults. Note that UriTemplate doesn't support default values to variables in compound segments. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTDefaultValueToQueryVar" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the query variable '{1}' has been provided a default value as part of the additional defaults. Note that UriTemplate doesn't support default values to query variables. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTDefaultValueToQueryVarFromAdditionalDefaults" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the query variable '{1}' has been provided a default value as part of the additional defaults. Note that UriTemplate doesn't support default values to query variables. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTDoesNotSupportAdjacentVarsInCompoundSegment" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; UriTemplate does not support two adjacent variables with no literal in compound segments, such as in the segment '{1}'.</value>
+  </data>
+  <data name="UTInvalidDefaultPathValue" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate variable declaration '{1}' provides an empty default value to path variable '{2}'. Note that UriTemplate path variables cannot be bound to a null or empty value. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTInvalidFormatSegmentOrQueryPart" xml:space="preserve">
+    <value>UriTemplate does not support '{0}' as a valid format for a segment or a query part.</value>
+  </data>
+  <data name="UTInvalidVarDeclaration" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate variable declaration '{1}' isn't a valid variable construct. Note that UriTemplate variable definitions are either a simple, non-empty, variable name or a 'name=value' format, where the name must not be empty and the value provides a default value to the variable. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTInvalidWildcardInVariableOrLiteral" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the wildcard ('{1}') cannot appear in a variable name or literal, unless as a construct for a wildcard segment. Note that a wildcard segment, either a literal or a variable, is valid only as the last path segment in the template; the wildcard can appear only once. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTNullableDefaultAtAdditionalDefaults" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the additional default value '{1}' has a null value as default value. Note that null default values must be only provided to concrete path variables. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTNullableDefaultMustBeFollowedWithNullables" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate path variable '{1}' has a null default value while following path variable '{2}' has no defaults or provides a non-null default value. Note that UriTemplate path variable with null default value must be followed only with other path variables with null defaulted values. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTNullableDefaultMustNotBeFollowedWithLiteral" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate path variable '{1}' has a null default value while the following path segment '{2}' is not a variable segment with a null default value. Note that UriTemplate path variable with null default values must be followed only with other path variables with null defaulted value. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTNullableDefaultMustNotBeFollowedWithWildcard" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate path variable '{1}' has a null default value while the template is finished with a wildcard. Note that UriTemplate path variable with null default values must be followed only with other path variables with null defaulted value. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTParamsDoNotComposeWithMessage" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' uses UriTemplate parameters, but also uses a Message parameter.  Message and UriTemplate parameters are incompatible.</value>
+  </data>
+  <data name="UTParamsDoNotComposeWithMessageContract" xml:space="preserve">
+    <value>Operation '{0}' in contract '{1}' uses UriTemplate parameters, but also uses a MessageContract parameter.  MessageContract and UriTemplate parameters are incompatible.</value>
+  </data>
+  <data name="UTQueryCannotEndInAmpersand" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the query string cannot end with '&amp;amp;'. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTQueryCannotHaveCompoundValue" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; each portion of the query string must be of the form 'name=value', when value cannot be a compound segment. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTQueryCannotHaveEmptyName" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; each portion of the query string must be of the form 'name' or of the form 'name=value'. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTQueryMustHaveLiteralNames" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; each portion of the query string must be of the form 'name' or of the form 'name=value', where name is a simple literal. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTQueryNamesMustBeUnique" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; each portion of the query string must be of the form 'name' or of the form 'name=value', where each name is unique. Note that the names are case-insensitive. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTStarVariableWithDefaults" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate last path segment '{1}' provides a default value to final star variable '{2}'. Note that UriTemplate doesn't support default values to final star variable. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTStarVariableWithDefaultsFromAdditionalDefaults" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate final star variable '{1}' has been provides a default value as part of the additional defaults information. Note that UriTemplate doesn't support default values to final star variable. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="UTTAmbiguousQueries" xml:space="preserve">
+    <value>UriTemplateTable does not support '{0}' and '{1}' since they are not equivalent, but cannot be disambiguated because they have equivalent paths and the same common literal values for the query string. See the documentation for UriTemplateTable for more detail.</value>
+  </data>
+  <data name="UTTBaseAddressMustBeAbsolute" xml:space="preserve">
+    <value>BaseAddress must an absolute uri.</value>
+  </data>
+  <data name="UTTBaseAddressNotSet" xml:space="preserve">
+    <value>BaseAddress has not been set. Set the BaseAddress property before calling MakeReadOnly, Match, or MatchSingle.</value>
+  </data>
+  <data name="UTTCannotChangeBaseAddress" xml:space="preserve">
+    <value>Cannot change BaseAddress after calling MakeReadOnly.</value>
+  </data>
+  <data name="UTTDuplicate" xml:space="preserve">
+    <value>UriTemplateTable (with allowDuplicateEquivalentUriTemplates = false) does not support both '{0}' and '{1}', since they are equivalent. Call MakeReadOnly with allowDuplicateEquivalentUriTemplates = true to use both of these UriTemplates in the same table. See the documentation for UriTemplateTable for more detail.</value>
+  </data>
+  <data name="UTTEmptyKeyValuePairs" xml:space="preserve">
+    <value>KeyValuePairs must have at least one element.</value>
+  </data>
+  <data name="UTTInvalidTemplateKey" xml:space="preserve">
+    <value>An invalid template '{0}' was passed as the key in a pair of template and its associated object. UriTemplateTable Key-Value pairs must always contain a valid UriTemplate object as key; note that UriTemplateTable doesn't support templates that are ignoring the trailing slash in respect to matching. See the documentation for UriTemplateTable for more details.</value>
+  </data>
+  <data name="UTTMultipleMatches" xml:space="preserve">
+    <value>There were multiple UriTemplateMatch results, but MatchSingle was called.</value>
+  </data>
+  <data name="UTTMustBeAbsolute" xml:space="preserve">
+    <value>Parameter 'baseAddress' must an absolute uri.</value>
+  </data>
+  <data name="UTTNullTemplateKey" xml:space="preserve">
+    <value>A null UriTemplate was passed as the key in a pair of template and its associated object. UriTemplateTable Key-Value pairs must always contain a valid UriTemplate object as key. See the documentation for UriTemplateTable for more details.</value>
+  </data>
+  <data name="UTTOtherAmbiguousQueries" xml:space="preserve">
+    <value>UriTemplateTable does not support multiple templates that have equivalent path as template '{0}' but have different query strings, where the query strings cannot all be disambiguated via literal values. See the documentation for UriTemplateTable for more detail.</value>
+  </data>
+  <data name="UTVarNamesMustBeUnique" xml:space="preserve">
+    <value>The UriTemplate '{0}' is not valid; the UriTemplate variable named '{1}' appears multiple times in the template. Note that UriTemplate variable names are case-insensitive. See the documentation for UriTemplate for more details.</value>
+  </data>
+  <data name="ValueMustBeNonNegative" xml:space="preserve">
+    <value>The value of this argument must be non-negative.</value>
+  </data>
+  <data name="ValueMustBePositive" xml:space="preserve">
+    <value>The value of this argument must be positive.</value>
+  </data>
+  <data name="WCFBindingCannotBeUsedWithUriOperationSelectorBehaviorBadMessageVersion" xml:space="preserve">
+    <value>The endpoint at '{0}' does not have a Binding with the None MessageVersion.  '{1}' is only intended for use with WebHttpBinding or similar bindings.</value>
+  </data>
+  <data name="WCFBindingCannotBeUsedWithUriOperationSelectorBehaviorBadScheme" xml:space="preserve">
+    <value>The endpoint at '{0}' does not have a Binding with Scheme 'http' or 'https'.  '{1}' is only intended for use with WebHttpBinding or similar bindings.</value>
+  </data>
+  <data name="WeakEntityTagsNotSupported" xml:space="preserve">
+    <value>he entity tag '{0}' is not a valid ETag header value.  Weak entity tags are not supported.</value>
+  </data>
+  <data name="WebBehaviorNotFoundWithEndpoint" xml:space="preserve">
+    <value>The standard endpoint of type '{0}' does not have a behavior of type '{1}'.  The endpoint is initialized with the proper behavior and it should not be removed or replaced.</value>
+  </data>
+  <data name="WebBodyFormatPropertyToString" xml:space="preserve">
+    <value>WebBodyFormatMessageProperty: WebContentFormat={0}</value>
+  </data>
+  <data name="WebHttpBindingNotFoundWithEndpoint" xml:space="preserve">
+    <value>The standard endpoint of type '{0}' does not have a binding of type '{1}'.  The endpoint is initialized with the proper binding and it should not be removed or replaced.</value>
+  </data>
+  <data name="WebHttpServiceEndpointCannotHaveMessageHeaders" xml:space="preserve">
+    <value>The endpoint address '{0}' has message headers and is being used with a binding that's configured for message version None. Either change the endpoint address to not contain message headers or change the binding to be one that supports SOAP (for example, WSHttpBinding).</value>
+  </data>
+  <data name="WebRequestDidNotMatchMethod" xml:space="preserve">
+    <value>The HTTP method '{0}' of the incoming request (with URI '{1}') is not allowed.</value>
+  </data>
+  <data name="WebRequestDidNotMatchOperation" xml:space="preserve">
+    <value>The incoming HTTP request's URI '{0}' does not match any service operation.</value>
+  </data>
+  <data name="XmlSerializersCreatedBeforeRegistration" xml:space="preserve">
+    <value>New types cannot be registered with serializer manager after the service has been opened.</value>
+  </data>
+  <data name="XmlWriterBackedStreamMethodNotSupported" xml:space="preserve">
+    <value>The '{0}' method is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertyGetNotSupported" xml:space="preserve">
+    <value>The get accessor of the '{0}' property is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertySetNotSupported" xml:space="preserve">
+    <value>The set accessor of the '{0}' property is not supported by the stream.</value>
+  </data>
+</root>

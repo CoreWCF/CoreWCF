@@ -9,7 +9,7 @@ using CoreWCF.IdentityModel.Tokens;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal abstract class UserNameSecurityTokenAuthenticator : SecurityTokenAuthenticator
+    public abstract class UserNameSecurityTokenAuthenticator : SecurityTokenAuthenticator
     {
         protected UserNameSecurityTokenAuthenticator()
         {
@@ -29,7 +29,9 @@ namespace CoreWCF.IdentityModel.Selectors
         protected virtual ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateUserNamePasswordCoreAsync(string userName, string password)
         {
             // Default to calling sync implementation to support existing derived types which haven't overridden this method
+#pragma warning disable CS0618 // Type or member is obsolete
             return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(ValidateUserNamePasswordCore(userName, password));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

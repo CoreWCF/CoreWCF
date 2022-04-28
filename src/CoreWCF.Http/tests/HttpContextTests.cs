@@ -64,7 +64,7 @@ namespace DependencyInjection
                 services.AddTransient<TService>();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

@@ -44,7 +44,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(ProtectionLevel)));
             }
         }
@@ -73,7 +73,7 @@ namespace CoreWCF.Security
                 switch ((ProtectionLevel)p)
                 {
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("p", (int)p, typeof(ProtectionLevel)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(p), (int)p, typeof(ProtectionLevel)));
                     case ProtectionLevel.None:
                         return 2;
                     case ProtectionLevel.Sign:
@@ -105,7 +105,7 @@ namespace CoreWCF.Security
         {
             if (!IsDefined(value))
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException("value", (int)value,
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
                     typeof(SslProtocols)));
             }
         }
@@ -214,6 +214,25 @@ namespace CoreWCF.Security
                 new InMemorySymmetricSecurityKey(key)
             };
             return temp.AsReadOnly();
+        }
+
+        internal static SecurityKeyIdentifier CreateSecurityKeyIdentifier(Microsoft.IdentityModel.Xml.KeyInfo keyInfo)
+        {
+            if(keyInfo!=null && keyInfo.RSAKeyValue !=null)
+            {
+                throw new NotSupportedException("RSA key not supported.");
+            }
+
+            foreach (var objdata in keyInfo.X509Data)
+            {
+                foreach (string certificateStr in objdata.Certificates)
+                {
+                    byte[] data = Convert.FromBase64String(certificateStr);
+                    return new SecurityKeyIdentifier(new X509RawDataKeyIdentifierClause(data, false));;
+                }
+            }
+
+            return null;
         }
 
         internal static IIdentity CreateIdentity(string name)

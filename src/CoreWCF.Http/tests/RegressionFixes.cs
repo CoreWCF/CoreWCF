@@ -44,7 +44,7 @@ namespace CoreWCF.Http.Tests
 
         internal class StartupCharSetQuotes : StartupBase
         {
-            public override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public override void Configure(IApplicationBuilder app)
             {
                 app.Use(async (context, next) =>
                 {
@@ -54,7 +54,7 @@ namespace CoreWCF.Http.Tests
                     typedHeaders.ContentType = contentType;
                     await next.Invoke();
                 });
-                base.Configure(app, env);
+                base.Configure(app);
             }
         }
 
@@ -65,7 +65,7 @@ namespace CoreWCF.Http.Tests
                 services.AddServiceModelServices();
             }
 
-            public virtual void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public virtual void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

@@ -549,14 +549,14 @@ namespace CoreWCF.Dispatcher
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operation.Name, xe.Message),
                         xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operation.Name, fe.Message),
                         fe));
             }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Threading;
@@ -39,7 +40,7 @@ namespace CoreWCF.Channels.Framing
                 catch(SocketException socketException)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
-                        ConvertReceiveException(socketException));
+                        ConvertReceiveException(socketException), TraceEventType.Error);
                 }
             }
 
@@ -69,7 +70,7 @@ namespace CoreWCF.Channels.Framing
                 catch (SocketException socketException)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
-                        ConvertSendException(socketException));
+                        ConvertSendException(socketException), TraceEventType.Error);
                 }
             }
 

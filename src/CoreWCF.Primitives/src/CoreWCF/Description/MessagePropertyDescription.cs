@@ -5,6 +5,13 @@ namespace CoreWCF.Description
 {
     public class MessagePropertyDescription : MessagePartDescription
     {
-        public MessagePropertyDescription(string name) : base(default, default) { }
+        public MessagePropertyDescription(string name) : base(name, "") { }
+
+        internal MessagePropertyDescription(MessagePropertyDescription other) : base(other) { }
+
+        public override MessagePartDescription Clone()
+        {
+            return new MessagePropertyDescription(this);
+        }
     }
 }

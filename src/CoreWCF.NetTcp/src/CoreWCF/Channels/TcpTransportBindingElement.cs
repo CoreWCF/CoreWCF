@@ -75,6 +75,8 @@ namespace CoreWCF.Channels
             }
         }
 
+        internal override string WsdlTransportUri => TransportPolicyConstants.TcpTransportUri;
+
         public override BindingElement Clone()
         {
             return new TcpTransportBindingElement(this);
@@ -95,11 +97,10 @@ namespace CoreWCF.Channels
             {
                 return (T)(object)ExtendedProtectionPolicy;
             }
-            // TODO: Support ITransportCompressionSupport
-            //else if (typeof(T) == typeof(ITransportCompressionSupport))
-            //{
-            //    return (T)(object)new TransportCompressionSupportHelper();
-            //}
+            else if (typeof(T) == typeof(ITransportCompressionSupport))
+            {
+                return (T)(object)new TransportCompressionSupportHelper();
+            }
             else if (typeof(T) == typeof(IConnectionReuseHandler))
             {
                 return (T)(object)new ConnectionReuseHandler(new TcpTransportBindingElement(this));

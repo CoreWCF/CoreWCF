@@ -7,8 +7,8 @@ using System.Configuration;
 
 namespace CoreWCF.Configuration
 {
-    public abstract class ServiceModelConfigurationElementCollection<ConfigurationElementType> : ConfigurationElementCollection
-        where ConfigurationElementType : ConfigurationElement, new()
+    public abstract class ServiceModelConfigurationElementCollection<TConfigurationElementType> : ConfigurationElementCollection
+        where TConfigurationElementType : ConfigurationElement, new()
     {
         internal ServiceModelConfigurationElementCollection()
             : this(ConfigurationElementCollectionType.AddRemoveClearMap, null)
@@ -19,7 +19,7 @@ namespace CoreWCF.Configuration
         {
             if (!String.IsNullOrEmpty(elementName))
             {
-                this.AddElementName = elementName;
+                AddElementName = elementName;
             }
         }
 
@@ -30,7 +30,7 @@ namespace CoreWCF.Configuration
 
         protected override ConfigurationElement CreateNewElement()
         {
-            return new ConfigurationElementType();
+            return new TConfigurationElementType();
         }
     }
 }

@@ -1596,15 +1596,6 @@
   <data name="BinaryEncoderSessionMalformed" xml:space="preserve">
     <value>The binary encoder session information is not properly formed.</value>
   </data>
-  <data name="ReceiveShutdownReturnedFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
-  </data>
-  <data name="ReceiveShutdownReturnedLargeFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message with Action = '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
-  <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
-    <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
   <data name="MaxReceivedMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
   </data>
@@ -1896,14 +1887,8 @@
   <data name="HttpAuthDoesNotSupportRequestStreaming" xml:space="preserve">
     <value>HTTP request streaming cannot be used in conjunction with HTTP authentication.  Either disable request streaming or specify anonymous HTTP authentication.</value>
   </data>
-  <data name="ReplyAlreadySent" xml:space="preserve">
-    <value>A reply has already been sent from this RequestContext.</value>
-  </data>
   <data name="HttpInvalidListenURI" xml:space="preserve">
     <value>Unable to start the HTTP listener. The URI provided, '{0}', is invalid for listening. Check the base address of your service and verify that it is a valid URI.</value>
-  </data>
-  <data name="RequestContextAborted" xml:space="preserve">
-    <value>The requestContext has been aborted.</value>
   </data>
   <data name="ReceiveContextCannotBeUsed" xml:space="preserve">
     <value>The receive context, {0}, is in the {1} state.  Receive contexts cannot be used for sending delayed acks unless they are in the Received state.</value>
@@ -2672,9 +2657,6 @@
   </data>
   <data name="HttpsServerCertThumbprintMismatch" xml:space="preserve">
     <value>The server certificate with name '{0}' failed identity verification because its thumbprint ('{1}') does not match the one specified in the endpoint identity ('{2}').  As a result, the current HTTPS request has failed.  Please update the endpoint identity used on the client or the certificate used by the server.</value>
-  </data>
-  <data name="DuplicateRegistration" xml:space="preserve">
-    <value>A registration already exists for URI '{0}'.</value>
   </data>
   <data name="SecureChannelFailure" xml:space="preserve">
     <value>Could not establish secure channel for SSL/TLS with authority '{0}'.</value>
@@ -3609,12 +3591,6 @@
   <data name="SFxDocExt_NoMetadataConfigComment4" xml:space="preserve">
     <value>Add the following element to your service behavior configuration.</value>
   </data>
-  <data name="SFxDocExt_CS" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;C#&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
-  <data name="SFxDocExt_VB" xml:space="preserve">
-    <value>&lt;P class='intro'&gt;&lt;B&gt;Visual Basic&lt;/B&gt;&lt;/P&gt;</value>
-  </data>
   <data name="SFxDocExt_MainPageTitleNoServiceName" xml:space="preserve">
     <value>Service</value>
   </data>
@@ -3803,9 +3779,6 @@
   </data>
   <data name="SFxInvalidAsyncResultState0" xml:space="preserve">
     <value>IAsyncResult's State must be the state argument passed to your Begin call.</value>
-  </data>
-  <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
-    <value>IAsyncResult not provided or of wrong type.</value>
   </data>
   <data name="SFxInvalidCallbackContractType" xml:space="preserve">
     <value>The CallbackContract {0} is invalid because it is not an interface type.</value>
@@ -7624,7 +7597,7 @@
     <value>ID4101: The token cannot be validated because it is not a SamlSecurityToken or a Saml2SecurityToken. Token type: '{0}'</value>
   </data>
   <data name="ID4192" xml:space="preserve">
-    <value>ID4192: The reader is not positioned on a KeyInfo element that can be read.</value>
+    <value>ID4192: The reader is not positioned on a KeyInfo element that can be read. </value>
   </data>
   <data name="ID4240" xml:space="preserve">
     <value>ID4240: The tokenRequirement must derived from 'RecipientServiceModelSecurityTokenRequirement' for SecureConversationSecurityTokens. The tokenRequirement is of type '{0}'.</value>
@@ -7652,6 +7625,36 @@
   </data>
   <data name="ID5004" xml:space="preserve">
     <value>ID5004: Unrecognized namespace: '{0}'.</value>
+  </data>
+  <data name="ID7000" xml:space="preserve">
+    <value>ID7000: Unexpected element found in configuration. Expected element '{0}' but found '{1}'. For custom configuration override the appropriate SecurityTokenHandler and provide a constructor that takes an XmlElement as input parameter.</value>
+  </data>
+  <data name="ID7001" xml:space="preserve">
+    <value>ID7001: Configuration errors. SecurityTokenHandler custom configuration has the element '{0}' which expects only one attribute '{1}'.</value>
+  </data>
+  <data name="ID7002" xml:space="preserve">
+    <value>ID7002: Configuration errors. SecurityTokenHandler custom configuration has unrecognized element '{0}' as a child of '{1}'.</value>
+  </data>
+  <data name="ID7004" xml:space="preserve">
+    <value>ID7004: Configuration errors. Unrecognized attribute '{0}' found in element '{1}'.</value>
+  </data>
+  <data name="ID7007" xml:space="preserve">
+    <value>ID7007: The type '{0}' cannot be resolved. Verify the spelling is correct or that the full type name is provided.</value>
+  </data>
+  <data name="ID7009" xml:space="preserve">
+    <value>ID7009: IdentityConfiguration cannot be initialized multiple times.</value>
+  </data>
+  <data name="ID7010" xml:space="preserve">
+    <value>ID7010: Configuration errors. The element '{0}' must contain the following attributes '{1}'.</value>
+  </data>
+  <data name="ID7011" xml:space="preserve">
+    <value>ID7011: Configuration errors. The attribute '{0}' found in element '{1}' does not have a valid value.</value>
+  </data>
+  <data name="ID7012" xml:space="preserve">
+    <value>ID7012: No identityConfiguration element with the name '{0}' was found in the system.identityModel configuration section.</value>
+  </data>
+  <data name="ID7013" xml:space="preserve">
+    <value>ID7013: Cannot cast the input ConfigurationElement to a ServiceElement.</value>
   </data>
   <data name="TraceAuthorize" xml:space="preserve">
     <value>Authorize</value>
@@ -7905,17 +7908,11 @@
   <data name="TimeoutInputQueueDequeue" xml:space="preserve">
     <value>A Dequeue operation timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name="TaskTimedOutError" xml:space="preserve">
-    <value>The task timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
   <data name="Xml_InvalidNodeType" xml:space="preserve">
     <value>'{0}' is an invalid XmlNodeType.</value>
   </data>
   <data name="InvalidSemaphoreExit" xml:space="preserve">
     <value>Object synchronization method was called from an unsynchronized block of code.</value>
-  </data>
-  <data name="TimeoutMustBeNonNegative" xml:space="preserve">
-    <value>Argument {0} must be a non-negative timeout value. Provided value was {1}.</value>
   </data>
   <data name="InvalidTypedProxyMethodHandle" xml:space="preserve">
     <value>The specified method handle is incorrect for the proxy of type '{0}'</value>
@@ -7943,9 +7940,6 @@
   </data>
   <data name="TimeoutMustBePositive" xml:space="preserve">
     <value>Argument {0} must be a positive timeout value. Provided value was {1}.</value>
-  </data>
-  <data name="LockTimeoutExceptionMessage" xml:space="preserve">
-    <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name="SecurityTokenRequirementDoesNotContainProperty" xml:space="preserve">
     <value>The token requirement does not contain a property '{0}'.</value>
@@ -8219,5 +8213,1517 @@
   </data>
   <data name="UnknownServiceConfiguration" xml:space="preserve">
     <value>Could not find service '{0}' in configured services. Service must be registered using 'IServiceBuilder.AddService&lt;TService&gt;(...)' before registering a service endpoint using 'IServiceBuilder.AddServiceEndpoint&lt;TService, TContract&gt;(...)'</value>
+  </data>
+  <data name="ID4256" xml:space="preserve">
+    <value>ID4256: A custom certificate validation mode is not a supported configuration.</value>
+  </data>
+  <data name="ID7017" xml:space="preserve">
+    <value>ID7017: Cannot set the TokenLifetime on the SessionSecurityTokenHandler from the following value specified in configuration: '{0}'.</value>
+  </data>
+  <data name="ID7018" xml:space="preserve">
+    <value>ID7018: The lifetime attribute on the sessionTokenRequirement configuration element cannot be set to a negative value.</value>
+  </data>
+  <data name="ID7019" xml:space="preserve">
+    <value>ID7019: More than one configuration element found under SecurityTokenHandler '{0}'. The token handler can process only one XmlElement node for custom configuration.</value>
+  </data>
+  <data name="ID7022" xml:space="preserve">
+    <value>ID7022: Cannot set the MapToWindows boolean flag on the SamlSecurityTokenRequirement from the following value specified in configuration: '{0}'.</value>
+  </data>
+  <data name="ID7026" xml:space="preserve">
+    <value>ID7026: Security token handler configuration has the element '{0}' specified more than once.</value>
+  </data>
+  <data name="ID7027" xml:space="preserve">
+    <value>ID7027: Could not load the identity configuration because no system.identityModel configuration section was found.</value>
+  </data>
+  <data name="ID7028" xml:space="preserve">
+    <value>ID7028: 'Custom' was specified as the certificate validation mode, but no custom validator type was found.</value>
+  </data>
+  <data name="ID7029" xml:space="preserve">
+    <value>ID7029: Duplicate '{0}' configuration element with the name '{1}' was found in the system.identityModel configuration section.</value>
+  </data>
+  <data name="ID1036" xml:space="preserve">
+    <value>ID1036: The SAML Assertion contains a malformed AudienceRestrictionCondition which contains no Audience.</value>
+  </data>
+  <data name="ID1038" xml:space="preserve">
+    <value>ID1038: The AudienceRestrictionCondition was not valid because the specified Audience is not present in AudienceUris.\nAudience: '{0}'</value>
+  </data>
+  <data name="ID1043" xml:space="preserve">
+    <value>ID1043: The AudienceRestrictionCondition was not valid because there are no AudienceUris.</value>
+  </data>
+  <data name="ID4183" xml:space="preserve">
+    <value>ID4183: The Security Token failed Audience restriction validation.</value>
+  </data>
+  <data name="ID8007" xml:space="preserve">
+    <value>ID8007: Rejecting AudienceRestrictionCondition with multiple audiences:  </value>
+  </data>
+  <data name="ID1037" xml:space="preserve">
+    <value>ID1037: The AudienceRestrictionCondition was not valid because it contains multiple Audiences none of which is present in AudienceUris.</value>
+  </data>
+  <data name="ID4025" xml:space="preserve">
+    <value>ID4025: The SamlSecurityTokenRequirement specifies an unrecognized value for AudienceUriMode: '{0}'.</value>
+  </data>
+  <data name="ID4232" xml:space="preserve">
+    <value>ID4232: The SecurityToken was not well formed. This version was unexpected '{0}', acceptable version is '{1}'.</value>
+  </data>
+  <data name="ID0016" xml:space="preserve">
+    <value>ID0016: The value must specify a time span greater than TimeSpan.Zero.</value>
+  </data>
+  <data name="ID4010" xml:space="preserve">
+    <value>ID4010: A SecurityTokenHandler is not registered for token type '{0}'.</value>
+  </data>
+  <data name="ID4227" xml:space="preserve">
+    <value>ID4227: The token Id '{0}' found in the cookie, does not match the token Id '{1}' found in the envelope.</value>
+  </data>
+  <data name="ID4229" xml:space="preserve">
+    <value>ID4229: The session Id '{0}' found in the cookie, does not match the session Id '{1}' found in the envelope.</value>
+  </data>
+  <data name="ID4230" xml:space="preserve">
+    <value>ID4230: The SecurityToken was not well formed. Expecting element name '{0}', found '{1}'.</value>
+  </data>
+  <data name="ID4237" xml:space="preserve">
+    <value>ID4237: The SecurityToken was not well formed, cannot read the cookie bytes.</value>
+  </data>
+  <data name="ID4239" xml:space="preserve">
+    <value>ID4239: The session cookie must contain an non null Id. The element '{0}' was either empty or missing.</value>
+  </data>
+  <data name="ID4242" xml:space="preserve">
+    <value>ID4242: The SecurityContext Id is missing or the element is empty.</value>
+  </data>
+  <data name="ID4243" xml:space="preserve">
+    <value>ID4243: Could not create a SecurityToken. A token was not found in the token cache and no cookie was found in the context.</value>
+  </data>
+  <data name="ID4272" xml:space="preserve">
+    <value>ID4272: The Configuration property of this SecurityTokenHandler is set to null. Tokens cannot be processed in this state. Set this property or add this SecurityTokenHandler to a SecurityTokenHandlerCollection with a valid Configuration property.</value>
+  </data>
+  <data name="ID4296" xml:space="preserve">
+    <value>ID4296: No CookieTransforms have been defined for this SessionSecurityTokenHandler. Tokens cannot be serialized/deserialized in this state. </value>
+  </data>
+  <data name="SamlSerializerRequiresExternalSerializers" xml:space="preserve">
+    <value>The SamlSerializer requires a SecurityTokenSerializer to serialize the SecurityKeyIdentifier present in the token.</value>
+  </data>
+  <data name="SamlSerializerUnableToWriteSecurityKeyIdentifier" xml:space="preserve">
+    <value>The SamlSerializer does not contain a SecurityTokenSerializer capable of serializing the given SecurityKeyIdentifier '{0}'.  If you are using a custom SecurityKeyIdentifier, you must provide a custom SecurityTokenSerializer.</value>
+  </data>
+  <data name="SamlSerializerUnableToReadSecurityKeyIdentifier" xml:space="preserve">
+    <value>The SamlSerializer does not contain a SecurityTokenSerializer capable of reading the SecurityKeyIdentifier.  If you are using a custom SecurityKeyIdentifier, you must provide a custom SecurityTokenSerializer.</value>
+  </data>
+  <data name="SamlAssertionMissingSigningCredentials" xml:space="preserve">
+    <value>SigningCredentials have not been set on the SamlAssertion. SamlAssertions must be signed, please set a valid SigningCredentials on the SamlAssertion to proceed.</value>
+  </data>
+  <data name="SamlTokenMissingSignature" xml:space="preserve">
+    <value>The SamlAssertion is not signed. SamlAssertions can be signed by setting the SigningCredentials.</value>
+  </data>
+  <data name="SamlInvalidSigningToken" xml:space="preserve">
+    <value>The SamlAssertion has been signed with a token that was not validated according to the protocol. If you are using X.509 certificates, examine your validation semantics.</value>
+  </data>
+  <data name="SamlSigningTokenNotFound" xml:space="preserve">
+    <value>The SamlAssertion is signed but the tolen that signed the SamlAssertion cannot be found. Ensure that the SecurityTokenResolver contains the token that signed the SamlAssertion.</value>
+  </data>
+  <data name="SamlSigningTokenMissing" xml:space="preserve">
+    <value>The SamlAssertion passed to the SamlSecurityTokenAuthenticator does not contain a signing token.  </value>
+  </data>
+  <data name="SamlTokenAuthenticatorCanOnlyProcessSamlTokens" xml:space="preserve">
+    <value>The SamlSecurityTokenAuthenticator can only process SamlSecurityTokens.  This SecurityTokenType was received '{0}'.</value>
+  </data>
+  <data name="SamlUnableToExtractSubjectKey" xml:space="preserve">
+    <value>The SecurityKeyIdentifier that was found in the SamlSubject cannot be resolved to a SecurityToken. The SecurityTokenResolver must contain a SecurityToken that the SecurityKeyIdentifier resolves to.</value>
+  </data>
+  <data name="SamlAttributeClaimResourceShouldBeAString" xml:space="preserve">
+    <value>This SamlAttribute constructor requires that the resource of the claim is of type 'string'.</value>
+  </data>
+  <data name="SamlAttributeClaimRightShouldBePossessProperty" xml:space="preserve">
+    <value>This SamlAttribute constructor requires that the Right of the Claim have the value System.IdentityModel.Claims.Rights.PossessProperty</value>
+  </data>
+  <data name="SAMLAssertionIDIsInvalid" xml:space="preserve">
+    <value>The 'assertionId' '{0}' for a SamlAssertion must start with a letter or '_'.</value>
+  </data>
+  <data name="SAMLAssertionIdRequired" xml:space="preserve">
+    <value>The 'assertionId' for a SamlAssertion can not be null or empty.</value>
+  </data>
+  <data name="SAMLAssertionMissingMajorVersionAttributeOnRead" xml:space="preserve">
+    <value>The MajorVersion for the SamAssertion being read is missing or is of length 0.</value>
+  </data>
+  <data name="SAMLAssertionMissingMinorVersionAttributeOnRead" xml:space="preserve">
+    <value>TheMinorVersion for the SamlAssertion being read is missing or is of length 0.</value>
+  </data>
+  <data name="SAMLAssertionIssuerRequired" xml:space="preserve">
+    <value>The 'Issuer' specified for a SamlAssertion cannot be null or empty.</value>
+  </data>
+  <data name="SAMLAssertionMissingIssuerAttributeOnRead" xml:space="preserve">
+    <value>The 'Issuer' for the SamlAssertion being read is missing or is of length 0.</value>
+  </data>
+  <data name="SAMLAssertionRequireOneStatement" xml:space="preserve">
+    <value>A SamlAssertion requires at least one statement.  Ensure that you have added at least one SamlStatement to the SamlAssertion you are creating.</value>
+  </data>
+  <data name="SAMLAssertionRequireOneStatementOnRead" xml:space="preserve">
+    <value>The SamlAssertion being read did not contain any SamlStatement.  A SamlAssertion must contain at least one SamlStatement.</value>
+  </data>
+  <data name="SAMLAttributeValueCannotBeNull" xml:space="preserve">
+    <value>One of the attributeValues found in the SamlAttribute was found to be a null value.  Ensure that lists are not null when creating the SamlAttribute.</value>
+  </data>
+  <data name="SAMLAttributeShouldHaveOneValue" xml:space="preserve">
+    <value>No attribute values were found. A SamlAttribute attribute must have at least one attribute value.</value>
+  </data>
+  <data name="SAMLAttributeNameAttributeRequired" xml:space="preserve">
+    <value>The 'Name' specified for a SamlAttribute cannot be null or of length 0.</value>
+  </data>
+  <data name="SAMLAttributeMissingNameAttributeOnRead" xml:space="preserve">
+    <value>The 'Name' for the SamlAttribute being read is missing or is of length 0.</value>
+  </data>
+  <data name="SAMLAttributeNamespaceAttributeRequired" xml:space="preserve">
+    <value>The 'Namespace' specified for a SamlAttribute cannot be null or of length 0.</value>
+  </data>
+  <data name="SAMLAttributeMissingNamespaceAttributeOnRead" xml:space="preserve">
+    <value>The 'Namespace' for the SamlAttribute being read is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAudienceRestrictionShouldHaveOneAudience" xml:space="preserve">
+    <value>A SamlAudienceRestrictionCondition must contain at least one Audience (URI).</value>
+  </data>
+  <data name="SAMLAudienceRestrictionShouldHaveOneAudienceOnRead" xml:space="preserve">
+    <value>The SamlAudienceRestrictionCondition being read must contain at least one 'Audience' value. None were found.</value>
+  </data>
+  <data name="SAMLAudienceRestrictionInvalidAudienceValueOnRead" xml:space="preserve">
+    <value>The SamlAudienceRestrictionCondition being read is missing a value in the 'Audience' element.</value>
+  </data>
+  <data name="SAMLAudienceUrisNotFound" xml:space="preserve">
+    <value>No AudienceUris were specified but were expected. This can be resolved by making configuration changes to the 'issuedTokenAuthentication' element in the 'serviceBehaviors' section.  You can add valid uris using the 'allowedAudienceUris' element.  This check can also be changed using the 'audienceUriMode' attribute.  At runtime setting the IssuedTokenAuthentication object's properties: AllowedAudienceUris and AudienceUriMode will have similar results.</value>
+  </data>
+  <data name="SAMLAudienceUriValidationFailed" xml:space="preserve">
+    <value>The AudienceUri in the SamlAssertion cannot be validated.  This can be resolved by making configuration changes to the 'issuedTokenAuthentication' element in the 'serviceBehaviors' section.  You can add valid uris using the 'allowedAudienceUris' element.  This check can also be changed using the 'audienceUriMode' attribute.  At runtime setting the IssuedTokenAuthentication object's properties: AllowedAudienceUris and AudienceUriMode will have similar results.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionShouldHaveOneAction" xml:space="preserve">
+    <value>A SamlAuthorizationDecisionStatement must have at least one SamlAction.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionShouldHaveOneActionOnRead" xml:space="preserve">
+    <value>The SamlAuthorizationDecisionStatement that is being read does not contain any SamlAction.</value>
+  </data>
+  <data name="SAMLActionNameRequired" xml:space="preserve">
+    <value>The string that represents the SamlAction cannot be null or of length 0.</value>
+  </data>
+  <data name="SAMLActionNameRequiredOnRead" xml:space="preserve">
+    <value>The string that is read for the SamlAction is missing or is of length 0.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionHasMoreThanOneEvidence" xml:space="preserve">
+    <value>The SamlAuthorizationDecisionStatement being read was found to contain more than one Evidence.  This is not allowed.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionResourceRequired" xml:space="preserve">
+    <value>The 'resource' specified to the SamlAuthorizationDecisionStatement can not be null or of length 0.</value>
+  </data>
+  <data name="SAMLAuthenticationStatementMissingAuthenticationInstanceOnRead" xml:space="preserve">
+    <value>The 'AuthenticationInstant' attribute being read for a SamlAuthenticationStatement is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthenticationStatementMissingAuthenticationMethod" xml:space="preserve">
+    <value>The 'AuthenticationMethod' specified for a SamlAuthenticationStatement can not be null or of lenght 0.</value>
+  </data>
+  <data name="SAMLAuthenticationStatementMissingAuthenticationMethodOnRead" xml:space="preserve">
+    <value>The 'AuthenticationMethod' attribute being read for a SamlAuthenticationStatement is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthenticationStatementMissingSubject" xml:space="preserve">
+    <value>The SamlAuthenticationStatement is missing the required SamlSubjectStatement.</value>
+  </data>
+  <data name="SAMLAuthorityBindingInvalidAuthorityKind" xml:space="preserve">
+    <value>The SamlAuthorityBinding being read has an invalid AuthorityKind.  The format of the AuthorityKind must be a QName.</value>
+  </data>
+  <data name="SAMLAuthorityBindingMissingAuthorityKind" xml:space="preserve">
+    <value>A SamlAuthorityBinding must contain an 'AuthorityKind' that is not null.</value>
+  </data>
+  <data name="SAMLAuthorityBindingMissingAuthorityKindOnRead" xml:space="preserve">
+    <value>The SamlAuthorityBinding being read was found to contain an 'AuthorityKind' that was missing or of length 0.  This is not allowed.</value>
+  </data>
+  <data name="SAMLAuthorityKindMissingName" xml:space="preserve">
+    <value>The XmlQualifiedName that represents the 'AuthorityKind' in the SamlAuthorityBinding can not be null or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorityBindingRequiresBinding" xml:space="preserve">
+    <value>The 'Binding' attribute specified on the SamlAuthorityBinding can not be null or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorityBindingMissingBindingOnRead" xml:space="preserve">
+    <value>The 'Binding' attribute for the SamlAuthorityBinding being read is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorityBindingRequiresLocation" xml:space="preserve">
+    <value>The 'Location' attribute that is specified on the SamlAuthorityBinding cannot be null or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorityBindingMissingLocationOnRead" xml:space="preserve">
+    <value>The 'Location' attribute for the SamlAuthorityBinding being read is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionStatementMissingResourceAttributeOnRead" xml:space="preserve">
+    <value>The 'Resource' attribute for the SamlAuthorizationDecisionStatement being read is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionStatementMissingDecisionAttributeOnRead" xml:space="preserve">
+    <value>The 'Decison' for the SamlAuthorizationDecisionStatement being read is missing or of length 0.</value>
+  </data>
+  <data name="SAMLAuthorizationDecisionStatementMissingSubjectOnRead" xml:space="preserve">
+    <value>The 'SamlSubject' element for SamlAuthorizationDecisionStatement being read is missing.</value>
+  </data>
+  <data name="SAMLAttributeStatementMissingSubjectOnRead" xml:space="preserve">
+    <value>The 'SamlSubject' element for the SamlAttributeStatement is missing.</value>
+  </data>
+  <data name="SAMLSubjectStatementRequiresSubject" xml:space="preserve">
+    <value>The SamlSubjectStatement requires a SamlSubject to be specified.</value>
+  </data>
+  <data name="SAMLAttributeStatementMissingAttributeOnRead" xml:space="preserve">
+    <value>The SamlAttributeStatement being read does not contain any 'SamlAttribute' elements.  This is not allowed.</value>
+  </data>
+  <data name="SAMLBadSchema" xml:space="preserve">
+    <value>While reading a SamlAssertion this element {0} was found not to comply with the schema.</value>
+  </data>
+  <data name="SAMLElementNotRecognized" xml:space="preserve">
+    <value>The {0} element is not supported.</value>
+  </data>
+  <data name="SAMLEntityCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The SamlAssertion entity {0} cannot be null or empty.</value>
+  </data>
+  <data name="SAMLEvidenceShouldHaveOneAssertion" xml:space="preserve">
+    <value>SamlEvidence must reference at least one SamlAssertion either by Id or reference.</value>
+  </data>
+  <data name="SAMLEvidenceShouldHaveOneAssertionOnRead" xml:space="preserve">
+    <value>The SamlEvidence being read did not contain either a reference to or an embedded SamlAssertion.</value>
+  </data>
+  <data name="SAMLNameIdentifierMissingIdentifierValueOnRead" xml:space="preserve">
+    <value>The 'Identifier' string for the SamlNameIdentifier being read is missing.</value>
+  </data>
+  <data name="SAMLSubjectNameIdentifierRequiresNameValue" xml:space="preserve">
+    <value>The 'Name' specified for a SamlNameIdentifier can not be null or of length 0.</value>
+  </data>
+  <data name="SAMLSubjectRequiresNameIdentifierOrConfirmationMethod" xml:space="preserve">
+    <value>A SamlSubject requires that 'Name' or 'ConfirmationMethod' be specified.  Both were missing.</value>
+  </data>
+  <data name="SAMLSubjectRequiresNameIdentifierOrConfirmationMethodOnRead" xml:space="preserve">
+    <value>The required 'NameIdentifier' and the 'ConfrimationMethod' elements are not found for the SamlSubject being read.</value>
+  </data>
+  <data name="SAMLSubjectRequiresConfirmationMethodWhenConfirmationDataOrKeyInfoIsSpecified" xml:space="preserve">
+    <value>The SamlSubjectConfirmation requires a Confirmation method when the Confirmation Data or KeyInfo is specified.</value>
+  </data>
+  <data name="SAMLSubjectConfirmationClauseMissingConfirmationMethodOnRead" xml:space="preserve">
+    <value>A 'ConfirmationMethod' cannot be found on the SamlSubjectConfirmation being read.</value>
+  </data>
+  <data name="SAMLTokenNotSerialized" xml:space="preserve">
+    <value>The SamlAssertion could not be serialized to XML. Please see inner exception for details.</value>
+  </data>
+  <data name="SAMLTokenTimeInvalid" xml:space="preserve">
+    <value>The SamlToken is not time valid. The current time '{0}' is outside the Effective '{1}' and Expiration '{2}' time of the token.</value>
+  </data>
+  <data name="SAMLTokenVersionNotSupported" xml:space="preserve">
+    <value>The major version {0} and minor version {1} are not supported.  Versions supported are: Major {2} and Minor {3}.</value>
+  </data>
+  <data name="SAMLSignatureAlreadyRead" xml:space="preserve">
+    <value>The signature is already read in the SamlAssertion.</value>
+  </data>
+  <data name="SAMLUnableToLoadUnknownElement" xml:space="preserve">
+    <value>The selected SamlSerializer is unable to deserialize this element {0}. Please register a custom SamlSerializer to deserialize custom elements.</value>
+  </data>
+  <data name="SAMLUnableToResolveSignatureKey" xml:space="preserve">
+    <value>Unable to resolve SecurityKeyIdentifier found in the SamlAssertion signature. The SamlAssertion signature can not be validated for the Issuer {0}.</value>
+  </data>
+  <data name="SAMLUnableToLoadAssertion" xml:space="preserve">
+    <value>The saml:assertion element failed to load.</value>
+  </data>
+  <data name="SAMLUnableToLoadCondtion" xml:space="preserve">
+    <value>The saml:conditions element failed to load.</value>
+  </data>
+  <data name="SAMLUnableToLoadCondtions" xml:space="preserve">
+    <value>The saml:conditions element failed to load. </value>
+  </data>
+  <data name="SAMLUnableToLoadAdvice" xml:space="preserve">
+    <value>Failed to load the saml:advice element.</value>
+  </data>
+  <data name="SAMLUnableToLoadStatement" xml:space="preserve">
+    <value>Failed to load a SamlStatement.</value>
+  </data>
+  <data name="SAMLUnableToLoadAttribute" xml:space="preserve">
+    <value>Failed to load a SamlAttribute.</value>
+  </data>
+  <data name="ID0001" xml:space="preserve">
+    <value>ID0001: The required attribute '{0}' in the element '{1}' is missing.</value>
+  </data>
+  <data name="ID0002" xml:space="preserve">
+    <value>ID0002: The value must be greater than zero.</value>
+  </data>
+  <data name="ID0003" xml:space="preserve">
+    <value>ID0003: The input '{0}' is null.</value>
+  </data>
+  <data name="ID0005" xml:space="preserve">
+    <value>ID0005: The input '{0}' collection does not contain a property named '{1}'.</value>
+  </data>
+  <data name="ID0006" xml:space="preserve">
+    <value>ID0006: The input string parameter is either null or empty.</value>
+  </data>
+  <data name="ID0008" xml:space="preserve">
+    <value>ID0008: The cache size after purge cannot be negative.</value>
+  </data>
+  <data name="ID0009" xml:space="preserve">
+    <value>ID0009: The cache size after purge must be less than the maximum cache size.</value>
+  </data>
+  <data name="ID0011" xml:space="preserve">
+    <value>ID0011: The attribute '{0}' in the element '{1}' must be a valid absolute URI.</value>
+  </data>
+  <data name="ID0012" xml:space="preserve">
+    <value>ID0012: Failed to create an instance of '{0}' from configuration.</value>
+  </data>
+  <data name="ID0013" xml:space="preserve">
+    <value>ID0013: The value must be an absolute URI.</value>
+  </data>
+  <data name="ID0014" xml:space="preserve">
+    <value>ID0014: The value '{0}' must be an absolute URI.</value>
+  </data>
+  <data name="ID0018" xml:space="preserve">
+    <value>ID0018: The argument is not of the expected type '{0}'.</value>
+  </data>
+  <data name="ID0019" xml:space="preserve">
+    <value>ID0019: The value must be a URI.</value>
+  </data>
+  <data name="ID0021" xml:space="preserve">
+    <value>ID0021: The item cannot be added to the cache. The maximum cache size is '{0}' items.</value>
+  </data>
+  <data name="ID0022" xml:space="preserve">
+    <value>ID0022: The URI cannot be null or empty.</value>
+  </data>
+  <data name="ID0023" xml:space="preserve">
+    <value>ID0023: Failed to create an instance of '{0}' from configuration. A custom configuration element was specified, but the method LoadCustomConfiguration was not implemented. Override LoadCustomConfiguration to handle custom configuration loading.</value>
+  </data>
+  <data name="ID1001" xml:space="preserve">
+    <value>ID1001: The certificate does not have an associated private key.\nThumbprint: '{0}'</value>
+  </data>
+  <data name="ID1002" xml:space="preserve">
+    <value>ID1002: The private key of the certificate is not a RSA key.\nThumbprint: '{0}'</value>
+  </data>
+  <data name="ID1005" xml:space="preserve">
+    <value>ID1005: The format of the data is incorrect. The signature length is negative: '{0}'. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1006" xml:space="preserve">
+    <value>ID1006: The format of the data is incorrect. The encryption key length is negative: '{0}'. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1007" xml:space="preserve">
+    <value>ID1007: The format of the data is incorrect. The encryption key is larger than the corresponding data. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1008" xml:space="preserve">
+    <value>ID1008: The format of the data is incorrect. The encrypted data length is negative: '{0}'. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1009" xml:space="preserve">
+    <value>ID1009: The format of the data is incorrect. The encrypted data is larger than the corresponding data. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1012" xml:space="preserve">
+    <value>ID1012: The format of the data is incorrect. The data is too small. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1013" xml:space="preserve">
+    <value>ID1013: The format of the data is incorrect. The signature is larger than the corresponding data. The cookie may have been truncated.</value>
+  </data>
+  <data name="ID1014" xml:space="preserve">
+    <value>ID1014: The signature is not valid. The data may have been tampered with.</value>
+  </data>
+  <data name="ID1024" xml:space="preserve">
+    <value>ID1024: The configuration property value is not valid.\nProperty name: '{0}'\nError: '{1}'</value>
+  </data>
+  <data name="ID1025" xml:space="preserve">
+    <value>ID1025: Cannot find a unique certificate that matches the criteria.\nStoreName: '{0}'\nStoreLocation: '{1}'\nX509FindType: '{2}'\nFindValue: '{3}'</value>
+  </data>
+  <data name="ID1029" xml:space="preserve">
+    <value>ID1029: The custom type is not suitable because it does not extend the correct base class.\nCustomType: '{0}'\nBaseClass: '{1}'</value>
+  </data>
+  <data name="ID1032" xml:space="preserve">
+    <value>ID1032: At least one 'audienceUri' must be specified in the SamlSecurityTokenRequirement when the AudienceUriMode is set to 'Always' or 'BearerKeyOnly'. Either add the valid URI values to the AudienceUris property of SamlSecurityTokenRequirement,  or turn off checking by specifying an AudienceUriMode of 'Never' on the SamlSecurityTokenRequirement.</value>
+  </data>
+  <data name="ID1033" xml:space="preserve">
+    <value>ID1033: The token provided to ValidateToken must be a SamlSecurityToken, actual type found '{0}'.</value>
+  </data>
+  <data name="ID1034" xml:space="preserve">
+    <value>ID1034: The SamlSecurityToken must have a value for its Assertion property.</value>
+  </data>
+  <data name="ID1035" xml:space="preserve">
+    <value>ID1035: The SAML Assertion did not contain any AudienceRestrictionConditions. To accept assertions without AudienceRestrictionConditions, set SecurityTokenHandlerConfiguration.AudienceRestriction.AudienceMode to AudienceUriMode.Never.</value>
+  </data>
+  <data name="ID1039" xml:space="preserve">
+    <value>ID1039: The certificate's private key could not be accessed. Ensure the access control list (ACL) on the certificate's private key grants access to the application pool user.\nThumbprint: '{0}'</value>
+  </data>
+  <data name="ID1053" xml:space="preserve">
+    <value>ID1053: The ClaimsIdentity contained multiple UPN Claims. The automatic Windows identity mapping feature does not support this scenario.</value>
+  </data>
+  <data name="ID1054" xml:space="preserve">
+    <value>ID1054: The ClaimsIdentity did not contain a valid UPN Claim. The automatic Windows identity mapping feature requires exactly one non-empty UPN Claim to be provided.</value>
+  </data>
+  <data name="ID1062" xml:space="preserve">
+    <value>ID1062: Replay has been detected for: Token: '{0}', AssertionId: '{1}', Issuer: '{2}'.</value>
+  </data>
+  <data name="ID1063" xml:space="preserve">
+    <value>ID1063: Replay detection requires that SamlSecurityToken.Assertion.AssertionId is not null or empty.</value>
+  </data>
+  <data name="ID1064" xml:space="preserve">
+    <value>ID1064: The token provided to DetectReplayedTokens must be a Saml2SecurityToken, actual type found '{0}'.</value>
+  </data>
+  <data name="ID1065" xml:space="preserve">
+    <value>ID1065: Replay detection requires that Saml2SecurityToken.Assertion.Id.Value is not null or empty.</value>
+  </data>
+  <data name="ID1066" xml:space="preserve">
+    <value>ID1066: Replay has been detected for: Token: '{0}', Assertion.Id.Value: '{1}', Issuer: '{2}'.</value>
+  </data>
+  <data name="ID1067" xml:space="preserve">
+    <value>ID1067: The token provided to DetectReplayedTokens must be a SamlSecurityToken, actual type found '{0}'.</value>
+  </data>
+  <data name="ID1068" xml:space="preserve">
+    <value>ID1068: The decompressed cookie exceeds the maximum size of '{0}' bytes. If this is expected, increase the MaxDecompressedSize property of DeflateCookieTransform.</value>
+  </data>
+  <data name="ID1069" xml:space="preserve">
+    <value>ID1069: Replay detection requires that token's expiration period, '{0}', does not exceed the expiration period configured with '{1}' on the TokenReplayCache.</value>
+  </data>
+  <data name="ID1070" xml:space="preserve">
+    <value>ID1070: Replay has been detected for a SecurityToken.</value>
+  </data>
+  <data name="ID1072" xml:space="preserve">
+    <value>ID1072: The security token cannot be added to the replay cache because it has an infinite lifetime. Either the token must specify a validity period or the expirationPeriod attribute on the tokenReplayDetection configuration element must be set.</value>
+  </data>
+  <data name="ID1073" xml:space="preserve">
+    <value>ID1073: A CryptographicException occurred when attempting to decrypt the cookie using the ProtectedData API (see inner exception for details). If you are using IIS 7.5, this could be due to the loadUserProfile setting on the Application Pool being set to false. </value>
+  </data>
+  <data name="ID1074" xml:space="preserve">
+    <value>ID1074: A CryptographicException occurred when attempting to encrypt the cookie using the ProtectedData API (see inner exception for details). If you are using IIS 7.5, this could be due to the loadUserProfile setting on the Application Pool being set to false. </value>
+  </data>
+  <data name="ID2000" xml:space="preserve">
+    <value>ID2000: Expiration time must be after the creation time.</value>
+  </data>
+  <data name="ID2001" xml:space="preserve">
+    <value>ID2001: The AsyncState in the input IAsyncResult could not be cast to FederatedAsyncState.</value>
+  </data>
+  <data name="ID2002" xml:space="preserve">
+    <value>ID2002: The AppliesTo address of the relying party was not a valid absolute URI. Override the SecurityTokenService.GetScope() method and populate Scope.AppliesToAddress with an appropriate AppliesTo address.</value>
+  </data>
+  <data name="ID2003" xml:space="preserve">
+    <value>ID2003: SecurityTokenService.SecurityTokenDescriptor was null. Initialize the SecurityTokenDescriptor on the STS in your SecurityTokenService implementation with an appropriate value.</value>
+  </data>
+  <data name="ID2005" xml:space="preserve">
+    <value>ID2005: The request is not valid or is malformed.</value>
+  </data>
+  <data name="ID2008" xml:space="preserve">
+    <value>ID2008: The specified request failed.</value>
+  </data>
+  <data name="ID2009" xml:space="preserve">
+    <value>ID2009: The specified RequestSecurityToken is not understood.</value>
+  </data>
+  <data name="ID2011" xml:space="preserve">
+    <value>ID2011: The computed key algorithm '{0}' is not valid or is unsupported.</value>
+  </data>
+  <data name="ID2012" xml:space="preserve">
+    <value>ID2012: The type does not match. The runtime is expecting '{0}', and the actual type is '{1}'.</value>
+  </data>
+  <data name="ID2013" xml:space="preserve">
+    <value>ID2013: SecurityTokenService.GetScope returned null. Return a suitable Scope instance from SecurityTokenService.GetScope to issue a token.</value>
+  </data>
+  <data name="ID2014" xml:space="preserve">
+    <value>ID2014: Requested TokenType '{0}' is not supported.</value>
+  </data>
+  <data name="ID2015" xml:space="preserve">
+    <value>ID2015: DefaultTokenType must be supported by the existing TokenHandlers. Try to add a TokenHandler which can handle '{0}' to the TokenHandlers first.</value>
+  </data>
+  <data name="ID2016" xml:space="preserve">
+    <value>ID2016: The SecurityTokenHandler in the FederatedAsyncState was null.</value>
+  </data>
+  <data name="ID2050" xml:space="preserve">
+    <value>ID2050: When the KeyType is bearer, it is not valid to have a KeySize element with a value other than zero in the request. To fix this, change the key type or set the key size to zero.</value>
+  </data>
+  <data name="ID2051" xml:space="preserve">
+    <value>ID2051: The request is null. To fix this, make sure the RST contains a valid request message.</value>
+  </data>
+  <data name="ID2052" xml:space="preserve">
+    <value>ID2052: The RequestType, if specified, must be set to Issue. The SecurityTokenService can only handle Issue requests.</value>
+  </data>
+  <data name="ID2053" xml:space="preserve">
+    <value>ID2053: The KeyType, if specified, must be either Symmetric, Asymmetric or Bearer.</value>
+  </data>
+  <data name="ID2055" xml:space="preserve">
+    <value>ID2055: The RelyingPartyParameters property on the RequestSecurityToken instance must not contain another RelyingPartyParameters. To fix this, make sure the RelyingPartyParameters property does not contain another RelyingPartyParameters instance.</value>
+  </data>
+  <data name="ID2056" xml:space="preserve">
+    <value>ID2056: The request has a KeySize '{0}' that is greater than the maximum allowed value of '{1}'.</value>
+  </data>
+  <data name="ID2057" xml:space="preserve">
+    <value>ID2057: Cannot construct a X509SigningCredentials instance for a certificate without the private key.</value>
+  </data>
+  <data name="ID2058" xml:space="preserve">
+    <value>ID2058: Cannot compute the combined entropy if the source entropy size is zero.</value>
+  </data>
+  <data name="ID2059" xml:space="preserve">
+    <value>ID2059: The request has a KeySizeInBits that has no value. If you have overridden SecurityTokenService.ValidateRequest, make sure it has a valid value.</value>
+  </data>
+  <data name="ID2064" xml:space="preserve">
+    <value>ID2064: The object passed as parameter named 'elementValue' must be of type 'RequestSecurityToken' when 'elementName' is '{0}'.</value>
+  </data>
+  <data name="ID2069" xml:space="preserve">
+    <value>ID2069: The value argument is not a valid type. SecurityTokenService type expected.</value>
+  </data>
+  <data name="ID2070" xml:space="preserve">
+    <value>ID2070: MaxClockSkew must be greater than or equal to TimeSpan.Zero.</value>
+  </data>
+  <data name="ID2073" xml:space="preserve">
+    <value>ID2073: SecurityTokenServiceConfiguration.SecurityTokenService is either null or does not have a base type of SecurityTokenService.</value>
+  </data>
+  <data name="ID2074" xml:space="preserve">
+    <value>ID2074: SecurityTokenServiceConfiguration.SecurityTokenService is of type '{0}' but is expected to be of type '{1}'.</value>
+  </data>
+  <data name="ID2079" xml:space="preserve">
+    <value>ID2079: SecurityTokenService.SecurityTokenDescriptor.SigningCredentials is null. Specify a valid credential to sign the issued token with, in the Scope that is returned by SecurityTokenService.GetScope. If you need to issue unsigned tokens, you will need to override SecurityTokenService.Issue.</value>
+  </data>
+  <data name="ID2080" xml:space="preserve">
+    <value>ID2080: Cannot resolve the SecurityKeyIdentifier to a SecurityKey with the given SecurityTokenResolver. SecurityTokenResolver: '{0}', SecurityKeyIdentifier: '{1}'.</value>
+  </data>
+  <data name="ID2072" xml:space="preserve">
+    <value>ID2072: The RequestSecurityToken contains an element with name '{0}' that cannot be processed. You will need to provide a custom WSTrustRequestSerializer to process this element.</value>
+  </data>
+  <data name="ID2075" xml:space="preserve">
+    <value>ID2075: The computed lifetime has a creation time of '{0}' and an expiration time of '{1}'. The expiration time is before than the current time of '{2}'. If you need to specify such a lifetime, you will need to override SecurityTokenService.GetTokenLifetime and provide custom verification.</value>
+  </data>
+  <data name="ID2076" xml:space="preserve">
+    <value>ID2076: The computed lifetime has a creation time of '{0}' and an expiration time of '{1}'. This creation time is more that 1 day in the future. UtcNow </value>
+  </data>
+  <data name="ID2077" xml:space="preserve">
+    <value>ID2077: The computed lifetime has a creation time of '{0}' and an expiration time of '{1}'. The expiration time is before or equal to the creation time. If you need to specify such a lifetime, override SecurityTokenService.GetTokenLifetime and provide custom verification.</value>
+  </data>
+  <data name="ID2078" xml:space="preserve">
+    <value>ID2078: The computed lifetime has a creation time of '{0}' and an expiration time of '{1}'. This produces a time span greater than the maximum allowed token lifetime '{2}' as specified in SecurityTokenServiceConfiguration.MaximumTokenLifetime. If you need to specify such a lifetime, SecurityTokenServiceConfiguration.MaximumTokenLifetime is a settable property or you can override SecurityTokenService.GetTokenLifetime and provide custom verification.</value>
+  </data>
+  <data name="ID2081" xml:space="preserve">
+    <value>ID2081: SecurityTokenService does not implement asynchronous behavior. Override BeginGetOutputClaimsIdentity/EndGetOutputClaimsIdentity and BeginGetScope/EndGetScope methods to provide valid asynchronous behavior.</value>
+  </data>
+  <data name="ID2082" xml:space="preserve">
+    <value>ID2082: Lifetime must be greater than or equal to TimeSpan.Zero.</value>
+  </data>
+  <data name="ID2083" xml:space="preserve">
+    <value>ID2083: IssuerName cannot be null or empty. Create SecurityTokenServiceConfiguration with a valid TokenIssuerName or override SecurityTokenService.GetIssuerName to provide it.</value>
+  </data>
+  <data name="ID2084" xml:space="preserve">
+    <value>ID2084: Cannot create EncryptingCredentials from the specified proof encryption token '{0}'. Override SecurityTokenService.GetRequestorProofEncryptingCredentials to return a valid proof EncryptingCredentials.</value>
+  </data>
+  <data name="ID2100" xml:space="preserve">
+    <value>ID2100: At least one certificate must be specified in the certificate chain.</value>
+  </data>
+  <data name="ID3006" xml:space="preserve">
+    <value>ID3006: ComputedKey element must have a valid algorithm specified.</value>
+  </data>
+  <data name="ID3007" xml:space="preserve">
+    <value>ID3007: The element '{0}' with namespace '{1}' is unrecognized.</value>
+  </data>
+  <data name="ID3009" xml:space="preserve">
+    <value>ID3009: Uri Attribute missing from ClaimType element.</value>
+  </data>
+  <data name="ID3010" xml:space="preserve">
+    <value>ID3010: Unrecognized KeyType specified: '{0}'</value>
+  </data>
+  <data name="ID3011" xml:space="preserve">
+    <value>ID3011: Unrecognized RequestType specified: '{0}'</value>
+  </data>
+  <data name="ID3012" xml:space="preserve">
+    <value>ID3012: UseKey in a RequestSecurityToken object must have a valid SecurityToken in order to be serialized.</value>
+  </data>
+  <data name="ID3013" xml:space="preserve">
+    <value>ID3013: Cannot write element '{0}' of type '{1}'. Add your custom WSTrustResponseSerializer in SecurityTokenServiceConfiguration to write this element.</value>
+  </data>
+  <data name="ID3017" xml:space="preserve">
+    <value>ID3017: The token contained in the UseKey object is not recognized as a writeable token by any of the configured SecurityTokenHandlers.</value>
+  </data>
+  <data name="ID3020" xml:space="preserve">
+    <value>ID3020: Unrecognized KeyType element found '{0}'.</value>
+  </data>
+  <data name="ID3021" xml:space="preserve">
+    <value>ID3021: RequestedProofToken in RequestSecurityTokenResponse must contain ComputedKeyAlgorithm or SecurityToken.</value>
+  </data>
+  <data name="ID3025" xml:space="preserve">
+    <value>ID3025: Cannot read 'RequestedProofToken' element. The 'RequestedProofToken' element must either contain a 'EncryptedKey' element or a 'BinarySecret' element or a 'ComputedKeyAlgorithm' as its child element.</value>
+  </data>
+  <data name="ID3026" xml:space="preserve">
+    <value>ID3026: Cannot read 'Entropy' element. The 'Entropy' element must either contain a 'EncryptedKey' element or a 'BinarySecret' element as its child element.</value>
+  </data>
+  <data name="ID3027" xml:space="preserve">
+    <value>ID3027: The key needed to decrypt the encrypted key could not be resolved. Ensure that '{0}' is populated with the required key.</value>
+  </data>
+  <data name="ID3032" xml:space="preserve">
+    <value>ID3032: Unexpected element '{0}' in namespace '{1}' found. Expected element '{2}' under namespace '{3}'.</value>
+  </data>
+  <data name="ID3057" xml:space="preserve">
+    <value>ID3057: EnvelopedSignature has more than on Reference specified in the SignedInfo.</value>
+  </data>
+  <data name="ID3061" xml:space="preserve">
+    <value>ID3061: The given element ('{0}','{1}') is empty.</value>
+  </data>
+  <data name="ID3063" xml:space="preserve">
+    <value>ID3063: An error occurred while parsing a WS-Trust message.</value>
+  </data>
+  <data name="ID3064" xml:space="preserve">
+    <value>ID3064: Token EncryptingCredentials must specify a symmetric key.</value>
+  </data>
+  <data name="ID3089" xml:space="preserve">
+    <value>ID3089: No enveloped signature was read.</value>
+  </data>
+  <data name="ID3091" xml:space="preserve">
+    <value>ID3091: An Issue request for an Asymmetric key must have the UseKey element specified.</value>
+  </data>
+  <data name="ID3092" xml:space="preserve">
+    <value>ID3092: The specified UseKey '{0}' cannot be resolved to a token that would prove the client's possession of the private key.</value>
+  </data>
+  <data name="ID3130" xml:space="preserve">
+    <value>ID3130: A WSTrust 1.3 RequestSecurityToken SecondaryParameters element cannot contain another SecondaryParameters element.</value>
+  </data>
+  <data name="ID3135" xml:space="preserve">
+    <value>ID3135: The element '{0}' with namespace '{1}' has value '{2}' which is not an absolute URI.</value>
+  </data>
+  <data name="ID3136" xml:space="preserve">
+    <value>ID3136: The attribute '{0}' of the element '{1}' with namespace '{2}' has value '{3}' which is not an absolute URI.</value>
+  </data>
+  <data name="ID3151" xml:space="preserve">
+    <value>ID3151: The WS-Trust message has an empty 'RenewTarget' element. The 'RenewTarget' element must either contain a valid SecurityToken as its child element.</value>
+  </data>
+  <data name="ID3152" xml:space="preserve">
+    <value>ID3152: The WS-Trust message has an empty 'OnBehalfOf' element. The 'OnBehalfOf' element must either contain a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3153" xml:space="preserve">
+    <value>ID3153: The WS-Trust message has an empty 'ActAs'. The element must have a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3154" xml:space="preserve">
+    <value>ID3154: The WS-Trust message has an empty 'KeySize' element. The element must specify a valid key size for the requested token.</value>
+  </data>
+  <data name="ID3155" xml:space="preserve">
+    <value>ID3155: The WS-Trust message has an empty 'UseKey' element. The element must specify a valid SecurityTokenReference to the client's public key.</value>
+  </data>
+  <data name="ID3158" xml:space="preserve">
+    <value>ID3158: The WS-Trust message has an empty 'RequestedSecurityToken'. The element must contain a valid SecurityToken as its child element.</value>
+  </data>
+  <data name="ID3159" xml:space="preserve">
+    <value>ID3159: The WS-Trust message has an empty 'RequestedAttachedReference'. The element must contain a valid SecurityKeyIdentifierClause as its child element.</value>
+  </data>
+  <data name="ID3160" xml:space="preserve">
+    <value>ID3160: The WS-Trust message has an empty 'RequestedUnattachedReference'. The element must contain a valid SecurityKeyIdentifierClause as its child element.</value>
+  </data>
+  <data name="ID3161" xml:space="preserve">
+    <value>ID3161: The WS-Trust message has an empty 'Lifetime'. The element must contain 'Created' and 'Expires' elements as its child element.</value>
+  </data>
+  <data name="ID3162" xml:space="preserve">
+    <value>ID3162: The WS-Trust message has an empty 'AppliesTo'. The element must contain an EndpointAddress as its child element.</value>
+  </data>
+  <data name="ID3164" xml:space="preserve">
+    <value>ID3164: The WS-Trust message has an empty 'BinarySecret'. The element must contain key bytes encoded as Base64 string.</value>
+  </data>
+  <data name="ID3165" xml:space="preserve">
+    <value>ID3165: The WS-Trust message contains a 'UseKey' element that cannot be read by any of the configured SecurityTokenHandlers.</value>
+  </data>
+  <data name="ID3166" xml:space="preserve">
+    <value>ID3166: The 'UseKey' token contained in the WS-Trust message is not able to create an RsaKeyIdentifierClause or an X509RawDataSecurityKeyIdentifierClause, which are the only SecurityKeyIdentifierClause types supported by default.</value>
+  </data>
+  <data name="ID3198" xml:space="preserve">
+    <value>ID3198: An exception occurred while parsing a Metadata document.</value>
+  </data>
+  <data name="ID3199" xml:space="preserve">
+    <value>ID3199: EntityID cannot have a value longer than 1024 characters.</value>
+  </data>
+  <data name="ID3200" xml:space="preserve">
+    <value>ID3200: An error occurred while reading the metadata document. Required parameter '{0}' was not present.</value>
+  </data>
+  <data name="ID3201" xml:space="preserve">
+    <value>ID3201: The enumerated attribute '{0}' in metadata has a value '{1}' that is not valid.</value>
+  </data>
+  <data name="ID3202" xml:space="preserve">
+    <value>ID3202: An error occurred while reading the metadata document. Parameter '{0}' has a value '{1}' that is not valid.</value>
+  </data>
+  <data name="ID3203" xml:space="preserve">
+    <value>ID3203: An error occurred while writing the metadata document. Required parameter '{0}' is not set.</value>
+  </data>
+  <data name="ID3207" xml:space="preserve">
+    <value>ID3207: An error occurred while reading the metadata document. Attribute '{0}' of element '{1}' has a value '{2}' that is not supported.</value>
+  </data>
+  <data name="ID3215" xml:space="preserve">
+    <value>ID3215: The encoding type '{0}' specified in element '{1}' with namespace '{2}' is not supported. The supported encoding types are '{3}'.</value>
+  </data>
+  <data name="ID3216" xml:space="preserve">
+    <value>ID3216: WS-Trust message has an empty 'Issuer'. The element must contain an EndpointAddress as its child element.</value>
+  </data>
+  <data name="ID3217" xml:space="preserve">
+    <value>ID3217: The Encoding type '{0}' is not supported. The supported encoding types are '{1}'.</value>
+  </data>
+  <data name="ID3218" xml:space="preserve">
+    <value>ID3218: WS-Trust message has an empty 'ProofEncryption'. The element must have a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3219" xml:space="preserve">
+    <value>ID3219: WS-Trust message has an empty 'DelegateTo'. The element must have a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3220" xml:space="preserve">
+    <value>ID3220: WS-Trust message has an empty 'CancelTarget'. The element must have a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3221" xml:space="preserve">
+    <value>ID3221: WS-Trust message has an empty 'ValidateTarget'. The element must have a SecurityToken or SecurityTokenReference as its child element.</value>
+  </data>
+  <data name="ID3222" xml:space="preserve">
+    <value>ID3222: The element '{0}' with namespace '{1}' was expected to have value of type '{2}' but was '{3}'.</value>
+  </data>
+  <data name="ID3223" xml:space="preserve">
+    <value>ID3223: The element ('{0}','{1}') has the child element ('{2}','{3}') that is not recognized.</value>
+  </data>
+  <data name="ID3249" xml:space="preserve">
+    <value>ID3249: The attribute '{0}' must be omitted.</value>
+  </data>
+  <data name="ID3257" xml:space="preserve">
+    <value>ID3257: RequestSecurityToken contains at least one Claim with a Claim value specified but the RequestClaimCollection.Dialect is set to '{0}'. The RequestClaimCollection.Dialect must be set to '{1}' for the value to be serialized out.</value>
+  </data>
+  <data name="ID3258" xml:space="preserve">
+    <value>ID3258: RequestSecurityToken contains a Claim with a Claim value specified but the Dialect is set to '{0}'. The Dialect must be set to '{1}'.</value>
+  </data>
+  <data name="ID3260" xml:space="preserve">
+    <value>ID3260: The root element of a metadata document must be either an EntityDescriptor or an EntitiesDescriptor.</value>
+  </data>
+  <data name="ID3264" xml:space="preserve">
+    <value>ID3264: OnBehalfOf element was found, but there was no token handlers registered to read a OnBehalfOf element. Consider adding a valid SecurityTokenHandlerCollection to the SecurityTokenHanderCollectionManager for OnBehalfOf usage.</value>
+  </data>
+  <data name="ID3265" xml:space="preserve">
+    <value>ID3265: ActAs element was found, but there was no token handlers registered to read a ActAs element. Consider adding a valid SecurityTokenHandlerCollection to the SecurityTokenHanderCollectionManager for ActAs usage.</value>
+  </data>
+  <data name="ID3268" xml:space="preserve">
+    <value>ID3268: WS-Trust message has an empty 'Encryption' element. The element must have a SecurityToken as its child element.</value>
+  </data>
+  <data name="ID3274" xml:space="preserve">
+    <value>ID3274: The RoleDescriptor of type '{0}' was dropped as it is not supported.</value>
+  </data>
+  <data name="ID3275" xml:space="preserve">
+    <value>ID3275: The XmlReader is not positioned at an EncryptedData element. XmlReader is positioned at: Name: '{0}', Namespace: '{1}'. </value>
+  </data>
+  <data name="ID3276" xml:space="preserve">
+    <value>ID3276: The signing credentials cannot be resolved because signed XML does not contain a SecurityKeyIdentifier.</value>
+  </data>
+  <data name="ID3284" xml:space="preserve">
+    <value>ID3284: 'Saml2NameIdentifier' encrypting credentials must have a Symmetric Key specified.</value>
+  </data>
+  <data name="ID4001" xml:space="preserve">
+    <value>ID4001: Expected AsyncResult instance.</value>
+  </data>
+  <data name="ID4002" xml:space="preserve">
+    <value>ID4002: End has already been called.</value>
+  </data>
+  <data name="ID4003" xml:space="preserve">
+    <value>ID4003: An unhandled exception occurred during an asynchronous callback.</value>
+  </data>
+  <data name="ID4004" xml:space="preserve">
+    <value>ID4004: An exception occurred during the execution of an asynchronous operation.</value>
+  </data>
+  <data name="ID4005" xml:space="preserve">
+    <value>ID4005: The AsyncResult.Complete have been called more than once.</value>
+  </data>
+  <data name="ID4007" xml:space="preserve">
+    <value>ID4007: The symmetric key inside the requested security token must be encrypted. To fix this, either override the SecurityTokenService.GetScope() method to assign appropriate value to Scope.EncryptingCredentials or set Scope.SymmetricKeyEncryptionRequired to false.</value>
+  </data>
+  <data name="ID4011" xml:space="preserve">
+    <value>ID4011: A SecurityTokenHandler is not registered to validate token type '{0}'.</value>
+  </data>
+  <data name="ID4013" xml:space="preserve">
+    <value>ID4013: Cannot return null from SamlSecurityTokenHandler.CreateAssertion. To fix this, make sure CreateAssertion returns a valid SamlAssertion.</value>
+  </data>
+  <data name="ID4014" xml:space="preserve">
+    <value>ID4014: A SecurityTokenHandler is not registered to read security token ('{0}', '{1}').</value>
+  </data>
+  <data name="ID4020" xml:space="preserve">
+    <value>ID4020: A SecurityTokenHandler is not registered to create tokens for type identifier '{0}'.</value>
+  </data>
+  <data name="ID4022" xml:space="preserve">
+    <value>ID4022: The key needed to decrypt the encrypted security token could not be resolved. Ensure that the SecurityTokenResolver is populated with the required key.</value>
+  </data>
+  <data name="ID4023" xml:space="preserve">
+    <value>ID4023: The encrypted security token was directly encrypted using an asymmetric key, which is not supported. An xenc:EncryptedKey must be used to encrypt a symmetric key using the asymmetric key.</value>
+  </data>
+  <data name="ID4024" xml:space="preserve">
+    <value>ID4024: The EncryptedSecurityTokenHandler can only write SecurityToken objects of type EncryptedSecurityToken.</value>
+  </data>
+  <data name="ID4026" xml:space="preserve">
+    <value>ID4026: The KerberosSecurityTokenHandler cannot validate a KerberosReceiverSecurityToken that has a null WindowsIdentity.</value>
+  </data>
+  <data name="ID4034" xml:space="preserve">
+    <value>ID4034: A SamlAttributeStatement can only have one SamlAttributeValue of type 'Actor'.  This special SamlAttribute is used in delegation scenarios.</value>
+  </data>
+  <data name="ID4036" xml:space="preserve">
+    <value>ID4036: The key needed to decrypt the encrypted security token could not be resolved from the following security key identifier '{0}'. Ensure that the SecurityTokenResolver is populated with the required key.</value>
+  </data>
+  <data name="ID4037" xml:space="preserve">
+    <value>ID4037: The key needed to verify the signature could not be resolved from the following security key identifier '{0}'. Ensure that the SecurityTokenResolver is populated with the required key.</value>
+  </data>
+  <data name="ID4038" xml:space="preserve">
+    <value>ID4038: Signature verification failed.</value>
+  </data>
+  <data name="ID4046" xml:space="preserve">
+    <value>ID4046: The SecurityTokenHandler cannot write the token '{0}'. The SecurityTokenHandler can only write tokens of type '{1}'.</value>
+  </data>
+  <data name="ID4050" xml:space="preserve">
+    <value>ID4050: The SecurityContextSecurityTokenHandler requires a valid WS-SecureConversation version when writing a token.</value>
+  </data>
+  <data name="ID4051" xml:space="preserve">
+    <value>ID4051: Cannot resolve SecurityToken. Use config to ensure that a SecurityTokenHandler is registered for token of type '{0}'. Element name: '{1}'. Namespace: '{2}'.</value>
+  </data>
+  <data name="ID4052" xml:space="preserve">
+    <value>ID4052: SecurityTokenElement cannot create a subject unless it is constructed with an XmlElement and SecurityTokenHandlerCollection.</value>
+  </data>
+  <data name="ID4059" xml:space="preserve">
+    <value>ID4059: The Username token has the unsupported password type '{0}'. The supported type is '{1}'.</value>
+  </data>
+  <data name="ID4060" xml:space="preserve">
+    <value>ID4060: The element ({0}, {1}) is not supported as a child element of ({2}, {3}).</value>
+  </data>
+  <data name="ID4061" xml:space="preserve">
+    <value>ID4061: Username token does not contain a valid username.</value>
+  </data>
+  <data name="ID4062" xml:space="preserve">
+    <value>ID4062: The username format is not valid. The username format must be in the form of 'username' or 'domain\\username'.</value>
+  </data>
+  <data name="ID4063" xml:space="preserve">
+    <value>ID4063: LogonUser failed for the '{0}' user. Ensure that the user has a valid Windows account.</value>
+  </data>
+  <data name="ID4065" xml:space="preserve">
+    <value>ID4065: Cannot read SecurityToken. Expected element is ({0}, {1}) the actual element is ({2}, {3}).</value>
+  </data>
+  <data name="ID4066" xml:space="preserve">
+    <value>ID4066: Cannot read SecurityToken. Expected element ({0}, {1}) with '{2}' attribute set to '{3}'. But the attribute value was '{4}'.</value>
+  </data>
+  <data name="ID4067" xml:space="preserve">
+    <value>ID4067: The '{0}' X.509 certificate cannot be mapped to a Windows account. The UPN subject alternate name is required.</value>
+  </data>
+  <data name="ID4068" xml:space="preserve">
+    <value>ID4068: Unrecognized encoding occurred while reading the binary security token.</value>
+  </data>
+  <data name="ID4070" xml:space="preserve">
+    <value>ID4070: The X.509 certificate '{0}' chain building failed. The certificate that was used has a trust chain that cannot be verified. Replace the certificate or change the certificateValidationMode. '{1}'</value>
+  </data>
+  <data name="ID4073" xml:space="preserve">
+    <value>ID4073: SAML Action is missing the required Action value.</value>
+  </data>
+  <data name="ID4075" xml:space="preserve">
+    <value>ID4075: SAML Assertion is missing the required '{0}' Attribute.</value>
+  </data>
+  <data name="ID4076" xml:space="preserve">
+    <value>ID4076: SAML Assertion with MajorVersion '{0}' and MinorVersion '{1}' is not supported. The supported version is MajorVersion '{2}' and MinorVersion '{3}'.</value>
+  </data>
+  <data name="ID4077" xml:space="preserve">
+    <value>ID4077: SAML Assertion AssertionId '{0}' is not a valid xsd:ID value.</value>
+  </data>
+  <data name="ID4078" xml:space="preserve">
+    <value>ID4078: SAML Assertion does not have any SAML Statement elements. SAML Assertion must have at least one SAML Statement element.</value>
+  </data>
+  <data name="ID4079" xml:space="preserve">
+    <value>ID4079: SAML Advice AssertionIdReference cannot be null or empty string.</value>
+  </data>
+  <data name="ID4080" xml:space="preserve">
+    <value>ID4080: The XmlReader is positioned at element ('{0}', '{1}') which is not a recognized SAML condition.</value>
+  </data>
+  <data name="ID4081" xml:space="preserve">
+    <value>ID4081: Unrecognized SAML Condition found. '{0}'</value>
+  </data>
+  <data name="ID4082" xml:space="preserve">
+    <value>ID4082: SAML Assertion is not valid. XmlReader was expected to reference ('{0}', '{1}') but was referencing ('{2}', '{3}').</value>
+  </data>
+  <data name="ID4083" xml:space="preserve">
+    <value>ID4083: SAML AudienceRestrictionCondition must not specify a null or empty audience value.</value>
+  </data>
+  <data name="ID4084" xml:space="preserve">
+    <value>ID5084: SAML AudienceRestrictionCondition must have at least one Audience value specified.</value>
+  </data>
+  <data name="ID4085" xml:space="preserve">
+    <value>ID4085: SAML Assertion contains a SAML Statement ('{0}', '{1}') that is not recognized.</value>
+  </data>
+  <data name="ID4086" xml:space="preserve">
+    <value>ID4086: The given SAML Statement is not recognized. '{0}'</value>
+  </data>
+  <data name="ID4087" xml:space="preserve">
+    <value>ID4087: SAML NameIdentifier does not have a valid Name specified.</value>
+  </data>
+  <data name="ID4088" xml:space="preserve">
+    <value>ID4088: SAML SubjectConfirmation does not have a valid SubjectConfirmationMethod specified.</value>
+  </data>
+  <data name="ID4089" xml:space="preserve">
+    <value>ID4089: SAML Subject must either specify a valid NameIdentifier or SubjectConfirmation.</value>
+  </data>
+  <data name="ID4090" xml:space="preserve">
+    <value>ID4090: Cannot read SAML Subject KeyInfo.</value>
+  </data>
+  <data name="ID4091" xml:space="preserve">
+    <value>ID4091: Cannot write SAML Subject KeyInfo '{0}'.</value>
+  </data>
+  <data name="ID4092" xml:space="preserve">
+    <value>ID4092: SAML AttributeStatement does not contain the required SAML Subject.</value>
+  </data>
+  <data name="ID4093" xml:space="preserve">
+    <value>ID4093: SAML AttributeStatement does not contain any SAML Attribute elements.</value>
+  </data>
+  <data name="ID4094" xml:space="preserve">
+    <value>ID4094: SAML Attribute does not contain a valid Attribute Name.</value>
+  </data>
+  <data name="ID4095" xml:space="preserve">
+    <value>ID4095: SAML Attribute does not contain a valid Attribute Namespace.</value>
+  </data>
+  <data name="ID4096" xml:space="preserve">
+    <value>ID4096: SAML Attribute does not contain a valid value.</value>
+  </data>
+  <data name="ID4097" xml:space="preserve">
+    <value>ID4097: SAML AuthenticationStatement does not contain a valid Authentication Instant.</value>
+  </data>
+  <data name="ID4098" xml:space="preserve">
+    <value>ID4098: SAML AuthenticationStatement does not contain a valid Authentication Method.</value>
+  </data>
+  <data name="ID4099" xml:space="preserve">
+    <value>ID4099: SAML AuthenticationStatement does not contain the required SAML Subject.</value>
+  </data>
+  <data name="ID4100" xml:space="preserve">
+    <value>ID4100: An unsupported SAML version was encountered: '{0}'</value>
+  </data>
+  <data name="ID4102" xml:space="preserve">
+    <value>ID4102: An element of an unexpected type was encountered. To support extended types in SAML2 assertions, extend Saml2SecurityTokenHandler.\nExpected type name: '{0}'\nExpected type namespace: '{1}'\nEncountered type name: '{2}'\nEncountered type namespace: '{3}'</value>
+  </data>
+  <data name="ID4104" xml:space="preserve">
+    <value>ID4104: An abstract element was encountered which does not specify its concrete type.\nElement name: '{0}'\nElement namespace: '{1}'</value>
+  </data>
+  <data name="ID4105" xml:space="preserve">
+    <value>ID4105: A saml:Statement element was encountered which specified an unrecognized concrete type. To handle this custom statement, extend Saml2SecurityTokenHandler and override ReadStatement.\nType name: '{0}'\nType namespace: '{1}'</value>
+  </data>
+  <data name="ID4106" xml:space="preserve">
+    <value>ID4106: A Saml2Assertion with no SAML Statements must have a SAML Subject.</value>
+  </data>
+  <data name="ID4107" xml:space="preserve">
+    <value>ID4107: The Saml2Assertion Statements collection contains an unrecognized Saml2Statement. To handle custom Saml2Statement objects, extend Saml2SecurityTokenHandler and override WriteStatement.\nType: '{0}'</value>
+  </data>
+  <data name="ID4108" xml:space="preserve">
+    <value>ID4108: A Saml2Subject that does not specify an NameId cannot have an empty SubjectConfirmations collection.</value>
+  </data>
+  <data name="ID4110" xml:space="preserve">
+    <value>ID4110: A saml:'{0}' contained a saml:BaseID element which specified an unrecognized concrete type. To handle this custom type, extend Saml2SecurityTokenHandler and override ReadSubjectID.\nType name: '{1}'\nType namespace: '{2}'</value>
+  </data>
+  <data name="ID4111" xml:space="preserve">
+    <value>ID4111: A saml:SubjectConfirmationData element cannot be empty when of type KeyInfoConfirmationDataType.</value>
+  </data>
+  <data name="ID4112" xml:space="preserve">
+    <value>ID4112: A saml:SubjectConfirmationData element of an unexpected type was encountered. The SubjectConfirmationDataType and KeyInfoConfirmationDataType are handled by default. To handle other types, extend Saml2SecurityTokenHandler and override ReadSubjectConfirmationData.\nType name: '{0}'\nType namespace: '{1}'</value>
+  </data>
+  <data name="ID4113" xml:space="preserve">
+    <value>ID4113: A saml:Condition was encountered which specifies an unrecognized concrete type. To handle a custom Condition, extend Saml2SecurityTokenHandler and override ReadConditions.</value>
+  </data>
+  <data name="ID4114" xml:space="preserve">
+    <value>ID4114: A saml:'{0}' contained unrecognized content. The schema allows arbitrary XML elements on this element without explicit schema extension. To handle the content, extend Saml2SecurityTokenHandler and override Read'{0}'.</value>
+  </data>
+  <data name="ID4115" xml:space="preserve">
+    <value>ID4115: A saml:Conditions element contained more than one '{0}' condition.</value>
+  </data>
+  <data name="ID4116" xml:space="preserve">
+    <value>ID4116: NotBefore must be earlier than NotOnOrAfter.</value>
+  </data>
+  <data name="ID4117" xml:space="preserve">
+    <value>ID4117: When writing the Saml2AuthenticationContext, at least one of ClassReference and DeclarationReference must be set. Set one of these properties before serialization.</value>
+  </data>
+  <data name="ID4118" xml:space="preserve">
+    <value>ID4118: A saml:AuthnContextDecl element was encountered. To handle by-value authentication context declarations, extend Saml2SecurityTokenHandler and override ReadAuthenticationContext. In addition, it may be necessary to extend Saml2AuthenticationContext so that its data model can accommodate the declaration value.</value>
+  </data>
+  <data name="ID4119" xml:space="preserve">
+    <value>ID4119: The SAML2:AuthenticationStatement, AttributeStatement, and AuthorizationDecisionStatement require a SAML2:Subject.</value>
+  </data>
+  <data name="ID4120" xml:space="preserve">
+    <value>ID4120: The saml:Evidence element must contain at least one assertion or assertion reference.</value>
+  </data>
+  <data name="ID4121" xml:space="preserve">
+    <value>ID4121: The SAML2:Action must specify a Resource which is an absolute URI or the empty relative URI.</value>
+  </data>
+  <data name="ID4122" xml:space="preserve">
+    <value>ID4122: The SAML2:AuthorizationDecisionStatement must specify at least one Action.</value>
+  </data>
+  <data name="ID4123" xml:space="preserve">
+    <value>ID4123: An unrecognized value was encountered for the SAML2:AuthorizationDecisionStatement element's Decision attribute: '{0}'</value>
+  </data>
+  <data name="ID4124" xml:space="preserve">
+    <value>ID4124: The SAML2:AttributeStatement must contain at least one SAML2:Attribute.</value>
+  </data>
+  <data name="ID4125" xml:space="preserve">
+    <value>ID4125: An error occurred reading XML data.</value>
+  </data>
+  <data name="ID4126" xml:space="preserve">
+    <value>ID4126: To handle wsse:Reference references for SAML2 assertions, extend Saml2SecurityTokenHandler and override ReadKeyIdentifierClause.</value>
+  </data>
+  <data name="ID4127" xml:space="preserve">
+    <value>ID4127: Unexpected ValueType for SAML2 token type: '{0}'</value>
+  </data>
+  <data name="ID4128" xml:space="preserve">
+    <value>ID4128: The value is not a valid SAML ID.</value>
+  </data>
+  <data name="ID4129" xml:space="preserve">
+    <value>ID4129: Cannot write a SAML2 key identifier clause with an implied derived key length other than the default of 32 using WS-SecureConversation.</value>
+  </data>
+  <data name="ID4130" xml:space="preserve">
+    <value>ID4130: A Saml2SecurityToken cannot be created from the Saml2Assertion because it has no Subject.</value>
+  </data>
+  <data name="ID4131" xml:space="preserve">
+    <value>ID4131: A Saml2SecurityToken cannot be created from the Saml2Assertion because it has no SubjectConfirmation.</value>
+  </data>
+  <data name="ID4132" xml:space="preserve">
+    <value>ID4132: A Saml2SecurityToken cannot be created from the Saml2Assertion because it has more than one SubjectConfirmation.</value>
+  </data>
+  <data name="ID4133" xml:space="preserve">
+    <value>ID4133: A Saml2SecurityToken cannot be created from the Saml2Assertion because it specifies the Bearer confirmation method but identifies keys in the SubjectConfirmationData.</value>
+  </data>
+  <data name="ID4134" xml:space="preserve">
+    <value>ID4134: A Saml2SecurityToken cannot be created from the Saml2Assertion because it specifies the Holder-of-key confirmation method but identifies no keys in the SubjectConfirmationData.</value>
+  </data>
+  <data name="ID4136" xml:space="preserve">
+    <value>ID4136: A Saml2SecurityToken cannot be created from the Saml2Assertion because it specifies an unsupported confirmation method: '{0}'</value>
+  </data>
+  <data name="ID4138" xml:space="preserve">
+    <value>ID4138: No suitable Saml2NameIdentifier could be created for the SAML2:Assertion because tokenDescriptor.Issuer is null or empty.</value>
+  </data>
+  <data name="ID4139" xml:space="preserve">
+    <value>ID4139: No suitable Saml2NameIdentifier could be created for the SAML2:Subject because more than one Claim of type NameIdentifier was supplied.</value>
+  </data>
+  <data name="ID4140" xml:space="preserve">
+    <value>ID4140: This Assertion cannot be re-emitted as raw XML. This may be because it was not read from XML in the first place, or because Assertion was changed after it was read, as indicated by a changed Id property.</value>
+  </data>
+  <data name="ID4141" xml:space="preserve">
+    <value>ID4141: The SAML2:Assertion is not signed. Only signed Assertions are acceptable for this use. If Windows Identity Foundation is used to create the Assertion, create a signed Assertion by setting the SigningCredentials before calling WriteAssertion.</value>
+  </data>
+  <data name="ID4142" xml:space="preserve">
+    <value>ID4142: The SAML2:Assertion is signed but the signature's KeyIdentifier cannot be resolved to a SecurityToken. Ensure that the appropriate SecurityTokenResolver has been provisioned. To handle advanced token resolution requirements, extend Saml2SecurityTokenHandler and override ResolveIssuerToken.</value>
+  </data>
+  <data name="ID4147" xml:space="preserve">
+    <value>ID4147: The Saml2SecurityToken is rejected because the SAML2:Assertion's NotBefore condition is not satisfied.\nNotBefore: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4148" xml:space="preserve">
+    <value>ID4148: The Saml2SecurityToken is rejected because the SAML2:Assertion's NotOnOrAfter condition is not satisfied.\nNotOnOrAfter: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4149" xml:space="preserve">
+    <value>ID4149: The Saml2SecurityToken is rejected because the SAML2:Assertion specifies a OneTimeUse condition. Enforcement of the OneTimeUse condition is not supported by default. To customize the enforcement of Saml2Conditions, extend Saml2SecurityTokenHandler and override ValidateConditions.</value>
+  </data>
+  <data name="ID4150" xml:space="preserve">
+    <value>ID4150: The Saml2SecurityToken is rejected because the SAML2:Assertion specifies a ProxyRestriction condition. Enforcement of the ProxyRestriction condition is not supported by default. To customize the enforcement of Saml2Conditions, extend Saml2SecurityTokenHandler and override ValidateConditions.</value>
+  </data>
+  <data name="ID4151" xml:space="preserve">
+    <value>ID4151: The token cannot be validated by the Saml2SecurityTokenHandler because it is not a Saml2SecurityToken.</value>
+  </data>
+  <data name="ID4152" xml:space="preserve">
+    <value>ID4152: The Saml2SecurityToken cannot be validated because the IssuerToken property is not set. Unsigned SAML2:Assertions cannot be validated.</value>
+  </data>
+  <data name="ID4153" xml:space="preserve">
+    <value>ID4153: A Saml2SecurityToken cannot be created from the Saml2Assertion because it contains a SubjectConfirmationData which specifies an Address value. Enforcement of this value is not supported by default. To customize SubjectConfirmationData processing, extend Saml2SecurityTokenHandler and override ValidateConfirmationData.</value>
+  </data>
+  <data name="ID4154" xml:space="preserve">
+    <value>ID4154: A Saml2SecurityToken cannot be created from the Saml2Assertion because it contains a SubjectConfirmationData which specifies an InResponseTo value. Enforcement of this value is not supported by default. To customize SubjectConfirmationData processing, extend Saml2SecurityTokenHandler and override ValidateConfirmationData.</value>
+  </data>
+  <data name="ID4157" xml:space="preserve">
+    <value>ID4157: A Saml2SecurityToken cannot be created from the Saml2Assertion because it contains a SubjectConfirmationData which specifies a Recipient value. Enforcement of this value is not supported by default. To customize SubjectConfirmationData processing, extend Saml2SecurityTokenHandler and override ValidateConfirmationData.</value>
+  </data>
+  <data name="ID4158" xml:space="preserve">
+    <value>ID4158: A saml:EncryptedAttribute was encountered while processing the attribute statement. To handle encrypted attributes, extend the Saml2SecurityTokenHandler and override ReadAttributeStatement.</value>
+  </data>
+  <data name="ID4159" xml:space="preserve">
+    <value>ID4159: A Saml2AudienceRestriction must specify at least one Audience.</value>
+  </data>
+  <data name="ID4160" xml:space="preserve">
+    <value>ID4160: The Saml2SecurityTokenHandler can only write SecurityToken objects of type Saml2SecurityToken.</value>
+  </data>
+  <data name="ID4161" xml:space="preserve">
+    <value>ID4161: The reader is not positioned on an element that can be read. Call CanReadKeyIdentifierClause to check the element before calling ReadKeyIdentifierClause.</value>
+  </data>
+  <data name="ID4162" xml:space="preserve">
+    <value>ID4162: The Saml2SecurityTokenHandler can only write SecurityKeyIdentifierClause objects of type Saml2AssertionKeyIdentifierClause.</value>
+  </data>
+  <data name="ID4172" xml:space="preserve">
+    <value>ID4172: The keyInfoSerializer must return an EncryptedKeyIdentifierClause when reading an xenc:EncryptedKey element.</value>
+  </data>
+  <data name="ID4173" xml:space="preserve">
+    <value>ID4173: The Saml2Assertion cannot specify ExternalEncryptedKeys unless EncryptingCredentials are also specified.</value>
+  </data>
+  <data name="ID4175" xml:space="preserve">
+    <value>ID4175: The issuer of the security token was not recognized by the IssuerNameRegistry. To accept security tokens from this issuer, configure the IssuerNameRegistry to return a valid name for this issuer.</value>
+  </data>
+  <data name="ID4176" xml:space="preserve">
+    <value>ID4176: The Saml2SecurityToken is rejected because the SAML2:Assertion's SubjectConfirmationData NotBefore is not satisfied.\nNotBefore: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4177" xml:space="preserve">
+    <value>ID4177: The Saml2SecurityToken is rejected because the SAML2:Assertion's SubjectConfirmationData NotOnOrAfter is not satisfied.\nNotOnOrAfter: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4178" xml:space="preserve">
+    <value>ID4178: The EncryptingCredentials provided in the SecurityTokenDescriptor is for an asymmetric key. You must use an EncryptedKeyEncryptingCredentials to encrypt the token.</value>
+  </data>
+  <data name="ID4179" xml:space="preserve">
+    <value>ID4179: The EncryptingCredentials provided in the Scope must be an asymmetric key. You must set an X509EncryptingCredentials on Scope.EncryptingCredentials.</value>
+  </data>
+  <data name="ID4180" xml:space="preserve">
+    <value>ID4180: A SAML2 assertion that specifies an AuthenticationContext DeclarationReference is not supported. To handle DeclarationReference, extend the Saml2SecurityTokenHandler and override ProcessAuthenticationStatement.</value>
+  </data>
+  <data name="ID4181" xml:space="preserve">
+    <value>ID4181: The security token has expired.</value>
+  </data>
+  <data name="ID4182" xml:space="preserve">
+    <value>ID4182: The security token is not valid yet.</value>
+  </data>
+  <data name="ID4184" xml:space="preserve">
+    <value>ID4184: The EncryptingCredentials provided in the SecurityTokenDescriptor must not be null if Scope.TokenEncryptionRequired is set to true. This can be caused by the Scope specifying an unsupported encryption key type, or by the incoming RequestSecurityToken message containing an unsupported EncryptionAlgorithm. Override CreateSecurityTokenDescriptor if you need to support algorithms other than AES 256.</value>
+  </data>
+  <data name="ID4185" xml:space="preserve">
+    <value>ID4185: A Saml2SecurityToken cannot be created from the AuthenticationMethod Claim value, '{0}', which will be serialized as the AuthnContextClassRef element. Change the AuthenticationMethod Claim to be an absolute URI.</value>
+  </data>
+  <data name="ID4187" xml:space="preserve">
+    <value>ID4187: The reader is not positioned on an EncryptedKey element that can be read. </value>
+  </data>
+  <data name="ID4188" xml:space="preserve">
+    <value>ID4188: The reader is not positioned on a CipherData element that can be read. </value>
+  </data>
+  <data name="ID4189" xml:space="preserve">
+    <value>ID4189: The reader is not positioned on a DataReference. XmlEnc specifies that once a DataReference is found only a DataReference must exist. </value>
+  </data>
+  <data name="ID4190" xml:space="preserve">
+    <value>ID4190: The reader is not positioned on a KeyReference. XmlEnc specifies that once a KeyReference is found only a KeyReference must exist. </value>
+  </data>
+  <data name="ID4191" xml:space="preserve">
+    <value>ID4191: A ReferenceList must contain at least one reference, none were found. </value>
+  </data>
+  <data name="ID4193" xml:space="preserve">
+    <value>ID4193: The reader is not positioned on an EncryptedData element that can be read. </value>
+  </data>
+  <data name="ID4200" xml:space="preserve">
+    <value>ID4200: SAML AuthorityBinding is missing the required AuthorityKind.</value>
+  </data>
+  <data name="ID4201" xml:space="preserve">
+    <value>ID4201: SAML AuthorityBinding has a AuthorityKind '{0}' that is not a valid format.</value>
+  </data>
+  <data name="ID4202" xml:space="preserve">
+    <value>ID4202: SAML AuthorityBinding does not contain a valid Binding specified.</value>
+  </data>
+  <data name="ID4203" xml:space="preserve">
+    <value>ID4203: SAML AuthorityBinding does not contain a valid Location specified.</value>
+  </data>
+  <data name="ID4204" xml:space="preserve">
+    <value>ID4204: SAML AuthorizationDecisionStatement is missing the required Decision attribute.</value>
+  </data>
+  <data name="ID4205" xml:space="preserve">
+    <value>ID4205: SAML AuthorizationDecisionStatement is missing the required Resource attribute.</value>
+  </data>
+  <data name="ID4206" xml:space="preserve">
+    <value>ID4206: SAML AuthorizationDecisionStatement is missing the required SAML Subject.</value>
+  </data>
+  <data name="ID4207" xml:space="preserve">
+    <value>ID4207: SAML AuthorizationDecisionStatement has more than one Evidence element specified.</value>
+  </data>
+  <data name="ID4208" xml:space="preserve">
+    <value>ID4208: SAML AuthorizationDecisionStatement contains an unrecognized element ('{0}', '{1}').</value>
+  </data>
+  <data name="ID4209" xml:space="preserve">
+    <value>ID4209: SAML AuthorizationDecisionStatement must contain at least one Action specified.</value>
+  </data>
+  <data name="ID4210" xml:space="preserve">
+    <value>ID4210: SAML Evidence contains a unrecognized element ('{0}'. '{1}')</value>
+  </data>
+  <data name="ID4211" xml:space="preserve">
+    <value>ID4211: SAML Evidence must contain at least one Assertion.</value>
+  </data>
+  <data name="ID4212" xml:space="preserve">
+    <value>ID4212: SAML Attribute must contain at least one SAML AttributeValue.</value>
+  </data>
+  <data name="ID4213" xml:space="preserve">
+    <value>ID4213: Cannot parse the ClaimType '{0}' into a constituent name and namespace.</value>
+  </data>
+  <data name="ID4216" xml:space="preserve">
+    <value>ID4216: The ClaimType '{0}' must be of format 'namespace'/'name'.</value>
+  </data>
+  <data name="ID4217" xml:space="preserve">
+    <value>ID4217: The given token '{0}' is not of the expected type '{1}'.</value>
+  </data>
+  <data name="ID4218" xml:space="preserve">
+    <value>ID4218: A Saml2SamlAttributeStatement can only have one Saml2Attribute of type 'Actor'. This special Saml2Attribute is used in delegation scenarios.</value>
+  </data>
+  <data name="ID4220" xml:space="preserve">
+    <value>ID4220: The SAML Assertion is either not signed or the signature's KeyIdentifier cannot be resolved to a SecurityToken. Ensure that the appropriate issuer tokens are present on the token resolver. To handle advanced token resolution requirements, extend SamlTokenSerializer and override ReadToken.</value>
+  </data>
+  <data name="ID4221" xml:space="preserve">
+    <value>ID4221: Cannot write SAML Signature KeyIdentifier '{0}'. For custom clause override SamlSecurityTokenHandler.WriteSigningKeyInfo.</value>
+  </data>
+  <data name="ID4222" xml:space="preserve">
+    <value>ID4222: The SamlSecurityToken is rejected because the SamlAssertion.NotBefore condition is not satisfied.\nNotBefore: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4223" xml:space="preserve">
+    <value>ID4223: The SamlSecurityToken is rejected because the SamlAssertion.NotOnOrAfter condition is not satisfied.\nNotOnOrAfter: '{0}'\nCurrent time: '{1}'</value>
+  </data>
+  <data name="ID4224" xml:space="preserve">
+    <value>ID4224: A SecurityTokenHandler that is registered to write a token of type '{0}' was not found.</value>
+  </data>
+  <data name="ID4225" xml:space="preserve">
+    <value>ID4225: The SamlSubject '{0}' is different than the SamlSubject present inside another SamlStatement of this SamlAssertion.</value>
+  </data>
+  <data name="ID4248" xml:space="preserve">
+    <value>ID4248: Cannot map Windows user '{0}' to a UserPrincipalName that can be used for S4U impersonation.</value>
+  </data>
+  <data name="ID4249" xml:space="preserve">
+    <value>ID4249: The ClaimProperty key cannot be a null or empty string.</value>
+  </data>
+  <data name="ID4250" xml:space="preserve">
+    <value>ID4250: The ClaimValue cannot be null.</value>
+  </data>
+  <data name="ID4251" xml:space="preserve">
+    <value>ID4251: OriginalIssuer cannot be set to String.Empty. If no OriginalIssuer is intended then set the value to null.</value>
+  </data>
+  <data name="ID4252" xml:space="preserve">
+    <value>ID4252: The OriginalIssuer attribute cannot have an empty value.</value>
+  </data>
+  <data name="ID4254" xml:space="preserve">
+    <value>ID4254: The AttributeValueXsiType of a SAML Attribute must be a string of the form 'prefix#suffix', where prefix and suffix are non-empty strings.</value>
+  </data>
+  <data name="ID4255" xml:space="preserve">
+    <value>ID4255: The SecurityToken is rejected because the validation time is out of range.\nValidTo: '{0}'\nValidFrom: '{1}'\nCurrent time: '{2}'</value>
+  </data>
+  <data name="ID4257" xml:space="preserve">
+    <value>ID4257: X.509 certificate '{0}' validation failed by the token handler.</value>
+  </data>
+  <data name="ID4258" xml:space="preserve">
+    <value>ID4258: The element '{0}' with Namespace '{1}' does not contain a valid Base64 encoded value.</value>
+  </data>
+  <data name="ID4259" xml:space="preserve">
+    <value>ID4259: The SecurityKeyIdentifierClause '{0}' is not supported.</value>
+  </data>
+  <data name="ID4261" xml:space="preserve">
+    <value>ID4261: X509SecurityTokenHandler can serialize SecurityKeyIdentifierClauses only when the property WriteXmlDSigDefinedClauseTypes is set to true.</value>
+  </data>
+  <data name="ID4262" xml:space="preserve">
+    <value>ID4262: The SAML NameIdentifier '{0}' is of format '{1}' and its value is not a valid URI.</value>
+  </data>
+  <data name="ID4263" xml:space="preserve">
+    <value>ID4263: The SAML NameIdentifier '{0}' is of format '{1}' and NameQualifier/SPNameQualifier/SPProvidedID is not omitted.</value>
+  </data>
+  <data name="ID4264" xml:space="preserve">
+    <value>ID4264: GetTokenTypeIdentifiers for SecurityTokenHandler type '{0}' cannot return null or empty.</value>
+  </data>
+  <data name="ID4265" xml:space="preserve">
+    <value>ID4265: The issuer certificate Thumbprint '{0}' already exists in the set of configured trusted issuers.</value>
+  </data>
+  <data name="ID4269" xml:space="preserve">
+    <value>ID4269: A SamlAudienceRestrictionCondition must specify at least one audience.</value>
+  </data>
+  <data name="ID4270" xml:space="preserve">
+    <value>ID4270: The '{0}' used to create a '{1}' AuthenticationStatement cannot be null.</value>
+  </data>
+  <data name="ID4275" xml:space="preserve">
+    <value>ID4275: The Configuration.IssuerTokenResolver property of this SecurityTokenHandler is set to null. Tokens cannot be read in this state. Set the value of Configuration.IssuerTokenResolver.</value>
+  </data>
+  <data name="ID4276" xml:space="preserve">
+    <value>ID4276: The Configuration.ServiceTokenResolver property of this SecurityTokenHandler is set to null. Tokens cannot be read in this state. Set the value of Configuration.ServiceTokenResolver.</value>
+  </data>
+  <data name="ID4277" xml:space="preserve">
+    <value>ID4277: The Configuration.IssuerNameRegistry property of this SecurityTokenHandler is set to null. Tokens cannot be validated in this state.</value>
+  </data>
+  <data name="ID4278" xml:space="preserve">
+    <value>ID4278: Cannot detect token replays: Configuration.TokenReplayCache property is null.</value>
+  </data>
+  <data name="ID4279" xml:space="preserve">
+    <value>ID4279: The EncryptedSecurityTokenHandler's ContainingCollection is set to null. EncryptedSecurityTokens cannot be written as the ContainingCollection has the SecurityTokenHandlers required to write the inner token. Set this property to a valid SecurityTokenHandlerCollection.</value>
+  </data>
+  <data name="ID4280" xml:space="preserve">
+    <value>ID4280: The X509CertificateValidationMode is set to Custom but the CertificateValidator property has not been set. You must set the CertificateValidator property to use a custom validator.</value>
+  </data>
+  <data name="ID4283" xml:space="preserve">
+    <value>ID4283: The SecurityTokenHandlerConfiguration for the Default usage has been overwritten. ServiceConfiguration.Initialize() will not set any properties on the configuration for the Default usage.</value>
+  </data>
+  <data name="ID4289" xml:space="preserve">
+    <value>ID4289: Unrecognized Claim found while deserializing cookie ('{0}', '{1}').</value>
+  </data>
+  <data name="ID4290" xml:space="preserve">
+    <value>ID4290: Cannot serialize unrecognized Claim '{0}'.</value>
+  </data>
+  <data name="ID4291" xml:space="preserve">
+    <value>ID4291: The security token '{0}' is not scoped to the current endpoint.</value>
+  </data>
+  <data name="ID4292" xml:space="preserve">
+    <value>ID4292: The security token of type '{0}' cannot be validated by the '{1}' handler.</value>
+  </data>
+  <data name="ID4294" xml:space="preserve">
+    <value>ID4294: The default implementation of SecurityTokenCache does not implement the TryRemoveAllEntries method.</value>
+  </data>
+  <data name="ID6000" xml:space="preserve">
+    <value>ID6000: No CipherData present in EncryptedData element.</value>
+  </data>
+  <data name="ID6001" xml:space="preserve">
+    <value>ID6001: The key identifier must be set before writing the encrypted data element.</value>
+  </data>
+  <data name="ID6002" xml:space="preserve">
+    <value>ID6002: The given key size in bits is '{0}' which is not a multiple of 8.</value>
+  </data>
+  <data name="ID6005" xml:space="preserve">
+    <value>ID6005: Exclusive Canonicalization transform does not support the algorithm '{0}'.</value>
+  </data>
+  <data name="ID6019" xml:space="preserve">
+    <value>ID6019: The length of the EncryptedData cipher text is '{0}' bytes. Expected at least '{1}' bytes.</value>
+  </data>
+  <data name="ID6029" xml:space="preserve">
+    <value>ID6029: No 'root' element found. Cannot add signature as the root element in enveloped signatures.</value>
+  </data>
+  <data name="ID6030" xml:space="preserve">
+    <value>ID6030: A signature has already been added.</value>
+  </data>
+  <data name="ID6031" xml:space="preserve">
+    <value>ID6031: The key size cannot be zero.</value>
+  </data>
+  <data name="ID6033" xml:space="preserve">
+    <value>ID6033: The specified key size '{0}' is not supported.</value>
+  </data>
+  <data name="ID6034" xml:space="preserve">
+    <value>ID6034: Cannot create a HashAlgorithm with name '{0}'.</value>
+  </data>
+  <data name="ID6035" xml:space="preserve">
+    <value>ID6035: Cannot create a HashAlgorithm with name '{0}' using the '{1}' crypto provider. SHA256 may require a minimum platform of Windows Server 2003 and .NET 3.5 SP1.</value>
+  </data>
+  <data name="ID6036" xml:space="preserve">
+    <value>ID6036: Cannot verify the RSA cookie signature because there are no verification RSA keys.</value>
+  </data>
+  <data name="ID6037" xml:space="preserve">
+    <value>ID6037: Cannot create algorithm with name '{0}'.</value>
+  </data>
+  <data name="ID6039" xml:space="preserve">
+    <value>ID6039: Cannot decrypt the encrypted RSA cookie because there are no decryption keys.</value>
+  </data>
+  <data name="ID6040" xml:space="preserve">
+    <value>ID6040: The RSA key used to encrypt the RSA cookie was not found in the given decryption keys.</value>
+  </data>
+  <data name="ID6041" xml:space="preserve">
+    <value>ID6041: The provided RSA key is invalid.</value>
+  </data>
+  <data name="ID6042" xml:space="preserve">
+    <value>ID6042: Cannot sign data because the signing key is null.</value>
+  </data>
+  <data name="ID6043" xml:space="preserve">
+    <value>ID6043: Cannot encrypt data because the encryption key is null.</value>
+  </data>
+  <data name="ID6044" xml:space="preserve">
+    <value>ID6044: The cookie transform was passed a byte array of length zero and cannot encode zero bytes.</value>
+  </data>
+  <data name="ID6045" xml:space="preserve">
+    <value>ID6045: The cookie transform was passed a byte array of length zero and cannot decode zero bytes.</value>
+  </data>
+  <data name="ID6046" xml:space="preserve">
+    <value>ID6046: Cannot sign data because the signing key is public only.</value>
+  </data>
+  <data name="ID6047" xml:space="preserve">
+    <value>ID6047: The length of the decrypted key and IV is '{0}' bytes. Expected more than '{1}' bytes.</value>
+  </data>
+  <data name="ID6048" xml:space="preserve">
+    <value>ID6048: Cannot generate a strong triple-DES key in {0} iterations.</value>
+  </data>
+  <data name="ID8003" xml:space="preserve">
+    <value>ID8003: Cache purged: SizeBefore</value>
+  </data>
+  <data name="ID8004" xml:space="preserve">
+    <value>ID8004: The ClaimsPrincipal property key ('{0}') was unavailable to AuthorizationPolicy, PrincipalKey.</value>
+  </data>
+  <data name="ID8005" xml:space="preserve">
+    <value>ID8005: An unrecognized element was encountered in a SAML11 Advice element.This element will be ignored. To handle the element, extend SamlSecurityTokenHandler and override ReadAdvice. Element name</value>
+  </data>
+  <data name="ID8006" xml:space="preserve">
+    <value>ID8006: An unrecognized element was encountered in a SAML2 Advice element.This element will be ignored. To handle the element, extend Saml2SecurityTokenHandler and override ReadAdvice. Element name</value>
+  </data>
+  <data name="ID8023" xml:space="preserve">
+    <value>ID8023: Element: name</value>
+  </data>
+  <data name="ID8024" xml:space="preserve">
+    <value>ID8024: Element: name</value>
+  </data>
+  <data name="ID8025" xml:space="preserve">
+    <value>ID8025: No event should be set for synchronous completion.</value>
+  </data>
+  <data name="ID8026" xml:space="preserve">
+    <value>ID8026: End fragment must not be null or length of zero.</value>
+  </data>
+  <data name="ID8027" xml:space="preserve">
+    <value>ID8027: SecurityTokenHandlerConfiguration cannot be null.</value>
+  </data>
+  <data name="ID8028" xml:space="preserve">
+    <value>ID8028: An argument of the wrong type was passed to this method. This method expected an argument of type {0}, but it was passed an argument of type {1}.</value>
+  </data>
+  <data name="ID8029" xml:space="preserve">
+    <value>ID8029: Could not create an X509Certificate2 instance from the security key identifier. Override the MetadataSerializer.GetMetadataSigningCertificate method to support key identifier clauses other than X509RawDataKeyIdentifierClause.</value>
+  </data>
+  <data name="ID8030" xml:space="preserve">
+    <value>ID8030: The value of the 'type' property could not be parsed. Verify that the type attribute of '{0}' element is correct.</value>
+  </data>
+  <data name="InnerReaderMustBeAtElement" xml:space="preserve">
+    <value>The inner reader must be at the element.</value>
+  </data>
+  <data name="UnsupportedNodeTypeInReader" xml:space="preserve">
+    <value>The '{0}' node type with the '{1}' name is not supported.</value>
+  </data>
+  <data name="XmlTokenBufferIsEmpty" xml:space="preserve">
+    <value>XmlTokenBuffer is empty.</value>
+  </data>
+  <data name="WarnSkippingOperationWithSessionOpenNotificationEnabled" xml:space="preserve">
+    <value>An operation was skipped during export because the property '{0}' is set to '{1}'. This operation should be used for server only and should not be exposed from WSDL. \r\nContract Name:{2}\r\nContract Namespace:{3}\r\nOperation Name:{4}</value>
+  </data>
+  <data name="WarnSkippingOperationWithWildcardAction" xml:space="preserve">
+    <value>An operation was skipped during export because it has a wildcard action. This is not supported in WSDL.\r\nContract Name:{0}\r\nContract Namespace:{1}\r\nOperation Name:{2}</value>
+  </data>
+  <data name="XmlSerializerUnsupportedType" xml:space="preserve">
+    <value>{0} is an unsupported type. Please use [XmlIgnore] attribute to exclude members of this type from serialization graph.</value>
+  </data>
+  <data name="XmlConstructorInaccessible" xml:space="preserve">
+    <value>{0} cannot be serialized because it does not have a parameterless constructor.</value>
+  </data>
+  <data name="XmlUnsupportedOpenGenericType" xml:space="preserve">
+    <value>Type {0} is not supported because it has unbound generic parameters.  Only instantiated generic types can be serialized.</value>
+  </data>
+  <data name="XmlMappingsScopeMismatch" xml:space="preserve">
+    <value>Exported mappings must come from the same importer.</value>
+  </data>
+  <data name="XmlInternalError" xml:space="preserve">
+    <value>Internal error.</value>
+  </data>
+  <data name="XmlMissingSchema" xml:space="preserve">
+    <value>Missing schema targetNamespace="{0}".</value>
+  </data>
+  <data name="XmlDuplicateTypeName" xml:space="preserve">
+    <value>A type with the name {0} has already been added in namespace {1}.</value>
+  </data>
+  <data name="XmlSoapCannotIncludeInSchema" xml:space="preserve">
+    <value>The type {0} may not be exported to a schema because the IncludeInSchema property of the SoapType attribute is 'false'.</value>
+  </data>
+  <data name="XmlInvalidContent" xml:space="preserve">
+    <value>Invalid content {0}.</value>
+  </data>
+  <data name="DupContractInDataContractSet" xml:space="preserve">
+    <value>DataContract with name '{0}' and namespace '{1}' cannot be added to DataContractSet since another contract with the same data contract name is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="DupTypeContractInDataContractSet" xml:space="preserve">
+    <value>DataContract for type '{0}' cannot be added to DataContractSet since type '{1}' with the same data contract name '{2}' in namespace '{3}' is already present and the contracts are not equivalent.</value>
+  </data>
+  <data name="GenericTypeNotExportable" xml:space="preserve">
+    <value>Type '{0}' cannot be exported as a schema type because it is an open generic type. You can only export a generic type if all its generic parameter types are actual types.</value>
+  </data>
+  <data name="ArgumentNotInSetOfValidValues" xml:space="preserve">
+    <value>Specified argument was not in the set of valid values.</value>
+  </data>
+  <data name="ArgumentOutOfMinRange" xml:space="preserve">
+    <value>Specified argument was out of the range of valid values.  The value must be at least {0}.</value>
+  </data>
+  <data name="ArgumentPropertyShouldNotBeNullError" xml:space="preserve">
+    <value>Argument property '{0}' should not be null.</value>
+  </data>
+  <data name="ByteStreamMessageEncoderMessageVersionNotSupported" xml:space="preserve">
+    <value>The ByteStreamMessageEncoder does not support the MessageVersion '{0}'.</value>
+  </data>
+  <data name="ByteStreamMessageGetTypeNotSupported" xml:space="preserve">
+    <value>The GetBody method for type '{0}' is not supported. Please call GetBody with a type 'Stream' or 'byte[]' instead.</value>
+  </data>
+  <data name="ByteStreamReaderNotInByteStream" xml:space="preserve">
+    <value>The reader is not positioned within the byte stream. The reader must be positioned within the element '{0}'.</value>
+  </data>
+  <data name="ByteStreamWriteStartElementAlreadyCalled" xml:space="preserve">
+    <value>WriteStartElement has already been called on this encoder.</value>
+  </data>
+  <data name="GetByteArrayFromStreamContentNotAllowed" xml:space="preserve">
+    <value>The GetBody method for 'byte[]' is not supported because the message contains a Stream.</value>
+  </data>
+  <data name="XmlReaderClosed" xml:space="preserve">
+    <value>The XmlReader is closed.</value>
+  </data>
+  <data name="XmlStartElementNameExpected" xml:space="preserve">
+    <value>Start element '{0}' expected. Found '{1}'.</value>
+  </data>
+  <data name="XmlUnexpectedEndElement" xml:space="preserve">
+    <value>No matching start tag for end element.</value>
+  </data>
+  <data name="XmlWriterMustBeInElement" xml:space="preserve">
+    <value>WriteState '{0}' not valid. Caller must write start element before serializing in contentOnly mode.</value>
+  </data>
+  <data name="XmlWriterBackedStreamMethodNotSupported" xml:space="preserve">
+    <value>The '{0}' method is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertyGetNotSupported" xml:space="preserve">
+    <value>The get accessor of the '{0}' property is not supported by the stream.</value>
+  </data>
+  <data name="XmlWriterBackedStreamPropertySetNotSupported" xml:space="preserve">
+    <value>The set accessor of the '{0}' property is not supported by the stream.</value>
   </data>
 </root>

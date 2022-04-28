@@ -88,7 +88,7 @@ namespace CoreWCF.Configuration
                         retval = SecurityAlgorithmSuite.TripleDesSha256Rsa15;
                         break;
                     default:
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value",
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                             SR.Format(SR.ConfigInvalidClassFactoryValue, securityAlgorithm, typeof(SecurityAlgorithmSuite).FullName)));
                 }
                 return retval;
@@ -138,7 +138,7 @@ namespace CoreWCF.Configuration
                 else if (securityAlgorithm == SecurityAlgorithmSuite.TripleDesSha256Rsa15)
                     retval = ConfigurationStrings.TripleDesSha256Rsa15;
                 else
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value",
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
                         SR.Format(SR.ConfigInvalidClassInstanceValue, typeof(SecurityAlgorithmSuite).FullName)));
 
                 return retval;

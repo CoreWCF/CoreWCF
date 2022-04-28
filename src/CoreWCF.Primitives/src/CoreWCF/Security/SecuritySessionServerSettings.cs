@@ -769,10 +769,12 @@ namespace CoreWCF.Security
             if (SessionTokenAuthenticator is SecuritySessionSecurityTokenAuthenticator securitySessionTokenAuthenticator)
             {
                 securitySessionTokenAuthenticator.SecurityServiceDispatcher = SecurityServiceDispatcher;
+            }else if(SessionTokenAuthenticator is WrappedSessionSecurityTokenAuthenticator wrappedSessionSecurityTokenAuthenticator)
+            {
+                wrappedSessionSecurityTokenAuthenticator.SetSecureServiceDispatcher(SecurityServiceDispatcher);
             }
             _acceptNewWork = true;
             SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
-            SecuritySessionSecurityTokenAuthenticator securityAuth = (SecuritySessionSecurityTokenAuthenticator)SessionTokenAuthenticator;
             return Task.CompletedTask;
         }
 
@@ -2475,11 +2477,13 @@ namespace CoreWCF.Security
                 public IDuplexSessionChannel IncomingChannel { get; set; }
                 public IServiceChannelDispatcher ChannelDispatcher { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+#pragma warning disable CS0067 // The event is never used
                 public event EventHandler Closed;
                 public event EventHandler Closing;
                 public event EventHandler Faulted;
                 public event EventHandler Opened;
                 public event EventHandler Opening;
+#pragma warning restore CS0067 // The event is never used
 
                 public Task DispatchAsync(RequestContext context)
                 {

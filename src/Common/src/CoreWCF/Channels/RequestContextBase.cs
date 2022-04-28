@@ -94,7 +94,7 @@ namespace CoreWCF.Channels
             //if (DiagnosticUtility.ShouldTraceWarning)
             //{
             //    TraceUtility.TraceEvent(TraceEventType.Warning, TraceCode.RequestContextAbort,
-            //        SR.Format(SR.TraceCodeRequestContextAbort), this);
+            //        SRCommon.Format(SRCommon.TraceCodeRequestContextAbort), this);
             //}
 
             try
@@ -182,7 +182,7 @@ namespace CoreWCF.Channels
             {
                 if (Aborted)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationObjectAbortedException(SR.RequestContextAborted));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationObjectAbortedException(SRCommon.RequestContextAborted));
                 }
                 else
                 {
@@ -192,7 +192,7 @@ namespace CoreWCF.Channels
 
             if (ReplyInitiated)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ReplyAlreadySent));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SRCommon.ReplyAlreadySent));
             }
         }
 

@@ -9,6 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
@@ -164,16 +165,14 @@ namespace WSHttp
 
         internal class CustomTestValidator : UserNamePasswordValidator
         {
-            public override void Validate(string userName, string password)
+            public override ValueTask ValidateAsync(string userName, string password)
             {
                 if (string.Compare(userName, "testuser@corewcf", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    return;
+                    return new ValueTask(Task.CompletedTask);
                 }
-                else
-                {
-                    throw new Exception("Permission Denied");
-                }
+
+                return new ValueTask(Task.FromException(new Exception("Permission Denied")));
             }
         }
 
@@ -280,7 +279,7 @@ namespace WSHttp
                 return wsBInding;
             }
            
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);
                 serverBinding.Security.Message.ClientCredentialType = _credentialType;

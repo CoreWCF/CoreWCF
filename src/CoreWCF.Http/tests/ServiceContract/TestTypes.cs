@@ -117,7 +117,13 @@ namespace ServiceContract
     public class H
     {
         [DataMember]
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable IDE1006 // Naming Styles
         private int i = 99;
+#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore IDE0044 // Add readonly modifier
     }
 
     [Serializable]
@@ -132,7 +138,13 @@ namespace ServiceContract
     public struct mYStruct : ICloneable
     {
         [DataMember]
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable IDE1006 // Naming Styles
         private int i;
+#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore IDE0044 // Add readonly modifier
 
         public object Clone()
         {

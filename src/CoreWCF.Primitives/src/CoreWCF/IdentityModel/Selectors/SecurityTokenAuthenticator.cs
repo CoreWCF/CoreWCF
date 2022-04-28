@@ -60,7 +60,9 @@ namespace CoreWCF.IdentityModel.Selectors
         protected virtual ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             // Default to calling sync implementation to support existing derived types which haven't overridden this method
+#pragma warning disable CS0618 // Type or member is obsolete
             return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(ValidateTokenCore(token));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

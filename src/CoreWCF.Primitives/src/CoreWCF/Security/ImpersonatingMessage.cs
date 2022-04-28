@@ -45,7 +45,7 @@ namespace CoreWCF.Security
             get { return _innerMessage.Version; }
         }
 
-        internal override RecycledMessageState RecycledMessageState
+        public override RecycledMessageState RecycledMessageState
         {
             get
             {

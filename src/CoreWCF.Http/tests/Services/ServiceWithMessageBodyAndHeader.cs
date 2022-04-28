@@ -20,7 +20,8 @@ namespace Services
             CoreEchoMessageResponse echoMessageResponse = new CoreEchoMessageResponse
             {
                 SayHello = "Saying Hello " + request.Text,
-                SayHi = "Saying Hi " + request.Text
+                SayHi = "Saying Hi " + request.Text,
+                HeaderArrayValues = request.HeaderArrayValues,
             };
             return echoMessageResponse;
         }
@@ -45,6 +46,9 @@ namespace Services
 
         [MessageHeader]
         public string APIKey { get; set; }
+
+        [MessageHeaderArray]
+        public string[] HeaderArrayValues { get; set; }
     }
 
 
@@ -56,5 +60,8 @@ namespace Services
 
         [MessageHeader]
         public string SayHi { get; set; }
+
+        [MessageHeaderArray]
+        public string[] HeaderArrayValues { get; set; }
     }
 }

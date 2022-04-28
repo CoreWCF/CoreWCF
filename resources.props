@@ -4,21 +4,27 @@
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
     <OmitResources Condition="!Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">true</OmitResources>
     <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)Strings.resx</StringResourcesPath>
-    <IntermediateResOutputFileFullPath Condition="'$(OmitResources)'!='true'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
+    <CommonStringResourcesPath Condition="'$(IncludeCommonCode)' == 'true' And '$(CommonStringResourcesPath)'=='' And Exists('$(CommonPath)CoreWCF/Resources/Strings.resx')">$(CommonPath)CoreWCF/Resources/Strings.resx</CommonStringResourcesPath>
+	<IntermediateResOutputFileFullPath Condition="'$(OmitResources)'!='true'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
+    <IntermediateCommonResOutputFileFullPath Condition="'$(OmitResources)'!='true'">$(IntermediateOutputPath)SRCommon.cs</IntermediateCommonResOutputFileFullPath>
     <DefineConstants Condition="'$(OmitResources)'!='true' And '$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
   
-  <ItemGroup Condition="'$(StringResourcesPath)' != '' AND '$(OmitResources)' != 'true'">
-    <EmbeddedResource Include="$(StringResourcesPath)">
+  <ItemGroup Condition="'$(OmitResources)' != 'true'">
+    <EmbeddedResource Condition="'$(StringResourcesPath)' != ''" Include="$(StringResourcesPath)">
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
     </EmbeddedResource>
+	<EmbeddedResource Condition="'$(CommonStringResourcesPath)' != ''" Include="$(CommonStringResourcesPath)">
+      <Visible>true</Visible>
+      <LogicalName>FxResources.$(AssemblyName).SRCommon.resources</LogicalName>
+	</EmbeddedResource>
   </ItemGroup>
   
-  <ItemGroup Condition="Exists('$(StringResourcesPath)') AND '$(OmitResources)' != 'true'">
-    <Compile Include="$(CommonPath)/CoreWCF/SR.cs">
+  <!--<ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(OmitResources)' != 'true'">
+    <Compile Include="$(CommonPath)CoreWCF/SR.cs">
       <Visible>true</Visible>
       <Link>Resources/Common/SR.cs</Link>
     </Compile>
-  </ItemGroup>
+  </ItemGroup>-->
 </Project>

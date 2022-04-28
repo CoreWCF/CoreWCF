@@ -26,7 +26,8 @@ namespace NetCoreServer
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddServiceModelServices();
+            services.AddServiceModelServices()
+                    .AddServiceModelMetadata();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -59,6 +60,9 @@ namespace NetCoreServer
                 }
 
                 ConfigureSoapService<EchoService, Contract.IEchoService>(nameof(EchoService));
+                var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
+                serviceMetadataBehavior.HttpGetEnabled = true;
+                serviceMetadataBehavior.HttpsGetEnabled = true;
             });
         }
     }

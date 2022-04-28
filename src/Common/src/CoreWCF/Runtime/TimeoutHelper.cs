@@ -205,7 +205,7 @@ namespace CoreWCF.Runtime
         {
             if (timeout < TimeSpan.Zero)
             {
-                throw Fx.Exception.ArgumentOutOfRange(argumentName, timeout, SR.Format(SR.TimeoutMustBeNonNegative, argumentName, timeout));
+                throw Fx.Exception.ArgumentOutOfRange(argumentName, timeout, SRCommon.Format(SRCommon.TimeoutMustBeNonNegative, argumentName, timeout));
             }
         }
 
@@ -218,7 +218,7 @@ namespace CoreWCF.Runtime
         {
             if (timeout <= TimeSpan.Zero)
             {
-                throw Fx.Exception.ArgumentOutOfRange(argumentName, timeout, SR.Format(SR.TimeoutMustBePositive, argumentName, timeout));
+                throw Fx.Exception.ArgumentOutOfRange(argumentName, timeout, SRCommon.Format(SRCommon.TimeoutMustBePositive, argumentName, timeout));
             }
         }
 
@@ -240,7 +240,7 @@ namespace CoreWCF.Runtime
 
         internal static TimeoutException CreateEnterTimedOutException(TimeSpan timeout)
         {
-            return new TimeoutException(SR.Format(SR.LockTimeoutExceptionMessage, timeout));
+            return new TimeoutException(SRCommon.Format(SRCommon.LockTimeoutExceptionMessage, timeout));
         }
     }
 

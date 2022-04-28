@@ -6,7 +6,7 @@ using System.Configuration;
 namespace CoreWCF.Configuration
 {
     public class StandardBindingElementCollection<TBindingConfiguration> : ServiceModelEnhancedConfigurationElementCollection<TBindingConfiguration>
-        where TBindingConfiguration : StandardBindingElement, new()
+        where TBindingConfiguration : ConfigurationElement, IDefaultCommunicationTimeouts, IStandardBindingElement, new()
     {
         public StandardBindingElementCollection()
             : base(ConfigurationStrings.Binding)
@@ -17,7 +17,7 @@ namespace CoreWCF.Configuration
         {
             if (element == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("element");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(element));
             }
 
             TBindingConfiguration configElementKey = (TBindingConfiguration)element;

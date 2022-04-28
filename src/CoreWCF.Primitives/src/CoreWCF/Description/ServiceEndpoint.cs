@@ -61,7 +61,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal bool IsSystemEndpoint
+        public bool IsSystemEndpoint
         {
             get;
             set;
@@ -90,7 +90,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal Uri ListenUri
+        public Uri ListenUri
         {
             get
             {
@@ -133,7 +133,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal string Id
+        public string Id
         {
             get
             {
@@ -196,7 +196,7 @@ namespace CoreWCF.Description
             return IsSystemEndpoint;
         }
 
-        // This method runs validators (both builtin and ones in description).  
+        // This method runs validators (both builtin and ones in description).
         // Precondition: EnsureInvariants() should already have been called.
         private void Validate(bool runOperationValidators, bool isForService)
         {

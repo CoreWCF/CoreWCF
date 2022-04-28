@@ -24,6 +24,9 @@ namespace CoreWCF.Http.Tests
 
         [Fact]
         [Trait("Category", "WindowsOnly")]
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public void BasicHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
