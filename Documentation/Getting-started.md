@@ -22,8 +22,8 @@ dotnet new web -n CoreWCFDemoServer -o CoreWCFDemoServer
 
 Using the package Manager console, add: 
 
-- Primitives
-- Http
+- CoreWCF.Primitives
+- CoreWCF.Http
 
 ![Package Manager Console](images/nuget.png)
 
@@ -33,8 +33,8 @@ Edit the project file and add:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="CoreWCF.Http" Version="1.0.0" />
   <PackageReference Include="CoreWCF.Primitives" Version="1.0.0" />
+  <PackageReference Include="CoreWCF.Http" Version="1.0.0" />
 </ItemGroup>
 ```
 ### 1. Create the Service Contract and Data Contract definitions
