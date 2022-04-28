@@ -52,16 +52,9 @@ namespace CoreWCfDemoServer
     [DataContract]
     public class EchoFault
     {
-        [AllowNull]
-        private string _text;
-
         [DataMember]
         [AllowNull]
-        public string Text
-        {
-            get { return _text; }
-            set { _text = value; }
-        }
+        public string Text { get; set; }
     }
 
     [ServiceContract]
