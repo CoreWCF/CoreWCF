@@ -1,6 +1,6 @@
 # Microsoft Support
 
-This document details Microsoft Support pollicy for CoreWCF.
+This document details Microsoft Support pollicy for Core WCF.
 
 We recognize how important support is to enterprise customers, and so we are pleased to announce that Microsoft Product Support will be available for Core WCF customers.
 
