@@ -31,12 +31,11 @@ Using the package Manager console, add:
 
 Edit the project file and add:
 
-```xml
-<ItemGroup>
-  <PackageReference Include="CoreWCF.Primitives" Version="1.0.0" />
-  <PackageReference Include="CoreWCF.Http" Version="1.0.0" />
-</ItemGroup>
+```cli
+dotnet add package CoreWCF.Primitives
+dotnet add package CoreWCF.Http
 ```
+
 ### 1. Create the Service Contract and Data Contract definitions
 
 These are defined the same as with WCF. When modernizing projects, this code can remain largely unchanged.
