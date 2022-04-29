@@ -599,14 +599,14 @@ namespace CoreWCF.ConfigurationManager.Tests
                                   maxBufferSize=""{expectedMaxBufferSize}""
                                   connectionBufferSize=""{expectedConnectionBufferSize}""
                                   hostNameComparisonMode=""{expectedHostNameComparisonMode}""
-                                  channelInitializationTimeout=""{expectedChannelInitializationTimeout:g}""
+                                  channelInitializationTimeout=""{expectedChannelInitializationTimeout:c}""
                                   maxPendingConnections=""{expectedMaxPendingConnections}""
-                                  maxOutputDelay=""{expectedMaxOutputDelay:g}""
+                                  maxOutputDelay=""{expectedMaxOutputDelay:c}""
                                   maxPendingAccepts=""{expectedMaxPendingAccepts}""
                                   transferMode=""{expectedTransferMode}""
                                   listenBacklog=""{expectedListenBacklog}"">
                         <connectionPoolSettings
-                                                idleTimeout=""{expectedIdleTimeout:g}""
+                                                idleTimeout=""{expectedIdleTimeout:c}""
                                                 maxOutboundConnectionsPerEndpoint=""{expectedMaxOutboundConnectionsPerEndpoint}""/>
                         <extendedProtectionPolicy policyEnforcement=""{expectedPolicyEnforcement}""
                                                   protectionScenario=""{expectedProtectionScenario}"">
