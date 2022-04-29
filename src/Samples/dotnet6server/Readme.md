@@ -12,6 +12,10 @@ The bindings can be changed via code, for example to use WSHttpBinding, the Endp
     .AddServiceEndpoint<EchoService, IEchoService>(new WSHttpBinding(SecurityMode.Transport), "/EchoService/wshttp");
 ```
 
+## WSDL
+
+The sample will expose a WSDL endpoint at /EchoService for HTTP & HTTPS.
+
 ## Nuget References
 
 The project is configured to pull the CoreWCF binaries from Nuget.org. If you are building CoreWCF locally, change the project references to relative paths:

@@ -19,6 +19,7 @@ namespace NetCoreServer
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
             .UseKestrel(options => {
+                options.AllowSynchronousIO = true;
                 options.ListenLocalhost(Startup.HTTP_PORT);
                 options.ListenLocalhost(Startup.HTTPS_PORT, listenOptions =>
                 {

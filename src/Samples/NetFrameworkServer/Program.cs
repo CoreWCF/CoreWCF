@@ -17,16 +17,17 @@ namespace DesktopServer
             Type contract = typeof(TContract);
             var host = new ServiceHost(typeof(TService), baseUriList);
 
-            var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
-            serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
-            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, "/wsHttpUserPassword");
-            CustomUserNamePasswordValidator.AddToHost(host);
-
             host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), "/basichttp");
             host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), "/basichttp");
             host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), "/wsHttp");
             host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), "/wsHttp");
             host.AddServiceEndpoint(contract, new NetTcpBinding(), "/nettcp");
+
+            var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
+            serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
+            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, "/wsHttpUserPassword");
+            CustomUserNamePasswordValidator.AddToHost(host);
+            
             return host;
         }
 
