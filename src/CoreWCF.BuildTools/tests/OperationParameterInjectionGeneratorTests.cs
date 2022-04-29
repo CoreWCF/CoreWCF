@@ -153,6 +153,67 @@ namespace MyProject
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public class HomeController : Microsoft.AspNetCore.Mvc.Controller
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [Microsoft.AspNetCore.Mvc.FromServices] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers_ControllerInheritance()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public class MyBaseController : Microsoft.AspNetCore.Mvc.Controller {{ }}
+    public class HomeController : MyBaseController
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [Microsoft.AspNetCore.Mvc.FromServices] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
         [Theory]
         [InlineData("System.ServiceModel")]
         [InlineData("CoreWCF")]

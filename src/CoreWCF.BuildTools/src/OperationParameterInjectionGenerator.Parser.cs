@@ -218,8 +218,8 @@ namespace CoreWCF.BuildTools
                 }
             }
 
-            internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax &&
-                methodDeclarationSyntax.ParameterList.Parameters.Count > 0
+            internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
+                && methodDeclarationSyntax.ParameterList.Parameters.Count > 0
                 && methodDeclarationSyntax.ParameterList.Parameters.Any(static p => p.AttributeLists.Count > 0)
                 && (methodDeclarationSyntax.Body != null || methodDeclarationSyntax.ExpressionBody != null);
 
@@ -248,6 +248,11 @@ namespace CoreWCF.BuildTools
                             }
                             if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                             {
+                                if (IsNodeAnASPNETCoreMVCAction(context))
+                                {
+                                    continue;
+                                }
+
                                 return methodDeclarationSyntax;
                             }
                         }
@@ -256,6 +261,20 @@ namespace CoreWCF.BuildTools
 
                 return null;
             }
+
+            internal static bool IsNodeAnASPNETCoreMVCAction(GeneratorSyntaxContext context)
+                => (context.Node.Parent is ClassDeclarationSyntax)
+                    && context.SemanticModel.GetDeclaredSymbol(context.Node.Parent) is ITypeSymbol classContainingMethodSymbol
+                    && IsSymbolAnASPNETCoreMVCController(classContainingMethodSymbol);
+                   
+            internal static bool IsSymbolAnASPNETCoreMVCController(ITypeSymbol? typeSymbol)
+                => typeSymbol?.BaseType switch
+                {
+                    not null => typeSymbol.BaseType!.ToDisplayString() == "Microsoft.AspNetCore.Mvc.Controller"
+                        || IsSymbolAnASPNETCoreMVCController(typeSymbol.BaseType),
+                    _ => false
+                };
+            
         }
     }
 }
