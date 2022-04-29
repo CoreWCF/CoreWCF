@@ -4,12 +4,52 @@ using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using CoreWCF.Samples.StandardCommon;
+using Contract;
 
 namespace NetCoreServer
 {
     public class Startup
     {
+        public const int HTTP_PORT = 8088;
+        public const int HTTPS_PORT = 8443;
+        public const int NETTCP_PORT = 8089;
+
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            //Enable CoreWCF Services, with metadata (WSDL) support
+            services.AddServiceModelServices()
+                    .AddServiceModelMetadata();
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+             app.UseServiceModel(builder =>
+            {
+                // Add the Echo Service
+                builder.AddService<EchoService>(serviceOptions =>
+                {
+                    // Set a base address for all bindings to the service, and WSDL discovery
+                    serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{HTTP_PORT}/EchoService"));
+                    serviceOptions.BaseAddresses.Add(new Uri($"https://localhost:{HTTPS_PORT}/EchoService"));
+                })
+                // Add a BasicHttpBinding endpoint
+                .AddServiceEndpoint<EchoService, IEchoService>(new BasicHttpBinding(), "/basichttp")
+
+                // Add WSHttpBinding endpoints
+                .AddServiceEndpoint<EchoService, IEchoService>(new WSHttpBinding(SecurityMode.None), "/wsHttp")
+                .AddServiceEndpoint<EchoService, IEchoService>(new WSHttpBinding(SecurityMode.Transport), "/wsHttp")
+ 
+                // Add NetTcpBinding
+                .AddServiceEndpoint<EchoService, IEchoService>(new NetTcpBinding(), $"net.tcp://localhost:{NETTCP_PORT}/nettcp");
+
+                // Configure WSDL to be available over http & https
+                var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
+                serviceMetadataBehavior.HttpGetEnabled = true;
+                serviceMetadataBehavior.HttpsGetEnabled = true;
+            });
+        }
+
         private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
         private static CoreWCF.Channels.Binding ApplyDebugTimeouts(CoreWCF.Channels.Binding binding)
@@ -24,47 +64,6 @@ namespace NetCoreServer
             return binding;
         }
 
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddServiceModelServices()
-                    .AddServiceModelMetadata();
-        }
-
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
-            app.UseServiceModel(builder =>
-            {
-                WSHttpBinding GetTransportWithMessageCredentialBinding()
-                {
-                    var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
-                    serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
-                    return serverBindingHttpsUserPassword;
-                }
-
-                builder.ConfigureServiceHostBase<EchoService>(CustomUserNamePasswordValidatorCore.AddToHost);
-
-                void ConfigureSoapService<TService, TContract>(string serviceprefix) where TService : class
-                {
-                    Settings settings = new Settings().SetDefaults("localhost", serviceprefix);
-                    builder.AddService<TService>()
-                        .AddServiceEndpoint<TService, TContract>(
-                            GetTransportWithMessageCredentialBinding(), settings.wsHttpAddressValidateUserPassword.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new BasicHttpBinding(),
-                            settings.basicHttpAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.None),
-                            settings.wsHttpAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new WSHttpBinding(SecurityMode.Transport),
-                            settings.wsHttpsAddress.LocalPath)
-                        .AddServiceEndpoint<TService, TContract>(new NetTcpBinding(),
-                            settings.netTcpAddress.LocalPath);
-                }
-
-                ConfigureSoapService<EchoService, Contract.IEchoService>(nameof(EchoService));
-                var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
-                serviceMetadataBehavior.HttpGetEnabled = true;
-                serviceMetadataBehavior.HttpsGetEnabled = true;
-            });
-        }
     }
 
 }

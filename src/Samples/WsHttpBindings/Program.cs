@@ -19,8 +19,8 @@ namespace NetCoreServer
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
             .UseKestrel(options => {
-                options.ListenLocalhost(Startup.HTTP_PORT);
-                options.ListenLocalhost(Startup.HTTPS_PORT, listenOptions =>
+                options.ListenLocalhost(WSHttpUserPassword.HTTP_PORT);
+                options.ListenLocalhost(WSHttpUserPassword.HTTPS_PORT, listenOptions =>
                 {
                     listenOptions.UseHttps();
                     if (Debugger.IsAttached)
@@ -29,7 +29,10 @@ namespace NetCoreServer
                     }
                 });
             })
-            .UseNetTcp(Startup.NETTCP_PORT)
-            .UseStartup<Startup>();
+
+            // Replace with other WSFedBinding or WSHttpWithWindowsAuthAndRoles for other binding types
+            .UseStartup<WSHttpUserPassword>();
+
+        
     }
 }

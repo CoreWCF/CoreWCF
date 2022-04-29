@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "NetCoreServer": {
+    "WSHttpBindings": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
