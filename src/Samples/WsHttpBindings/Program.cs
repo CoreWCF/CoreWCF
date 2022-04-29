@@ -18,7 +18,8 @@ namespace NetCoreServer
         // Listen on 8088 for http, and 8443 for https, 8089 for NetTcp.
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-            .UseKestrel(options => {
+            .UseKestrel(options =>
+            {
                 options.AllowSynchronousIO = true;
                 options.ListenLocalhost(WSHttpUserPassword.HTTP_PORT);
                 options.ListenLocalhost(WSHttpUserPassword.HTTPS_PORT, listenOptions =>
@@ -34,6 +35,6 @@ namespace NetCoreServer
             // Replace with other WSFedBinding or WSHttpWithWindowsAuthAndRoles for other binding types
             .UseStartup<WSHttpUserPassword>();
 
-        
+
     }
 }
