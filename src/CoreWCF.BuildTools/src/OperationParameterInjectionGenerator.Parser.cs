@@ -236,21 +236,17 @@ namespace CoreWCF.BuildTools
                             IMethodSymbol? attributeSymbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
                             if (attributeSymbol == null)
                             {
-                                continue;
+                                return null;
                             }
 
                             INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                             string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                            if (fullName == "CoreWCF.InjectedAttribute")
-                            {
-                                return methodDeclarationSyntax;
-                            }
-                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute")
+                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute" || fullName == "CoreWCF.InjectedAttribute")
                             {
                                 if (IsNodeAnASPNETCoreMVCAction(context))
                                 {
-                                    continue;
+                                    return null;
                                 }
 
                                 return methodDeclarationSyntax;
