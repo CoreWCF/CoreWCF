@@ -1667,6 +1667,132 @@ namespace MyProject
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    //[{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    //[{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class IdentityService : IIdentityService
+        {{
+            public string Echo(string input) => input;
+            public string Echo2(string input, [{attribute}] object a) => input;
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    //[{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class ContainerB
+        {{
+            public partial class IdentityService : IIdentityService
+            {{
+                public string Echo(string input) => input;
+                public string Echo2(string input, [{attribute}] object a) => input;
+            }}
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { },
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
         public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
@@ -1714,7 +1840,7 @@ namespace MyProject
         [Theory]
         [InlineData(CoreWCFInjectedAttribute)]
         [InlineData(MVCFromServicesAttribute)]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attribute)
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1741,13 +1867,7 @@ namespace MyProject
 "
                     },
                     GeneratedSources = { },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
-                            .WithDefaultPath("/0/Test0.cs")
-                            .WithSpan(11, 26, 11, 41)
-                            .WithArguments("IdentityService", "Echo2")
-                    },
+                    ExpectedDiagnostics = { },
                 }
             };
 
@@ -1757,7 +1877,7 @@ namespace MyProject
         [Theory]
         [InlineData(CoreWCFInjectedAttribute)]
         [InlineData(MVCFromServicesAttribute)]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attribute)
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1777,13 +1897,7 @@ namespace MyProject
 "
                     },
                     GeneratedSources = { },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
-                            .WithDefaultPath("/0/Test0.cs")
-                            .WithSpan(4, 26, 4, 41)
-                            .WithArguments("IdentityService", "Echo2")
-                    },
+                    ExpectedDiagnostics = { },
                 }
             };
 

@@ -52,29 +52,30 @@ namespace CoreWCF.BuildTools
                     return null;
                 }
 
+                OperationContractSpec? operationContractSpec = FindOperationContractSpec(methodSymbol);
+                if(operationContractSpec == null)
+                {
+                    return null;
+                }
+
                 if (!methodSymbol.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                 {
                     _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, methodSymbol.Name, parentType.Locations[0]));
                     return null;
                 }
 
+                return operationContractSpec;
+            }
+
+            private OperationContractSpec? FindOperationContractSpec(IMethodSymbol methodSymbol)
+            {
                 var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
-                if (allServiceContractCandidates.Length == 0)
-                {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
-                    return null;
-                }
-
-                bool atLeastOneServiceContractIsFound = false;
-
                 foreach (var serviceContractCandidate in allServiceContractCandidates)
                 {
                     foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
                     {
                         if (SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
                         {
-                            atLeastOneServiceContractIsFound = true;
-
                             if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
                             {
                                 _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
@@ -99,11 +100,6 @@ namespace CoreWCF.BuildTools
                             }
                         }
                     }
-                }
-
-                if (!atLeastOneServiceContractIsFound)
-                {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
                 }
 
                 return null;

@@ -14,13 +14,6 @@ namespace CoreWCF.BuildTools
                                                                               DiagnosticSeverity.Error,
                                                                               isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor ParentClassShouldImplementAServiceContractError = new DiagnosticDescriptor(id: "COREWCF_0101",
-                                                                      title: "Parent class should be a ServiceContract implementation",
-                                                                      messageFormat: "Parent class '{0}' of method '{1}' should either implement an interface marked with a ServiceContract attribute or inherit a class implementing an interface marked with a ServiceContract attribute",
-                                                                      category: nameof(OperationParameterInjectionGenerator),
-                                                                      DiagnosticSeverity.Error,
-                                                                      isEnabledByDefault: true);
-
         internal static readonly DiagnosticDescriptor OperationContractShouldNotBeAlreadyImplementedError = new DiagnosticDescriptor(id: "COREWCF_0102",
                                                               title: "OperationContract is already imlemented",
                                                               messageFormat: "OperationContract '{0}.{1}' is already implemented",
@@ -29,8 +22,6 @@ namespace CoreWCF.BuildTools
                                                               isEnabledByDefault: true);
 
         internal static Diagnostic RaiseParentClassShouldBePartialError(string parentClassName, string methodName, Location location) => Diagnostic.Create(ParentClassShouldBePartialError, location, parentClassName, methodName);
-
-        internal static Diagnostic RaiseParentClassShouldImplementAServiceContractError(string parentClassName, string methodName, Location location) => Diagnostic.Create(ParentClassShouldImplementAServiceContractError, location, parentClassName, methodName);
 
         internal static Diagnostic RaiseOperationContractShouldNotBeAlreadyImplementedError(string parentClassName, string methodName, Location location) => Diagnostic.Create(OperationContractShouldNotBeAlreadyImplementedError, location, parentClassName, methodName);
     }
