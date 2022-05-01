@@ -24,24 +24,22 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 
 ### How do I get started?
 
-#### *Using samples from this repo*
-
 * Install the Nuget packages listed above, either via the Package Manager Console or the UI.
 * See [Walkthrough](Documentation/Walkthrough.md) for a step by step guide to creating a service and referencing it from a client project.
 * The [Samples](src/Samples/) folder has examples for .NET Framework, .NET Core 3.1, .NET 5 & 6 
 * The [Blog](https://corewcf.github.io/) has details on the design philosophy and a deep dive into the features are included in each new release.
 
-#### *Using Core WCF project templates (dotnet CLI or VisualStudio)*
+### Use Core WCF project templates (dotnet CLI or VisualStudio)
 
 * Install CoreWCF project templates, create a directory for your project and cd inside the directory and initialize your project
 ```cmd
 dotnet new --install CoreWCF.Templates && mkdir MyService && cd MyService && dotnet new corewcf
 ```
-* `CoreWCFService` project template creates a minimal ASP.NET Core web application thats exposes the well-known WCF default service using a `BasicHttpBinding`.
+* `Core WCF Service` project template creates a minimal ASP.NET Core web application thats exposes the well-known WCF default service using a `BasicHttpBinding`.
 It supports the following arguments:
   * `--framework`: `net6.0` (default), `net5.0`, `netcoreapp3.1`, `net48`, `net472` and `net462` are valid values.
-  * `--use-program-main`: whether to turn off ASP.NET Core minimal API hosting.
-  * `--no-https`: whether to turn off HTTPS.
+  * `--use-program-main`: whether to turn off ASP.NET Core minimal API hosting. This option only affects `net6.0` projects as other target require a `Startup` and a `Program` class. 
+  * `--no-https`: whether to turn off HTTPS and use `BasicHttpSecurityMode.None`. Default is HTTPS enabled using `BasicHttpSecurityMode.Transport`.
   * `--no-wsdl`: whether to turn off WSDL metadata feature.
 
 ### Development Builds

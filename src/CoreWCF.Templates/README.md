@@ -1,10 +1,34 @@
 # CoreWCF.Templates
 
-## Running unit tests CI
+This describe how to debug and test the Core WCF templates on a developer machine. 
 
-1. Run the script [Run-Templates-UnitTests.ps1](./Run-Templates-UnitTests.ps1).
+If you just want to use the templates, see [Use Core WCF project templates (dotnet CLI or VisualStudio](./../../README.md#use-core-wcf-project-templates-dotnet-cli-or-visualstudio).
+
+## Test the templates locally
+
+Ensure Core WCF templates are not already installed on your machine by first running 
+```cmd
+dotnet new --uninstall CoreWCF.Templates
+```
+
+- Run the script [Prepare-Run.ps1](./Prepare-Run.ps1)
 ```powershell
-./Run-Templates-UnitTests.ps1
+./Prepare-Run.ps1
+```
+
+- Open a command line and  run
+
+```cmd
+dotnet new corewcf
+```
+
+- Using VS2022 you should find **Core WCF Service** project template
+
+- Inspect and build the created project
+
+- Clean up your environment. Run the script [Clean-Run.ps1](./Clean-Run.ps1)
+```powershell
+./Clean-Run.ps1
 ```
 
 ## Running unit tests locally
@@ -14,7 +38,7 @@
 ./Prepare-Run.ps1
 ```
 
-2. Run unit tests. Use your favorite IDE or run
+2. Run unit tests from any IDE or run
 ```powershell
 dotnet test ./tests/CoreWCF.Templates.Tests.csproj
 ```
@@ -22,4 +46,11 @@ dotnet test ./tests/CoreWCF.Templates.Tests.csproj
 3. Run the script [Clean-Run.ps1](./Clean-Run.ps1)
 ```powershell
 ./Clean-Run.ps1
+```
+
+## Running unit tests (CI)
+
+1. Run the script [Run-Templates-UnitTests.ps1](./Run-Templates-UnitTests.ps1).
+```powershell
+./Run-Templates-UnitTests.ps1
 ```
