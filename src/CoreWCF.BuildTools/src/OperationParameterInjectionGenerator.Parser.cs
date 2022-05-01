@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -193,28 +194,23 @@ namespace CoreWCF.BuildTools
                     }
                 }
 
-                var referenceServiceContracts = new List<INamedTypeSymbol>();
-
                 foreach (var reference in _compilation.References)
                 {
-                    var assemblySymbol = _compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assemblySymbol == null)
+                    if (_compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assemblySymbol)
                     {
                         continue;
                     }
 
-                    var visitor = new FindAllServiceContractsVisitor(referenceServiceContracts, new INamedTypeSymbol?[]
+                    var visitor = new FindAllServiceContractsVisitor(new INamedTypeSymbol?[]
                     {
                         SSMServiceContractSymbol,
                         CoreWCFServiceContractSymbol
                     });
 
-                    visitor.Visit(assemblySymbol.GlobalNamespace);
-                }
-
-                foreach (var serviceContract in referenceServiceContracts)
-                {
-                    yield return serviceContract;
+                    foreach(var serviceContract in visitor.Visit(assemblySymbol.GlobalNamespace))
+                    {
+                        yield return serviceContract;
+                    }
                 }
             }
 
