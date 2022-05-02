@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -1089,8 +1090,11 @@ namespace CoreWCF.WebHttp.Tests
         private class SimplePropertyClass
         {
             [DataMember(Name = "Property")]
-            [OpenApiProperty(Description = "description", IsRequired = true)]
+            [OpenApiProperty(Description = "description", IsRequired = true, MinLength = 1, MaxLength = 2, Format = "format")]
             public string Property { get; set; }
+
+            [DataMember(Name = "Property2")]
+            public string Property2 { get; set; }
         }
 
         private interface ISimplePropertyAdded
@@ -1124,6 +1128,24 @@ namespace CoreWCF.WebHttp.Tests
                 .GetProperty("type")
                 .GetString();
 
+            int minLength = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("minLength")
+                .GetInt32();
+
+            int maxLength = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("maxLength")
+                .GetInt32();
+
+            string format = schema
+                .GetProperty("properties")
+                .GetProperty("Property")
+                .GetProperty("format")
+                .GetString();
+
             string description = schema
                 .GetProperty("properties")
                 .GetProperty("Property")
@@ -1135,6 +1157,22 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("Property", property.GetString());
             Assert.Equal("string", type);
             Assert.Equal("description", description);
+            Assert.Equal(1, minLength);
+            Assert.Equal(2, maxLength);
+            Assert.Equal("format", format);
+
+            var property2 = schema
+                .GetProperty("properties")
+                .GetProperty("Property2");
+
+            Assert.Throws<KeyNotFoundException>(() => property2
+                .GetProperty("minLength"));
+
+            Assert.Throws<KeyNotFoundException>(() => property2
+                .GetProperty("maxLength"));
+
+            Assert.Throws<KeyNotFoundException>(() => property2
+                .GetProperty("format"));
         }
 
         [DataContract(Name = "ComplexPropertyClass")]
@@ -1374,6 +1412,38 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("One", values[0]);
             Assert.Equal("Two", values[1]);
             Assert.Equal("description", description);
+        }
+
+        private interface ITagsAddedToDocument
+        {
+            [OpenApiTag("b")]
+            [OpenApiTag("a")]
+            [WebGet(UriTemplate = "/path")]
+            public void Operation();
+        }
+
+        private sealed class TagsSorter : IComparer<OpenApiTag>
+        {
+            public int Compare(OpenApiTag x, OpenApiTag y) => new CaseInsensitiveComparer().Compare(x.Name, y.Name);
+        }
+
+        [Fact]
+        public void TagsAddedToDocument()
+        {
+            JsonElement json = GetJson(new OpenApiOptions
+            {
+                TagsSorter = new TagsSorter(),
+            }, new List<Type> { typeof(ITagsAddedToDocument) });
+
+            var tags = json
+                .GetProperty("tags")
+                .EnumerateArray()
+                .Select(item => item.GetProperty("name").ToString())
+                .ToList();
+
+            Assert.Equal(2, tags.Count);
+            Assert.Equal("a", tags[0]);
+            Assert.Equal("b", tags[1]);
         }
 
         private static JsonElement GetJson(OpenApiOptions options, IEnumerable<OpenApiContractInfo> contracts)

@@ -20,5 +20,20 @@ namespace CoreWCF.OpenApi.Attributes
         /// Whether the property is required or not.
         /// </summary>
         public bool IsRequired { get; set; }
+
+        /// <summary>
+        /// Minimum length of the property.
+        /// </summary>
+        public int MinLength { get; set; }
+
+        /// <summary>
+        /// Maximum length of the property.
+        /// </summary>
+        public int MaxLength { get; set; }
+
+        /// <summary>
+        /// How the property should be formatted.
+        /// </summary>
+        public string Format { get; set; }
     }
 }
