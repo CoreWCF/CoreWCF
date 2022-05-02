@@ -67,12 +67,6 @@ public class BasicTests
             return this;
         }
 
-        public TestVariation Net6()
-        {
-            Arguments.Add("--framework net5.0");
-            return this;
-        }
-
         public static implicit operator object[](TestVariation testVariation) => new object[] { testVariation };
     }
 
