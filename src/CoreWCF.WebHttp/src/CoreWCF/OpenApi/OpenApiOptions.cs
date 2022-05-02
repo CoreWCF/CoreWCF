@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.OpenApi.Models;
 
 namespace CoreWCF.OpenApi
 {
@@ -70,5 +71,10 @@ namespace CoreWCF.OpenApi
         /// Any tags to hide.
         /// </summary>
         public IEnumerable<string> TagsToHide { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Optional callback to sort tags.
+        /// </summary>
+        public IComparer<OpenApiTag> TagsSorter { get; set; }
     }
 }
