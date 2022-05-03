@@ -3,9 +3,8 @@
 
 using System;
 using System.ComponentModel;
-using System.Net;
-using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Threading;
@@ -14,11 +13,16 @@ using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
 using Helpers;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
+#if NETCOREAPP3_1_OR_GREATER
+using Microsoft.AspNetCore.Authentication.Negotiate;
+#endif
 
 namespace WSHttp
 {
@@ -48,6 +52,7 @@ namespace WSHttp
             }
         }
 
+#if NETCOREAPP3_1_OR_GREATER // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
         [Fact, Description("transport-security-with-an-anonymous-client")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
         {
@@ -72,6 +77,7 @@ namespace WSHttp
                 ((IChannel)channel).Close();
             }
         }
+#endif
 
         [Fact , Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
@@ -196,6 +202,110 @@ namespace WSHttp
             }
         }
 
+#if NETCOREAPP3_1_OR_GREATER // Windows Auth on Kestrel not supported on NetFx
+        [Fact, Description("transport-security-with-windows-authentication-kestrel")]
+        [Trait("Category", "WindowsOnly")]
+        internal void WSHttpRequestImpersonateWithKestrel()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
+                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoForImpersonation(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();
+            }
+        }
+#endif
+
+        [Fact(Skip="Temporarily failing in Azure Devops due to corrupted IIS Express dev certificate in test environment image."),
+            Description("transport-security-with-windows-authentication-httpsys")]
+        [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
+        internal void WSHttpRequestImpersonateWithHttpSys()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:44300/WSHttpWcfService/basichttp.svc")));
+                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoForImpersonation(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();
+            }
+        }
+
+        [Fact, Description("no-security-with-an-anonymous-client-using-impersonation")]
+        [Trait("Category", "WindowsOnly")]
+        public void WSHttpRequestImpersonateFailsWithoutAuthentication()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/WSHttpWcfService/basichttp.svc")));
+                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                {
+                    channel.EchoForImpersonation(testString);
+                });
+            }
+        }
+
+        [Fact(Skip = "Failing in Azure Devops due to corrupted IIS Express dev certificate"),
+            Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
+        [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
+        public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8085/WSHttpWcfService/basichttp.svc")));
+                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                {
+                    channel.EchoForImpersonation(testString);
+                });
+            }
+        }
+
         internal class CustomTestValidator : UserNamePasswordValidator
         {
             public override ValueTask ValidateAsync(string userName, string password)
@@ -278,13 +388,69 @@ namespace WSHttp
             public WSHttpTransportSecurityOnly() : base(SecurityMode.Transport, MessageCredentialType.None)
             {
             }
+
+            protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
+            {
+#if NET472
+                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
+                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
+                    {
+                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
+                    });
+#else
+                return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+                    .AddNegotiate();
+#endif
+            }
+        }
+
+        internal class WSHttpNoSecurityHttpSys : WSHttpNoSecurity
+        {
+            protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
+            {
+                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
+                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
+                    {
+                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
+                    });
+            }
         }
 
         internal class WSHttpNoSecurity : StartupWSHttpBase
         {
             public WSHttpNoSecurity() : base(SecurityMode.None, MessageCredentialType.None)
             {
-               
+            }
+        }
+
+        internal class WSHttpTransportWithImpersonationHttpSys : WSHttpTransportWithImpersonation
+        {
+            protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
+            {
+#if NET472
+                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
+                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
+                    {
+                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
+                    });
+#else
+                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
+                    .AddNegotiate();
+#endif
+            }
+        }
+
+        internal class WSHttpTransportWithImpersonation : StartupWSHttpBase
+        {
+            public WSHttpTransportWithImpersonation() :
+                base(SecurityMode.Transport, MessageCredentialType.None)
+            {
+            }
+
+            public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding wsBinding)
+            {
+                wsBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Windows;
+                return wsBinding;
             }
         }
 
@@ -300,6 +466,17 @@ namespace WSHttp
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
+                AddAuthenticationService(services);
+            }
+
+            protected virtual AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
+            {
+#if NET472
+                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
+#else
+                return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
+                    .AddNegotiate(); 
+#endif
             }
 
             public virtual void ChangeHostBehavior(ServiceHostBase host)

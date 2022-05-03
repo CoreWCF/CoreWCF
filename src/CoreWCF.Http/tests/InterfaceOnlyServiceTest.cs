@@ -84,6 +84,11 @@ namespace BasicHttp
                 NumberOfIntercepts++;
                 return _underlyingService.EchoToFail(echo);
             }
+
+            public string EchoForImpersonation(string echo)
+            {
+                return echo;
+            }
         }
 
         internal class Startup

@@ -187,8 +187,9 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
+                    GenericIdentity genericIdentity = (GenericIdentity)remoteIdentity;
                     ClaimsIdentity claimsIdentity = new ClaimsIdentity(remoteIdentity);
-                    token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
+                    token = new GenericIdentitySecurityToken(genericIdentity, SecurityUniqueId.Create().Value);
                 }
                 authorizationPolicies = await authenticator.ValidateTokenAsync(token);
                 SecurityMessageProperty clientSecurity = new SecurityMessageProperty

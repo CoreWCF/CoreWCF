@@ -26,12 +26,12 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return token is GenericSecurityToken;
+            return token is GenericIdentitySecurityToken;
         }
 
         protected override async ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
-            var genericToken = (GenericSecurityToken)token;
+            var genericToken = (GenericIdentitySecurityToken)token;
             string principalName = genericToken.Name;
             if (principalName == null)
             {
