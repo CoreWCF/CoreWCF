@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -228,7 +227,7 @@ namespace CoreWCF.BuildTools
                             IMethodSymbol? attributeSymbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
                             if (attributeSymbol == null)
                             {
-                                return null;
+                                continue;
                             }
 
                             INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
@@ -236,11 +235,6 @@ namespace CoreWCF.BuildTools
 
                             if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute" || fullName == "CoreWCF.InjectedAttribute")
                             {
-                                if (IsNodeAnASPNETCoreMVCAction(context))
-                                {
-                                    return null;
-                                }
-
                                 return methodDeclarationSyntax;
                             }
                         }
@@ -249,20 +243,6 @@ namespace CoreWCF.BuildTools
 
                 return null;
             }
-
-            internal static bool IsNodeAnASPNETCoreMVCAction(GeneratorSyntaxContext context)
-                => (context.Node.Parent is ClassDeclarationSyntax)
-                    && context.SemanticModel.GetDeclaredSymbol(context.Node.Parent) is ITypeSymbol classContainingMethodSymbol
-                    && IsSymbolAnASPNETCoreMVCController(classContainingMethodSymbol);
-                   
-            internal static bool IsSymbolAnASPNETCoreMVCController(ITypeSymbol? typeSymbol)
-                => typeSymbol?.BaseType switch
-                {
-                    not null => typeSymbol.BaseType!.ToDisplayString() == "Microsoft.AspNetCore.Mvc.Controller"
-                        || IsSymbolAnASPNETCoreMVCController(typeSymbol.BaseType),
-                    _ => false
-                };
-            
         }
     }
 }
