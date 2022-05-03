@@ -1678,7 +1678,6 @@ namespace MyProject
 @$"
 namespace MyProject
 {{
-    //[{attributeNamespace}.ServiceContract]
     public interface IIdentityService
     {{
         [{attributeNamespace}.OperationContract]
@@ -1717,7 +1716,6 @@ namespace MyProject
 @$"
 namespace MyProject
 {{
-    //[{attributeNamespace}.ServiceContract]
     public interface IIdentityService
     {{
         [{attributeNamespace}.OperationContract]
@@ -1759,7 +1757,6 @@ namespace MyProject
 @$"
 namespace MyProject
 {{
-    //[{attributeNamespace}.ServiceContract]
     public interface IIdentityService
     {{
         [{attributeNamespace}.OperationContract]
