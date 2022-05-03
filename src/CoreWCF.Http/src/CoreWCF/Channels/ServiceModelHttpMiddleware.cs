@@ -167,6 +167,10 @@ namespace CoreWCF.Channels
                     {
                         IServiceScopeFactory servicesScopeFactory = wcfApp.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
                         var requestHandler = new RequestDelegateHandler(serviceDispatcher, servicesScopeFactory);
+                        if (requestHandler.IsAuthenticationRequired)
+                        {
+                            wcfApp.UseAuthentication();
+                        }
                         if (requestHandler.WebSocketOptions != null)
                         {
                             wcfApp.UseWebSockets(requestHandler.WebSocketOptions);
