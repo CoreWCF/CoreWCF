@@ -21,10 +21,23 @@ namespace CoreWCF.BuildTools.Tests
 {
     public class OperationParameterInjectionGeneratorTests
     {
+        private const string SSMNamespace = "System.ServiceModel";
+        private const string CoreWCFNamespace = "CoreWCF";
+
+        private const string CoreWCFInjectedAttribute = "CoreWCF.Injected";
+        private const string MVCFromServicesAttribute = "Microsoft.AspNetCore.Mvc.FromServices";
+
+        public static IEnumerable<object[]> GetTestVariations()
+        {
+            yield return new object[] { SSMNamespace, CoreWCFInjectedAttribute };
+            yield return new object[] { SSMNamespace, MVCFromServicesAttribute};
+            yield return new object[] { CoreWCFNamespace, CoreWCFInjectedAttribute };
+            yield return new object[] { CoreWCFNamespace, MVCFromServicesAttribute };
+        }
+
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task SimpleTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task BasicTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -48,7 +61,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -87,10 +100,8 @@ namespace MyProject
             await test.RunAsync();
         }
 
-        [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task FromServicesAttributeTests(string attributeNamespace)
+        [Fact]
+        public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers()
         {
             var test = new VerifyCS.Test
             {
@@ -101,51 +112,78 @@ namespace MyProject
 @$"
 namespace MyProject
 {{
-    [{attributeNamespace}.ServiceContract]
-    public interface IIdentityService
-    {{
-        [{attributeNamespace}.OperationContract]
-        string Echo(string input);
-
-        [{attributeNamespace}.OperationContract]
-        string Echo2(string input);
-    }}
-
-    public partial class IdentityService : IIdentityService
+    public class HomeController : Microsoft.AspNetCore.Mvc.Controller
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [Microsoft.AspNetCore.Mvc.FromServices] object a) => input;
+        public string Echo2(string input, [{MVCFromServicesAttribute}] object a) => input;
     }}
 }}
 "
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
-using System;
-using Microsoft.Extensions.DependencyInjection;
+                        
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllersWhenCombinedWithInjected()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
 namespace MyProject
 {{
-    public partial class IdentityService
+    public class HomeController : Microsoft.AspNetCore.Mvc.Controller
     {{
-        public string Echo2(string input)
-        {{
-            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
-            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
-            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
-            {{
-                using (var scope = serviceProvider.CreateScope())
-                {{
-                    var d0 = scope.ServiceProvider.GetService<object>();
-                    return Echo2(input, d0);
-                }}
-            }}
-            var e0 = serviceProvider.GetService<object>();
-            return Echo2(input, e0);
-        }}
+        public string Echo(string input) => input;
+        public string Echo2(string input, [{MVCFromServicesAttribute}] object a, [{CoreWCFInjectedAttribute}] object b) => input;
     }}
 }}
-", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+"
+                    },
+                    GeneratedSources =
+                    {
+                        
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers_ControllerInheritance()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public class MyBaseController : Microsoft.AspNetCore.Mvc.Controller {{ }}
+    public class HomeController : MyBaseController
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [{MVCFromServicesAttribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+
                     },
                 },
             };
@@ -154,9 +192,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task HttpContextTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task HttpContextTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -180,7 +217,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a, [CoreWCF.Injected] Microsoft.AspNetCore.Http.HttpContext b) => input;
+        public string Echo2(string input, [{attribute}] object a, [{attribute}] Microsoft.AspNetCore.Http.HttpContext b) => input;
     }}
 }}
 "
@@ -227,9 +264,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task HttpRequestTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task HttpRequestTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -253,7 +289,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a, [CoreWCF.Injected] Microsoft.AspNetCore.Http.HttpRequest b) => input;
+        public string Echo2(string input, [{attribute}] object a, [{attribute}] Microsoft.AspNetCore.Http.HttpRequest b) => input;
     }}
 }}
 "
@@ -300,9 +336,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task HttpResponseTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task HttpResponseTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -326,7 +361,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a, [CoreWCF.Injected] Microsoft.AspNetCore.Http.HttpResponse b) => input;
+        public string Echo2(string input, [{attribute}] object a, [{attribute}] Microsoft.AspNetCore.Http.HttpResponse b) => input;
     }}
 }}
 "
@@ -373,9 +408,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task NestedClassesMultipleLevelsTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task NestedClassesMultipleLevelsTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -405,7 +439,7 @@ namespace MyProject
                 public partial class IdentityService : IIdentityService
                 {{
                     public string Echo(string input) => input;
-                    public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+                    public string Echo2(string input, [{attribute}] object a) => input;
                 }}
             }}
         }}
@@ -458,30 +492,54 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel", "public ", "public ", "public ", "public ")]
-        [InlineData("System.ServiceModel", "public ", "internal ", "public ", "internal ")]
-        [InlineData("System.ServiceModel", "public ", "protected ", "public ", "protected ")]
-        [InlineData("System.ServiceModel", "public ", "private ", "public ", "private ")]
-        [InlineData("System.ServiceModel", "public ", "", "public ", "private ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "public ", "public ", "public ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "internal ", "public ", "internal ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "protected ", "public ", "protected ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "private ", "public ", "private ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "", "public ", "private ")]
 
-        [InlineData("System.ServiceModel", "internal ", "public ", "internal ", "public ")]
-        [InlineData("System.ServiceModel", "internal ", "internal ", "internal ", "internal ")]
-        [InlineData("System.ServiceModel", "internal ", "protected ", "internal ", "protected ")]
-        [InlineData("System.ServiceModel", "internal ", "private ", "internal ", "private ")]
-        [InlineData("System.ServiceModel", "internal ", "", "internal ", "private ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "public ", "internal ", "public ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "internal ", "internal ", "internal ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "protected ", "internal ", "protected ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "private ", "internal ", "private ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "", "internal ", "private ")]
 
-        [InlineData("CoreWCF", "public ", "public ", "public ", "public ")]
-        [InlineData("CoreWCF", "public ", "internal ", "public ", "internal ")]
-        [InlineData("CoreWCF", "public ", "protected ", "public ", "protected ")]
-        [InlineData("CoreWCF", "public ", "private ", "public ", "private ")]
-        [InlineData("CoreWCF", "public ", "", "public ", "private ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "public ", "public ", "public ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "internal ", "public ", "internal ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "protected ", "public ", "protected ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "private ", "public ", "private ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "", "public ", "private ")]
 
-        [InlineData("CoreWCF", "internal ", "public ", "internal ", "public ")]
-        [InlineData("CoreWCF", "internal ", "internal ", "internal ", "internal ")]
-        [InlineData("CoreWCF", "internal ", "protected ", "internal ", "protected ")]
-        [InlineData("CoreWCF", "internal ", "private ", "internal ", "private ")]
-        [InlineData("CoreWCF", "internal ", "", "internal ", "private ")]
-        public async Task NestedClassContainingTypeHierarchyAccessModifiersTests(string attributeNamespace, string containerModifiers, string implementationModifiers, string expectedContainerModifiers, string expectedImplementationModifiers)
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "public ", "internal ", "public ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "internal ", "internal ", "internal ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "protected ", "internal ", "protected ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "private ", "internal ", "private ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "", "internal ", "private ")]
+
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "public ", "public ", "public ", "public ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "public ", "internal ", "public ", "internal ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "public ", "protected ", "public ", "protected ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "public ", "private ", "public ", "private ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "public ", "", "public ", "private ")]
+
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "internal ", "public ", "internal ", "public ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "internal ", "internal ", "internal ", "internal ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "internal ", "protected ", "internal ", "protected ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "internal ", "private ", "internal ", "private ")]
+        [InlineData(SSMNamespace, MVCFromServicesAttribute, "internal ", "", "internal ", "private ")]
+
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "public ", "public ", "public ", "public ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "public ", "internal ", "public ", "internal ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "public ", "protected ", "public ", "protected ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "public ", "private ", "public ", "private ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "public ", "", "public ", "private ")]
+
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "public ", "internal ", "public ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "internal ", "internal ", "internal ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "protected ", "internal ", "protected ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "private ", "internal ", "private ")]
+        [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "", "internal ", "private ")]
+        public async Task NestedClassContainingTypeHierarchyAccessModifiersTests(string attributeNamespace, string attribute, string containerModifiers, string implementationModifiers, string expectedContainerModifiers, string expectedImplementationModifiers)
         {
             var test = new VerifyCS.Test
             {
@@ -507,7 +565,7 @@ namespace MyProject
         {implementationModifiers}partial class IdentityService : IIdentityService
         {{
             public string Echo(string input) => input;
-            public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+            public string Echo2(string input, [{attribute}] object a) => input;
         }}
     }}
 }}
@@ -551,9 +609,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task RefParameterTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task RefParameterTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -577,7 +634,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(ref string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(ref string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -617,9 +674,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task OutParameterTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task OutParameterTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -643,7 +699,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2([CoreWCF.Injected] object a, out string input)
+        public string Echo2([{attribute}] object a, out string input)
         {{
             input = null;
             return input;
@@ -687,9 +743,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task LeadingInjectedParameterTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task LeadingInjectedParameterTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -713,7 +768,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2([CoreWCF.Injected] object a, string input, int i)
+        public string Echo2([{attribute}] object a, string input, int i)
         {{
             return input;
         }}
@@ -756,9 +811,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task BetweenRegularParameterTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task BetweenRegularParameterTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -782,7 +836,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a, int i)
+        public string Echo2(string input, [{attribute}] object a, int i)
         {{
             return input;
         }}
@@ -825,13 +879,13 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel", "public ", "public ")]
-        [InlineData("System.ServiceModel", "internal ", "internal ")]
-        [InlineData("System.ServiceModel", "", "internal ")]
-        [InlineData("CoreWCF", "public ", "public ")]
-        [InlineData("CoreWCF", "internal ", "internal ")]
-        [InlineData("CoreWCF", "", "internal ")]
-        public async Task ServiceImplementationContainingTypeAccessModifiersTests(string attributeNamespace, string accessModifier, string expectedAccessModifier)
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "public ", "public ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "internal ", "internal ")]
+        [InlineData(SSMNamespace, CoreWCFInjectedAttribute, "", "internal ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "public ", "public ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "internal ", "internal ")]
+        [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "", "internal ")]
+        public async Task ServiceImplementationContainingTypeAccessModifiersTests(string attributeNamespace, string attribute, string accessModifier, string expectedAccessModifier)
         {
             var test = new VerifyCS.Test
             {
@@ -855,7 +909,7 @@ namespace MyProject
     {accessModifier}partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -895,9 +949,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task MultipleParametersInjectedTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task MultipleParametersInjectedTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -921,7 +974,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a, [CoreWCF.Injected] string b) => input;
+        public string Echo2(string input, [{attribute}] object a, [{attribute}] string b) => input;
     }}
 }}
 "
@@ -963,9 +1016,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task VoidOperationContractTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task VoidOperationContractTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -989,7 +1041,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public void Echo2(string input, [CoreWCF.Injected] object a)
+        public void Echo2(string input, [{attribute}] object a)
         {{
         }}
     }}
@@ -1032,9 +1084,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ContractAndServiceWithDifferentNamespacesTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ContractAndServiceWithDifferentNamespacesTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1062,7 +1113,7 @@ namespace MyProject.Implementations
     public partial class IdentityService : MyProject.Contracts.IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1102,9 +1153,8 @@ namespace MyProject.Implementations
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ComposedNamespaceTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ComposedNamespaceTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1128,7 +1178,7 @@ namespace MyProject.Dummy
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1168,9 +1218,8 @@ namespace MyProject.Dummy
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ContractAndImplementationInSeparateFilesTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ContractAndImplementationInSeparateFilesTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1200,7 +1249,7 @@ namespace MyProject.Dummy
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1240,9 +1289,8 @@ namespace MyProject.Dummy
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task TaskReturnTypeTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task TaskReturnTypeTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1266,7 +1314,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public System.Threading.Tasks.Task Echo2(string input, [CoreWCF.Injected] object a) => System.Threading.Tasks.Task.FromResult(input);
+        public System.Threading.Tasks.Task Echo2(string input, [{attribute}] object a) => System.Threading.Tasks.Task.FromResult(input);
     }}
 }}
 "
@@ -1307,9 +1355,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task GenericTaskReturnTypeTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task GenericTaskReturnTypeTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1333,7 +1380,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public System.Threading.Tasks.Task<string> Echo2(string input, [CoreWCF.Injected] object a) => System.Threading.Tasks.Task.FromResult(input);
+        public System.Threading.Tasks.Task<string> Echo2(string input, [{attribute}] object a) => System.Threading.Tasks.Task.FromResult(input);
     }}
 }}
 "
@@ -1374,9 +1421,8 @@ namespace MyProject
 // TODO: make the in-memory assembly compilation works on .NET Framework
 #if !NETFRAMEWORK
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ServiceContractFromOtherAssemblyTests(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ServiceContractFromOtherAssemblyTests(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1390,7 +1436,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1476,9 +1522,8 @@ namespace MyProject
 #endif
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenServiceImplementationIsNotPartial(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldRaiseCompilationErrorWhenServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1502,7 +1547,7 @@ namespace MyProject
     public class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1522,9 +1567,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartial(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1550,7 +1594,7 @@ namespace MyProject
         public partial class IdentityService : IIdentityService
         {{
             public string Echo(string input) => input;
-            public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+            public string Echo2(string input, [{attribute}] object a) => input;
         }}
     }}
 }}
@@ -1571,9 +1615,8 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartial(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1601,7 +1644,7 @@ namespace MyProject
             public partial class IdentityService : IIdentityService
             {{
                 public string Echo(string input) => input;
-                public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+                public string Echo2(string input, [{attribute}] object a) => input;
             }}
         }}
     }}
@@ -1623,9 +1666,131 @@ namespace MyProject
         }
 
         [Theory]
-        [InlineData("System.ServiceModel")]
-        [InlineData("CoreWCF")]
-        public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace)
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class IdentityService : IIdentityService
+        {{
+            public string Echo(string input) => input;
+            public string Echo2(string input, [{attribute}] object a) => input;
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldNotRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public class ContainerA
+    {{
+        public partial class ContainerB
+        {{
+            public partial class IdentityService : IIdentityService
+            {{
+                public string Echo(string input) => input;
+                public string Echo2(string input, [{attribute}] object a) => input;
+            }}
+        }}
+    }}
+}}
+"
+                    },
+                    GeneratedSources = { },
+                    ExpectedDiagnostics = { },
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace, string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1650,7 +1815,7 @@ namespace MyProject
     {{
         public string Echo(string input) => input;
         public string Echo2(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -1669,8 +1834,10 @@ namespace MyProject
             await test.RunAsync();
         }
 
-        [Fact]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute()
+        [Theory]
+        [InlineData(CoreWCFInjectedAttribute)]
+        [InlineData(MVCFromServicesAttribute)]
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1691,27 +1858,23 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
                     },
                     GeneratedSources = { },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
-                            .WithDefaultPath("/0/Test0.cs")
-                            .WithSpan(11, 26, 11, 41)
-                            .WithArguments("IdentityService", "Echo2")
-                    },
+                    ExpectedDiagnostics = { },
                 }
             };
 
             await test.RunAsync();
         }
 
-        [Fact]
-        public async Task ShouldRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute()
+        [Theory]
+        [InlineData(CoreWCFInjectedAttribute)]
+        [InlineData(MVCFromServicesAttribute)]
+        public async Task ShouldNotRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attribute)
         {
             var test = new VerifyCS.Test
             {
@@ -1725,19 +1888,13 @@ namespace MyProject
     public partial class IdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [CoreWCF.Injected] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
                     },
                     GeneratedSources = { },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldImplementAServiceContractError)
-                            .WithDefaultPath("/0/Test0.cs")
-                            .WithSpan(4, 26, 4, 41)
-                            .WithArguments("IdentityService", "Echo2")
-                    },
+                    ExpectedDiagnostics = { },
                 }
             };
 
