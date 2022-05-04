@@ -415,18 +415,22 @@ namespace CoreWCF.Channels
             {
                 private readonly AspNetCoreHttpContext _aspNetCoreHttpContext;
                 private string _cachedContentType; // accessing the header in System.Net involves a native transition
-                private readonly byte[] _preReadBuffer;
+                private byte[] _preReadBuffer;
 
                 // TODO: ChannelBindingSupport
                 public AspNetCoreHttpInput(AspNetCoreHttpContext aspNetCoreHttpContext)
                     : base(aspNetCoreHttpContext.HttpTransportSettings, true, false /* ChannelBindingSupportEnabled */)
                 {
                     _aspNetCoreHttpContext = aspNetCoreHttpContext;
+                }
+
+                protected override async Task CheckForContentAsync()
+                {
                     if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
                     {
-                        // TODO: Look into useing PipeReader with look-ahead
                         _preReadBuffer = new byte[1];
-                        if (_aspNetCoreHttpContext._aspNetContext.Request.Body.Read(_preReadBuffer, 0, 1) == 0)
+                        // TODO: Look into useing PipeReader with look-ahead
+                        if (await _aspNetCoreHttpContext._aspNetContext.Request.Body.ReadAsync(_preReadBuffer, 0, 1) == 0)
                         {
                             _preReadBuffer = null;
                         }

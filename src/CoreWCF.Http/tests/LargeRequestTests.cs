@@ -11,6 +11,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,10 +29,21 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void EchoRoundtrip(Type startupType, System.ServiceModel.TransferMode clientTransferMode, int requestSize)
+        public void EchoRoundtrip(Type startupType, System.ServiceModel.TransferMode clientTransferMode, int requestSize, bool allowSynchronhousIO)
         {
             string testString = new string('a', requestSize);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            var hostBuilder = ServiceHelper.CreateWebHostBuilder(_output, startupType);
+            if (allowSynchronhousIO)
+            {
+                hostBuilder.ConfigureServices(services =>
+                {
+                    services.Configure<KestrelServerOptions>(options =>
+                    {
+                        options.AllowSynchronousIO = true;
+                    });
+                });
+            }
+            IWebHost host = hostBuilder.Build();
             using (host)
             {
                 host.Start();
@@ -56,10 +68,10 @@ namespace CoreWCF.Http.Tests
                         switch (transferMode)
                         {
                             case TransferMode.Buffered:
-                                yield return new object[] { typeof(BufferedModeStartup), clientTransferMode, requestSize };
+                                yield return new object[] { typeof(BufferedModeStartup), clientTransferMode, requestSize, false };
                                 break;
                             case TransferMode.Streamed:
-                                yield return new object[] { typeof(StreamedModeStartup), clientTransferMode, requestSize };
+                                yield return new object[] { typeof(StreamedModeStartup), clientTransferMode, requestSize, true };
                                 break;
                         }
                     }

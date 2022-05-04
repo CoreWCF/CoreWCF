@@ -8,6 +8,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
@@ -31,7 +32,16 @@ namespace CoreWCF.Http.Tests
         public void RequestReplyStreaming(string binding)
         {
             Startup.binding = binding;
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            var hostBuilder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
+            hostBuilder.ConfigureServices(services =>
+            {
+                services.Configure<KestrelServerOptions>(options =>
+                {
+                    options.AllowSynchronousIO = true;
+                });
+            });
+
+            IWebHost host = hostBuilder.Build();
             using (host)
             {
                 host.Start();
