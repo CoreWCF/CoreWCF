@@ -145,38 +145,35 @@ namespace Helpers
 #endif // DEBUG
             host.UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
+                // Always listen on http
+                options.ListenLocalhost(HttpListenPort, listenOptions =>
                 {
-                    // Always listen on http
-                    options.ListenLocalhost(HttpListenPort, listenOptions =>
+                    if (Debugger.IsAttached)
                     {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+                // Optionally listen on https port
+                bool useHttps = schemesCollection.Contains(Uri.UriSchemeHttps);
+                if (useHttps)
+                {
+                    options.ListenLocalhost(HttpsListenPort, listenOptions =>
+                    {
+                        if (useHttps)
+                        {
+                            listenOptions.UseHttps(httpsOptions =>
+                            {
+#if NET472
+                                    httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                                });
+                        }
+
                         if (Debugger.IsAttached)
                         {
                             listenOptions.UseConnectionLogging();
                         }
                     });
-                    // Optionally listen on https port
-                    bool useHttps = schemesCollection.Contains(Uri.UriSchemeHttps);
-                    if (useHttps)
-                    {
-                        options.ListenLocalhost(HttpsListenPort, listenOptions =>
-                        {
-                            if (useHttps)
-                            {
-                                listenOptions.UseHttps(httpsOptions =>
-                                {
-#if NET472
-                                    httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                                });
-                            }
-
-                            if (Debugger.IsAttached)
-                            {
-                                listenOptions.UseConnectionLogging();
-                            }
-                        });
-                    }
                 }
             });
 
