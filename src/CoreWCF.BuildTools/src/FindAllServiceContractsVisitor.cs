@@ -9,32 +9,27 @@ using Microsoft.CodeAnalysis;
 
 namespace CoreWCF.BuildTools
 {
-    internal class FindAllServiceContractsVisitor : SymbolVisitor
+    internal class FindAllServiceContractsVisitor : SymbolVisitor<IEnumerable<INamedTypeSymbol>>
     {
-        private readonly IList<INamedTypeSymbol> _symbols;
         private readonly INamedTypeSymbol?[] _serviceContractSymbols;
 
-        public FindAllServiceContractsVisitor(IList<INamedTypeSymbol> symbols, params INamedTypeSymbol?[] serviceContractSymbols)
+        public FindAllServiceContractsVisitor(params INamedTypeSymbol?[] serviceContractSymbols)
         {
-            _symbols = symbols;
             _serviceContractSymbols = serviceContractSymbols;
         }
 
-        public override void VisitNamespace(INamespaceSymbol symbol)
-        {
-            foreach (var child in symbol.GetMembers())
-            {
-                child.Accept(this);
-            }
-        }
+        public override IEnumerable<INamedTypeSymbol> Visit(ISymbol? symbol) => base.Visit(symbol) ?? Enumerable.Empty<INamedTypeSymbol>();
 
-        public override void VisitNamedType(INamedTypeSymbol symbol)
+        public override IEnumerable<INamedTypeSymbol> VisitNamespace(INamespaceSymbol symbol)
+            => symbol.GetMembers().SelectMany(m => m.Accept(this));
+        
+        public override IEnumerable<INamedTypeSymbol> VisitNamedType(INamedTypeSymbol symbol)
         {
             if (symbol.TypeKind == TypeKind.Interface)
             {
                 if (symbol.HasOneOfAttributes(_serviceContractSymbols))
                 {
-                    _symbols.Add(symbol);
+                   yield return symbol;
                 }
             }
         }
