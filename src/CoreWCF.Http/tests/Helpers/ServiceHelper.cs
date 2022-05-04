@@ -100,7 +100,6 @@ namespace Helpers
             {
                 options.Authentication.Schemes = Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.None;
                 options.Authentication.AllowAnonymous = true;
-                options.AllowSynchronousIO = true;
                 options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices");
                 options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices/MorePath");
             })
@@ -120,7 +119,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.AllowSynchronousIO = true;
                     options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                     {
                         if (Debugger.IsAttached)
@@ -144,7 +142,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)
