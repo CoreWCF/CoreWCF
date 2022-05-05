@@ -29,9 +29,6 @@ namespace CoreWCF.Http.Tests.Helpers
             features.Set<IServerAddressesFeature>(addresses); 
 
             var server = new TestServer(builder, features);
-#if NETCOREAPP3_1
-            server.AllowSynchronousIO = true;
-#endif
             return server;
         }
 

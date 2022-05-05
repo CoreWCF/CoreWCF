@@ -5,9 +5,8 @@ using System;
 
 namespace CoreWCF.Description
 {
-    // TODO: Make public and add to contract
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
-    internal sealed class MessagePropertyAttribute : Attribute
+    public sealed class MessagePropertyAttribute : Attribute
     {
         private string _name;
 
@@ -27,6 +26,7 @@ namespace CoreWCF.Description
                 _name = value;
             }
         }
+
         internal bool IsNameSetExplicit { get; private set; }
     }
 }

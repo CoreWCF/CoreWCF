@@ -51,29 +51,30 @@ namespace CoreWCF.BuildTools
                     return null;
                 }
 
+                OperationContractSpec? operationContractSpec = FindOperationContractSpec(methodSymbol);
+                if(operationContractSpec == null)
+                {
+                    return null;
+                }
+
                 if (!methodSymbol.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                 {
                     _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, methodSymbol.Name, parentType.Locations[0]));
                     return null;
                 }
 
+                return operationContractSpec;
+            }
+
+            private OperationContractSpec? FindOperationContractSpec(IMethodSymbol methodSymbol)
+            {
                 var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
-                if (allServiceContractCandidates.Length == 0)
-                {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
-                    return null;
-                }
-
-                bool atLeastOneServiceContractIsFound = false;
-
                 foreach (var serviceContractCandidate in allServiceContractCandidates)
                 {
                     foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
                     {
                         if (SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
                         {
-                            atLeastOneServiceContractIsFound = true;
-
                             if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
                             {
                                 _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
@@ -98,11 +99,6 @@ namespace CoreWCF.BuildTools
                             }
                         }
                     }
-                }
-
-                if (!atLeastOneServiceContractIsFound)
-                {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldImplementAServiceContractError(methodSymbol.ContainingType.Name, methodSymbol.Name, methodSymbol.ContainingType.Locations[0]));
                 }
 
                 return null;
@@ -193,33 +189,28 @@ namespace CoreWCF.BuildTools
                     }
                 }
 
-                var referenceServiceContracts = new List<INamedTypeSymbol>();
-
                 foreach (var reference in _compilation.References)
                 {
-                    var assemblySymbol = _compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assemblySymbol == null)
+                    if (_compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assemblySymbol)
                     {
                         continue;
                     }
 
-                    var visitor = new FindAllServiceContractsVisitor(referenceServiceContracts, new INamedTypeSymbol?[]
+                    var visitor = new FindAllServiceContractsVisitor(new INamedTypeSymbol?[]
                     {
                         SSMServiceContractSymbol,
                         CoreWCFServiceContractSymbol
                     });
 
-                    visitor.Visit(assemblySymbol.GlobalNamespace);
-                }
-
-                foreach (var serviceContract in referenceServiceContracts)
-                {
-                    yield return serviceContract;
+                    foreach(var serviceContract in visitor.Visit(assemblySymbol.GlobalNamespace))
+                    {
+                        yield return serviceContract;
+                    }
                 }
             }
 
-            internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax &&
-                methodDeclarationSyntax.ParameterList.Parameters.Count > 0
+            internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
+                && methodDeclarationSyntax.ParameterList.Parameters.Count > 0
                 && methodDeclarationSyntax.ParameterList.Parameters.Any(static p => p.AttributeLists.Count > 0)
                 && (methodDeclarationSyntax.Body != null || methodDeclarationSyntax.ExpressionBody != null);
 
@@ -242,11 +233,7 @@ namespace CoreWCF.BuildTools
                             INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                             string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                            if (fullName == "CoreWCF.InjectedAttribute")
-                            {
-                                return methodDeclarationSyntax;
-                            }
-                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute")
+                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute" || fullName == "CoreWCF.InjectedAttribute")
                             {
                                 return methodDeclarationSyntax;
                             }

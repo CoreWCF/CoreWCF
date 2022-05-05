@@ -27,7 +27,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -36,7 +35,7 @@ namespace Helpers
                     }
                 });
             })
-    .UseStartup<TStartup>();
+            .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilderWithSsl<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
     WebHost.CreateDefaultBuilder(Array.Empty<string>())
@@ -52,7 +51,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -70,6 +68,6 @@ namespace Helpers
                     }
                 });
             })
-.UseStartup<TStartup>();
+            .UseStartup<TStartup>();
     }
 }

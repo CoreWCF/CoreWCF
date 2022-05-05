@@ -252,6 +252,8 @@ namespace CoreWCF.Channels
             }
         }
 
+        protected abstract Task CheckForContentAsync();
+
         // makes sure that appropriate HTTP level headers are included in the received Message
         private Exception ProcessHttpAddressing(Message message)
         {
@@ -387,6 +389,7 @@ namespace CoreWCF.Channels
             bool throwing = true;
             try
             {
+                await CheckForContentAsync();
                 ValidateContentType();
 
                 Message message;

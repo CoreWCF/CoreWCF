@@ -319,7 +319,7 @@ namespace CoreWCF.Security
         /// <param name="version">SecurityTokenVersion of the serializer to be created.</param>
         /// <returns>Instance of SecurityTokenSerializer.</returns>
         /// <exception cref="ArgumentNullException">Input parameter is null.</exception>
-        internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
+        public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
         {
             if (version == null)
             {

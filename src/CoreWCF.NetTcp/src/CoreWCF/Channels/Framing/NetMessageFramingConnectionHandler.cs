@@ -90,7 +90,7 @@ namespace CoreWCF.Channels.Framing
                     }
 
                     IServiceDispatcher _serviceDispatcher = null;
-                    var _customBinding = new CustomBinding(dispatcher.Binding);
+                    var _customBinding = dispatcher.Binding as CustomBinding ?? new CustomBinding(dispatcher.Binding);
                     if (_customBinding.Elements.Find<ConnectionOrientedTransportBindingElement>() != null)
                     {
                         var parameters = new BindingParameterCollection();
@@ -99,7 +99,7 @@ namespace CoreWCF.Channels.Framing
                             _serviceDispatcher = _customBinding.BuildServiceDispatcher<IDuplexSessionChannel>(parameters, dispatcher);
                         }
                     }
-                    _serviceDispatcher = _serviceDispatcher ?? dispatcher;
+                    _serviceDispatcher ??= dispatcher;
                     HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(_serviceDispatcher);
 
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");

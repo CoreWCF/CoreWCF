@@ -109,7 +109,7 @@ namespace CoreWCF.Description
             return new ServiceCredentials();
         }
 
-        internal override SecurityTokenManager CreateSecurityTokenManager()
+        public override SecurityTokenManager CreateSecurityTokenManager()
         {
             if (UseIdentityConfiguration)
             {

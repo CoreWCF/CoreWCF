@@ -492,6 +492,6 @@ namespace CoreWCF.Configuration
         internal const string WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12 = "WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12";
         internal const string WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10 = "WSSecurity11WSTrust13WSSecureConversation13WSSecurityPolicy12BasicSecurityProfile10";
         internal const string X509FindType = "x509FindType";
-        internal const string XmlElement = "xmlElement";  
+        internal const string XmlElement = "xmlElement";
     }
 }
