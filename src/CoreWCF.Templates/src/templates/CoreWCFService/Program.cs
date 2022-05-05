@@ -3,6 +3,7 @@
 builder.Services.AddServiceModelServices();
 #if(!NoWsdl)
 builder.Services.AddServiceModelMetadata();
+builder.Services.AddSingleton<IServiceBehavior, UseRequestHeadersForMetadataAddressBehavior>();
 #endif
 builder.WebHost.ConfigureKestrel(options => 
 {

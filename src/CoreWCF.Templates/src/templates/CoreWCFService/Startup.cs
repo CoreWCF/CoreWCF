@@ -25,6 +25,7 @@ namespace CoreWCFService
             services.AddServiceModelServices();
 #if(!NoWsdl)
             services.AddServiceModelMetadata();
+            services.AddSingleton<IServiceBehavior, UseRequestHeadersForMetadataAddressBehavior>();
 #endif
         }
 
