@@ -19,7 +19,7 @@
       {
         "id": "UseProgramMain",
         "name": {
-          "text": "Turn off minimal ASP.NET Core hosting model."
+          "text": "Turn off minimal ASP.NET Core hosting model. (Only applies to .NET 6 projects)"
         },
         "isVisible": true
       }
