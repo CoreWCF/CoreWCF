@@ -12,7 +12,7 @@
   },
   "name": "Core WCF Service",
   "defaultName": "CoreWCFService",
-  "description": "A project template to host a Core WCF service.",
+  "description": "A project template for creating a server application which hosts a Core WCF service.",
   "sources": [
     {
       "modifiers": [
