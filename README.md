@@ -33,7 +33,8 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 
 * Install CoreWCF project templates, create a directory for your project and cd inside the directory and initialize your project
 ```cmd
-dotnet new --install CoreWCF.Templates && mkdir MyService && cd MyService && dotnet new corewcf
+dotnet new --install CoreWCF.Templates 
+dotnet new corewcf --name MyService
 ```
 * `Core WCF Service` project template creates a minimal ASP.NET Core web application thats exposes the well-known WCF default service using a `BasicHttpBinding`.
 It supports the following arguments:
