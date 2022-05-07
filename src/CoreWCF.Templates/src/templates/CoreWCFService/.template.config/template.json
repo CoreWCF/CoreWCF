@@ -1,6 +1,6 @@
 {
   "$schema": "http://json.schemastore.org/template",
-  "author": "CoreWCF",
+  "author": "https://github.com/CoreWCF",
   "classifications": [ "Service" ],
   "identity": "CoreWCF.Templates.CoreWCFService.1.0",
   "sourceName": "CoreWCFService",
