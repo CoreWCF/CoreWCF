@@ -50,7 +50,7 @@ namespace CoreWCF.ConfigurationManager.Tests
 
                     var actualBinding = settingHolder.ResolveBinding(nameof(WSHttpBinding), expectedName) as WSHttpBinding;
                     Assert.Equal(expectedName, actualBinding.Name);
-                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);                 
+                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.CloseTimeout);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.OpenTimeout);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.SendTimeout);
@@ -63,7 +63,11 @@ namespace CoreWCF.ConfigurationManager.Tests
             }
         }
 
+#if NETFRAMEWORK
+        [Fact(Skip = "Windows auth is not supported on .NET Framework")]
+#else
         [Fact]
+#endif
         [Trait("Category", "NetCoreOnly")]
         public void WSHttpBinding_WithDefaultSetting()
         {
