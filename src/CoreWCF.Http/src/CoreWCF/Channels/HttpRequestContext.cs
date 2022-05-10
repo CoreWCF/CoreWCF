@@ -31,7 +31,7 @@ namespace CoreWCF.Channels
             _replySentTcs = new TaskCompletionSource<object>(TaskContinuationOptions.RunContinuationsAsynchronously);
         }
 
-        public bool KeepAliveEnabled
+        public virtual bool KeepAliveEnabled
         {
             get
             {
@@ -348,6 +348,31 @@ namespace CoreWCF.Channels
 
             public override string HttpMethod => _aspNetContext.Request.Method;
 
+            public override bool KeepAliveEnabled
+            {
+                get
+                {
+                    string connectionHeader = HttpRequestHeader.Connection.ToString();
+
+                    if (!_aspNetContext.Request.Headers.ContainsKey(connectionHeader))
+                    {
+                        return base.KeepAliveEnabled;
+                    }
+                    else if (_aspNetContext.Request.Headers[connectionHeader] == "keep-alive")
+                    {
+                        return true;
+                    }
+                    else if (_aspNetContext.Request.Headers[connectionHeader] == "close")
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return base.KeepAliveEnabled;
+                    }
+                }
+            }
+
             protected override HttpInput GetHttpInput()
             {
                 return new AspNetCoreHttpInput(this);
@@ -356,7 +381,7 @@ namespace CoreWCF.Channels
             {
                 if (StringComparer.OrdinalIgnoreCase.Equals(Http11ProtocolString, _aspNetContext.Request.Protocol))
                 {
-                    if (HttpTransportSettings.KeepAliveEnabled)
+                    if (KeepAliveEnabled)
                     {
                         _aspNetContext.Response.Headers["Connection"] = "keep-alive";
                     }
