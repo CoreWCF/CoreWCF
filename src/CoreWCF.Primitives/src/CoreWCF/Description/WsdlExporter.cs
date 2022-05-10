@@ -22,9 +22,35 @@ namespace CoreWCF.Description
         internal const string DefaultServiceName = "service";
         private static XmlDocument s_xmlDocument;
         private bool _isFaulted = false;
-        private readonly Dictionary<ContractDescription, WsdlContractConversionContext> _exportedContracts = new Dictionary<ContractDescription, WsdlContractConversionContext>();
-        private readonly Dictionary<BindingDictionaryKey, WsdlEndpointConversionContext> _exportedBindings = new Dictionary<BindingDictionaryKey, WsdlEndpointConversionContext>();
-        private readonly Dictionary<EndpointDictionaryKey, ServiceEndpoint> _exportedEndpoints = new Dictionary<EndpointDictionaryKey, ServiceEndpoint>();
+        private Dictionary<ContractDescription, WsdlContractConversionContext> _exportedContracts = new Dictionary<ContractDescription, WsdlContractConversionContext>();
+        private Dictionary<BindingDictionaryKey, WsdlEndpointConversionContext> _exportedBindings = new Dictionary<BindingDictionaryKey, WsdlEndpointConversionContext>();
+        private Dictionary<EndpointDictionaryKey, ServiceEndpoint> _exportedEndpoints = new Dictionary<EndpointDictionaryKey, ServiceEndpoint>();
+
+        internal WsdlExporter Clone()
+        {
+            WsdlExporter exporter = new WsdlExporter();
+
+            if (_exportedContracts.Count > 0)
+                exporter._exportedContracts = new Dictionary<ContractDescription, WsdlContractConversionContext>(_exportedContracts);
+
+            if (_exportedBindings.Count > 0)
+                exporter._exportedBindings = new Dictionary<BindingDictionaryKey, WsdlEndpointConversionContext>(_exportedBindings);
+
+            if (_exportedEndpoints.Count > 0)
+                exporter._exportedEndpoints = new Dictionary<EndpointDictionaryKey, ServiceEndpoint>(_exportedEndpoints);
+
+            exporter._isFaulted = _isFaulted;
+
+            // Base class clone
+            exporter.PolicyVersion = PolicyVersion;
+            foreach (var error in Errors)
+                exporter.Errors.Add(error);
+
+            foreach(var stateItem in State)
+                exporter.State.Add(stateItem.Key, stateItem.Value);
+
+            return exporter;
+        }
 
         public override void ExportContract(ContractDescription contract)
         {
