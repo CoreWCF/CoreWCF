@@ -368,6 +368,12 @@ namespace CoreWCF.Description
 
                         if (exporter is WsdlExporter wsdlExporter)
                         {
+                            // Fix issue with shared exporter. Need to do comparison of Type objects as "is" will return true if it's a derived type
+                            if (exporter.GetType() == typeof(WsdlExporter))
+                            {
+                                exporter = wsdlExporter = wsdlExporter.Clone();
+                            }
+
                             // Pass the BindingParameterCollection into the ExportEndpoints method so that the binding parameters can be using to export WSDL correctly.
                             // The binding parameters are used in BuildChannelListener, during which they can modify the configuration of the channel in ways that might have to
                             // be communicated in the WSDL. For example, in the case of Multi-Auth, the AuthenticationSchemesBindingParameter is used during BuildChannelListener
