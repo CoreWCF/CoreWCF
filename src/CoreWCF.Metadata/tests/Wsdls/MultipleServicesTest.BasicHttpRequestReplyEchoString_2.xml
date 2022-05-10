@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="CollectionsService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+      <xs:element name="EchoStringList">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="echo" nillable="true" type="q1:ArrayOfstring" xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringListResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoStringListResult" nillable="true" type="q2:ArrayOfstring" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringEnumerable">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="echo" nillable="true" type="q3:ArrayOfstring" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringEnumerableResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoStringEnumerableResult" nillable="true" type="q4:ArrayOfstring" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringArray">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="echo" nillable="true" type="q5:ArrayOfstring" xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringArrayResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoStringArrayResult" nillable="true" type="q6:ArrayOfstring" xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDictionary">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="echo" nillable="true" type="q7:ArrayOfKeyValueOfstringstring" xmlns:q7="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDictionaryResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoDictionaryResult" nillable="true" type="q8:ArrayOfKeyValueOfstringstring" xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoIDictionary">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="echo" nillable="true" type="q9:ArrayOfKeyValueOfstringstring" xmlns:q9="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoIDictionaryResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoIDictionaryResult" nillable="true" type="q10:ArrayOfKeyValueOfstringstring" xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/">
+      <xs:element name="anyType" nillable="true" type="xs:anyType"/>
+      <xs:element name="anyURI" nillable="true" type="xs:anyURI"/>
+      <xs:element name="base64Binary" nillable="true" type="xs:base64Binary"/>
+      <xs:element name="boolean" nillable="true" type="xs:boolean"/>
+      <xs:element name="byte" nillable="true" type="xs:byte"/>
+      <xs:element name="dateTime" nillable="true" type="xs:dateTime"/>
+      <xs:element name="decimal" nillable="true" type="xs:decimal"/>
+      <xs:element name="double" nillable="true" type="xs:double"/>
+      <xs:element name="float" nillable="true" type="xs:float"/>
+      <xs:element name="int" nillable="true" type="xs:int"/>
+      <xs:element name="long" nillable="true" type="xs:long"/>
+      <xs:element name="QName" nillable="true" type="xs:QName"/>
+      <xs:element name="short" nillable="true" type="xs:short"/>
+      <xs:element name="string" nillable="true" type="xs:string"/>
+      <xs:element name="unsignedByte" nillable="true" type="xs:unsignedByte"/>
+      <xs:element name="unsignedInt" nillable="true" type="xs:unsignedInt"/>
+      <xs:element name="unsignedLong" nillable="true" type="xs:unsignedLong"/>
+      <xs:element name="unsignedShort" nillable="true" type="xs:unsignedShort"/>
+      <xs:element name="char" nillable="true" type="tns:char"/>
+      <xs:simpleType name="char">
+        <xs:restriction base="xs:int"/>
+      </xs:simpleType>
+      <xs:element name="duration" nillable="true" type="tns:duration"/>
+      <xs:simpleType name="duration">
+        <xs:restriction base="xs:duration">
+          <xs:pattern value="\-?P(\d*D)?(T(\d*H)?(\d*M)?(\d*(\.\d*)?S)?)?"/>
+          <xs:minInclusive value="-P10675199DT2H48M5.4775808S"/>
+          <xs:maxInclusive value="P10675199DT2H48M5.4775807S"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:element name="guid" nillable="true" type="tns:guid"/>
+      <xs:simpleType name="guid">
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:attribute name="FactoryType" type="xs:QName"/>
+      <xs:attribute name="Id" type="xs:ID"/>
+      <xs:attribute name="Ref" type="xs:IDREF"/>
+    </xs:schema>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+      <xs:complexType name="ArrayOfstring">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ArrayOfstring" nillable="true" type="tns:ArrayOfstring"/>
+      <xs:complexType name="ArrayOfKeyValueOfstringstring">
+        <xs:annotation>
+          <xs:appinfo>
+            <IsDictionary xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsDictionary>
+          </xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValueOfstringstring">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Key" nillable="true" type="xs:string"/>
+                <xs:element name="Value" nillable="true" type="xs:string"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ArrayOfKeyValueOfstringstring" nillable="true" type="tns:ArrayOfKeyValueOfstringstring"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="CollectionsService_EchoStringList_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringList"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoStringList_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringListResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoStringEnumerable_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringEnumerable"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoStringEnumerable_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringEnumerableResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoStringArray_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringArray"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoStringArray_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringArrayResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoDictionary_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDictionary"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoDictionary_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDictionaryResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoIDictionary_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoIDictionary"/>
+  </wsdl:message>
+  <wsdl:message name="CollectionsService_EchoIDictionary_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoIDictionaryResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="CollectionsService">
+    <wsdl:operation name="EchoStringList">
+      <wsdl:input wsaw:Action="http://tempuri.org/CollectionsService/EchoStringList" message="tns:CollectionsService_EchoStringList_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/CollectionsService/EchoStringListResponse" message="tns:CollectionsService_EchoStringList_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoStringEnumerable">
+      <wsdl:input wsaw:Action="http://tempuri.org/CollectionsService/EchoStringEnumerable" message="tns:CollectionsService_EchoStringEnumerable_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/CollectionsService/EchoStringEnumerableResponse" message="tns:CollectionsService_EchoStringEnumerable_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoStringArray">
+      <wsdl:input wsaw:Action="http://tempuri.org/CollectionsService/EchoStringArray" message="tns:CollectionsService_EchoStringArray_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/CollectionsService/EchoStringArrayResponse" message="tns:CollectionsService_EchoStringArray_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDictionary">
+      <wsdl:input wsaw:Action="http://tempuri.org/CollectionsService/EchoDictionary" message="tns:CollectionsService_EchoDictionary_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/CollectionsService/EchoDictionaryResponse" message="tns:CollectionsService_EchoDictionary_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoIDictionary">
+      <wsdl:input wsaw:Action="http://tempuri.org/CollectionsService/EchoIDictionary" message="tns:CollectionsService_EchoIDictionary_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/CollectionsService/EchoIDictionaryResponse" message="tns:CollectionsService_EchoIDictionary_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_CollectionsService" type="tns:CollectionsService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="EchoStringList">
+      <soap:operation soapAction="http://tempuri.org/CollectionsService/EchoStringList" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoStringEnumerable">
+      <soap:operation soapAction="http://tempuri.org/CollectionsService/EchoStringEnumerable" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoStringArray">
+      <soap:operation soapAction="http://tempuri.org/CollectionsService/EchoStringArray" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDictionary">
+      <soap:operation soapAction="http://tempuri.org/CollectionsService/EchoDictionary" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoIDictionary">
+      <soap:operation soapAction="http://tempuri.org/CollectionsService/EchoIDictionary" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CollectionsService">
+    <wsdl:port name="BasicHttpBinding_CollectionsService" binding="tns:BasicHttpBinding_CollectionsService">
+      <soap:address location="http://localhost/TestService/2/http"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
