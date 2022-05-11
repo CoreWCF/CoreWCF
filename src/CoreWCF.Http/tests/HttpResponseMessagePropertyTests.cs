@@ -26,11 +26,11 @@ namespace CoreWCF.Http.Tests
         [Theory]
         [InlineData(null, "keep-alive")]
         [InlineData("keep-alive", "keep-alive")]
+        [InlineData("Keep-Alive", "keep-alive")]
         [InlineData("close", "close")]
+        [InlineData("Close", "close")]
         [InlineData("invalidValue", "keep-alive")]
-        public void GetCorrespondingConnectionResponseHeader(
-            string connectionRequestHeader,
-            string expectedConnectionResponseHeader)
+        public void GetCorrespondingConnectionResponseHeader(string connectionRequestHeader, string expectedConnectionResponseHeader)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)

@@ -358,11 +358,11 @@ namespace CoreWCF.Channels
                     {
                         return base.KeepAliveEnabled;
                     }
-                    else if (_aspNetContext.Request.Headers[connectionHeader] == "keep-alive")
+                    else if (StringComparer.OrdinalIgnoreCase.Equals("keep-alive", _aspNetContext.Request.Headers[connectionHeader]))
                     {
                         return true;
                     }
-                    else if (_aspNetContext.Request.Headers[connectionHeader] == "close")
+                    else if (StringComparer.OrdinalIgnoreCase.Equals("close", _aspNetContext.Request.Headers[connectionHeader]))
                     {
                         return false;
                     }
