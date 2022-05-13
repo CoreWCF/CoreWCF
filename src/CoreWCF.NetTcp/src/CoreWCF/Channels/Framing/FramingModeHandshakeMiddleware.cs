@@ -4,7 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Channels.Framing
 {
