@@ -212,7 +212,7 @@ namespace Helpers
                 provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.Extensions.Hosting.IApplicationLifetime);
 #pragma warning restore CS0618 // Type or member is obsolete
 #else
-            services.AddSingleton<Microsoft.AspNetCore.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
+            services.AddSingleton<Microsoft.Extensions.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
 #endif
 
         }
