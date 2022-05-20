@@ -11,15 +11,11 @@ $DirectoryBuildPropsContent = '<Project></Project>'
 $DirectoryBuildPropsContent | Out-File $TestTemplatesPath/Directory.Build.props 
 $DirectoryBuildTargetsContent = '<Project></Project>'
 $DirectoryBuildTargetsContent | Out-File $TestTemplatesPath/Directory.Build.target
-# Build CoreWCF.Templates to ensure templated .csproj is generated
-dotnet build $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj
 # Add a local nuget feed to publish current code packages
 $NugetFeedName = 'CoreWCFTemplates-Feed'
 dotnet nuget add source $ArtifactsPath -n $NugetFeedName
 # Pack current code into the nuget feed
 dotnet build $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj
 dotnet pack $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj -o $ArtifactsPath /p:IncludeSymbols=false
-dotnet pack $SourceDir/src/CoreWCF.Primitives/src/CoreWCF.Primitives.csproj -o $ArtifactsPath /p:IncludeSymbols=false
-dotnet pack $SourceDir/src/CoreWCF.Http/src/CoreWCF.Http.csproj -o $ArtifactsPath /p:IncludeSymbols=false
 # Install CoreWCF.Templates locally
 dotnet new --install CoreWCF.Templates

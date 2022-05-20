@@ -284,9 +284,5 @@ nbgv.exe
 # JetBrains Rider settings
 .idea
 
-
-# CoreWCF.Templates Generated csproj
-src/CoreWCF.Templates/src/templates/**/*.csproj
-
 # CoreWCF.Templates.Tests working folder
 TestTemplates/

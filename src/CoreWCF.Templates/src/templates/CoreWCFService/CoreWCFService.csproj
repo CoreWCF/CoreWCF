@@ -23,6 +23,6 @@
     <!--#if(isNetFramework)-->
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
     <!--#endif-->
-    <PackageReference Include="CoreWCF.Http" Version="@version" />
+    <PackageReference Include="CoreWCF.Http" Version="1.*" />
   </ItemGroup>
 </Project>
