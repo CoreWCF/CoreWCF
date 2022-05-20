@@ -1,13 +1,20 @@
 trigger: none
 
 pr:
-- main
-- release/*
-- feature/*
+  branches:
+    include:
+    - main
+    - release/*
+    - feature/*
+  paths:
+    exclude:
+    - src/CoreWCF.Templates/
 
 variables:
-  _solution: 'src/CoreWCF.sln'
-  _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
+  _solution: src/CoreWCF.sln
+  _libraryProjects: |
+    src/CoreWCF.*/src/CoreWCF.*.csproj
+    !src/CoreWCF.Templates/src/CoreWCF.Templates.csproj
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
     !**/CoreWCF.Templates.Tests.csproj
@@ -20,10 +27,6 @@ stages:
 - template: templates/TestStage.yml
   parameters:
     testProjects: $(_testProjects)
-
-- template: templates/TestTemplatesStage.yml
-  parameters:
-    libraryProjects: $(_libraryProjects)
 
 - template: templates/CodeAnalysis.yml
   parameters:
