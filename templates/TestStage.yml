@@ -97,10 +97,18 @@ stages:
       timeoutInMinutes: 10
       inputs:
         command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
         testRunTitle: '$(testRunName)'
+        projects: ${{ parameters.testProjects}}
+        publishTestResults: false
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+
+    - task: PublishTestResults@2
+      displayName: Publish Tests
+      timeoutInMinutes: 10
+      inputs:
+        testResultsFiles: '**/TEST-*.trx'
+        mergeTestResults: true
+        testRunTitle: '$(testRunName)'
 
   - job: TestDebug
     strategy:
@@ -192,7 +200,15 @@ stages:
       timeoutInMinutes: 10
       inputs:
         command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
         testRunTitle: '$(testRunName)'
+        publishTestResults: false
+        projects: ${{ parameters.testProjects}}
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+
+    - task: PublishTestResults@2
+      displayName: Publish Tests
+      timeoutInMinutes: 10
+      inputs:
+        testResultsFiles: '**/TEST-*.trx'
+        mergeTestResults: true
+        testRunTitle: '$(testRunName)'
