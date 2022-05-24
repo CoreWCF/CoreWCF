@@ -398,7 +398,6 @@ namespace CoreWCF.Dispatcher
             {
                 return null;
             }
-            Exception securityException = null;
             TimeSpan timeout = ServiceDefaults.ReceiveTimeout;
             Message message = requestContext.RequestMessage;
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
@@ -418,14 +417,14 @@ namespace CoreWCF.Dispatcher
                 }
                 return new SecurityRequestContext(message, requestContext, SecurityProtocol, correlationState, ServiceDefaults.SendTimeout, ServiceDefaults.CloseTimeout);
             }
-            catch
+            catch (Exception securityException)
             {
-                SendFaultIfRequired(securityException, requestContext, timeoutHelper.RemainingTime());
+                await SendFaultIfRequiredAsync(securityException, requestContext, timeoutHelper.RemainingTime());
                 throw;
             }
         }
 
-        private void SendFaultIfRequired(Exception e, RequestContext innerContext, TimeSpan timeout)
+        private async Task SendFaultIfRequiredAsync(Exception e, RequestContext innerContext, TimeSpan timeout)
         {
             if (!_sendUnsecuredFaults)
             {
@@ -441,8 +440,8 @@ namespace CoreWCF.Dispatcher
             try
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                innerContext.ReplyAsync(faultMessage);
-                innerContext.CloseAsync(timeoutHelper.GetCancellationToken());
+                await innerContext.ReplyAsync(faultMessage);
+                await innerContext.CloseAsync(timeoutHelper.GetCancellationToken());
             }
             catch (Exception ex)
             {
@@ -640,13 +639,13 @@ namespace CoreWCF.Dispatcher
             }
             if (securityException != null)
             {
-                SendFaultIfRequired(securityException, unverifiedMessage, timeoutHelper.RemainingTime());
+                await SendFaultIfRequiredAsync(securityException, unverifiedMessage, timeoutHelper.RemainingTime());
                 return null;
             }
             return innerItem;
         }
 
-        private void SendFaultIfRequired(Exception e, Message unverifiedMessage, TimeSpan timeout)
+        private async Task SendFaultIfRequiredAsync(Exception e, Message unverifiedMessage, TimeSpan timeout)
         {
             if (!_sendUnsecuredFaults)
             {
@@ -663,7 +662,8 @@ namespace CoreWCF.Dispatcher
                 {
                     if (unverifiedMessage.Headers.MessageId != null)
                         faultMessage.InitializeReply(unverifiedMessage);
-                    ((IDuplexChannel)InnerDuplexChannel).SendAsync(faultMessage);
+                    TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+                    await ((IDuplexChannel)InnerDuplexChannel).SendAsync(faultMessage);
                 }
             }
             catch (Exception ex)
