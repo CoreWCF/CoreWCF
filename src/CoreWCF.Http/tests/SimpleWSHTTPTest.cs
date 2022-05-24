@@ -98,10 +98,43 @@ namespace WSHttp
                 try
                 {
                     channel.EchoString(testString);
-                }catch(Exception ex)
+                }
+                catch(Exception ex)
                 {
                     Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
                     Assert.Contains("expired security context token", ex.InnerException.Message);
+                }
+            }
+        }
+
+        [Fact , Description("user-validation-failure")]
+        public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "invalid-user@corewcf";
+                clientCredentials.UserName.Password = "invalid-password";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                try
+                {
+                    ((IChannel)channel).Open();
+                }
+                catch(Exception ex)
+                {
+                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                    Assert.Contains("An error occurred when verifying security for the message.", ex.InnerException.Message);
                 }
             }
         }
