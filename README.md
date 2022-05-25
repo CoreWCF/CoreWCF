@@ -1,6 +1,6 @@
 ### What is Core WCF? 
 
-Core WCF is a port of Windows Communication Foundation (WCF) to .NET Core. The goal of this project is to enable existing WCF projects to move to .NET Core.
+Core WCF is a port of the service side of Windows Communication Foundation (WCF) to .NET Core. The goal of this project is to enable existing WCF services to move to .NET Core.
 
 ### Package Status
 
