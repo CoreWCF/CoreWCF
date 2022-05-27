@@ -9,9 +9,8 @@ Support for Core WCF 1.x will depend on the support status for the underlying .N
 | **Runtime Version** | **Support dependency duration** |
 | --- | --- |
 | .NET Framework 4.x | The specific version of [.NET Framework](https://dotnet.microsoft.com/platform/support/policy/dotnet-framework), and [ASP.NET Core 2.1.](https://dotnet.microsoft.com/platform/support/policy/aspnet) |
-| .NET Core 3.1 | .NET 3.1 LTS - December 3, 2022 |
-| .NET 5 | .NET 5 - May 8, 2022 |
-| .NET 6 | .NET 6 LTS - November 8, 2024 |
+| .NET Core 3.1 | .NET Core 3.1 LTS - December 13, 2022 |
+| .NET 6 | .NET 6 LTS - November 12, 2024 |
 
 Core WCF will use Major.Minor versioning strategy:
 
