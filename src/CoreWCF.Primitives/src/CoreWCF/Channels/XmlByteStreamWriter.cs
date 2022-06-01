@@ -83,6 +83,12 @@ namespace CoreWCF.Channels
             _stream.Flush();
         }
 
+        public override Task FlushAsync()
+        {
+            ThrowIfClosed();
+            return _stream.FlushAsync();
+        }
+
         private void InternalWriteEndElement()
         {
             ThrowIfClosed();
