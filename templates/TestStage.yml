@@ -71,6 +71,10 @@ stages:
         installationPath: $(Agent.ToolsDirectory)/dotnet
       condition: not(eq(variables.additionalDotNetCoreSdk, ''))
 
+    - pwsh: |
+        . "$env:windir\system32\netsh" http show sslcert
+      displayName: Get Bound SSL Certificates
+
     - task: DotNetCoreCLI@2
       displayName: Restore packages
       inputs:
