@@ -857,7 +857,7 @@ namespace CoreWCF.Dispatcher
                 {
                     try
                     {
-                        rpc.Channel.DecrementActivity();
+                        rpc.Channel.DecrementActivity().GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {
