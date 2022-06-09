@@ -278,6 +278,9 @@ namespace CoreWCF.Channels
         {
             try
             {
+                if (WebSocket.State == WebSocketState.Closed || WebSocket.State == WebSocketState.Aborted)
+                    return Task.CompletedTask;
+
                 return WebSocket.CloseAsync(_webSocketCloseDetails.OutputCloseStatus, _webSocketCloseDetails.OutputCloseStatusDescription, token);
             }
             catch (Exception e)
