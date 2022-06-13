@@ -1,6 +1,6 @@
-# .NET 6 Core WCF Sample
+# .NET 6 CoreWCF Sample
 
-This sample shows how to use Core WCF with .NET 6 using the [Minimal API Syntax](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis?view=aspnetcore-6.0). 
+This sample shows how to use CoreWCF with .NET 6 using the [Minimal API Syntax](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis?view=aspnetcore-6.0). 
 
 This sample uses the BasicHttpBinding and exposes EndPoints at `http://localhost:5000/EchoService/basichttp` and `https://localhost:5001/EchoService/basichttp`. The base url comes from the Urls property in appsettings.json, and the path from the EndPoint registration in code.
 
