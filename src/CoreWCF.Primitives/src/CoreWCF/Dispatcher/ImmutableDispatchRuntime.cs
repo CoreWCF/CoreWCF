@@ -751,8 +751,8 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        rpc.CloseRequestContext();
-                        rpc.CloseChannel();
+                        await rpc.CloseRequestContextAsync();
+                        await rpc.CloseChannelAsync();
                     }
                     rpc.AbortInstanceContext();
                 }
@@ -764,7 +764,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        rpc.CloseRequestContext();
+                        await rpc.CloseRequestContextAsync();
                     }
                 }
 
