@@ -699,7 +699,7 @@ namespace CoreWCF.Channels
             return rpc.ReturnValue;
         }
 
-        internal Task DecrementActivity()
+        internal Task DecrementActivityAsync()
         {
             int updatedActivityCount = Interlocked.Decrement(ref _activityCount);
 
@@ -708,7 +708,7 @@ namespace CoreWCF.Channels
                 throw Fx.AssertAndThrowFatal("ServiceChannel.DecrementActivity: (updatedActivityCount >= 0)");
             }
 
-            if (updatedActivityCount == 0 && _autoClose)
+            if (updatedActivityCount == 0 && _autoClose && State == CommunicationState.Opened)
             {
                 return AutoCloseAsync();
             }
@@ -719,11 +719,8 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    if (State == CommunicationState.Opened)
-                    {
-                        var helper = new TimeoutHelper(CloseTimeout);
-                        await CloseAsync(helper.GetCancellationToken());
-                    }
+                    var helper = new TimeoutHelper(CloseTimeout);
+                    await CloseAsync(helper.GetCancellationToken());
                 }
                 catch (CommunicationException e)
                 {
@@ -770,7 +767,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal Task HandleReceiveComplete(RequestContext context)
+        internal Task HandleReceiveCompleteAsync(RequestContext context)
         {
             if (context == null && HasSession)
             {
@@ -789,7 +786,7 @@ namespace CoreWCF.Channels
                         dispatchBehavior.GetRuntime().InputSessionDoneReceiving(this);
                     }
 
-                    return DecrementActivity();
+                    return DecrementActivityAsync();
                 }
             }
 

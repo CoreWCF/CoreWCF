@@ -669,7 +669,7 @@ namespace CoreWCF.Dispatcher
                 await ReplyAsync(rpc);
             }
 
-            ProcessMessageCleanup(rpc);
+            await ProcessMessageCleanupAsync(rpc);
         }
 
         // Logic for knowing when to close stuff:
@@ -708,7 +708,7 @@ namespace CoreWCF.Dispatcher
         // message was consumed after deserializing but before calling
         // the user.  This is stored as rpc.DidDeserializeRequestBody.
         //
-        private void ProcessMessageCleanup(MessageRpc rpc)
+        private async Task ProcessMessageCleanupAsync(MessageRpc rpc)
         {
             Fx.Assert(
                 !ReferenceEquals(rpc.ErrorProcessor, _processMessageCleanupError),
@@ -857,7 +857,7 @@ namespace CoreWCF.Dispatcher
                 {
                     try
                     {
-                        rpc.Channel.DecrementActivity().GetAwaiter().GetResult();
+                        await rpc.Channel.DecrementActivityAsync();
                     }
                     catch (Exception e)
                     {
