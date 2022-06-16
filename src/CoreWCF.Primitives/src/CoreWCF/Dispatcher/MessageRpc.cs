@@ -227,24 +227,24 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        internal void CloseRequestContext()
+        internal async Task CloseRequestContextAsync()
         {
             if (OperationContext.RequestContext != null)
             {
-                DisposeRequestContext(OperationContext.RequestContext);
+                await DisposeRequestContextAsync(OperationContext.RequestContext);
             }
             if ((RequestContext != null) && (RequestContext != OperationContext.RequestContext))
             {
-                DisposeRequestContext(RequestContext);
+                await DisposeRequestContextAsync(RequestContext);
             }
             TraceCallDurationInDispatcherIfNecessary(true);
         }
 
-        private void DisposeRequestContext(RequestContext context)
+        private async Task DisposeRequestContextAsync(RequestContext context)
         {
             try
             {
-                context.CloseAsync().GetAwaiter().GetResult();
+                await context.CloseAsync();
             }
             catch (Exception e)
             {
@@ -278,15 +278,14 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        // TODO: Make async
-        internal void CloseChannel()
+        internal async Task CloseChannelAsync()
         {
             if ((Channel != null) && Channel.HasSession)
             {
                 try
                 {
                     var helper = new TimeoutHelper(ChannelHandler.CloseAfterFaultTimeout);
-                    Channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
+                    await Channel.CloseAsync(helper.GetCancellationToken());
                 }
                 catch (Exception e)
                 {
