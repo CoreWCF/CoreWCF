@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Description;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
@@ -30,6 +30,7 @@ namespace CoreWCF.Configuration
                     _ = OpenAsync();
                 }
             });
+            Opened += OpenedCallback;
         }
 
         public ICollection<IServiceConfiguration> ServiceConfigurations => _services.Values;
@@ -222,10 +223,15 @@ namespace CoreWCF.Configuration
             return Task.CompletedTask;
         }
 
-        protected override Task OnOpenAsync(CancellationToken token)
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
+
+        private void OpenedCallback(object sender, EventArgs e)
         {
+            // Using a callback to complete the TCS means the state will have transitioned to Opened before completing the TCS
+            // which means if another thread is waiting on this TCS, ServiceBuilder is in the expected state when it continues.
+            // This callback needs to run before any other event handlers as they can (and the HTTP middleware indirectly does) depend on
+            // the TCS being completed before they run.
             _openingCompletedTcs.TrySetResult(null);
-            return Task.CompletedTask;
         }
 
         protected override void OnFaulted()

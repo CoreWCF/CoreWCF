@@ -58,6 +58,48 @@ namespace Helpers
                 });
         }
 
+        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(Binding binding1, Binding binding2, string url, ITestOutputHelper outputHelper = default) where TService1 : class where TService2 : class
+        {
+            var customBinding1 = new CustomBinding(binding1);
+            ApplyDebugTimeouts(customBinding1);
+            var transportScheme1 = binding1.Scheme;
+            var customBinding2 = new CustomBinding(binding2);
+            ApplyDebugTimeouts(customBinding2);
+            var transportScheme2 = binding1.Scheme;
+            return CreateWebHostBuilder(outputHelper, new[] { transportScheme1, transportScheme2 })
+                .InlineStartup((IServiceCollection services) =>
+                {
+                    services.AddServiceModelServices()
+                            .AddServiceModelMetadata();
+                },
+                app =>
+                {
+                    app.UseServiceModel(serviceBuilder =>
+                    {
+                        serviceBuilder.AddService<TService1>(serviceOptions =>
+                        {
+                            serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{HttpListenPort}/1{url}"));
+                            if (Uri.UriSchemeHttp.Equals(customBinding1.Scheme))
+                            {
+                                serviceOptions.BaseAddresses.Add(new Uri($"{customBinding1.Scheme}://localhost/1{url}"));
+                            }
+                        });
+                        serviceBuilder.AddServiceEndpoint<TService1, TContract1>(customBinding1, customBinding1.Scheme);
+                        serviceBuilder.AddService<TService2>(serviceOptions =>
+                        {
+                            serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{HttpListenPort}/2{url}"));
+                            if (Uri.UriSchemeHttp.Equals(customBinding2.Scheme))
+                            {
+                                serviceOptions.BaseAddresses.Add(new Uri($"{customBinding2.Scheme}://localhost/2{url}"));
+                            }
+                        });
+                        serviceBuilder.AddServiceEndpoint<TService2, TContract2>(customBinding2, customBinding2.Scheme);
+                    });
+                    var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
+                    serviceMetadataBehavior.HttpGetEnabled = true;
+                });
+        }
+
         internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(IDictionary<string, Binding> bindingEndpointMap, Uri[] baseAddresses, ITestOutputHelper outputHelper = default) where TService : class
         {
             // Presume all bindings are the same type

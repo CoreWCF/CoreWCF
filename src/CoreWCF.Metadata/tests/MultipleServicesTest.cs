@@ -10,11 +10,11 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Metadata.Tests
 {
-    public class BasicHttpSimpleServiceTest
+    public class MultipleServicesTest
     {
         private readonly ITestOutputHelper _output;
 
-        public BasicHttpSimpleServiceTest(ITestOutputHelper output)
+        public MultipleServicesTest(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -22,7 +22,8 @@ namespace CoreWCF.Metadata.Tests
         [Fact]
         public async Task BasicHttpRequestReplyEchoString()
         {
-            await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(new BasicHttpBinding(), _output);
+            await TestHelper.RunMultipleWsdlTestAsync<SimpleEchoService, CollectionsService, IEchoService, ICollectionsService>(
+                new BasicHttpBinding(), new BasicHttpBinding(), _output);
         }
     }
 }
