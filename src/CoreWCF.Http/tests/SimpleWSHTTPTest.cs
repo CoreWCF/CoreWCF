@@ -54,6 +54,7 @@ namespace WSHttp
 
 #if NETCOREAPP3_1_OR_GREATER // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
         [Fact, Description("transport-security-with-an-anonymous-client")]
+        [Trait("Category", "WindowsOnly")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
         {
             string testString = new string('a', 3000);
