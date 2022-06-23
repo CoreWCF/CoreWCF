@@ -1446,6 +1446,20 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal("b", tags[1]);
         }
 
+        // Misc
+
+        private interface IMissingMethodNoNre
+        {
+            [WebInvoke(UriTemplate = "/path")]
+            public void Operation();
+        }
+
+        [Fact]
+        public void MissingMethodNoNre()
+        {
+            GetJson(new OpenApiOptions(), new List<Type> { typeof(IMissingMethodNoNre) });
+        }
+
         private static JsonElement GetJson(OpenApiOptions options, IEnumerable<OpenApiContractInfo> contracts)
         {
             OpenApiDocument document = OpenApiSchemaBuilder.BuildOpenApiSpecificationDocument(options, contracts);
