@@ -10,9 +10,9 @@
     "language": "C#",
     "type": "project"
   },
-  "name": "Core WCF Service",
+  "name": "CoreWCF Service",
   "defaultName": "CoreWCFService",
-  "description": "A project template for creating a server application which hosts a Core WCF service.",
+  "description": "A project template for creating a server application which hosts a CoreWCF service.",
   "sources": [
     {
       "modifiers": [

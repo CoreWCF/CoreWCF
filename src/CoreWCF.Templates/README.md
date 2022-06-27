@@ -1,12 +1,12 @@
 # CoreWCF.Templates
 
-This describe how to debug and test the Core WCF templates on a developer machine. 
+This describe how to debug and test the CoreWCF templates on a developer machine. 
 
-If you just want to use the templates, see [Use Core WCF project templates (dotnet CLI or VisualStudio](./../../README.md#use-core-wcf-project-templates-dotnet-cli-or-visualstudio).
+If you just want to use the templates, see [Use CoreWCF project templates (dotnet CLI or VisualStudio](./../../README.md#use-core-wcf-project-templates-dotnet-cli-or-visualstudio).
 
 ## Test the templates locally
 
-Ensure Core WCF templates are not already installed on your machine by first running 
+Ensure CoreWCF templates are not already installed on your machine by first running 
 ```cmd
 dotnet new --uninstall CoreWCF.Templates
 ```
@@ -22,7 +22,7 @@ dotnet new --uninstall CoreWCF.Templates
 dotnet new corewcf
 ```
 
-- Using VS2022 you should find **Core WCF Service** project template
+- Using VS2022 you should find **CoreWCF Service** project template
 
 - Inspect and build the created project
 
