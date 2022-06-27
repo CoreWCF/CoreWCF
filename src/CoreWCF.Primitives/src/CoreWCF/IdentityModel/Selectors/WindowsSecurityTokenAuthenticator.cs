@@ -30,7 +30,7 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected override bool CanValidateTokenCore(SecurityToken token)
         {
-            return (token is WindowsSecurityToken || token is GenericSecurityToken);
+            return (token is WindowsSecurityToken || token is GenericIdentitySecurityToken);
         }
 
         protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
@@ -43,7 +43,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
             else
             {
-                var genericToken = (GenericSecurityToken)token;
+                var genericToken = (GenericIdentitySecurityToken)token;
                 var claimSet = new WindowsClaimSet(genericToken.GenericIdentity,  _includeWindowsGroups, _ldapSettings);
                 return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(SecurityUtils.CreateAuthorizationPolicies(claimSet));
             }

@@ -58,6 +58,13 @@ namespace CoreWCF.OpenApi
             PopulateOpenApiInfo(document, info);
             PopulateOpenApiPathsOperations(document, contracts, info.TagsToHide);
 
+            if (info.TagsSorter != null)
+            {
+                var tags = document.Tags as List<OpenApiTag> ?? document.Tags.ToList();
+                tags.Sort(info.TagsSorter);
+                document.Tags = tags;
+            }
+
             return document;
         }
 
@@ -202,7 +209,7 @@ namespace CoreWCF.OpenApi
 
             PopulateOpenApiResponses(document, operation, methodInfo, defaultContentType, tagsToHide, nsManager);
             PopulateOpenApiParameters(document, operation, methodInfo, operationInfo.UriTemplate, defaultContentType, tagsToHide, nsManager);
-            PopulateOpenApiOperationTags(operation, methodInfo);
+            PopulateOpenApiOperationTags(document, operation, methodInfo);
             PopulateOpenApiOperationSummary(operation, methodInfo);
 
             OperationType? operationType = GetOperationType(operationInfo.Method);
@@ -518,7 +525,8 @@ namespace CoreWCF.OpenApi
                         operation.RequestBody = new OpenApiRequestBody
                         {
                             Content = attribute.ContentTypes.ToDictionary(contentType => contentType, _ => content),
-                            Required = !parameter.IsOptional
+                            Required = !parameter.IsOptional,
+                            Description = attribute?.Description
                         };
                     }
                     else
@@ -526,7 +534,8 @@ namespace CoreWCF.OpenApi
                         operation.RequestBody = new OpenApiRequestBody
                         {
                             Content = defaultContentType.GetContentTypes(false).ToDictionary(contentType => contentType, _ => content),
-                            Required = !parameter.IsOptional
+                            Required = !parameter.IsOptional,
+                            Description = attribute?.Description
                         };
                     }
                 }
@@ -550,9 +559,10 @@ namespace CoreWCF.OpenApi
         /// <summary>
         /// Populate the tags for a given method.
         /// </summary>
+        /// <param name="document">The document object that is being built up.</param>
         /// <param name="operation">The operation object that is being built up.</param>
         /// <param name="method">The given method.</param>
-        private static void PopulateOpenApiOperationTags(OpenApiOperation operation, MethodInfo method)
+        private static void PopulateOpenApiOperationTags(OpenApiDocument document, OpenApiOperation operation, MethodInfo method)
         {
             foreach (OpenApiTagAttribute attribute in method.GetCustomAttributes<OpenApiTagAttribute>())
             {
@@ -562,6 +572,14 @@ namespace CoreWCF.OpenApi
                 }
 
                 operation.Tags.Add(new OpenApiTag { Name = attribute.Tag });
+
+                if (!document.Tags.Any(existingTag => existingTag.Name == attribute.Tag))
+                {
+                    document.Tags.Add(new OpenApiTag
+                    {
+                        Name = attribute.Tag
+                    });
+                }
             }
         }
 
@@ -751,6 +769,13 @@ namespace CoreWCF.OpenApi
 
                 OpenApiPropertyAttribute memberPropertiesAttribute = property.GetCustomAttribute<OpenApiPropertyAttribute>();
 
+                IEnumerable<CustomAttributeNamedArgument> memberPropertiesAttributeData = property
+                        .GetCustomAttributesData()
+                        .FirstOrDefault(data => data.AttributeType == typeof(OpenApiPropertyAttribute))
+                        ?.NamedArguments;
+                bool maxLengthSet = memberPropertiesAttributeData?.Any(arg => arg.MemberName == "MaxLength") ?? false;
+                bool minLengthSet = memberPropertiesAttributeData?.Any(arg => arg.MemberName == "MinLength") ?? false;
+
                 if (memberPropertiesAttribute?.IsRequired ?? false)
                 {
                     required.Add(name);
@@ -766,7 +791,7 @@ namespace CoreWCF.OpenApi
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.Schema,
-                            Id = GetSchemaKey(dataContractAttribute, innerDataMemberAttribute, isInArray)
+                            Id = GetSchemaKey(dataContractAttribute, innerDataMemberAttribute, false)
                         },
                         Description = memberPropertiesAttribute?.Description
                     });
@@ -849,7 +874,7 @@ namespace CoreWCF.OpenApi
                                             }
                                         }
                                     },
-                                });
+                                }); ;
                             }
                         }
                     }
@@ -885,6 +910,9 @@ namespace CoreWCF.OpenApi
                     {
                         Type = GetType(property.PropertyType),
                         Description = memberPropertiesAttribute?.Description,
+                        MinLength = minLengthSet ? memberPropertiesAttribute?.MinLength : null,
+                        MaxLength = maxLengthSet ? memberPropertiesAttribute?.MaxLength : null,
+                        Format = memberPropertiesAttribute?.Format,
                         // The URI type might mangle the namespace so we do this manually.
                         Extensions = new Dictionary<string, IOpenApiExtension>
                         {
