@@ -26,7 +26,7 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 
 * Install the Nuget packages listed above, either via the Package Manager Console or the UI.
 * See [Walkthrough](Documentation/Walkthrough.md) for a step by step guide to creating a service and referencing it from a client project.
-* The [Samples](src/Samples/) folder has examples for .NET Framework, .NET Core 3.1, .NET 5 & 6 
+* The [Samples](https://github.com/CoreWCF/samples) repo has examples for .NET Framework, .NET Core 3.1, .NET 5 & 6 
 * The [Blog](https://corewcf.github.io/) has details on the design philosophy and a deep dive into the features are included in each new release.
 
 ### Development Builds

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -33,6 +34,8 @@ namespace CoreWCF.Channels
             _servicesScopeFactory = servicesScopeFactory;
             BuildHandler();
         }
+
+        public bool IsAuthenticationRequired => _httpSettings.IsAuthenticationRequired;
 
         internal WebSocketOptions WebSocketOptions { get; set; }
 
@@ -68,7 +71,6 @@ namespace CoreWCF.Channels
                 AuthenticationScheme = tbe.AuthenticationScheme,
                 WebSocketSettings = tbe.WebSocketSettings.Clone()
             };
-
             _httpSettings = httpSettings;
             WebSocketOptions = CreateWebSocketOptions(tbe);
 
@@ -97,6 +99,17 @@ namespace CoreWCF.Channels
 
         internal async Task HandleRequest(HttpContext context)
         {
+            if (IsAuthenticationRequired)
+            {
+                string scheme = _httpSettings.AuthenticationScheme.ToString();
+                AuthenticateResult authenticateResult = await context.AuthenticateAsync(scheme);
+                if (authenticateResult.None)
+                {
+                    await context.ChallengeAsync(scheme);
+                    return;
+                }
+            }
+
             if (!context.WebSockets.IsWebSocketRequest)
             {
                 if (_replyChannelDispatcher == null)

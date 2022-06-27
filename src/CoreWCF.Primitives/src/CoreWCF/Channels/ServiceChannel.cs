@@ -699,7 +699,7 @@ namespace CoreWCF.Channels
             return rpc.ReturnValue;
         }
 
-        internal void DecrementActivity()
+        internal Task DecrementActivityAsync()
         {
             int updatedActivityCount = Interlocked.Decrement(ref _activityCount);
 
@@ -708,16 +708,19 @@ namespace CoreWCF.Channels
                 throw Fx.AssertAndThrowFatal("ServiceChannel.DecrementActivity: (updatedActivityCount >= 0)");
             }
 
-            if (updatedActivityCount == 0 && _autoClose)
+            if (updatedActivityCount == 0 && _autoClose && State == CommunicationState.Opened)
+            {
+                return AutoCloseAsync();
+            }
+
+            return Task.CompletedTask;
+
+            async Task AutoCloseAsync()
             {
                 try
                 {
-                    if (State == CommunicationState.Opened)
-                    {
-                        // TODO: Async
-                        var helper = new TimeoutHelper(CloseTimeout);
-                        CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
-                    }
+                    var helper = new TimeoutHelper(CloseTimeout);
+                    await CloseAsync(helper.GetCancellationToken());
                 }
                 catch (CommunicationException e)
                 {
@@ -764,7 +767,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal void HandleReceiveComplete(RequestContext context)
+        internal Task HandleReceiveCompleteAsync(RequestContext context)
         {
             if (context == null && HasSession)
             {
@@ -783,9 +786,11 @@ namespace CoreWCF.Channels
                         dispatchBehavior.GetRuntime().InputSessionDoneReceiving(this);
                     }
 
-                    DecrementActivity();
+                    return DecrementActivityAsync();
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         private void HandleReply(ProxyOperationRuntime operation, ref ProxyRpc rpc)

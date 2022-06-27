@@ -34,7 +34,7 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
 
-                if(value is MessageCredentialType.Windows)
+                if (value is MessageCredentialType.Windows)
                 {
                     //TODO Remove this after .net 5+
                     string frameworkDescription = RuntimeInformation.FrameworkDescription;
