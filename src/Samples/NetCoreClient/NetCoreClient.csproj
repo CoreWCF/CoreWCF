@@ -12,9 +12,4 @@
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\StandardClient\Samples.StandardClient.csproj" />
-    <ProjectReference Include="..\StandardCommon\Samples.StandardCommon.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.ServiceModel;
-using CoreWCF.Samples.StandardCommon;
 
 namespace DesktopServer
 {
@@ -9,23 +8,26 @@ namespace DesktopServer
     {
         private static ServiceHost ConfigureWcfHost<TService, TContract>(string servicePrefix)
         {
-            Settings settings = new Settings().SetDefaults("localhost", servicePrefix);
+            var httpUrl = "http://localhost:8088";
+            var httpsUrl= "https://localhost:8443";
+            var netTcpUrl = "net.tcp://localhost:8089";
 
-            Uri[] baseUriList = settings.GetBaseAddresses().ToArray();
+            Uri[] baseUriList = new Uri[] { new Uri(httpUrl), new Uri(httpsUrl), new Uri(netTcpUrl) };
 
             Type contract = typeof(TContract);
             var host = new ServiceHost(typeof(TService), baseUriList);
 
+            host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), "/basichttp");
+            host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), "/basichttp");
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), "/wsHttp");
+            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), "/wsHttp");
+            host.AddServiceEndpoint(contract, new NetTcpBinding(), "/nettcp");
+
             var serverBindingHttpsUserPassword = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
             serverBindingHttpsUserPassword.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
-            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, settings.wsHttpAddressValidateUserPassword.LocalPath);
+            host.AddServiceEndpoint(contract, serverBindingHttpsUserPassword, "/wsHttpUserPassword");
             CustomUserNamePasswordValidator.AddToHost(host);
-
-            host.AddServiceEndpoint(contract, new BasicHttpBinding(BasicHttpSecurityMode.None), settings.basicHttpAddress.LocalPath);
-            host.AddServiceEndpoint(contract, new BasicHttpsBinding(BasicHttpsSecurityMode.Transport), settings.basicHttpsAddress.LocalPath);
-            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.None), settings.wsHttpAddress.LocalPath);
-            host.AddServiceEndpoint(contract, new WSHttpBinding(SecurityMode.Transport), settings.wsHttpsAddress.LocalPath);
-            host.AddServiceEndpoint(contract, new NetTcpBinding(), settings.netTcpAddress.LocalPath);
+            
             return host;
         }
 
