@@ -399,7 +399,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_channel != null)
                 {
-                    _channel.HandleReceiveComplete(request);
+                    await _channel.HandleReceiveCompleteAsync(request);
                 }
                 else
                 {

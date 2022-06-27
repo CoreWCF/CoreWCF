@@ -8,21 +8,25 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class GenericSecurityToken : SecurityToken
+    public class GenericIdentitySecurityToken : SecurityToken
     {
         private readonly string _id;
         private readonly DateTime _effectiveTime;
         private readonly DateTime _expirationTime;
         private readonly GenericIdentity _genericIdentity;
 
-        internal GenericSecurityToken(string name, string id)
+        public GenericIdentitySecurityToken(GenericIdentity genericIdentity)
+            : this(genericIdentity, SecurityUniqueId.Create().Value)
         {
-            Name = name ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(name));
+        }
+
+        public GenericIdentitySecurityToken(GenericIdentity genericIdentity, string id)
+        {
+            Name = genericIdentity.Name;
             _id = id ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(id));
             _effectiveTime = DateTime.UtcNow;
-            _expirationTime = DateTime.UtcNow.AddHours(10);
-            _genericIdentity = (GenericIdentity) SecurityUtils.CreateIdentity(name);
-
+            _expirationTime = SecurityUtils.MaxUtcDateTime;
+            _genericIdentity = (GenericIdentity) genericIdentity.Clone();
         }
 
         public override string Id
