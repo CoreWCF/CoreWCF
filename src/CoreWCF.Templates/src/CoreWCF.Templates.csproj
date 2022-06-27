@@ -12,11 +12,15 @@
     <IncludeSymbols>false</IncludeSymbols>
     <SymbolPackageFormat></SymbolPackageFormat>
   </PropertyGroup>
+  <!-- Include the templates folder as content except bin/obj folders and CoreWCF repo files -->
   <ItemGroup>
     <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" CopyToOutputDirectory="Always" />
     <Content Remove="templates\Directory.Build.props"/>
     <Content Remove="templates\Directory.Build.targets"/>
     <Content Remove="templates\.editorconfig"/>
+  </ItemGroup>
+  <!-- Do not compile the templated code -->
+  <ItemGroup>
     <Compile Remove="templates\**\*"/>
   </ItemGroup>
 </Project>
