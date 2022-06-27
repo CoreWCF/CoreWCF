@@ -5,10 +5,6 @@ builder.Services.AddServiceModelServices();
 builder.Services.AddServiceModelMetadata();
 builder.Services.AddSingleton<IServiceBehavior, UseRequestHeadersForMetadataAddressBehavior>();
 #endif
-builder.WebHost.ConfigureKestrel(options => 
-{
-    options.AllowSynchronousIO = true;
-});
 
 var app = builder.Build();
 
