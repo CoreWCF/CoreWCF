@@ -37,5 +37,8 @@ namespace ServiceContract
 ReplyAction = Constants.OPERATION_BASE + "EchoToFailResponse")]
         string EchoToFail(string echo);
 
+        [OperationContract(Name = "EchoForImpersonation", Action = Constants.OPERATION_BASE + "EchoForImpersonation",
+            ReplyAction = Constants.OPERATION_BASE + "EchoForImpersonationResponse")]
+        string EchoForImpersonation(string echo);
     }
 }

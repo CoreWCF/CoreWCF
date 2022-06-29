@@ -156,7 +156,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                token = new GenericSecurityToken(remoteIdentity.Name, SecurityUniqueId.Create().Value);
+                token = new GenericIdentitySecurityToken((GenericIdentity)remoteIdentity, SecurityUniqueId.Create().Value);
             }
             return authenticator.ValidateTokenAsync(token);
         }

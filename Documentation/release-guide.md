@@ -12,7 +12,7 @@ The primary development branch is main. New feature development will occur on a 
 
 ## Versioning Strategy
 
-Core WCF will use a \<Major\>.\<Minor\> versioning scheme. Releases will happen when features are completed and not aligned to a specific timetable.
+CoreWCF will use a \<Major\>.\<Minor\> versioning scheme. Releases will happen when features are completed and not aligned to a specific timetable.
 
 ### Major Releases
 
@@ -32,13 +32,13 @@ When work starts on new major versions, that are not going to be 100% compatible
 
 ### .NET Versions
 
-Support for specific versions of the .NET runtime in Core WCF will be timeboxed by the support durations for those runtimes by Microsoft. For example .NET 5 will be supported until May 8 2022 (based on dates from [here](https://docs.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core)). 
+Support for specific versions of the .NET runtime in CoreWCF will be timeboxed by the support durations for those runtimes by Microsoft. For example .NET 5 will be supported until May 8 2022 (based on dates from [here](https://docs.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core)). 
 
-For engineering reasons, major releases of CoreWCF may drop support for older versions of .NET runtime. This is so that Core WCF can take advanatge of runtime features that are not present in the older runtime. For example, the current plan is that shortly after 1.0 is shippped, work will start on 2.0 which will drop .NET Framework and .NET Core 3.1 support, this is because we need to take a dependency on newer ASP.NET core features that are not available down level.
+For engineering reasons, major releases of CoreWCF may drop support for older versions of .NET runtime. This is so that CoreWCF can take advanatge of runtime features that are not present in the older runtime. For example, the current plan is that shortly after 1.0 is shippped, work will start on 2.0 which will drop .NET Framework and .NET Core 3.1 support, this is because we need to take a dependency on newer ASP.NET core features that are not available down level.
 
 ## Microsoft support
 
-We recognize how important support is to enterprise customers, and so we are pleased to announce that Microsoft Product Support will be available for Core WCF customers.
+We recognize how important support is to enterprise customers, and so we are pleased to announce that Microsoft Product Support will be available for CoreWCF customers.
   
 - The following packages will be supported:
   - [CoreWCF.Primitives](https://www.nuget.org/packages/CoreWCF.Primitives)

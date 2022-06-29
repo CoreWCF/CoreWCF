@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.IdentityModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Http;
@@ -99,7 +105,7 @@ namespace CoreWCF.Channels
             return new AspNetCoreHttpContext(settings, httpContext);
         }
 
-        protected abstract SecurityMessageProperty OnProcessAuthentication();
+        protected abstract Task<SecurityMessageProperty> OnProcessAuthenticationAsync();
 
         public abstract HttpOutput GetHttpOutput(Message message);
 
@@ -252,14 +258,14 @@ namespace CoreWCF.Channels
         public async Task<bool> ProcessAuthenticationAsync()
         {
             HttpStatusCode statusCode = ValidateAuthentication();
-
+            
             if (statusCode == HttpStatusCode.OK)
             {
                 bool authenticationSucceeded = false;
                 statusCode = HttpStatusCode.Forbidden;
                 try
                 {
-                    _securityProperty = OnProcessAuthentication();
+                    _securityProperty = await OnProcessAuthenticationAsync();
                     authenticationSucceeded = true;
                     return true;
                 }
@@ -375,10 +381,18 @@ namespace CoreWCF.Channels
                 return HttpOutput.CreateHttpOutput(_aspNetContext, HttpTransportSettings, message, HttpMethod);
             }
 
-            protected override SecurityMessageProperty OnProcessAuthentication()
+            protected override async Task<SecurityMessageProperty> OnProcessAuthenticationAsync()
             {
-                // TODO: Wire up authentication for ASP.Net Core
-                //return Listener.ProcessAuthentication(listenerContext);
+                if (HttpTransportSettings.IsAuthenticationRequired)
+                {
+                    ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User.Identity);
+                    SecurityMessageProperty securityMessageProperty = new SecurityMessageProperty
+                    {
+                        ServiceSecurityContext = securityContext
+                    };
+                    return securityMessageProperty;
+                }
+
                 return null;
             }
 
@@ -409,6 +423,25 @@ namespace CoreWCF.Channels
                 //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                 //        HttpChannelUtilities.CreateCommunicationException(listenerException));
                 //}
+            }
+
+            private async Task<ServiceSecurityContext> CreateSecurityContextAsync(IIdentity identity)
+            {
+                if (identity is WindowsIdentity wid)
+                {
+                    WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
+                    SecurityToken windowsToken = new WindowsSecurityToken(wid);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(windowsToken);
+                    return new ServiceSecurityContext(authorizationPolicies);
+                }
+                else if (identity is GenericIdentity gid)
+                {
+                    WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
+                    SecurityToken genericToken = new GenericIdentitySecurityToken(gid, SecurityUniqueId.Create().Value);
+                    ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(genericToken);
+                    return new ServiceSecurityContext(authorizationPolicies);
+                }
+                return null;
             }
 
             private class AspNetCoreHttpInput : HttpInput

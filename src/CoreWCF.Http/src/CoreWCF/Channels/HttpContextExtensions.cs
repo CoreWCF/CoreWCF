@@ -9,7 +9,7 @@ namespace CoreWCF.Channels
     internal static class HttpContextExtensions
     {
         private const string ContentTypeHeaderName = "Content-Type";
-
+        
         internal static WebHeaderCollection ToWebHeaderCollection(this HttpRequest httpRequest)
         {
             var webHeaders = new WebHeaderCollection();
