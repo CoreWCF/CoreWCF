@@ -29,6 +29,20 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 * The [Samples](https://github.com/CoreWCF/samples) repo has examples for multiple scenarios.
 * The [Blog](https://corewcf.github.io/) has details on the design philosophy and a deep dive into the features are included in each new release.
 
+### Use CoreWCF project templates (dotnet CLI or VisualStudio)
+
+* Install CoreWCF project templates, create a directory for your project and cd inside the directory and initialize your project
+```cmd
+dotnet new --install CoreWCF.Templates 
+dotnet new corewcf --name MyService
+```
+* `CoreWCF Service` project template creates a minimal ASP.NET Core web application thats exposes the well-known WCF default service using a `BasicHttpBinding`.
+It supports the following arguments:
+  * `--framework`: `net6.0` (default), `net5.0`, `netcoreapp3.1`, `net48`, `net472` and `net462` are valid values.
+  * `--use-program-main`: whether to turn off ASP.NET Core minimal API hosting. This option only affects `net6.0` projects as other target require a `Startup` and a `Program` class. 
+  * `--no-https`: whether to turn off HTTPS and use `BasicHttpSecurityMode.None`. Default is HTTPS enabled using `BasicHttpSecurityMode.Transport`.
+  * `--no-wsdl`: whether to turn off WSDL metadata feature.
+
 ### Development Builds
 
 There are pre-release packages available for development builds of main from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds.
