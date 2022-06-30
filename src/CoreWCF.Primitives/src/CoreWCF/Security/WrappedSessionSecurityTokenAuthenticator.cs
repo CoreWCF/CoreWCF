@@ -30,8 +30,10 @@ namespace CoreWCF.Security
         private readonly SctClaimsHandler _sctClaimsHandler;
         private readonly ExceptionMapper _exceptionMapper;
 
+#pragma warning disable CS0067 // The event is never used
         public event EventHandler Closed;
         public event EventHandler Faulted;
+#pragma warning restore CS0067 // The event is never used
 
         /// <summary>
         /// Initializes an instance of <see cref="WrappedRsaSecurityTokenAuthenticator"/>

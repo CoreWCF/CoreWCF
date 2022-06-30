@@ -154,11 +154,11 @@ namespace CoreWCF.Configuration
                 //TODO: Implement IssuedTokenParameters
                 //parameters.IssuerAddress = ConfigLoader.LoadEndpointAddress(this.Issuer);
 
-                if (!string.IsNullOrEmpty(Issuer.Binding))
-                {
+                // if (!string.IsNullOrEmpty(Issuer.Binding))
+                //{
                     //TODO: Implement IssuedTokenParameters
                     //parameters.IssuerBinding = ConfigLoader.LookupBinding(this.Issuer.Binding, this.Issuer.BindingConfiguration, this.EvaluationContext);
-                }
+                //}
             }
 
             if (PropertyValueOrigin.Default != ElementInformation.Properties[ConfigurationStrings.IssuerMetadata].ValueOrigin)
