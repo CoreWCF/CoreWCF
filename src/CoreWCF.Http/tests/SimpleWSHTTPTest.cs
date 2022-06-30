@@ -230,13 +230,12 @@ namespace WSHttp
         }
 #endif
 
-        [Fact(Skip="Temporarily failing in Azure Devops due to corrupted IIS Express dev certificate in test environment image."),
-            Description("transport-security-with-windows-authentication-httpsys")]
+        [Fact, Description("transport-security-with-windows-authentication-httpsys")]
         [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        internal void WSHttpRequestImpersonateWithHttpSys()
+        public void WSHttpRequestImpersonateWithHttpSys()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).Build();

@@ -10,16 +10,6 @@ stages:
   - job: TestRelease
     strategy:
       matrix:
-        Windows_netcore3.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: ''
-          additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
@@ -28,22 +18,7 @@ stages:
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
-          additionalDotNetCoreSdk: ''
-        Linux_netcore3.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
-        Linux_net6.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=WindowsOnly'
+          testArgs: ''
           additionalDotNetCoreSdk: ''
     displayName: Test Release
     pool:
@@ -71,6 +46,33 @@ stages:
         installationPath: $(Agent.ToolsDirectory)/dotnet
       condition: not(eq(variables.additionalDotNetCoreSdk, ''))
 
+    - pwsh: |
+        . "$env:windir\system32\netsh" http show sslcert ipport=0.0.0.0:44300
+        . "C:\Program Files\IIS Express\IisExpressAdminCmd.exe" setupdefaulturls
+        $iisCerts = Get-ChildItem Cert:\LocalMachine\My | Where-Object { $_.FriendlyName -eq "IIS Express Development Certificate" }
+        $iisCerts | Format-List -Property Thumbprint, @{
+        name='SubjectName'
+        expression={$_.SubjectName.Name}
+        }, FriendlyName
+        if ($iisCerts.count -ne 1) 
+        {
+            $errorMsg = "Expected 1 matching cert, found " + $iisCerts.count
+            Write-Error -Message $errorMsg -ErrorAction Stop
+        }
+        $cert = $iisCerts[0]
+        $hasPrivateKey = $cert.HasPrivateKey
+        $message = "Certificate with thumbprint " + $cert.Thumbprint + " HasPrivateKey value " + $hasPrivateKey
+        Write-Host $message
+        Write-Host "Fetching private key"
+        $privateKey = $cert.PrivateKey
+        if (!$privateKey) 
+        { 
+            Write-Error -Message "PrivateKey is null" -ErrorAction Stop
+        }
+        $privateKeyString = $privateKey | Out-String
+        Write-Host $privateKeyString
+      displayName: Get NetSH sslcert config for 44300
+
     - task: DotNetCoreCLI@2
       displayName: Restore packages
       inputs:
@@ -85,92 +87,17 @@ stages:
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Release --framework $(targetFramework)'
 
-    - task: DotNetCoreCLI@2
-      displayName: Run Tests
-      timeoutInMinutes: 10
-      inputs:
-        command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+    - powershell: |
+        Write-Host "##vso[task.setvariable variable=DOTNET_SYSTEM_NET_DISABLEIPV6;]true"
+      displayName: set environment variable to disable ipv6
 
-  - job: TestDebug
-    strategy:
-      matrix:
-        Windows_netcore3.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: ''       
-          additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
-        Windows_net6.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net6.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: ''
-        Windows_netfx:
-          imageName: 'windows-latest'
-          targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
-          additionalDotNetCoreSdk: ''
-        Linux_netcore3.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
-        Linux_net6.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''
-    displayName: Test Debug
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - task: DownloadPipelineArtifact@2
-      displayName: Download build artifacts
-      inputs:
-        source: current
-        artifact: DebugBuild
-        path: $(System.DefaultWorkingDirectory)/bin
+    - pwsh: |
+        . "$env:windir\system32\netsh" trace start traceFile=$(System.DefaultWorkingDirectory)\httpsystrace.etl sessionname=corewcftrace scenario=InternetServer_dbg capture=yes maxSize=1024
+      displayName: Start netsh tracing
 
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core 6 sdk'
-      inputs:
-        packageType: sdk
-        version: '6.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-
-    - task: UseDotNet@2
-      displayName: 'Use additional .NET Core sdk'
-      inputs:
-        packageType: sdk
-        version: $(additionalDotNetCoreSdk)
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
-
-    - task: DotNetCoreCLI@2
-      displayName: Restore packages
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Debug /t:restore'
-        
-    - task: DotNetCoreCLI@2
-      displayName: Build test projects
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Debug --framework $(targetFramework)'
+    - powershell: |
+        Write-Host "DOTNET_SYSTEM_NET_DISABLEIPV6: *$env:DOTNET_SYSTEM_NET_DISABLEIPV6*"
+      displayName: Check environment variable to disable ipv6
 
     - task: DotNetCoreCLI@2
       displayName: Run Tests
@@ -179,4 +106,14 @@ stages:
         command: 'test'
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+        arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) --filter "FullyQualifiedName=WSHttp.SimpleWSHTTPTest.WSHttpRequestImpersonateWithHttpSys" $(testArgs)'
+
+    - pwsh: |
+        . "$env:windir\system32\netsh" trace stop sessionname=corewcftrace
+      condition: succeededOrFailed()
+      displayName: Stop netsh tracing
+      
+    - publish: $(System.DefaultWorkingDirectory)\httpsystrace.etl
+      displayName: Publish netsh trace
+      condition: succeededOrFailed()
+      artifact: NetShTracing_$(targetFramework)
