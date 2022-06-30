@@ -17,13 +17,10 @@ namespace CoreWCF.Security
     /// </summary>
     internal class WindowsSspiNegotiation : ISspiNegotiation
     {
-        private readonly string _package;
-        private readonly string _defaultServiceBinding;
         private readonly NegotiateInternalState _negotiateState;
 
-        public WindowsSspiNegotiation(string package, NegotiateInternalState passedNegotiateState)
+        public WindowsSspiNegotiation(NegotiateInternalState passedNegotiateState)
         {
-            _package = package;
             _negotiateState = passedNegotiateState;
         }
 

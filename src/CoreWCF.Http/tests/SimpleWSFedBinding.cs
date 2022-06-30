@@ -138,7 +138,7 @@ namespace WSFed
                 _isUserIdentityConfig = isUserIdentityConfig;
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
 
                 WS2007FederationHttpBinding wsFedBinding = new WS2007FederationHttpBinding(WSFederationHttpSecurityMode.TransportWithMessageCredential);
