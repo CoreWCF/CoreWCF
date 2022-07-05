@@ -195,4 +195,4 @@ Console.WriteLine(msgResult);
 
 ### Other Samples
 
-Other samples, including samples for desktop framework are available at [CoreWCF/src/Samples](https://github.com/CoreWCF/samples)
+Other samples, including samples for desktop framework are available at [CoreWCF/Samples](https://github.com/CoreWCF/samples)
