@@ -10,36 +10,11 @@ stages:
   - job: TestRelease
     strategy:
       matrix:
-        Windows_netcore3.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: ''
-          additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
           additionalDotNetCoreSdk: ''
-        Windows_netfx:
-          imageName: 'windows-latest'
-          targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
-          additionalDotNetCoreSdk: ''
-        Linux_netcore3.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
@@ -97,36 +72,11 @@ stages:
   - job: TestDebug
     strategy:
       matrix:
-        Windows_netcore3.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: ''       
-          additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
           additionalDotNetCoreSdk: ''
-        Windows_netfx:
-          imageName: 'windows-latest'
-          targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
-          additionalDotNetCoreSdk: ''
-        Linux_netcore3.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp3.1'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'

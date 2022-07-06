@@ -176,14 +176,8 @@ namespace Helpers
         public static byte[] GetByteArray(int length)
         {
             byte[] bytes = new byte[length];
-#if NET472_OR_GREATER
-                using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-                {
-                    rng.GetBytes(bytes);
-                }
-#else
             RandomNumberGenerator.Fill(bytes);
-#endif
+
             return bytes;
         }
 

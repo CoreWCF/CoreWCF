@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace />
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -10,8 +10,8 @@
     <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
     <ProjectReference Include="..\..\CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -11,9 +11,6 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Net;
-#if NET472
-using System.Security.Authentication;
-#endif // NET472
 using System.Text;
 using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
@@ -81,9 +78,7 @@ namespace Helpers
         //    };
         //}
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateHttpSysBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -110,7 +105,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
@@ -119,14 +114,14 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
                     {
-                        if (Debugger.IsAttached)
-                        {
-                            listenOptions.UseConnectionLogging();
-                        }
-                    });
-                })
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
@@ -157,7 +152,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
@@ -168,12 +163,7 @@ namespace Helpers
             {
                 options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
@@ -181,12 +171,7 @@ namespace Helpers
                 });
                 options.Listen(address: IPAddress.Any, 8443, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
@@ -195,15 +180,13 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateHttpsWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
         WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
@@ -220,9 +203,7 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
         WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -262,12 +243,7 @@ namespace Helpers
             {
                 options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
@@ -275,12 +251,7 @@ namespace Helpers
                 });
                 options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();

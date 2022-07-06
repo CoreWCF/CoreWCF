@@ -21,7 +21,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
     {
         public Test()
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net50;
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
             TestState.AdditionalReferences.Add(typeof(System.ServiceModel.ServiceContractAttribute).Assembly);
             TestState.AdditionalReferences.Add(typeof(CoreWCF.ServiceContractAttribute).Assembly);
             TestState.AdditionalReferences.Add(typeof(Microsoft.Extensions.DependencyInjection.IServiceScope).Assembly);

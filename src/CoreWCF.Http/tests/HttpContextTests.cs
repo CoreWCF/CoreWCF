@@ -34,7 +34,7 @@ namespace DependencyInjection
             {
                 HttpContext httpContext = (OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue("Microsoft.AspNetCore.Http.HttpContext", out var @object)
                     && @object is HttpContext context)
-                    ? context 
+                    ? context
                     : null;
                 IHttpContextAccessor httpContextAccessor = OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>().GetService<IHttpContextAccessor>();
                 Assert.Same(httpContext, httpContextAccessor.HttpContext);
@@ -56,11 +56,7 @@ namespace DependencyInjection
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
-#if NETCOREAPP3_1_OR_GREATER
                 services.AddHttpContextAccessor();
-#else
-                services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-#endif
                 services.AddTransient<TService>();
             }
 
