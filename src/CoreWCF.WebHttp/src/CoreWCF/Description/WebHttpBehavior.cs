@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
@@ -145,6 +147,8 @@ namespace CoreWCF.Description
                 }
             }
 
+            WebHttpServiceModelCompat.ServiceModelAttributeFixup(endpoint);
+
             if (HelpEnabled)
             {
                 HelpUri = new UriTemplate(HelpPage.OperationListHelpPageUriTemplate).BindByPosition(endpoint.ListenUri);
@@ -262,6 +266,8 @@ namespace CoreWCF.Description
 
             AddServerErrorHandlers(endpoint, endpointDispatcher);
         }
+
+
 
         public virtual void Validate(ServiceEndpoint endpoint)
         {
