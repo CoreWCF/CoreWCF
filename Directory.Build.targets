@@ -12,7 +12,7 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup Condition="($(IsTestProject) AND !($(IsBuildToolsProject)))">
+  <ItemGroup Condition="'$(IncludeCommonTestCode)' == 'true'">
     <Compile Include="$(CommonTestPath)/**/*.cs">
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>

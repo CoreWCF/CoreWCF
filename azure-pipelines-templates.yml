@@ -19,3 +19,7 @@ stages:
 - template: templates/BuildStage.yml
   parameters:
     buildProjects: $(_libraryProjects)
+
+- template: templates/TestTemplatesStage.yml
+  parameters:
+    libraryProjects: $(_libraryProjects)

@@ -66,7 +66,7 @@ namespace CoreWCF.Runtime.Serialization
 
         internal void InternalAdd(XmlQualifiedName name, DataContractEx dataContract)
         {
-            DataContractEx? dataContractInSet;
+            DataContractEx dataContractInSet;
             if (Contracts.Contains(name))
             {
                 dataContractInSet = DataContractEx.Wrap(Contracts[name]);

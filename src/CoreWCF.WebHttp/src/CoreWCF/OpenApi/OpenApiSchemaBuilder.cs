@@ -301,7 +301,7 @@ namespace CoreWCF.OpenApi
 
             return new OperationInfo
             {
-                Method = attribute.Method.ToLower(CultureInfo.InvariantCulture),
+                Method = attribute.Method?.ToLower(CultureInfo.InvariantCulture),
                 UriTemplate = attribute.UriTemplate,
                 IsResponseFormatSetExplicitly = attribute.IsResponseFormatSetExplicitly,
                 ResponseFormat = attribute.ResponseFormat,

@@ -116,7 +116,7 @@ namespace CoreWCF.Security
 
         protected override SspiNegotiationTokenAuthenticatorState CreateSspiState(byte[] incomingBlob, string incomingValueTypeUri)
         {
-            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation("Negotiate", GetNegotiateState());
+            ISspiNegotiation windowsNegotiation = new WindowsSspiNegotiation(GetNegotiateState());
             return new SspiNegotiationTokenAuthenticatorState(windowsNegotiation);
         }
 

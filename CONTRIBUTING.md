@@ -11,11 +11,11 @@ Please start a discussion on the [core repo issue tracker](https://github.com/Co
 
 ## Platform
 
-Core WCF is built targeting .NET Standard 2.0
+CoreWCF is built targeting .NET Standard 2.0
 
 ## Building
 
-Run `dotnet build` from the command line inside the src folder. This builds Core WCF.
+Run `dotnet build` from the command line inside the src folder. This builds CoreWCF.
 
 ## Other discussions
 

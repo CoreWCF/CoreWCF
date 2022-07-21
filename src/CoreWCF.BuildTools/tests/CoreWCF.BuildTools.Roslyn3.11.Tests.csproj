@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
@@ -12,6 +12,10 @@
     <Compile Remove="CSharpIncrementalGeneratorTest`2.cs" />
     <Compile Remove="IncrementalGeneratorTest`1.cs" />
     <Compile Include="..\src\DiagnosticDescriptors.cs" Link="DiagnosticDescriptors.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="..\src\AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="..\src\AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.1" />

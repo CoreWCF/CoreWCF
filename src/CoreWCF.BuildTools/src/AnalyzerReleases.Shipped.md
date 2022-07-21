@@ -8,7 +8,7 @@ COREWCF_0100 | OperationParameterInjectionGenerator | Error | COREWCF_0100_Opera
 COREWCF_0101 | OperationParameterInjectionGenerator | Error | COREWCF_0101_OperationParameterInjectionGenerator
 COREWCF_0102 | OperationParameterInjectionGenerator | Error | COREWCF_0102_OperationParameterInjectionGenerator
 
-# Release 1.0.1
+## Release 1.0.1
 
 ### Removed Rules
 
