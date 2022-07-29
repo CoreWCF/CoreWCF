@@ -119,27 +119,29 @@ namespace CoreWCF.Channels
                 throw new InvalidOperationException("Channel Dispatcher can't be null");
             }
 
-            var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
-            await requestContext.ProcessAuthenticationAsync();
-            
-            HttpInput httpInput = requestContext.GetHttpInput(true);
-            (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
-            if ((requestMessage == null) && (requestException == null))
+            using (var requestContext = HttpRequestContext.CreateContext(_httpSettings, context))
             {
-                throw Fx.Exception.AsError(
+                await requestContext.ProcessAuthenticationAsync();
+
+                HttpInput httpInput = requestContext.GetHttpInput(true);
+                (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
+                if ((requestMessage == null) && (requestException == null))
+                {
+                    throw Fx.Exception.AsError(
                         new ProtocolException(
                             SR.MessageXmlProtocolError,
                             new XmlException(SR.MessageIsEmpty)));
-            }
+                }
 
-            requestContext.SetMessage(requestMessage, requestException);
-            if (requestMessage != null)
-            {
-                requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
-            }
+                requestContext.SetMessage(requestMessage, requestException);
+                if (requestMessage != null)
+                {
+                    requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
+                }
 
-            await ChannelDispatcher.DispatchAsync(requestContext);
-            await requestContext.ReplySent;
+                await ChannelDispatcher.DispatchAsync(requestContext);
+                await requestContext.ReplySent;
+            }
         }
     }
 }
