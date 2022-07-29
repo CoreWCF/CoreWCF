@@ -56,7 +56,7 @@ namespace CoreWCF.Channels
 
             var httpSettings = new HttpTransportSettings
             {
-                BufferManager = BufferManager.CreateBufferManager(DefaultMaxBufferPoolSize, tbe.MaxBufferSize),
+                BufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, tbe.MaxBufferSize),
                 OpenTimeout = _serviceDispatcher.Binding.OpenTimeout,
                 ReceiveTimeout = _serviceDispatcher.Binding.ReceiveTimeout,
                 SendTimeout = _serviceDispatcher.Binding.SendTimeout,
