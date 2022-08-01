@@ -2,6 +2,25 @@
 
 The definition and implementation of data and service contracts is the same as WCF. The major difference is in the definition of the host which is now based on ASP.NET Core, and the ceremony of how a service is exposed. The following is based on .NET 6, but the same steps apply to other versions of .NET.
 
+## *New* - Using the the project templates
+
+With the 1.1 release of CoreWCF we now have project templates that include almost all of the concepts below already done for you.
+
+Install the templates with the following command line:
+
+```cli 
+dotnet new --install CoreWCF.Templates
+```
+
+Once installed, they can be used from Visual Studio or the Command Line.
+
+- *Visual Studio* : Search for CoreWCF in the New Project Dialog to locate the template. It must have been installed using the command line to appear in VS.
+
+ ![CoreWCF Project Template](images/corewcf-project-template.png)
+
+- *Command Line* : use `dotnet new corewcf --name CoreWCFDemoServer` to create a project named CoreWCFDemoServer 
+
+
 ## Defining the service
 
 ### 1. Create an ASP.NET Core Empty application, this provides the host for the service.
@@ -132,13 +151,18 @@ builder.Services.AddServiceModelServices().AddServiceModelMetadata();
 builder.Services.AddSingleton<IServiceBehavior, UseRequestHeadersForMetadataAddressBehavior>();
 
 var app = builder.Build();
+
+// Configure an explicit none credential type for WSHttpBinding as it defaults to Windows which requires extra configuration in ASP.NET
+var myWSHttpBinding = new WSHttpBinding(SecurityMode.Transport);
+myWSHttpBinding.Security.Transport.ClientCredentialType= HttpClientCredentialType.None;
+
 app.UseServiceModel(builder =>
 {
     builder.AddService<EchoService>((serviceOptions) => { })
     // Add a BasicHttpBinding at a specific endpoint
     .AddServiceEndpoint<EchoService, IEchoService>(new BasicHttpBinding(), "/EchoService/basichttp")
     // Add a WSHttpBinding with Transport Security for TLS
-    .AddServiceEndpoint<EchoService, IEchoService>(new WSHttpBinding(SecurityMode.Transport), "/EchoService/WSHttps");
+    .AddServiceEndpoint<EchoService, IEchoService>(myWSHttpBinding, "/EchoService/WSHttps");
 });
 
 var serviceMetadataBehavior = app.Services.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
@@ -195,4 +219,4 @@ Console.WriteLine(msgResult);
 
 ### Other Samples
 
-Other samples, including samples for desktop framework are available at [CoreWCF/Samples](https://github.com/CoreWCF/samples)
+Other samples, including samples for desktop framework are available at [CoreWCF/Samples](https://github.com/CoreWCF/Samples)
