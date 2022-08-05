@@ -230,9 +230,12 @@ namespace WSHttp
         }
 #endif
 
-        [Fact(Skip="Temporarily failing in Azure Devops due to corrupted IIS Express dev certificate in test environment image."),
-            Description("transport-security-with-windows-authentication-httpsys")]
+        [Fact]
+        [Description("transport-security-with-windows-authentication-httpsys")]
         [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         internal void WSHttpRequestImpersonateWithHttpSys()
         {
             string testString = new string('a', 3000);
@@ -281,9 +284,12 @@ namespace WSHttp
             }
         }
 
-        [Fact(Skip = "Failing in Azure Devops due to corrupted IIS Express dev certificate"),
-            Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
+        [Fact]
+        [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
         [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);

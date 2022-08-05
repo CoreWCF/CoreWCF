@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "https://github.com/CoreWCF",
+  "classifications": [ "Service" ],
+  "identity": "CoreWCF.Templates.CoreWCFService.1.0",
+  "sourceName": "CoreWCFService",
+  "preferNameDirectory": true,
+  "shortName": "corewcf",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "name": "CoreWCF Service",
+  "defaultName": "CoreWCFService",
+  "description": "A project template for creating a server application which hosts a CoreWCF service.",
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(minimal)",
+          "exclude": [
+            "Program.Main.cs",
+            "Program.Main.NetFramework.cs",
+            "Startup.cs"
+          ]
+        },
+        {
+          "condition": "((!minimal)&&(!isNetFramework))",
+          "exclude": [
+            "Program.cs",
+            "Program.Main.NetFramework.cs"
+          ],
+          "rename": {
+            "Program.Main.cs": "Program.cs"
+          }
+        },
+        {
+          "condition": "((!minimal)&&(isNetFramework))",
+          "exclude": [
+            "Program.cs",
+            "Program.Main.cs"
+          ],
+          "rename": {
+            "Program.Main.NetFramework.cs": "Program.cs"
+          }
+        }
+      ]
+    }
+  ],
+  "symbols": {
+    "kestrelHttpPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number to use for the HTTP endpoint in launchSettings.json."
+    },
+    "kestrelHttpPortGenerated": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 5000,
+        "high": 5300
+      }
+    },
+    "kestrelHttpPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "kestrelHttpPort",
+        "fallbackVariableName": "kestrelHttpPortGenerated"
+      },
+      "replaces": "5000"
+    },
+    "kestrelHttpsPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number to use for the HTTPS endpoint in launchSettings.json. This option is only applicable when the parameter no-https is not used."
+    },
+    "kestrelHttpsPortGenerated": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": {
+        "low": 7000,
+        "high": 7300
+      }
+    },
+    "kestrelHttpsPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "kestrelHttpsPort",
+        "fallbackVariableName": "kestrelHttpsPortGenerated"
+      },
+      "replaces": "5001"
+    },
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "net6.0",
+          "description": "Target net6.0"
+        },
+        {
+          "choice": "net5.0",
+          "description": "Target net5.0"
+        },
+        {
+          "choice": "netcoreapp3.1",
+          "description": "Target netcoreapp3.1"
+        },
+        {
+          "choice": "net48",
+          "description": "Target net48"
+        },
+        {
+          "choice": "net472",
+          "description": "Target net472"
+        },
+        {
+          "choice": "net462",
+          "description": "Target net462"
+        }
+      ],
+      "replaces": "net6.0",
+      "defaultValue": "net6.0"
+    },
+    "isNetFramework":{
+      "type": "computed",
+      "value": "(Framework==\"net48\")||(Framework==\"net472\")||(Framework==\"net462\")"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If specified, skips the automatic restore of the project on create.",
+      "defaultValue": "false"
+    },
+    "NoHttps": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Whether to turn off HTTPS."
+    },
+    "UseProgramMain": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "displayName": "Do not use top-level statements",
+      "description": "Whether to generate an explicit Program class and Main method instead of top-level statements."
+    },
+    "implicitUsings": {
+      "type": "computed",
+      "value": "(Framework == \"net6.0\")"
+    },
+    "nullableEnabled": {
+      "type": "computed",
+      "value": "(Framework == \"net6.0\")"
+    },
+    "NoWsdl": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Whether to turn off WSDL metadata feature."
+    },
+    "minimal":{
+      "type": "computed",
+      "value": "((Framework==\"net6.0\")&&(!UseProgramMain))"
+    }
+  },
+  "primaryOutputs": [
+    {
+      "path": "CoreWCFService.csproj"
+    }
+  ],
+  "postActions": [
+    {
+      "id": "restore",
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}

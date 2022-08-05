@@ -12,7 +12,6 @@ namespace CoreWCF.Channels
 {
     internal class ByteStreamMessageEncoder : MessageEncoder, ITraceSourceStringProvider
     {
-        private string _traceSourceString;
         private readonly string _maxSentMessageSizeExceededResourceString;
         private readonly XmlDictionaryReaderQuotas _quotas;
         private readonly XmlDictionaryReaderQuotas _bufferedReadReaderQuotas;
@@ -237,7 +236,7 @@ namespace CoreWCF.Channels
             //    _traceSourceString = DiagnosticTraceBase.CreateDefaultSourceString(this);
             //}
 
-            return _traceSourceString;
+            return null;
         }
     }
 }

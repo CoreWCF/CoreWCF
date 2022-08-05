@@ -284,4 +284,5 @@ nbgv.exe
 # JetBrains Rider settings
 .idea
 
-
+# CoreWCF.Templates.Tests working folder
+TestTemplates/

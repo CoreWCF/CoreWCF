@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json.schemastore.org/vs-2017.3.host",
+    "icon": "ide/Empty.png",
+    "symbolInfo": [
+      {
+        "id": "NoHttps",
+        "name": {
+          "text": "Turn off HTTPS feature."
+        },
+        "isVisible": true
+      },
+      {
+        "id": "NoWsdl",
+        "name": {
+          "text": "Turn off WSDL metadata feature."
+        },
+        "isVisible": true
+      },
+      {
+        "id": "UseProgramMain",
+        "name": {
+          "text": "Turn off minimal ASP.NET Core hosting model. (Only applies to .NET 6 projects)"
+        },
+        "isVisible": true
+      }
+    ]
+  }

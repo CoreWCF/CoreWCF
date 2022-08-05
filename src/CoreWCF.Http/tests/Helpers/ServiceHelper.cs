@@ -195,8 +195,11 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public static IWebHostBuilder CreateHttpsWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+        WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -217,8 +220,11 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public static IWebHostBuilder CreateWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
-            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+        WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
                 .ConfigureLogging((ILoggingBuilder logging) =>
                 {

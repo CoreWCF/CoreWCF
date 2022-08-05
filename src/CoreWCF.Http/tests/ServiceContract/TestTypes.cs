@@ -120,7 +120,9 @@ namespace ServiceContract
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CS0414  // Field is assigned but never used
         private int i = 99;
+#pragma warning restore CS0414  // Field is assigned but never used
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore IDE0051 // Remove unused private members
 #pragma warning restore IDE0044 // Add readonly modifier
@@ -141,7 +143,9 @@ namespace ServiceContract
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CS0169  // Field is never used
         private int i;
+#pragma warning restore CS0169  // Field is never used
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore IDE0051 // Remove unused private members
 #pragma warning restore IDE0044 // Add readonly modifier
