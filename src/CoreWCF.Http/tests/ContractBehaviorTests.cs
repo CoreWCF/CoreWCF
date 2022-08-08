@@ -32,9 +32,6 @@ namespace CoreWCF.Http.Tests
         [InlineData("MisplacedAttributes")]
         [InlineData("CustomAttributesImplementsOther")]
         [InlineData("ByHandImplementsOther")]
-#if NET472
-        [InlineData("ByHand_UsingHiddenProperty")]
-#endif
         public void Variations(string method)
         {
             Startup._method = method;
@@ -103,14 +100,7 @@ namespace CoreWCF.Http.Tests
             {
                 string HelloStr = "ByHand";
                 CustomContractBehaviorAttribute cb = new CustomContractBehaviorAttribute();
-                if (useHiddenProperty)
-                {
-#if NET472
-                    cf.Endpoint.Contract.Behaviors.Add(cb);
-                    HelloStr = "ByHand_UsingHiddenProperty";
-#endif
-                }
-                else
+                if (!useHiddenProperty)
                 {
                     cf.Endpoint.Contract.ContractBehaviors.Add(cb);
                 }

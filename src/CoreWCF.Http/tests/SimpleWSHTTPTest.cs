@@ -20,9 +20,7 @@ using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
-#if NETCOREAPP3_1_OR_GREATER
 using Microsoft.AspNetCore.Authentication.Negotiate;
-#endif
 
 namespace WSHttp
 {
@@ -52,7 +50,6 @@ namespace WSHttp
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
         [Fact, Description("transport-security-with-an-anonymous-client")]
         [Trait("Category", "WindowsOnly")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
@@ -78,9 +75,8 @@ namespace WSHttp
                 ((IChannel)channel).Close();
             }
         }
-#endif
 
-        [Fact , Description("Demuxer-failure")]
+        [Fact, Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             string testString = new string('a', 3000);
@@ -106,7 +102,7 @@ namespace WSHttp
                 {
                     channel.EchoString(testString);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
                     Assert.Contains("expired security context token", ex.InnerException.Message);
@@ -114,7 +110,7 @@ namespace WSHttp
             }
         }
 
-        [Fact , Description("user-validation-failure")]
+        [Fact, Description("user-validation-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
         {
             string testString = new string('a', 3000);
@@ -138,7 +134,7 @@ namespace WSHttp
                 {
                     ((IChannel)channel).Open();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
                     Assert.Contains("An error occurred when verifying security for the message.", ex.InnerException.Message);
@@ -176,7 +172,7 @@ namespace WSHttp
             }
         }
 
-         [Fact, Description("transport-security-with-certificate-authentication")]
+        [Fact, Description("transport-security-with-certificate-authentication")]
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             string testString = new string('a', 3000);
@@ -203,7 +199,6 @@ namespace WSHttp
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER // Windows Auth on Kestrel not supported on NetFx
         [Fact, Description("transport-security-with-windows-authentication-kestrel")]
         [Trait("Category", "WindowsOnly")]
         internal void WSHttpRequestImpersonateWithKestrel()
@@ -228,14 +223,11 @@ namespace WSHttp
                 ((IChannel)channel).Close();
             }
         }
-#endif
 
         [Fact]
         [Description("transport-security-with-windows-authentication-httpsys")]
         [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         internal void WSHttpRequestImpersonateWithHttpSys()
         {
             string testString = new string('a', 3000);
@@ -287,9 +279,7 @@ namespace WSHttp
         [Fact]
         [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
         [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);
@@ -365,10 +355,10 @@ namespace WSHttp
         {
             public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding binding)
             {
-               CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
-               CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
-               security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
-               return customBinding;
+                CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
+                CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
+                security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
+                return customBinding;
             }
         }
 
@@ -398,16 +388,8 @@ namespace WSHttp
 
             protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
-                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
-                    {
-                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
-                    });
-#else
                 return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
                     .AddNegotiate();
-#endif
             }
         }
 
@@ -434,16 +416,8 @@ namespace WSHttp
         {
             protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
-                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
-                    {
-                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
-                    });
-#else
                 return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
                     .AddNegotiate();
-#endif
             }
         }
 
@@ -478,12 +452,8 @@ namespace WSHttp
 
             protected virtual AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
-#else
                 return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-                    .AddNegotiate(); 
-#endif
+                    .AddNegotiate();
             }
 
             public virtual void ChangeHostBehavior(ServiceHostBase host)
@@ -495,7 +465,7 @@ namespace WSHttp
             {
                 return wsBInding;
             }
-           
+
             public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);

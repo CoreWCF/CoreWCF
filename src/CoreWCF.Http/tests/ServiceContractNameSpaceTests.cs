@@ -22,12 +22,6 @@ namespace CoreWCF.Http.Tests
         }
 
         [Theory]
-#if NET472
-        [InlineData("XmlCharacters", "String From Client")]
-        [InlineData("WhiteSpace", "String From Client")]
-        [InlineData("XMLEncoded", "String From Client")]
-        [InlineData("XMLReservedCharacters", "String From Client")]
-#endif
         [InlineData("NonAlphaCharacters", "String From Client")]
         [InlineData("LocalizedCharacters", "String From Client")]
         [InlineData("SurrogateCharacters", "String From Client")]

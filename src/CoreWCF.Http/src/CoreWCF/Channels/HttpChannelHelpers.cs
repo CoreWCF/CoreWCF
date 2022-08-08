@@ -928,7 +928,7 @@ namespace CoreWCF.Channels
                     _httpResponse.Headers.ContainsKey("Connection"))
                 {
                     // Need to remove existing keep-alive and/or close values
-                    StringValues connectionHeaderValue;
+                    StringValues connectionHeaderValue = StringValues.Empty;
                     StringValues previousValues = _httpResponse.Headers["Connection"];
                     for (int i = 0; i < previousValues.Count; i++)
                     {
