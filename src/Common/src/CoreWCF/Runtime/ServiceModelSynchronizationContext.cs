@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
@@ -11,8 +12,7 @@ namespace CoreWCF.Runtime
 
         public override void Post(SendOrPostCallback d, object state)
         {
-            IOThreadScheduler.ScheduleCallbackNoFlow(
-                (s) => { d(s); }, state);
+            Task.Factory.StartNew((s) => d(s), state, default, TaskCreationOptions.RunContinuationsAsynchronously, IOThreadScheduler.IOTaskScheduler);
         }
     }
 }

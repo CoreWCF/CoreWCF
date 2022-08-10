@@ -194,6 +194,9 @@ namespace CoreWCF.Runtime
         // then use the NoSpin variant.
         public static void WaitForCompletion(this Task task)
         {
+            Fx.Assert(task.IsCompleted || !IOThreadScheduler.IsRunningOnIOThread, "Waiting on an IO Thread might cause problems");
+            // Waiting on an IO Thread can cause performance problems as we might block the IOThreadScheduler
+            // dequeuing loop.
             task.GetAwaiter().GetResult();
         }
 
@@ -205,6 +208,9 @@ namespace CoreWCF.Runtime
         {
             if (!task.IsCompleted)
             {
+                Fx.Assert(!IOThreadScheduler.IsRunningOnIOThread, "Waiting on an IO Thread might cause problems");
+                // Waiting on an IO Thread can cause performance problems as we might block the IOThreadScheduler
+                // dequeuing loop.
                 ((IAsyncResult)task).AsyncWaitHandle.WaitOne();
             }
 
@@ -214,6 +220,9 @@ namespace CoreWCF.Runtime
 
         public static TResult WaitForCompletion<TResult>(this Task<TResult> task)
         {
+            Fx.Assert(task.IsCompleted || !IOThreadScheduler.IsRunningOnIOThread, "Waiting on an IO Thread might cause problems");
+            // Waiting on an IO Thread can cause performance problems as we might block the IOThreadScheduler
+            // dequeuing loop.
             return task.GetAwaiter().GetResult();
         }
 
@@ -221,6 +230,9 @@ namespace CoreWCF.Runtime
         {
             if (!task.IsCompleted)
             {
+                Fx.Assert(!IOThreadScheduler.IsRunningOnIOThread, "Waiting on an IO Thread might cause problems");
+                // Waiting on an IO Thread can cause performance problems as we might block the IOThreadScheduler
+                // dequeuing loop.
                 ((IAsyncResult)task).AsyncWaitHandle.WaitOne();
             }
 
@@ -238,6 +250,9 @@ namespace CoreWCF.Runtime
             bool completed = true;
             if (!task.IsCompleted)
             {
+                Fx.Assert(!IOThreadScheduler.IsRunningOnIOThread, "Waiting on an IO Thread might cause problems");
+                // Waiting on an IO Thread can cause performance problems as we might block the IOThreadScheduler
+                // dequeuing loop.
                 completed = ((IAsyncResult)task).AsyncWaitHandle.WaitOne(timeout);
             }
 
@@ -309,16 +324,25 @@ namespace CoreWCF.Runtime
             return new SyncContextScope();
         }
 
-        // Calls the given Action asynchronously.
+        // Calls the given Action asynchronously on the ThreadPool.
         public static async Task CallActionAsync<TArg>(Action<TArg> action, TArg argument)
         {
-            using (IDisposable scope = RunTaskContinuationsOnOurThreads())
+            // Make sure any async tasks started from the action have their continuation
+            // execute on the IOThreadScheduler, but make sure the action itself is running
+            // on the thread pool.
+            if (!Thread.CurrentThread.IsThreadPoolThread)
             {
-                if (scope != null)  // No need to change threads if already off of thread pool
-                {
-                    await Task.Yield(); // Move synchronous method off of thread pool
-                }
+                // Switch to a thread pool thread to run passed action
+                SynchronizationContext.SetSynchronizationContext(null);
+                await Task.Yield();
+            }
 
+            // Now we're running on the ThreadPool, we reset the SynchronizationContext to
+            // our sync context which posts to the IOThreadScheduler. We're not hopping threads
+            // so any synchronous blocking will occur on the current thread pool thread.
+            Fx.Assert(Thread.CurrentThread.IsThreadPoolThread, "We should be running on the thread pool");
+            using (var scope = RunTaskContinuationsOnOurThreads())
+            {
                 action(argument);
             }
         }
