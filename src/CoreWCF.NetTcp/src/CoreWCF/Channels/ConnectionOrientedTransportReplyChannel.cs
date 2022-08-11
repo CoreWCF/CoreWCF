@@ -51,6 +51,17 @@ namespace CoreWCF.Channels
             }
 
             await base.OnCloseAsync(token);
+
+            if (_serviceProvider is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (_serviceProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            _serviceProvider = null;
         }
 
         public override T GetProperty<T>()

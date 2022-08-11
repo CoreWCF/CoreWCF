@@ -4,7 +4,6 @@
 using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net;
@@ -21,15 +20,14 @@ namespace CoreWCF.Channels.Framing
     internal class ServerSingletonConnectionReaderMiddleware
     {
         private readonly HandshakeDelegate _next;
-        private readonly IServiceProvider _serviceProvider;
         private readonly Hashtable _serviceChannelDispatcherCache = new Hashtable();
-        private readonly IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
+        private readonly IServiceScopeFactory _servicesScopeFactory;
         private readonly AsyncLock _lock = new AsyncLock();
 
-        public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceProvider serviceProvider)
+        public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
         {
             _next = next;
-            _serviceProvider = serviceProvider;
+            _servicesScopeFactory = servicesScopeFactory;
         }
 
         public async Task OnConnectedAsync(FramingConnection connection)
@@ -57,12 +55,11 @@ namespace CoreWCF.Channels.Framing
                         MessageEncoderFactory = connection.MessageEncoderFactory
                     };
                     // Don't create scope as reused for all streamed clients of a service dispatcher
-                    var replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _serviceProvider);
+                    var replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
                     channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(replyChannel);
                     _serviceChannelDispatcherCache[connection.ServiceDispatcher] = channelDispatcher;
                 }
             }
-
 
             // TODO: I think that the receive timeout starts counting at the start of the preamble on .NET Framework. This implementation basically resets the timer
             // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
