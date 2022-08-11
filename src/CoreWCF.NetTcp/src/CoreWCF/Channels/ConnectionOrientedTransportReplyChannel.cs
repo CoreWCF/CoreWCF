@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
     internal class ConnectionOrientedTransportReplyChannel : ReplyChannel
     {
         private StreamUpgradeProvider _upgrade;
-        private readonly IServiceProvider _serviceProvider;
+        private IServiceProvider _serviceProvider;
 
         public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider)
             : base(settings, localAddress)
