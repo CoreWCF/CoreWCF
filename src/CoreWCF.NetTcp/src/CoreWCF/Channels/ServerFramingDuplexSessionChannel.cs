@@ -17,7 +17,7 @@ namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        private readonly IServiceProvider _serviceProvider;
+        private IServiceProvider _serviceProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -86,6 +86,22 @@ namespace CoreWCF.Channels
         {
             base.OnClosing();
             _applicationStoppingRegistration.Dispose();
+        }
+
+        protected override async Task OnCloseAsync(CancellationToken token)
+        {
+            await base.OnCloseAsync(token);
+
+            if (_serviceProvider is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (_serviceProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            _serviceProvider = null;
         }
 
         internal class ServerSessionConnectionMessageSource : IMessageSource
