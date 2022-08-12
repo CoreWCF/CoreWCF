@@ -3,7 +3,7 @@ jobs:
     source:
       repository: https://github.com/CoreWCF/CoreWCF.git
       branchOrCommit: main
-      project:  src/CoreWCF.CrankTests/CoreWCFPerfClient/CoreWCF.PerfClient.Tests.csproj
+      project:  src/CoreWCF.CrankTests/CoreWCFPerfClient/CoreWCF.PerfClient.csproj
     isConsoleApp: true
     waitForExit: true
     variables:
@@ -14,7 +14,7 @@ jobs:
     source:
       repository: https://github.com/CoreWCF/CoreWCF.git
       branchOrCommit: main
-      project: src/CoreWCF.CrankTests/CoreWCFPerfService/CoreWCF.PerfService.Tests.csproj
+      project: src/CoreWCF.CrankTests/CoreWCFPerfService/CoreWCF.PerfService.csproj
     arguments: "baseaddress:{{Protocol}}://{{serverAddress}}:{{serverPort}}"
     isConsoleApp: true
 

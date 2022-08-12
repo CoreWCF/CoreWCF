@@ -19,7 +19,7 @@
     <IsBuildToolsProject>$(MSBuildProjectName.Contains(`BuildTools`))</IsBuildToolsProject>
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
 	<IsPerfProject>$(MSBuildProjectName.Contains('Perf'))</IsPerfProject>
-	<IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject))">true</IncludeCommonCode>
+	<IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject) OR $(IsPerfProject))">true</IncludeCommonCode>
     <IncludeCommonTestCode Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)) AND !($(IsPerfProject)))">true</IncludeCommonTestCode>
   </PropertyGroup>
 
