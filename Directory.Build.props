@@ -49,7 +49,7 @@
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
   </PropertyGroup>
-  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
+  <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsPerfProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
       <Version>3.4.244</Version>
       <PrivateAssets>all</PrivateAssets>
