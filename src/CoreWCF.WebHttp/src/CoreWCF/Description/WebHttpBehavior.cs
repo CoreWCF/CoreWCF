@@ -267,8 +267,6 @@ namespace CoreWCF.Description
             AddServerErrorHandlers(endpoint, endpointDispatcher);
         }
 
-
-
         public virtual void Validate(ServiceEndpoint endpoint)
         {
             if (endpoint == null)
