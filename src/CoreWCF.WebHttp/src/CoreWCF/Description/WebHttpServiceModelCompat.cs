@@ -21,7 +21,6 @@ namespace CoreWCF.Description;
 /// </summary>
 internal static class WebHttpServiceModelCompat
 {
-
     public static void ServiceModelAttributeFixup(ServiceEndpoint endpoint)
     {
         foreach (OperationDescription operationDescription in endpoint.Contract.Operations)
@@ -43,17 +42,16 @@ internal static class WebHttpServiceModelCompat
         var convertedAttributes = AttributeConverters.Convert(attributes);
         foreach(var converted in convertedAttributes)
             od.OperationBehaviors.Add(converted);
-
     }
 
     private static class AttributeConverters
     {
 
-        private static readonly IReadOnlyDictionary<string, IAttributeConverter> s_attributeConverters =
-            new Dictionary<string, IAttributeConverter>
+        private static readonly IReadOnlyDictionary<string, Func<Attribute, IOperationBehavior?>> s_attributeConverters =
+            new Dictionary<string, Func<Attribute, IOperationBehavior?>>
             {
-                { "System.ServiceModel.Web.WebGetAttribute", new AttributeConverter<WebGetAttribute>() },
-                { "System.ServiceModel.Web.WebInvokeAttribute", new AttributeConverter<WebInvokeAttribute>() }
+                { "System.ServiceModel.Web.WebGetAttribute", AttributeConverter<WebGetAttribute>.Convert },
+                { "System.ServiceModel.Web.WebInvokeAttribute", AttributeConverter<WebInvokeAttribute>.Convert }
             };
 
         public static IEnumerable<IOperationBehavior> Convert(IEnumerable<Attribute> attributes)
@@ -69,35 +67,28 @@ internal static class WebHttpServiceModelCompat
         {
             if (s_attributeConverters.TryGetValue(attribute.GetType().FullName, out var converter))
             {
-                return converter.Convert(attribute);
+                return converter.Invoke(attribute);
             }
 
             return null;
         }
     }
 
-    private interface IAttributeConverter
-    {
-        IOperationBehavior? Convert(Attribute attribute);
-    }
 
-    private class AttributeConverter<TOut> : IAttributeConverter where TOut : class, IOperationBehavior
+    private static class AttributeConverter<TOut> where TOut : class, IOperationBehavior
     {
         private static readonly ConcurrentDictionary<Type, Func<Attribute, TOut?>> s_converterCache = new();
 
         private static readonly MethodInfo s_buildDynamicMethodInfo = typeof(AttributeConverter<TOut>)
             .GetMethod(nameof(BuildDynamic), BindingFlags.Static | BindingFlags.NonPublic)!;
 
-
-        public IOperationBehavior? Convert(Attribute attribute)
+        public static IOperationBehavior? Convert(Attribute attribute)
         {
             var type = attribute.GetType();
-
             if (!s_converterCache.TryGetValue(type, out var converter))
             {
                 converter = s_converterCache[type] = Build(type);
             }
-
 
             return converter(attribute);
         }
