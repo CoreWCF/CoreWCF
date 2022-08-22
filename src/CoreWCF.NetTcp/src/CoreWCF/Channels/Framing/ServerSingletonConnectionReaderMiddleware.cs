@@ -41,23 +41,30 @@ namespace CoreWCF.Channels.Framing
             {
                 await using (await _lock.TakeLockAsync())
                 {
-                    BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                    TransportBindingElement tbe = be.Find<TransportBindingElement>();
-                    ITransportFactorySettings settings = new NetFramingTransportSettings
+                    if (_serviceChannelDispatcherCache.ContainsKey(connection.ServiceDispatcher))
                     {
-                        CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
-                        OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
-                        ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
-                        SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
-                        ManualAddressing = tbe.ManualAddressing,
-                        BufferManager = connection.BufferManager,
-                        MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
-                        MessageEncoderFactory = connection.MessageEncoderFactory
-                    };
-                    // Don't create scope as reused for all streamed clients of a service dispatcher
-                    var replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
-                    channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(replyChannel);
-                    _serviceChannelDispatcherCache[connection.ServiceDispatcher] = channelDispatcher;
+                        channelDispatcher = (IServiceChannelDispatcher)_serviceChannelDispatcherCache[connection.ServiceDispatcher];
+                    }
+                    else
+                    {
+                        BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                        TransportBindingElement tbe = be.Find<TransportBindingElement>();
+                        ITransportFactorySettings settings = new NetFramingTransportSettings
+                        {
+                            CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
+                            OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
+                            ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
+                            SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
+                            ManualAddressing = tbe.ManualAddressing,
+                            BufferManager = connection.BufferManager,
+                            MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
+                            MessageEncoderFactory = connection.MessageEncoderFactory
+                        };
+                        // Even though channel is reused for multiple connections, there are some scoped dependencies used so a scope is needed
+                        var replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
+                        channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(replyChannel);
+                        _serviceChannelDispatcherCache[connection.ServiceDispatcher] = channelDispatcher;
+                    }
                 }
             }
 

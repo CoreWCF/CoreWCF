@@ -37,6 +37,7 @@ namespace CoreWCF.Channels.Framing
             {
                 lock (_lock)
                 {
+                    // Double locked checking not necessary as there's no functional harm to having multiple instances
                     BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
                     TransportBindingElement tbe = be.Find<TransportBindingElement>();
                     settings = new NetFramingTransportSettings
