@@ -138,7 +138,7 @@ namespace CoreWCF.Channels
                     }
 
                     buffer = readResult.Buffer;
-                    message = DecodeMessage(ref buffer);
+                    (message, buffer) = await DecodeMessageAsync(buffer);
                     _connection.Input.AdvanceTo(buffer.Start);
 
                     _connection.Logger.ReceivedMessage(message);
@@ -173,7 +173,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            private Message DecodeMessage(ref ReadOnlySequence<byte> buffer)
+            private async ValueTask<(Message, ReadOnlySequence<byte>)> DecodeMessageAsync(ReadOnlySequence<byte> buffer)
             {
                 int maxBufferSize = _connection.MaxBufferSize;
                 var decoder = (ServerSessionDecoder)_connection.FramingDecoder;
@@ -198,8 +198,7 @@ namespace CoreWCF.Channels
                             int envelopeSize = decoder.EnvelopeSize;
                             if (envelopeSize > maxBufferSize)
                             {
-                                // TODO: Remove synchronous wait. This is needed because the buffer is passed by ref.
-                                _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, _connection.ServiceDispatcher.Binding.SendTimeout, TransportDefaults.MaxDrainSize).GetAwaiter().GetResult();
+                                await _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, _connection.ServiceDispatcher.Binding.SendTimeout, TransportDefaults.MaxDrainSize);
 
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                     MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
@@ -228,7 +227,7 @@ namespace CoreWCF.Channels
                                 }
 
                                 _connection.EnvelopeBuffer = null;
-                                return message;
+                                return (message, buffer);
                             }
                             break;
 
@@ -238,7 +237,7 @@ namespace CoreWCF.Channels
                     }
                 }
 
-                return null;
+                return (null, buffer);
             }
 
             private void CopyBuffer(ReadOnlySequence<byte> src, Memory<byte> dest, int bytesToCopy)
