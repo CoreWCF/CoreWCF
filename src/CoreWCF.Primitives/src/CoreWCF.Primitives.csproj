@@ -34,6 +34,7 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
     <PackageReference Include="System.DirectoryServices" />
     <PackageReference Include="System.DirectoryServices.Protocols" />
+    <PackageReference Include="System.IO.Pipelines" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
     <PackageReference Include="System.Security.Principal.Windows" />
