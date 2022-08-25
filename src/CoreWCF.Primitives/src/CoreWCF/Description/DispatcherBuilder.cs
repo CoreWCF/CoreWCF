@@ -609,7 +609,8 @@ namespace CoreWCF.Description
                     if (authorizeData.Count > 0)
                     {
                         // TODO: Make this chain call async
-                        return AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, authorizeData).GetAwaiter()
+                        return AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, authorizeData)
+                            .GetAwaiter()
                             .GetResult();
                     }
 

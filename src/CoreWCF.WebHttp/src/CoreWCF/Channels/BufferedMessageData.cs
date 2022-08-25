@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Xml;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class BufferedMessageData : IBufferedMessageData
+    internal abstract class BufferedMessageData : IBufferedMessageData2
     {
-        private ArraySegment<byte> _buffer;
+        private ReadOnlySequence<byte> _readOnlyBuffer;
         private int _refCount;
         private int _outstandingReaders;
         private bool _multipleUsers;
@@ -21,13 +22,12 @@ namespace CoreWCF.Channels
             _messageStatePool = messageStatePool;
         }
 
-        public ArraySegment<byte> Buffer => _buffer;
-
-        public BufferManager BufferManager { get; private set; }
-
+        public ReadOnlySequence<byte> ReadOnlyBuffer => _readOnlyBuffer;
         public virtual XmlDictionaryReaderQuotas Quotas => XmlDictionaryReaderQuotas.Max;
 
         public abstract MessageEncoder MessageEncoder { get; }
+
+        public ArraySegment<byte> Buffer => throw new NotSupportedException();
 
         private object ThisLock => this;
 
@@ -56,11 +56,8 @@ namespace CoreWCF.Channels
 
         private void DoClose()
         {
-            BufferManager.ReturnBuffer(_buffer.Array);
             if (_outstandingReaders == 0)
             {
-                BufferManager = null;
-                _buffer = new ArraySegment<byte>();
                 OnClosed();
             }
         }
@@ -164,11 +161,10 @@ namespace CoreWCF.Channels
             }
         }
 
-        public void Open(ArraySegment<byte> buffer, BufferManager bufferManager)
+        public void Open(ReadOnlySequence<byte> buffer)
         {
             _refCount = 1;
-            BufferManager = bufferManager;
-            _buffer = buffer;
+            _readOnlyBuffer = buffer;
             _multipleUsers = false;
         }
 
