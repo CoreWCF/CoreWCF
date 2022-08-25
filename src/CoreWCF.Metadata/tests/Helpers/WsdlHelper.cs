@@ -17,6 +17,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
 {
     internal static class WsdlHelper
     {
+        private const string XmlDeclaration = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
         public static async Task ValidateSingleWsdl(string serviceMetadataPath, string endpointAddress,
                 string callerMethodName, string sourceFilePath)
         {
@@ -33,6 +34,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 generatedWsdlTxt = await response.Content.ReadAsStringAsync();
             }
 
+            Assert.StartsWith(XmlDeclaration, generatedWsdlTxt);
             var xmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + "." + callerMethodName + ".xml");
             if (!File.Exists(xmlFileName))
             {
