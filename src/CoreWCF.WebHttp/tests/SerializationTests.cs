@@ -57,6 +57,24 @@ namespace CoreWCF.WebHttp.Tests
             }
         }
 
+        [Fact]
+        public async Task SerializeDeserializeRaw()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+
+                byte[] order = new byte[100];
+                Random rndGen = new();
+                rndGen.NextBytes(order);
+                (HttpStatusCode statusCode, byte[] content) = await HttpHelpers.PostRawAsync("api/raw", order);
+
+                Assert.Equal(order, content);
+                Assert.Equal(HttpStatusCode.OK, statusCode);
+            }
+        }
+
         private ServiceContract.SerializationData GetRequestData() => new ServiceContract.SerializationData()
         {
             Items = new List<ServiceContract.SerializationDatum>()

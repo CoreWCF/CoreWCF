@@ -76,5 +76,21 @@ namespace Helpers
                 return (response.StatusCode, responseContent);
             }
         }
+
+        public static async Task<(HttpStatusCode statusCode, byte[] content)> PostRawAsync(string url, byte[] data)
+        {
+            using (HttpClient client = new ())
+            {
+                client.BaseAddress = _baseAddress;
+
+                HttpRequestMessage request = new(HttpMethod.Post, url);
+                request.Content = new ByteArrayContent(data);
+
+                var response = await client.SendAsync(request);
+                var content = await response.Content.ReadAsByteArrayAsync();
+
+                return (response.StatusCode, content);
+            }
+        }
     }
 }
