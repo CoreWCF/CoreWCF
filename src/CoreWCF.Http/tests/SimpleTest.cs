@@ -100,7 +100,7 @@ namespace BasicHttp
 
                 Act(httpBinding, new Uri("http://localhost:8080/EchoService2/basichttp.svc"));
 
-                Assert.True(StartupWithAllConfiguration.ConfigureServiceHostValid);
+                Assert.True(StartupWithAllConfiguration.ConfigureServiceHostValid2);
             }
         }
 
