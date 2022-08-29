@@ -33,5 +33,13 @@ namespace CoreWCF.Configuration
                 .GetRequiredService(typeof(ServiceConfigurationDelegateHolder<>).MakeGenericType(serviceType));
             holder.AddConfigDelegate(func);
         }
+
+        public static void ConfigureAllServiceHostBase(this IServiceBuilder builder, Action<ServiceHostBase> func)
+        {
+            foreach (Type service in builder.Services)
+            {
+                builder.ConfigureServiceHostBase(service, func);
+            }
+        }
     }
 }

@@ -48,4 +48,7 @@ namespace Services
             return value;
         }
     }
+
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    public class EchoService2 : EchoService { }
 }
