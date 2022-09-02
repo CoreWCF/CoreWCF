@@ -13,14 +13,14 @@ namespace CoreWCFPerfService
 {
     public class Parameters
     {
-        public const string Url = "baseaddress";        
+        public const string Url = "baseaddress";
     }
 
     public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            string filePath = Path.Combine(Environment.CurrentDirectory, "CoreWCFPerfService.exe");
+            string filePath = Path.Combine(Environment.CurrentDirectory, "CoreWCF.PerfService.exe");
             Console.WriteLine(filePath);
             string command = $" advfirewall firewall add rule name=\"CoreWCFPerfService\" dir=in protocol=any action=allow program=\"{filePath}\" enable=yes";
             ExecuteCommand(command, Environment.CurrentDirectory, TimeSpan.FromSeconds(20));
@@ -37,7 +37,7 @@ namespace CoreWCFPerfService
 
             command = $" advfirewall firewall delete rule name=\"CoreWCFPerfService\" program=\"{filePath}\"";
             ExecuteCommand(command, Environment.CurrentDirectory, TimeSpan.FromSeconds(20));
-            Console.WriteLine("Clean up the firewall rule.");            
+            Console.WriteLine("Clean up the firewall rule.");
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

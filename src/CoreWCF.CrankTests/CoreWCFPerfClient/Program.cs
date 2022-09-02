@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 
 namespace CoreWCFPerf
 {
@@ -18,7 +19,7 @@ namespace CoreWCFPerf
 
     public enum TestBinding { BasicHttp, NetTcp }
 
-    class Program
+    public class Program
     {
         private TestBinding _paramBinding = TestBinding.BasicHttp;
         private TimeSpan _paramPerfMeasurementDuration = s_defaultPerfMeasurementDuration;
@@ -28,7 +29,7 @@ namespace CoreWCFPerf
 
         private readonly static TimeSpan s_defaultPerfMeasurementDuration = TimeSpan.FromSeconds(10);
 
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
 
             Program test = new Program();
@@ -52,7 +53,7 @@ namespace CoreWCFPerf
                         break;
                 }
 
-                TimeSpan measurementDurationPerTime = test._paramPerfMeasurementDuration ;
+                TimeSpan measurementDurationPerTime = test._paramPerfMeasurementDuration;
 
                 BenchmarksEventSource.Register("firstrequest", Operations.Max, Operations.Max, "First Request (ms)", "Time to first request in ms", "n0");
                 BenchmarksEventSource.Register("corewcfperf/requests", Operations.Max, Operations.Sum, "Requests (" + test._paramPerfMeasurementDuration.TotalMilliseconds + " ms)", "Total number of requests", "n0");
@@ -71,7 +72,7 @@ namespace CoreWCFPerf
 
                 while (DateTime.Now <= startTime.Add(measurementDurationPerTime))
                 {
-                    var rtnResult = client.HelloAsync("hello world").Result;
+                    var rtnResult = await client.HelloAsync("hello world");
                     Console.WriteLine(rtnResult);
                     request++;
                     requestTime = request;
@@ -79,7 +80,7 @@ namespace CoreWCFPerf
                     {
                         try
                         {
-                            ((IClientChannel)client).Close();
+                            await Task.Factory.FromAsync(((IClientChannel)client).BeginClose, ((IClientChannel)client).EndClose, null);
 
                         }
                         catch (Exception ex)
@@ -93,7 +94,7 @@ namespace CoreWCFPerf
                     if (((IClientChannel)client).State != CommunicationState.Opened)
                     {
                         client = factory.CreateChannel();
-                        ((IClientChannel)client).Open();
+                        await Task.Factory.FromAsync(((IClientChannel)client).BeginOpen, ((IClientChannel)client).EndOpen, null);
                     }
                 }
                 factory.Close();

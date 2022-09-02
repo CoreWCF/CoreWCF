@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Crank.EventSources" Version="0.2.0-alpha.22228.2" />
-    <PackageReference Include="System.Private.ServiceModel" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
