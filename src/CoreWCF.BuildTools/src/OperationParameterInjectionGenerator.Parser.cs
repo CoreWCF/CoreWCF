@@ -42,31 +42,31 @@ namespace CoreWCF.BuildTools
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
             }
 
-            private OperationContractSpec? GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
+            private OperationContractSpec GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
             {
                 SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
                 IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
                 if (methodSymbol == null)
                 {
-                    return null;
+                    return OperationContractSpec.None;
                 }
 
-                OperationContractSpec? operationContractSpec = FindOperationContractSpec(methodSymbol);
-                if(operationContractSpec == null)
+                OperationContractSpec operationContractSpec = FindOperationContractSpec(methodSymbol);
+                if (operationContractSpec == OperationContractSpec.None)
                 {
-                    return null;
+                    return OperationContractSpec.None;
                 }
 
                 if (!methodSymbol.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                 {
                     _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, methodSymbol.Name, parentType.Locations[0]));
-                    return null;
+                    return OperationContractSpec.None;
                 }
 
                 return operationContractSpec;
             }
 
-            private OperationContractSpec? FindOperationContractSpec(IMethodSymbol methodSymbol)
+            private OperationContractSpec FindOperationContractSpec(IMethodSymbol methodSymbol)
             {
                 var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
                 foreach (var serviceContractCandidate in allServiceContractCandidates)
@@ -92,7 +92,7 @@ namespace CoreWCF.BuildTools
                                 if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
                                 {
                                     _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseOperationContractShouldNotBeAlreadyImplementedError(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name, methodSymbol.Locations[0]));
-                                    return null;
+                                    return OperationContractSpec.None;
                                 }
 
                                 return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol, _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol);
@@ -101,36 +101,36 @@ namespace CoreWCF.BuildTools
                     }
                 }
 
-                return null;
+                return OperationContractSpec.None;
             }
 
-            public SourceGenerationSpec? GetGenerationSpec(IEnumerable<MethodDeclarationSyntax> methodDeclarationSyntaxList)
+            public SourceGenerationSpec GetGenerationSpec(IEnumerable<MethodDeclarationSyntax> methodDeclarationSyntaxList)
             {
-                List<OperationContractSpec>? operationContractSpecs = null;
+                var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
 
                 foreach (MethodDeclarationSyntax methodDeclarationSyntax in methodDeclarationSyntaxList)
                 {
-                    OperationContractSpec? operationContractSpec = GetOperationContractSpec(methodDeclarationSyntax);
-                    if (operationContractSpec != null)
+                    OperationContractSpec operationContractSpec = GetOperationContractSpec(methodDeclarationSyntax);
+                    if (operationContractSpec != OperationContractSpec.None)
                     {
-                        (operationContractSpecs ??= new List<OperationContractSpec>()).Add(operationContractSpec);
+                        builder.Add(operationContractSpec);
                     }
                 }
 
-                if (operationContractSpecs == null)
+                var operationContractSpecs = builder.ToImmutable();
+
+                if (operationContractSpecs.Length == 0)
                 {
-                    return null;
+                    return SourceGenerationSpec.None;
                 }
 
-                return new SourceGenerationSpec(operationContractSpecs)
-                {
-                    SSMOperationContractSymbol = _sSMOperationContractSymbol,
-                    CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
-                    TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
-                    GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    MicrosoftAspNetCoreMvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
-                };
+                return new SourceGenerationSpec(operationContractSpecs,
+                    _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
+                    _sSMOperationContractSymbol,
+                    _coreWCFOperationContractSymbol,
+                    _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"));
             }
 
             private IEnumerable<(INamedTypeSymbol service, INamedTypeSymbol contract)> FindServiceImplementationAndContracts(

@@ -31,8 +31,8 @@ namespace CoreWCF.BuildTools
 
             OperationParameterInjectionSourceGenerationContext context = new OperationParameterInjectionSourceGenerationContext(sourceProductionContext);
             Parser parser = new(compilation, context);
-            SourceGenerationSpec? spec = parser.GetGenerationSpec(contextMethods);
-            if (spec != null)
+            SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
+            if (spec != SourceGenerationSpec.None)
             {
                 Emitter emitter = new(context, spec);
                 emitter.Emit();
