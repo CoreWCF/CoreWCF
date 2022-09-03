@@ -158,18 +158,29 @@ namespace CoreWCF.Runtime.Serialization
                     var dataContract = DataContractEx.Wrap(knownDataContract);
                     // Workaround for DataContract adding an extra schema entry for KeyValue<K,V>. See GitHub
                     // issue https://github.com/dotnet/runtime/issues/67949 for details.
-                    if (!ShouldRemoveKeyValuePairFromWsdl(dataContract.StableName))
+                    if (IsKeyValuePair(dataContract))
                     {
-                        Add(dataContract);
+                        if (_removeKeyValuePairFromWsdl)
+                            continue;
+                        // Fix issue with missing IsValueType annotation
+                        dataContract.IsValueType = true;
+                        var classDataContract = dataContract as ClassDataContractEx;
+                        foreach(var member in classDataContract.Members)
+                        {
+                            member.IsRequired = true;
+                        }
                     }
+
+                    Add(dataContract);
                 }
             }
         }
 
-        private bool ShouldRemoveKeyValuePairFromWsdl(XmlQualifiedName stableName)
+        private bool IsKeyValuePair(DataContractEx dataContract)
         {
-            return _removeKeyValuePairFromWsdl && stableName.Namespace == "http://schemas.datacontract.org/2004/07/System.Collections.Generic"
-                                                                                    && stableName.Name.StartsWith("KeyValuePairOf");
+            var stableName = dataContract.StableName;
+            return stableName.Namespace == "http://schemas.datacontract.org/2004/07/System.Collections.Generic"
+                                           && stableName.Name.StartsWith("KeyValuePairOf");
         }
 
         internal DataContractEx GetMemberTypeDataContract(DataMemberEx dataMember)
