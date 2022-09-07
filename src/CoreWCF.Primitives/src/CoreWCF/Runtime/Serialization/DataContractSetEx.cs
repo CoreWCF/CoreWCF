@@ -158,18 +158,8 @@ namespace CoreWCF.Runtime.Serialization
                     var dataContract = DataContractEx.Wrap(knownDataContract);
                     // Workaround for DataContract adding an extra schema entry for KeyValue<K,V>. See GitHub
                     // issue https://github.com/dotnet/runtime/issues/67949 for details.
-                    if (IsKeyValuePair(dataContract))
-                    {
-                        if (_removeKeyValuePairFromWsdl)
-                            continue;
-                        // Fix issue with missing IsValueType annotation
-                        dataContract.IsValueType = true;
-                        var classDataContract = dataContract as ClassDataContractEx;
-                        foreach(var member in classDataContract.Members)
-                        {
-                            member.IsRequired = true;
-                        }
-                    }
+                    if (_removeKeyValuePairFromWsdl && IsKeyValuePair(dataContract))
+                        continue;
 
                     Add(dataContract);
                 }
@@ -216,8 +206,13 @@ namespace CoreWCF.Runtime.Serialization
             return collectionContract.ItemContract;
         }
 
-        internal void FixupEnumDataContracts()
+        internal void FixupDataContracts()
         {
+            // This fixes the Enum data contract to have an underlying type
+            // and for collections of KeyValuePairAdapter to have IsValueType set to true
+            // and the key and value members to be required. This is done by ensuring all
+            // types get wrapped at least once. The wrapping constructor fixes up the
+            // necessary data.
             foreach(object contractObj in Contracts.Values)
             {
                 DataContractEx.Wrap(contractObj);

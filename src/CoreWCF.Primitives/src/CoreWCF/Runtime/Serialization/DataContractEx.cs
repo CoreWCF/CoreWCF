@@ -332,6 +332,17 @@ namespace CoreWCF.Runtime.Serialization
         public CollectionDataContractEx(object dataContract) : base(dataContract)
         {
             Fx.Assert(CollectionDataContractType.Equals(dataContract.GetType()), "Only CollectionDataContract can be wrapped");
+            if(ItemContract?.UnderlyingType != null && ItemContract.UnderlyingType.Name.StartsWith("KeyValuePairAdapter"))
+            {
+                ItemContract.IsValueType = true;
+                if (ItemContract is ClassDataContractEx classDataContract)
+                {
+                    foreach (var member in classDataContract.Members)
+                    {
+                        member.IsRequired = true;
+                    }
+                }
+            }
         }
 
         public DataContractEx ItemContract
