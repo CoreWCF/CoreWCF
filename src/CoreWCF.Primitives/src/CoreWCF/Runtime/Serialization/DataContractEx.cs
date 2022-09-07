@@ -92,6 +92,7 @@ namespace CoreWCF.Runtime.Serialization
         protected static readonly Type EnumDataContractType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.EnumDataContract");
         protected static readonly Type PrimitiveDataContractType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.PrimitiveDataContract");
         protected static readonly Type XmlDataContractType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.XmlDataContract");
+        protected static readonly Type SchemaExportertType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.SchemaExporter");
         private static readonly Type SerializationModeType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.SerializationMode");
 
         private static readonly Func<object, Type> s_getUnderlyingType = ReflectionHelper.GetPropertyDelegate<Type>(DataContractType, "UnderlyingType");
@@ -508,10 +509,18 @@ namespace CoreWCF.Runtime.Serialization
         public XmlDataContractEx(object dataContract) : base(dataContract)
         {
             Fx.Assert(XmlDataContractType.Equals(dataContract.GetType()), "Only XmlDataContract can be wrapped");
+            if (XsdType == null)
+            {
+                XsdType = GetXmlTypeInfo(UnderlyingType);
+            }
         }
 
         public bool IsAnonymous => s_getIsAnonymous(WrappedDataContract);
-        public XmlSchemaType XsdType => s_getXsdType(WrappedDataContract);
+        public XmlSchemaType XsdType
+        {
+            get => s_getXsdType(WrappedDataContract);
+            set => s_setXsdType(WrappedDataContract, value);
+        }
 
         internal override bool Equals(object other, Dictionary<DataContractPairKey, object> checkedContracts)
         {
@@ -536,8 +545,19 @@ namespace CoreWCF.Runtime.Serialization
             return false;
         }
 
+        private static XmlSchemaType GetXmlTypeInfo(Type type)
+        {
+            var getXmlTypeInfoMethod = SchemaExportertType.GetMethod("GetXmlTypeInfo", BindingFlags.Static | BindingFlags.NonPublic);
+            var getXmlTypeInfo = getXmlTypeInfoMethod.CreateDelegate(typeof(GetXmlTypeInfoDelegate), null) as GetXmlTypeInfoDelegate;
+            XmlSchemaType xsdType;
+            getXmlTypeInfo(type, out _, out xsdType, out _);
+            return xsdType;
+        }
+
+        private delegate void GetXmlTypeInfoDelegate(Type type, out XmlQualifiedName stableName, out XmlSchemaType xsdType, out bool hasRoot);
         private static readonly Func<object, bool> s_getIsAnonymous = ReflectionHelper.GetPropertyDelegate<bool>(XmlDataContractType, "IsAnonymous");
         private static readonly Func<object, XmlSchemaType> s_getXsdType = ReflectionHelper.GetPropertyDelegate<XmlSchemaType>(XmlDataContractType, "XsdType");
+        private static readonly Action<object, XmlSchemaType> s_setXsdType = ReflectionHelper.SetPropertyDelegate<XmlSchemaType>(XmlDataContractType, "XsdType");
     }
 
     internal class DataMemberEx
