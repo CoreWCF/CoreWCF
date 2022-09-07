@@ -129,7 +129,7 @@ namespace CoreWCF.Runtime.Serialization
 
         private void Export()
         {
-            DataContractSet.FixupEnumDataContracts();
+            DataContractSet.FixupDataContracts();
             var schemaExporterType = typeof(DataContractSerializer).Assembly.GetType("System.Runtime.Serialization.SchemaExporter");
             var schemaExporter = Activator.CreateInstance(schemaExporterType,
                                                           BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.CreateInstance,
