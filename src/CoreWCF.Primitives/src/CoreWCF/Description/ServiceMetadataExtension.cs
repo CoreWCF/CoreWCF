@@ -92,10 +92,22 @@ namespace CoreWCF.Description
         // This dictionary should not be mutated after open
         internal IDictionary<string, int> UpdatePortsByScheme { get; set; }
 
-        internal static bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port)
+        public IEndpointAddressForMetadataProvider CustomEndpointAddressProvider { get; internal set; }
+
+        internal bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port, out string scheme)
         {
             host = null;
             port = 0;
+            scheme = listenUri.Scheme;
+
+            Uri customUri = CustomEndpointAddressProvider?.GetEndpointAddress();
+            if(customUri != null)
+            {
+                host = customUri.Host;
+                port = customUri.Port;
+                scheme = customUri.Scheme;
+                return true;
+            }
 
             // Get the host header
             HostString hostString = httpRequest.Host;
@@ -284,7 +296,7 @@ namespace CoreWCF.Description
 
         private DynamicAddressUpdateWriter GetDynamicAddressWriter(HttpRequest httpRequest, Uri listenUri, bool removeBaseAddress)
         {
-            if (!TryGetHttpHostAndPort(listenUri, httpRequest, out string requestHost, out int requestPort))
+            if (!TryGetHttpHostAndPort(listenUri, httpRequest, out string requestHost, out int requestPort, out string requestScheme))
             {
                 return null;
             }
@@ -294,12 +306,18 @@ namespace CoreWCF.Description
             // if the listen host and request host are case-insensitively equal.
             if (requestHost == listenUri.Host &&
                 requestPort == listenUri.Port &&
+                requestScheme == listenUri.Scheme &&
                 (UpdatePortsByScheme == null || UpdatePortsByScheme.Count == 0))
             {
                 return null;
             }
 
-            return new DynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+            if (CustomEndpointAddressProvider != null)
+            {
+                return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+            }
+
+            return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
         }
 
         private DynamicAddressUpdateWriter GetDynamicAddressWriter(Message request, Uri listenUri, bool removeBaseAddress)
@@ -310,7 +328,7 @@ namespace CoreWCF.Description
                 context = contextObj as HttpContext;
             }
 
-            if (context==null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort))
+            if (context==null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort, out string requestScheme))
             {
                 if (request.Headers.To == null)
                 {
@@ -318,6 +336,7 @@ namespace CoreWCF.Description
                 }
                 requestHost = request.Headers.To.Host;
                 requestPort = request.Headers.To.Port;
+                requestScheme = request.Headers.To.Scheme;
             }
 
             // Perf optimization: don't do dynamic update if it would be a no-op.
@@ -325,11 +344,18 @@ namespace CoreWCF.Description
             // if the listen host and request host are case-insensitively equal.
             if (requestHost == listenUri.Host &&
                 requestPort == listenUri.Port &&
+                requestScheme == listenUri.Scheme &&
                 (UpdatePortsByScheme == null || UpdatePortsByScheme.Count == 0))
             {
                 return null;
             }
-            return new DynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+
+            if (CustomEndpointAddressProvider != null)
+            {
+                return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+            }
+
+            return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
         }
 
         internal class WSMexImpl : IMetadataExchange
@@ -1635,7 +1661,90 @@ SR.SFxDocExt_NoMetadataSection5        ));
             }
         }
 
-        private class DynamicAddressUpdateWriter : WriteFilter
+        private class CustomDynamicAddressUpdateWriter : DynamicAddressUpdateWriter
+        {
+            private readonly Uri _listenUri;
+            private readonly string _scheme;
+            private readonly string _host;
+            private readonly int _port;
+            private readonly string _newBaseAddress;
+
+            internal CustomDynamicAddressUpdateWriter(Uri listenUri, string scheme, string host, int port)
+            {
+                _listenUri = listenUri;
+                _scheme = scheme;
+                _host = host;
+                _port = port;
+                _newBaseAddress = UpdateUri(listenUri).ToString();
+            }
+
+            protected override string NewBaseAddress => _newBaseAddress;
+
+            protected override bool RemoveBaseAddress => true;
+
+            public override WriteFilter CloneWriteFilter()
+            {
+                return new CustomDynamicAddressUpdateWriter(_listenUri, _scheme, _host, _port);
+            }
+
+            protected override Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false)
+            {
+                if (uri.Host != _listenUri.Host)
+                {
+                    return null;
+                }
+
+                UriBuilder result = new UriBuilder(uri)
+                {
+                    Host = _host,
+                    Port = _port,
+                    Scheme = _scheme
+                };
+                return result.Uri;
+            }
+        }
+
+        private abstract class DynamicAddressUpdateWriter : WriteFilter
+        {
+            protected abstract string NewBaseAddress { get; }
+            protected abstract bool RemoveBaseAddress { get; }
+
+            public void UpdateUri(ref Uri uri, bool updateBaseAddressOnly = false)
+            {
+                Uri newUri = UpdateUri(uri, updateBaseAddressOnly);
+                if (newUri != null)
+                {
+                    uri = newUri;
+                }
+            }
+
+            protected abstract Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false);
+
+            public override void WriteString(string text)
+            {
+                if (RemoveBaseAddress &&
+                    text.StartsWith(BaseAddressPattern, StringComparison.Ordinal))
+                {
+                    text = string.Empty;
+                }
+                else if (!RemoveBaseAddress &&
+                    text.Contains(BaseAddressPattern))
+                {
+                    text = text.Replace(BaseAddressPattern, NewBaseAddress);
+                }
+                else if (Uri.TryCreate(text, UriKind.Absolute, out Uri uri))
+                {
+                    Uri newUri = UpdateUri(uri);
+                    if (newUri != null)
+                    {
+                        text = newUri.ToString();
+                    }
+                }
+                base.WriteString(text);
+            }
+        }
+
+        private class RequestHeadersDynamicAddressUpdateWriter : DynamicAddressUpdateWriter
         {
             private readonly string _oldHostName;
             private readonly string _newHostName;
@@ -1645,21 +1754,24 @@ SR.SFxDocExt_NoMetadataSection5        ));
             private readonly int _requestPort;
             private readonly IDictionary<string, int> _updatePortsByScheme;
 
-            internal DynamicAddressUpdateWriter(Uri listenUri, string requestHost, int requestPort,
+            protected override string NewBaseAddress => _newBaseAddress;
+            protected override bool RemoveBaseAddress => _removeBaseAddress;
+
+            internal RequestHeadersDynamicAddressUpdateWriter(Uri listenUri, string requestHost, int requestPort,
                 IDictionary<string, int> updatePortsByScheme, bool removeBaseAddress)
                 : this(listenUri.Host, requestHost, removeBaseAddress, listenUri.Scheme, requestPort, updatePortsByScheme)
             {
                 _newBaseAddress = UpdateUri(listenUri).ToString();
             }
 
-            private DynamicAddressUpdateWriter(string oldHostName, string newHostName, string newBaseAddress, bool removeBaseAddress, string requestScheme,
+            private RequestHeadersDynamicAddressUpdateWriter(string oldHostName, string newHostName, string newBaseAddress, bool removeBaseAddress, string requestScheme,
                 int requestPort, IDictionary<string, int> updatePortsByScheme)
                 : this(oldHostName, newHostName, removeBaseAddress, requestScheme, requestPort, updatePortsByScheme)
             {
                 _newBaseAddress = newBaseAddress;
             }
 
-            private DynamicAddressUpdateWriter(string oldHostName, string newHostName, bool removeBaseAddress, string requestScheme,
+            private RequestHeadersDynamicAddressUpdateWriter(string oldHostName, string newHostName, bool removeBaseAddress, string requestScheme,
                 int requestPort, IDictionary<string, int> updatePortsByScheme)
             {
                 _oldHostName = oldHostName;
@@ -1672,43 +1784,11 @@ SR.SFxDocExt_NoMetadataSection5        ));
 
             public override WriteFilter CloneWriteFilter()
             {
-                return new DynamicAddressUpdateWriter(_oldHostName, _newHostName, _newBaseAddress, _removeBaseAddress,
+                return new RequestHeadersDynamicAddressUpdateWriter(_oldHostName, _newHostName, _newBaseAddress, _removeBaseAddress,
                     _requestScheme, _requestPort, _updatePortsByScheme);
             }
 
-            public override void WriteString(string text)
-            {
-                if (_removeBaseAddress &&
-                    text.StartsWith(BaseAddressPattern, StringComparison.Ordinal))
-                {
-                    text = string.Empty;
-                }
-                else if (!_removeBaseAddress &&
-                    text.Contains(BaseAddressPattern))
-                {
-                    text = text.Replace(BaseAddressPattern, _newBaseAddress);
-                }
-                else if (Uri.TryCreate(text, UriKind.Absolute, out Uri uri))
-                {
-                    Uri newUri = UpdateUri(uri);
-                    if (newUri != null)
-                    {
-                        text = newUri.ToString();
-                    }
-                }
-                base.WriteString(text);
-            }
-
-            public void UpdateUri(ref Uri uri, bool updateBaseAddressOnly = false)
-            {
-                Uri newUri = UpdateUri(uri, updateBaseAddressOnly);
-                if (newUri != null)
-                {
-                    uri = newUri;
-                }
-            }
-
-            private Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false)
+            protected override Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false)
             {
                 // Ordinal comparison okay: we're filtering for auto-generated URIs which will
                 // always be based off the listenURI, so always match in case
