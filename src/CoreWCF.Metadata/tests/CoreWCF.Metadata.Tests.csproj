@@ -54,6 +54,9 @@
     <None Update="Wsdls\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Wsdls\UseRequestHeadersForMetadataAddressBehaviorTests.WithoutHostHeader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
