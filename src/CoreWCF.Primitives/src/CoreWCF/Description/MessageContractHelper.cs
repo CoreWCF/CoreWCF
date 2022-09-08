@@ -12,7 +12,7 @@ namespace CoreWCF.Description
     {
         internal static bool IsMessageContract(Type type)
         {
-            foreach (Attribute attr in type.GetCustomAttributes())
+            foreach (Attribute attr in type.GetCustomAttributes(inherit: false))
             {
                 if (attr.GetType() == typeof(MessageContractAttribute)
                 || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessageContractAttributeFullName, true) == 0))
