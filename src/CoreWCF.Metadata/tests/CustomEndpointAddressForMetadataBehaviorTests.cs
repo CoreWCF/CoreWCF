@@ -31,7 +31,6 @@ namespace CoreWCF.Metadata.Tests
                 configureServices: services =>
                 {
                     services.AddSingleton<IServiceBehavior, CustomEndpointAddressForMetadataBehavior>();
-                    services.AddHttpContextAccessor();
                     services.AddSingleton<IEndpointAddressForMetadataProvider, UseXForwardedHeadersForMetadataAddressProvider>();
                 },
                 configureHttpClient: httpClient =>
@@ -45,19 +44,11 @@ namespace CoreWCF.Metadata.Tests
 
         public class UseXForwardedHeadersForMetadataAddressProvider : IEndpointAddressForMetadataProvider
         {
-            public UseXForwardedHeadersForMetadataAddressProvider(IHttpContextAccessor httpContextAccessor)
+            public Uri GetEndpointAddress(HttpRequest httpRequest)
             {
-                HttpContextAccessor = httpContextAccessor;
-            }
-
-            public IHttpContextAccessor HttpContextAccessor { get; }
-
-            public Uri GetEndpointAddress()
-            {
-                HttpContext context = HttpContextAccessor.HttpContext;
-                context.Request.Headers.TryGetValue("X-Forwarded-Proto", out var scheme);
-                context.Request.Headers.TryGetValue("X-Forwarded-Host", out var host);
-                context.Request.Headers.TryGetValue("X-Forwarded-Port", out var port);
+                httpRequest.Headers.TryGetValue("X-Forwarded-Proto", out var scheme);
+                httpRequest.Headers.TryGetValue("X-Forwarded-Host", out var host);
+                httpRequest.Headers.TryGetValue("X-Forwarded-Port", out var port);
                 return new Uri($"{ scheme }://{ host }:{ port }", UriKind.Absolute);
             }
         }

@@ -100,7 +100,7 @@ namespace CoreWCF.Description
             port = 0;
             scheme = listenUri.Scheme;
 
-            Uri customUri = CustomEndpointAddressProvider?.GetEndpointAddress();
+            Uri customUri = CustomEndpointAddressProvider?.GetEndpointAddress(httpRequest);
             if(customUri != null)
             {
                 host = customUri.Host;
@@ -1490,7 +1490,7 @@ namespace CoreWCF.Description
 <PRE>
 <font color=""blue"">&lt;<font color=""darkred"">configuration</font>&gt;</font>
 <font color=""blue"">    &lt;<font color=""darkred"">" + ConfigurationStrings.SectionGroupName + @"</font>&gt;</font>
- 
+
 <font color=""blue"">        &lt;<font color=""darkred"">" + ConfigurationStrings.ServicesSectionName + @"</font>&gt;</font>
 <font color=""blue"">            &lt;!-- <font color=""green"">{4}</font> --&gt;</font>
 <font color=""blue"">            &lt;<font color=""darkred"">" + ConfigurationStrings.Service + @" </font><font color=""red"">" + ConfigurationStrings.Name + @"</font>=<font color=""black"">""</font><i>MyNamespace.MyServiceType</i><font color=""black"">"" </font><font color=""red"">" + ConfigurationStrings.BehaviorConfiguration + @"</font>=<font color=""black"">""</font><i>MyServiceTypeBehaviors</i><font color=""black"">"" </font>&gt;</font>
@@ -1499,7 +1499,7 @@ namespace CoreWCF.Description
 <font color=""blue"">                &lt;<font color=""darkred"">" + ConfigurationStrings.Endpoint + @" </font><font color=""red"">" + ConfigurationStrings.Contract + @"</font>=<font color=""black"">""</font>" + ServiceMetadataBehavior.MexContractName + @"<font color=""black"">"" </font><font color=""red"">" + ConfigurationStrings.Binding + @"</font>=<font color=""black"">""</font>mexHttpBinding<font color=""black"">"" </font><font color=""red"">" + ConfigurationStrings.Address + @"</font>=<font color=""black"">""</font>mex<font color=""black"">"" </font>/&gt;</font>
 <font color=""blue"">            &lt;<font color=""darkred"">/" + ConfigurationStrings.Service + @"</font>&gt;</font>
 <font color=""blue"">        &lt;<font color=""darkred"">/" + ConfigurationStrings.ServicesSectionName + @"</font>&gt;</font>
- 
+
 <font color=""blue"">        &lt;<font color=""darkred"">" + ConfigurationStrings.BehaviorsSectionName + @"</font>&gt;</font>
 <font color=""blue"">            &lt;<font color=""darkred"">" + ConfigurationStrings.ServiceBehaviors + @"</font>&gt;</font>
 <font color=""blue"">                &lt;<font color=""darkred"">" + ConfigurationStrings.Behavior + @" </font><font color=""red"">name</font>=<font color=""black"">""</font><i>MyServiceTypeBehaviors</i><font color=""black"">"" </font>&gt;</font>
@@ -1508,7 +1508,7 @@ namespace CoreWCF.Description
 <font color=""blue"">                &lt;<font color=""darkred"">/" + ConfigurationStrings.Behavior + @"</font>&gt;</font>
 <font color=""blue"">            &lt;<font color=""darkred"">/" + ConfigurationStrings.ServiceBehaviors + @"</font>&gt;</font>
 <font color=""blue"">        &lt;<font color=""darkred"">/" + ConfigurationStrings.BehaviorsSectionName + @"</font>&gt;</font>
- 
+
 <font color=""blue"">    &lt;<font color=""darkred"">/" + ConfigurationStrings.SectionGroupName + @"</font>&gt;</font>
 <font color=""blue"">&lt;<font color=""darkred"">/configuration</font>&gt;</font>
 </PRE>
