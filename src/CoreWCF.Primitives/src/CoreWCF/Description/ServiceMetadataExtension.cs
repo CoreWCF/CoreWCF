@@ -92,7 +92,7 @@ namespace CoreWCF.Description
         // This dictionary should not be mutated after open
         internal IDictionary<string, int> UpdatePortsByScheme { get; set; }
 
-        public IEndpointAddressForMetadataProvider CustomEndpointAddressProvider { get; internal set; }
+        public IMetadataEndpointAddressProvider CustomEndpointAddressProvider { get; internal set; }
 
         internal bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port, out string scheme)
         {

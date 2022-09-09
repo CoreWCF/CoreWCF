@@ -31,7 +31,7 @@ namespace CoreWCF.Metadata.Tests
                 configureServices: services =>
                 {
                     services.AddSingleton<IServiceBehavior, CustomEndpointAddressForMetadataBehavior>();
-                    services.AddSingleton<IEndpointAddressForMetadataProvider, UseXForwardedHeadersForMetadataAddressProvider>();
+                    services.AddSingleton<IMetadataEndpointAddressProvider, UseXForwardedHeadersForMetadataAddressProvider>();
                 },
                 configureHttpClient: httpClient =>
                 {
@@ -42,7 +42,7 @@ namespace CoreWCF.Metadata.Tests
                 "https://override.local.io:8081");
         }
 
-        public class UseXForwardedHeadersForMetadataAddressProvider : IEndpointAddressForMetadataProvider
+        public class UseXForwardedHeadersForMetadataAddressProvider : IMetadataEndpointAddressProvider
         {
             public Uri GetEndpointAddress(HttpRequest httpRequest)
             {

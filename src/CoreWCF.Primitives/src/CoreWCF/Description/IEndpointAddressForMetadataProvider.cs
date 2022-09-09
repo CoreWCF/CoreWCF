@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Description
 {
-    public interface IEndpointAddressForMetadataProvider
+    public interface IMetadataEndpointAddressProvider
     {
         System.Uri GetEndpointAddress(HttpRequest httpRequest);
     }

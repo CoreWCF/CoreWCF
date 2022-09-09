@@ -8,9 +8,9 @@ namespace CoreWCF.Description
 {
     public class CustomEndpointAddressForMetadataBehavior : IServiceBehavior
     {
-        public IEndpointAddressForMetadataProvider Provider { get; }
+        public IMetadataEndpointAddressProvider Provider { get; }
 
-        public CustomEndpointAddressForMetadataBehavior(IEndpointAddressForMetadataProvider provider)
+        public CustomEndpointAddressForMetadataBehavior(IMetadataEndpointAddressProvider provider)
         {
             Provider = provider;
         }
