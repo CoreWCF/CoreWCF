@@ -13,8 +13,12 @@ namespace CoreWCF.Description
     {
         internal class UseHostHeaderMetadataEndpointAddressProvider : IMetadataEndpointAddressProvider
         {
-            public Uri GetEndpointAddress(HttpRequest httpRequest)
+            public Uri GetEndpointAddress(HttpRequest httpRequest, Uri listenUri)
             {
+                string host = null;
+                int port = 0;
+                string scheme = listenUri.Scheme;
+
                 // Get the host header
                 HostString hostString = httpRequest.Host;
                 if (!hostString.HasValue)
@@ -22,14 +26,23 @@ namespace CoreWCF.Description
                     return null;
                 }
 
-                if (hostString.Port.HasValue && Uri.TryCreate($"http://{hostString.Host}:{hostString.Port}", UriKind.Absolute, out Uri metadataEndpointAddress))
+                host = hostString.Host;
+                if (hostString.Port.HasValue)
                 {
-                    return metadataEndpointAddress;
+                    port = hostString.Port.Value;
+                }
+                else
+                {
+                    string hostUriString = string.Concat(listenUri.Scheme, "://", host);
+                    if (!Uri.TryCreate(hostUriString, UriKind.Absolute, out Uri hostUri))
+                    {
+                        return null;
+                    }
+
+                    port = hostUri.Port;
                 }
 
-                return Uri.TryCreate($"http://{hostString.Host}", UriKind.Absolute, out metadataEndpointAddress)
-                    ? metadataEndpointAddress
-                    : null;
+                return new UriBuilder(listenUri.Scheme, host, port).Uri;
             }
         }
 

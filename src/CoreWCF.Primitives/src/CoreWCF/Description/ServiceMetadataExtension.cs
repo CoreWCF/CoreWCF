@@ -98,16 +98,14 @@ namespace CoreWCF.Description
         {
             host = null;
             port = 0;
-            scheme = null;
+            scheme = listenUri.Scheme;
 
-            Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest);
+            Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest, listenUri);
             if (customUri != null)
             {
                 host = customUri.Host;
                 port = customUri.Port;
-                scheme = DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider
-                    ? listenUri.Scheme
-                    : customUri.Scheme;
+                scheme = customUri.Scheme;
                 return true;
             }
 
