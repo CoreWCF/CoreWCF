@@ -87,52 +87,31 @@ namespace CoreWCF.Description
 
         internal Uri HttpsHelpPageUrl { get; set; }
 
-        internal bool UpdateAddressDynamically { get; set; }
+        internal bool UpdateAddressDynamically => DynamicMetadataEndpointAddressProvider != null;
 
         // This dictionary should not be mutated after open
         internal IDictionary<string, int> UpdatePortsByScheme { get; set; }
 
-        public IMetadataEndpointAddressProvider CustomEndpointAddressProvider { get; internal set; }
+        public IMetadataEndpointAddressProvider DynamicMetadataEndpointAddressProvider { get; internal set; }
 
         internal bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port, out string scheme)
         {
             host = null;
             port = 0;
-            scheme = listenUri.Scheme;
+            scheme = null;
 
-            Uri customUri = CustomEndpointAddressProvider?.GetEndpointAddress(httpRequest);
-            if(customUri != null)
+            Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest);
+            if (customUri != null)
             {
                 host = customUri.Host;
                 port = customUri.Port;
-                scheme = customUri.Scheme;
+                scheme = DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider
+                    ? listenUri.Scheme
+                    : customUri.Scheme;
                 return true;
             }
 
-            // Get the host header
-            HostString hostString = httpRequest.Host;
-            if (!hostString.HasValue)
-            {
-                return false;
-            }
-
-            host = hostString.Host;
-            if (hostString.Port.HasValue)
-            {
-                port = hostString.Port.Value;
-            }
-            else
-            {
-                string hostUriString = string.Concat(listenUri.Scheme, "://", host);
-                if (!Uri.TryCreate(hostUriString, UriKind.Absolute, out Uri hostUri))
-                {
-                    return false;
-                }
-
-                port = hostUri.Port;
-            }
-
-            return true;
+            return false;
         }
 
         internal Func<RequestDelegate, RequestDelegate> CreateMiddleware(Uri baseAddress, bool isHttps)
@@ -312,12 +291,12 @@ namespace CoreWCF.Description
                 return null;
             }
 
-            if (CustomEndpointAddressProvider != null)
+            if (DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider)
             {
-                return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
             }
 
-            return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
         }
 
         private DynamicAddressUpdateWriter GetDynamicAddressWriter(Message request, Uri listenUri, bool removeBaseAddress)
@@ -350,12 +329,12 @@ namespace CoreWCF.Description
                 return null;
             }
 
-            if (CustomEndpointAddressProvider != null)
+            if (DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider)
             {
-                return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
             }
 
-            return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
         }
 
         internal class WSMexImpl : IMetadataExchange

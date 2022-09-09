@@ -8,15 +8,31 @@ namespace CoreWCF.Description
 {
     public class CustomEndpointAddressForMetadataBehavior : IServiceBehavior
     {
-        public IMetadataEndpointAddressProvider Provider { get; }
+        private readonly IMetadataEndpointAddressProvider _provider;
 
         public CustomEndpointAddressForMetadataBehavior(IMetadataEndpointAddressProvider provider)
         {
-            Provider = provider;
+            _provider = provider;
         }
 
-        void IServiceBehavior.Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase) { }
-        void IServiceBehavior.AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters) { }
-        void IServiceBehavior.ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase) { }
+        void IServiceBehavior.Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
+        {
+
+        }
+
+        void IServiceBehavior.AddBindingParameters(ServiceDescription serviceDescription,
+            ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints,
+            BindingParameterCollection bindingParameters)
+        {
+
+        }
+
+        void IServiceBehavior.ApplyDispatchBehavior(ServiceDescription serviceDescription,
+            ServiceHostBase serviceHostBase)
+        {
+            ServiceMetadataExtension.EnsureServiceMetadataExtension(serviceHostBase);
+            var mex = serviceHostBase.Extensions.Find<ServiceMetadataExtension>();
+            mex.DynamicMetadataEndpointAddressProvider = _provider;
+        }
     }
 }

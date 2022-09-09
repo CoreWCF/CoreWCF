@@ -139,22 +139,6 @@ namespace CoreWCF.Description
             mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, _httpGetUrl ?? new Uri(string.Empty, UriKind.Relative));
             mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, _httpsGetUrl ?? new Uri(string.Empty, UriKind.Relative));
 
-            UseRequestHeadersForMetadataAddressBehavior useRequestHeadersForMetadataAddressBehvaior = description.Behaviors.Find<UseRequestHeadersForMetadataAddressBehavior>();
-            if (useRequestHeadersForMetadataAddressBehvaior != null)
-            {
-                mex.UpdateAddressDynamically = true;
-                mex.UpdatePortsByScheme = new ReadOnlyDictionary<string, int>(useRequestHeadersForMetadataAddressBehvaior.DefaultPortsByScheme);
-            }
-            else
-            {
-                CustomEndpointAddressForMetadataBehavior customEndpointAddressForMetadata = description.Behaviors.Find<CustomEndpointAddressForMetadataBehavior>();
-                if (customEndpointAddressForMetadata != null)
-                {
-                    mex.UpdateAddressDynamically = true;
-                    mex.CustomEndpointAddressProvider = customEndpointAddressForMetadata.Provider;
-                }
-            }
-
             foreach (ChannelDispatcherBase dispatcherBase in host.ChannelDispatchers)
             {
                 if (dispatcherBase is ChannelDispatcher dispatcher && IsMetadataTransferDispatcher(description, dispatcher))
