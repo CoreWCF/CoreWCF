@@ -78,7 +78,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        [Fact, Description("Demuxer-failure-nettcp")]
+        [Fact(Skip = "https://github.com/CoreWCF/CoreWCF/issues/830"), Description("Demuxer-failure-nettcp")]
         [UseCulture("en-US")]
         public async Task NetTCPRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
