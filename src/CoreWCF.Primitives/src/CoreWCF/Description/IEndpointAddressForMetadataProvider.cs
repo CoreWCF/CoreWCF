@@ -8,6 +8,6 @@ namespace CoreWCF.Description
 {
     public interface IMetadataEndpointAddressProvider
     {
-        Uri GetEndpointAddress(HttpRequest httpRequest, Uri listenUri);
+        Uri GetEndpointAddress(HttpRequest httpRequest);
     }
 }

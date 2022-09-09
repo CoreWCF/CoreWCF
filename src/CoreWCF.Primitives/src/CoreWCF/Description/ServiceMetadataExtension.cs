@@ -98,14 +98,16 @@ namespace CoreWCF.Description
         {
             host = null;
             port = 0;
-            scheme = listenUri.Scheme;
+            scheme = null;
 
-            Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest, listenUri);
+            Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest);
             if (customUri != null)
             {
                 host = customUri.Host;
                 port = customUri.Port;
-                scheme = customUri.Scheme;
+                scheme = DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider
+                    ? listenUri.Scheme
+                    : customUri.Scheme;
                 return true;
             }
 
@@ -625,6 +627,8 @@ namespace CoreWCF.Description
                 {
                     return false;
                 }
+
+                requestContext.Items["CoreWCF.Description.ServiceMetadataExtension.HttpGetImpl._listenUri"] = _listenUri;
 
                 WriteFilter writeFilter = _parent.GetWriteFilter(requestContext.Request, _listenUri, false);
 

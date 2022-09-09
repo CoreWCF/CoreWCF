@@ -13,11 +13,12 @@ namespace CoreWCF.Description
     {
         internal class UseHostHeaderMetadataEndpointAddressProvider : IMetadataEndpointAddressProvider
         {
-            public Uri GetEndpointAddress(HttpRequest httpRequest, Uri listenUri)
+            public Uri GetEndpointAddress(HttpRequest httpRequest)
             {
+                Uri listenUri = httpRequest.HttpContext.Items["CoreWCF.Description.ServiceMetadataExtension.HttpGetImpl._listenUri"] as Uri;
+
                 string host = null;
                 int port = 0;
-                string scheme = listenUri.Scheme;
 
                 // Get the host header
                 HostString hostString = httpRequest.Host;

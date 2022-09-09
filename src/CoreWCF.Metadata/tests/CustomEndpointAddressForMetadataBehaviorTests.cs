@@ -44,7 +44,7 @@ namespace CoreWCF.Metadata.Tests
 
         public class UseXForwardedHeadersForMetadataAddressProvider : IMetadataEndpointAddressProvider
         {
-            public Uri GetEndpointAddress(HttpRequest httpRequest, Uri listenUri)
+            public Uri GetEndpointAddress(HttpRequest httpRequest)
             {
                 httpRequest.Headers.TryGetValue("X-Forwarded-Proto", out var scheme);
                 httpRequest.Headers.TryGetValue("X-Forwarded-Host", out var host);
