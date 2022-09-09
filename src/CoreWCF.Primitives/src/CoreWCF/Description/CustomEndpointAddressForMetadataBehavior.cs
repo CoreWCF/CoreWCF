@@ -30,8 +30,7 @@ namespace CoreWCF.Description
         void IServiceBehavior.ApplyDispatchBehavior(ServiceDescription serviceDescription,
             ServiceHostBase serviceHostBase)
         {
-            ServiceMetadataExtension.EnsureServiceMetadataExtension(serviceHostBase);
-            var mex = serviceHostBase.Extensions.Find<ServiceMetadataExtension>();
+            var mex = ServiceMetadataExtension.EnsureServiceMetadataExtension(serviceHostBase);
             mex.DynamicMetadataEndpointAddressProvider = _provider;
         }
     }
