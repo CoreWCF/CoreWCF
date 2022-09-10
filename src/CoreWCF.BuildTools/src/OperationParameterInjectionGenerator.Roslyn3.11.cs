@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ namespace CoreWCF.BuildTools
 
             OperationParameterInjectionSourceGenerationContext context = new(executionContext);
             Parser parser = new(executionContext.Compilation, context);
-            SourceGenerationSpec spec = parser.GetGenerationSpec(receiver.MethodDeclarationSyntaxList);
+            SourceGenerationSpec spec = parser.GetGenerationSpec(receiver.MethodDeclarationSyntaxList.ToImmutableArray());
             if (spec != SourceGenerationSpec.None)
             {
                 Emitter emitter = new(context, spec);

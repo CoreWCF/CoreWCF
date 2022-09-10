@@ -122,7 +122,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        
+
                     },
                 },
             };
@@ -152,7 +152,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        
+
                     },
                 },
             };
@@ -444,7 +444,6 @@ namespace MyProject
             }}
         }}
     }}
-                
 }}
 "
                     },
@@ -1495,7 +1494,6 @@ namespace MyProject
     {{
         [{attributeNamespace}.OperationContract]
         string Echo(string input);
-
         [{attributeNamespace}.OperationContract]
         string Echo2(string input);
     }}
@@ -1783,52 +1781,6 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics = { },
                 }
-            };
-
-            await test.RunAsync();
-        }
-
-        [Theory]
-        [MemberData(nameof(GetTestVariations))]
-        public async Task ShouldRaiseCompilationErrorWhenOperationContractIsAlreadyImplemented(string attributeNamespace, string attribute)
-        {
-            var test = new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources =
-                    {
-@$"
-namespace MyProject
-{{
-    [{attributeNamespace}.ServiceContract]
-    public interface IIdentityService
-    {{
-        [{attributeNamespace}.OperationContract]
-        string Echo(string input);
-
-        [{attributeNamespace}.OperationContract]
-        string Echo2(string input);
-    }}
-
-    public partial class IdentityService : IIdentityService
-    {{
-        public string Echo(string input) => input;
-        public string Echo2(string input) => input;
-        public string Echo2(string input, [{attribute}] object a) => input;
-    }}
-}}
-"
-                    },
-                    GeneratedSources = { },
-                    ExpectedDiagnostics =
-                    {
-                        new DiagnosticResult(DiagnosticDescriptors.OperationContractShouldNotBeAlreadyImplementedError)
-                            .WithSpan(18, 23, 18, 28)
-                            .WithArguments("IIdentityService", "Echo2")
-                            .WithDefaultPath("/0/Test0.cs"),
-                    },
-                },
             };
 
             await test.RunAsync();

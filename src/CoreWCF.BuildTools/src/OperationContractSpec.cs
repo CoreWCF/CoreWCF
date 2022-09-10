@@ -16,7 +16,5 @@ namespace CoreWCF.BuildTools
         public INamedTypeSymbol? HttpContextSymbol { get; } = HttpContextSymbol;
         public INamedTypeSymbol? HttpRequestSymbol { get; } = HttpRequestSymbol;
         public INamedTypeSymbol? HttpResponseSymbol { get; } = HttpResponseSymbol;
-
-        public static readonly OperationContractSpec None = new(null, null, null, null, null, null, null);
     }
 }

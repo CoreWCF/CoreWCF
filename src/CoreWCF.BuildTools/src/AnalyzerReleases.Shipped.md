@@ -15,3 +15,11 @@ COREWCF_0102 | OperationParameterInjectionGenerator | Error | COREWCF_0102_Opera
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
 COREWCF_0101 | OperationParameterInjectionGenerator | Error | COREWCF_0101_OperationParameterInjectionGenerator
+
+## Release 1.2.0
+
+### Removed Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+COREWCF_0102 | OperationParameterInjectionGenerator | Error | COREWCF_0102_OperationParameterInjectionGenerator
