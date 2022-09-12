@@ -60,13 +60,13 @@ namespace CoreWCF.BuildTools
                 _sourceGenerationContext = sourceGenerationContext;
                 _generationSpec = generationSpec;
                 _builder = new StringBuilder();
-                _builder.Clear();
             }
 
             public void Emit()
             {
                 foreach (var operationContractSpec in _generationSpec.OperationContractSpecs)
                 {
+
                     EmitOperationContract(operationContractSpec);
                 }
             }
@@ -116,7 +116,7 @@ namespace CoreWCF.BuildTools
                     }));
 
                 var indentor = new Indentor();
-
+                _builder.Clear();
                 _builder.AppendLine($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;
