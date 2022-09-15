@@ -3,6 +3,7 @@
 
 using CoreWCF.Channels;
 using CoreWCF.Queue;
+using CoreWCF.RabbitMQ.CoreWCF.Channels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Configuration
@@ -11,10 +12,7 @@ namespace CoreWCF.Configuration
     {
         public static IServiceCollection AddServiceModelRabbitMqSupport(this IServiceCollection services)
         {
-            services.AddSingleton<IQueueTransportFactory, RabbitMqTransportFactory>();
-            services.AddSingleton(RabbitMqConnectionHandler.BuildAddressTable);
-            services.AddSingleton<IQueueConnectionHandler, RabbitMqConnectionHandler>();
-
+            services.AddSingleton<RabbitMqTransportPump>();
             return services;
         }
     }

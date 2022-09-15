@@ -6,6 +6,8 @@ using Contracts;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Queue;
+using CoreWCF.Queue.Common.Configuration;
+using CoreWCF.Queue.Common;
 using CoreWCF.RabbitMQ.Tests.Fakes;
 using CoreWCF.RabbitMQ.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -27,7 +29,7 @@ namespace CoreWCF.RabbitMQ.Tests
             _output = output;
         }
 
-        [Fact(Skip ="Need rabbitmq")]
+        [Fact]
         public async Task ReceiveMessage_ServiceCall_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -37,39 +39,25 @@ namespace CoreWCF.RabbitMQ.Tests
                 MessageQueueHelper.SendMessageInQueue();
                 var resolver = new DependencyResolverHelper(host);
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                while (true)
-                {
-                    var testService = resolver.GetService<Interceptor>();
-
-                    if (string.IsNullOrEmpty(testService.Name))
-                    {
-                        if (watch.Elapsed.TotalSeconds > 5)
-                            Assert.False(true, "Message not received");
-
-                        await Task.Delay(100);
-                    }
-                    else
-                    {
-                        Assert.Equal("TestMessage", testService.Name);
-                        break;
-                    }
-                }
+                var testService = resolver.GetService<TestService>();
+                Assert.True(testService.ManualResetEvent.Wait(System.TimeSpan.FromSeconds(5)));
             }
         }
 
+        /*
         [Fact(Skip = "Need rabbitmq")]
         public async Task ReceiveMessage()
         {
             var handler = new TestConnectionHandler();
             var factory = new RabbitMqTransportFactory(new NullLoggerFactory(), handler);
-            var settings = new QueueSettings { QueueName = QueueName };
+            var settings = new QueueOptions { QueueName = QueueName };
             var transport = factory.Create(settings);
             _ = transport.StartAsync();
             MessageQueueHelper.SendMessageInQueue();
             await Task.Delay(1000);
             await transport.StopAsync();
             Assert.Equal(1, handler.CallCount);
-        }
+        }*/
     }
 
     public class Startup
@@ -77,10 +65,10 @@ namespace CoreWCF.RabbitMQ.Tests
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<Interceptor>();
-            services.AddScoped<TestService>();
+            services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddServiceModelQueue(x =>
-                x.Queues.Add(new QueueSettings { QueueName = IntegrationTests.QueueName }));
+            services.AddQueueTransport(x =>
+                x.QueueName = IntegrationTests.QueueName);
             services.AddServiceModelRabbitMqSupport();
         }
 

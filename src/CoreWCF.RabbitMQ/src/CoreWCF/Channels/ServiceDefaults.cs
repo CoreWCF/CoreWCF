@@ -5,6 +5,7 @@ using System;
 
 namespace CoreWCF.Channels
 {
+    //TODO : - Remove this file ?
     internal static class ServiceDefaults
     {
         internal static TimeSpan CloseTimeout => TimeSpan.FromMinutes(1);

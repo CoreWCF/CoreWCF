@@ -5,8 +5,10 @@ using System;
 
 namespace CoreWCF.Channels
 {
-    internal class ImmutableCommunicationTimeouts : IDefaultCommunicationTimeouts
+    //TODO : Remove this file
+    internal class ImmutableCommunicationTimeouts //: IDefaultCommunicationTimeouts
     {
+        /* 
         private readonly TimeSpan _close;
         private readonly TimeSpan _open;
         private readonly TimeSpan _receive;
@@ -42,5 +44,6 @@ namespace CoreWCF.Channels
         TimeSpan IDefaultCommunicationTimeouts.ReceiveTimeout => _receive;
 
         TimeSpan IDefaultCommunicationTimeouts.SendTimeout => _send;
+        */
     }
 }

@@ -22,7 +22,7 @@ namespace CoreWCF.MSMQ.Tests.Fakes
             Name = name;
         }
     }
-
+    /*
     internal class TestConnectionHandler : IQueueConnectionHandler
     {
         public int CallCount { get; private set; }
@@ -117,4 +117,5 @@ namespace CoreWCF.MSMQ.Tests.Fakes
             Action<ServiceEndpoint> configureEndpoint) =>
             throw new NotImplementedException();
     }
+    */
 }

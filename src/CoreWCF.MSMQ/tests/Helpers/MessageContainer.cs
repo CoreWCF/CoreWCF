@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 
 namespace CoreWCF.MSMQ.Tests.Helpers
 {
@@ -10,9 +11,9 @@ namespace CoreWCF.MSMQ.Tests.Helpers
     {
         public static Stream GetTestMessage()
         {
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain current directroy is empty");
-            string path = Path.Combine(currentDirectory, "Resources/msmqTestMessage.bin");
-            return File.OpenRead(path);
+             string currentDirectory = AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain current directroy is empty");
+              string path = Path.Combine(currentDirectory, "Resources/msmqTestMessage.bin");
+              return File.OpenRead(path);
         }
 
         public static Stream GetBadTestMessage()

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using CoreWCF.Queue.Common.Configuration;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    public abstract class MsmqBindingElementBase : TransportBindingElement
+    public abstract class MsmqBindingElementBase : QueueBaseTransportBindingElement
     {
         private DeadLetterQueue _deadLetterQueue;
         private int _maxRetryCycles;

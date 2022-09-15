@@ -1,11 +1,19 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using CoreWCF.Configuration;
+using CoreWCF.Queue;
+using CoreWCF.Queue.Common.Configuration;
+using CoreWCF.Queue.CoreWCF.Queue;
+using CoreWCF.RabbitMQ.CoreWCF.Channels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace CoreWCF.Channels
 {
-    public class RabbitMqTransportBindingElement : TransportBindingElement
+    public class RabbitMqTransportBindingElement : QueueBaseTransportBindingElement
     {
         /// <summary>
         /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
@@ -17,11 +25,9 @@ namespace CoreWCF.Channels
 
         private RabbitMqTransportBindingElement(RabbitMqTransportBindingElement other)
         {
-            HostName = other.HostName;
-            Port = other.Port;
             BrokerProtocol = other.BrokerProtocol;
-            Username = other.Username;
-            Password = other.Password;
+            UsernameConfigKey = other.UsernameConfigKey;
+            PasswordConfigKey = other.UsernameConfigKey;
             VirtualHost = other.VirtualHost;
             MaxReceivedMessageSize = other.MaxReceivedMessageSize;
         }
@@ -32,6 +38,28 @@ namespace CoreWCF.Channels
             return new RabbitMqTransportBindingElement(this);
         }
 
+
+        public override T GetProperty<T>(BindingContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+            }
+
+            if (typeof(T) == typeof(ISecurityCapabilities))
+            {
+                return null;
+            }
+
+            return base.GetProperty<T>(context);
+        }
+
+        public override QueueTransportPump BuildQueueTransportPump(BindingContext context)
+        {
+            IServiceProvider _serviceProvider = context.BindingParameters.Find<IServiceProvider>();
+            return _serviceProvider.GetRequiredService<RabbitMqTransportPump>();
+        }
+
         /// <summary>
         /// Gets the scheme used by the binding, soap.amqp
         /// </summary>
@@ -40,15 +68,6 @@ namespace CoreWCF.Channels
             get { return CurrentVersion.Scheme; }
         }
 
-        /// <summary>
-        /// Specifies the hostname of the RabbitMQ Server
-        /// </summary>
-        public string HostName { get; set; }
-
-        /// <summary>
-        /// Specifies the RabbitMQ Server port
-        /// </summary>
-        public int Port { get; set; }
 
         /// <summary>
         /// The largest receivable encoded message
@@ -58,12 +77,12 @@ namespace CoreWCF.Channels
         /// <summary>
         /// The username  to use when authenticating with the broker
         /// </summary>
-        internal string Username { get; set; }
+        internal string UsernameConfigKey { get; set; }
 
         /// <summary>
         /// Password to use when authenticating with the broker
         /// </summary>
-        internal string Password { get; set; }
+        internal string PasswordConfigKey { get; set; }
 
         /// <summary>
         /// Specifies the broker virtual host
@@ -75,5 +94,6 @@ namespace CoreWCF.Channels
         /// communicate with the broker
         /// </summary>
         public IProtocol BrokerProtocol { get; set; }
+
     }
 }

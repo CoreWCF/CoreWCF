@@ -14,13 +14,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
+using CoreWCF.Queue.Common.Configuration;
+using CoreWCF.Queue.Common;
 
 namespace CoreWCF.MSMQ.Tests
 {
     public class IntegrationTests
     {
         private readonly ITestOutputHelper _output;
-        public const string QueueName = "wcfQueue";
+        public const string QueueName = "birojTest";
         public const string QueueNameDeadLetter = "wcfDeadLetter";
 
         public IntegrationTests(ITestOutputHelper output)
@@ -32,6 +34,7 @@ namespace CoreWCF.MSMQ.Tests
             MessageQueueHelper.Purge(QueueNameDeadLetter);
         }
 
+        /*
         [Fact(Skip = "Need msmq")]
         public async Task ReceiveMessage()
         {
@@ -39,7 +42,7 @@ namespace CoreWCF.MSMQ.Tests
             var handler = new TestConnectionHandler();
             var testServiceBuilder = new TestServiceBuilder();
             var factory = new MsmqTransportFactory(new NullLoggerFactory(), handler, testServiceBuilder);
-            var settings = new QueueSettings { ConcurrencyLevel = 1, QueueName = QueueName };
+            var settings = new QueueOptions { ConcurrencyLevel = 1, QueueName = QueueName };
             var transport = factory.Create(settings);
             await testServiceBuilder.OpenAsync();
             _ = transport.StartAsync();
@@ -47,34 +50,20 @@ namespace CoreWCF.MSMQ.Tests
             await transport.StopAsync();
             Assert.Equal(1, handler.CallCount);
         }
-
-        [Fact(Skip = "Need msmq")]
+        */
+        [Fact]
         public async Task ReceiveMessage_ServiceCall_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
                 MessageQueueHelper.SendMessageInQueue(QueueName);
+
+                host.Start();
                 var resolver = new DependencyResolverHelper(host);
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                while (true)
-                {
-                    var testService = resolver.GetService<Interceptor>();
-
-                    if (string.IsNullOrEmpty(testService.Name))
-                    {
-                        if (watch.Elapsed.TotalSeconds > 5)
-                            Assert.False(true, "Message not received");
-
-                        await Task.Delay(100);
-                    }
-                    else
-                    {
-                        Assert.Equal("TestMessage", testService.Name);
-                        break;
-                    }
-                }
+                var testService = resolver.GetService<TestService>();
+                Assert.True(testService.ManualResetEvent.Wait(System.TimeSpan.FromSeconds(5)));
             }
         }
 
@@ -112,10 +101,10 @@ namespace CoreWCF.MSMQ.Tests
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<Interceptor>();
-            services.AddScoped<TestService>();
+            services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddServiceModelQueue(x =>
-                x.Queues.Add(new QueueSettings { QueueName = IntegrationTests.QueueName, ConcurrencyLevel = 1 }));
+            services.AddQueueTransport(x =>
+            { x.QueueName = IntegrationTests.QueueName; x.ConcurrencyLevel = 1; } );
             services.AddServiceModelMsmqSupport();
         }
 
@@ -136,8 +125,8 @@ namespace CoreWCF.MSMQ.Tests
             services.AddSingleton<Interceptor>();
             services.AddScoped<TestService>();
             services.AddServiceModelServices();
-            services.AddServiceModelQueue(x =>
-                x.Queues.Add(new QueueSettings { QueueName = IntegrationTests.QueueName, ConcurrencyLevel = 1 }));
+            services.AddQueueTransport(x =>
+             x.QueueName = IntegrationTests.QueueName);
             services.AddServiceModelMsmqSupport();
         }
 

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Threading;
 using CoreWCF;
 using CoreWCF.MSMQ.Tests.Fakes;
 
@@ -20,11 +21,15 @@ namespace Contracts
         public TestService(Interceptor interceptor)
         {
             _interceptor = interceptor;
+            ManualResetEvent = new ManualResetEventSlim(false);
         }
 
         public void Create(string name)
         {
             _interceptor.SetName(name);
+            ManualResetEvent.Set();
         }
+
+        public ManualResetEventSlim ManualResetEvent { get; }
     }
 }

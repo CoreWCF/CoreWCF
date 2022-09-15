@@ -6,6 +6,10 @@ using System.IO.Pipelines;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Queue;
+using CoreWCF.Queue.Common;
+using CoreWCF.RabbitMQ.CoreWCF.Channels;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CoreWCF.RabbitMQ.Tests.Fakes
 {
@@ -18,7 +22,7 @@ namespace CoreWCF.RabbitMQ.Tests.Fakes
             Name = name;
         }
     }
-
+    /*
     internal class TestConnectionHandler : IQueueConnectionHandler
     {
         public int CallCount { get; private set; }
@@ -35,5 +39,5 @@ namespace CoreWCF.RabbitMQ.Tests.Fakes
                 Properties = new Dictionary<string, object>(),
             };
         }
-    }
+    }*/
 }

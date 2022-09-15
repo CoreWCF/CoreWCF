@@ -9,6 +9,7 @@ using Xunit;
 
 namespace CoreWCF.MSMQ.Tests
 {
+    /*
     public class MsmqDecodeHelperTests
     {
         [Fact]
@@ -63,5 +64,5 @@ namespace CoreWCF.MSMQ.Tests
             Assert.Contains("More data was expected, but EOF was reached",
                 exception.InnerException.InnerException.Message);
         }
-    }
+    }*/
 }

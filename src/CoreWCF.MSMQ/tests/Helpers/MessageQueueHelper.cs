@@ -14,13 +14,19 @@ namespace CoreWCF.MSMQ.Tests.Helpers
         public static void Purge(string queueName)
         {
             var queue = new MessageQueue($".\\Private$\\{queueName}");
+            
             queue.Purge();
         }
 
         public static void SendMessageInQueue(string queueName)
         {
+            string path = $".\\Private$\\{queueName}";
+           if(!MessageQueue.Exists(path))
+            {
+                MessageQueue.Create(path);
+            }
             Stream stream = MessageContainer.GetTestMessage();
-            var queue = new MessageQueue($".\\Private$\\{queueName}");
+            var queue = new MessageQueue(path);
             var mess = new Message { BodyStream = stream, };
             queue.Send(mess);
         }

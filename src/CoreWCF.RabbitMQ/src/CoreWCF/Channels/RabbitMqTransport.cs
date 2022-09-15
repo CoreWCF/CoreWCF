@@ -13,8 +13,10 @@ using RabbitMQ.Client.Events;
 
 namespace CoreWCF.Channels
 {
-    internal class RabbitMqTransport : IQueueTransport
+    //TODO : Remove this file
+    internal class RabbitMqTransport //: IQueueTransport
     {
+        /*
         private readonly ILogger<RabbitMqTransport> _logger;
         private readonly IQueueConnectionHandler _rabbitMqConnectionHandler;
         private readonly QueueSettings _queueSettings;
@@ -71,5 +73,6 @@ namespace CoreWCF.Channels
             _connection.Dispose();
             return Task.CompletedTask;
         }
+        */
     }
 }
