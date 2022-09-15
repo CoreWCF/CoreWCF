@@ -66,7 +66,6 @@ namespace CoreWCF.BuildTools
             {
                 foreach (var operationContractSpec in _generationSpec.OperationContractSpecs)
                 {
-
                     EmitOperationContract(operationContractSpec);
                 }
             }
