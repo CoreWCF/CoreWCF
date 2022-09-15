@@ -5,7 +5,7 @@ using System;
 using System.ComponentModel;
 
 namespace CoreWCF.Channels
-{
+{ 
     public abstract class MsmqBindingBase : Binding
     {
         internal MsmqBindingElementBase _transport;

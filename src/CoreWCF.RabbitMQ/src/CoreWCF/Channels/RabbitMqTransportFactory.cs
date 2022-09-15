@@ -7,8 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
-    public class RabbitMqTransportFactory : IQueueTransportFactory
+    //TODO : Remove this file
+    public class RabbitMqTransportFactory //: IQueueTransportFactory
     {
+        /*
         private readonly ILoggerFactory _loggerFactory;
         private readonly IQueueConnectionHandler _rabbitMqConnectionHandler;
 
@@ -23,6 +25,6 @@ namespace CoreWCF.Channels
         public IQueueTransport Create(QueueSettings settings)
         {
             return new RabbitMqTransport(_loggerFactory, _rabbitMqConnectionHandler, settings);
-        }
+        }*/
     }
 }

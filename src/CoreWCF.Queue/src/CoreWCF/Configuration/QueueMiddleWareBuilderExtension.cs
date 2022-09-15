@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 using CoreWCF.Queue;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CoreWCF.Configuration
+namespace CoreWCF.Queue.Common.Configuration
 {
-    public static class QueueMessagePipelineBuilderExtension
+    public static class QueueMiddleWareBuilderExtension
     {
         private const string InvokeAsyncMethodName = "InvokeAsync";
 
-        public static IQueueMessagePipelineBuilder UseMiddleware<TMiddleware>(this IQueueMessagePipelineBuilder app,
+        public static IQueueMiddlewareBuilder UseMiddleware<TMiddleware>(this IQueueMiddlewareBuilder app,
             params object[] args)
         {
             return app.UseMiddleware(typeof(TMiddleware), args);
         }
 
-        public static IQueueMessagePipelineBuilder UseMiddleware(this IQueueMessagePipelineBuilder app, Type middleware,
+        public static IQueueMiddlewareBuilder UseMiddleware(this IQueueMiddlewareBuilder app, Type middleware,
             params object[] args)
         {
             IServiceProvider handshakeServices = app.Services;
@@ -68,7 +68,7 @@ namespace CoreWCF.Configuration
                 object instance = ActivatorUtilities.CreateInstance(app.Services, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
-                    return (QueueMessageDispatch)methodInfo.CreateDelegate(typeof(QueueMessageDispatch), instance);
+                    return (QueueMessageDispatcherDelegate)methodInfo.CreateDelegate(typeof(QueueMessageDispatcherDelegate), instance);
                 }
 
                 Func<object, QueueMessageContext, IServiceProvider, Task> factory =
@@ -144,7 +144,7 @@ namespace CoreWCF.Configuration
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
-                var getServiceInfo = typeof(QueueMessagePipelineBuilderExtension).GetMethod(nameof(GetService),
+                var getServiceInfo = typeof(QueueMiddleWareBuilderExtension).GetMethod(nameof(GetService),
                     BindingFlags.NonPublic | BindingFlags.Static);
                 if (getServiceInfo == null)
                 {

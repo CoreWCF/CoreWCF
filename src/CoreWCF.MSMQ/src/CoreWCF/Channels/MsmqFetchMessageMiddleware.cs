@@ -11,15 +11,17 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
+    //TODO : Remove this file
     public class MsmqFetchMessageMiddleware
     {
-        private readonly QueueMessageDispatch _next;
+        /*
+        private readonly QueueMessageDispatcherDelegate _next;
         private readonly ILogger<MsmqFetchMessageMiddleware> _logger;
         private readonly IServiceScopeFactory _servicesScopeFactory;
         private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
 
         public MsmqFetchMessageMiddleware(
-            QueueMessageDispatch next,
+            QueueMessageDispatcherDelegate next,
             ILogger<MsmqFetchMessageMiddleware> logger,
             IServiceScopeFactory servicesScopeFactory,
             IDeadLetterQueueMsmqSender deadLetterQueueSender)
@@ -36,7 +38,7 @@ namespace CoreWCF.Channels
 
             try
             {
-                var readResult = await context.Reader.ReadAsync();
+                var readResult = await context.QueueMessageReader.ReadAsync();
                 var memStream = new MemoryStream(readResult.Buffer.ToArray());
                 int maxReceivedMessageSize =
                     (int)(context.QueueTransportContext.Binding as NetMsmqBinding).MaxReceivedMessageSize;
@@ -63,13 +65,14 @@ namespace CoreWCF.Channels
                 if (context.QueueTransportContext.Binding is NetMsmqBinding binding &&
                     binding.DeadLetterQueue == DeadLetterQueue.Custom)
                 {
-                    await _deadLetterQueueSender.Send(context.Reader, binding.CustomDeadLetterQueue);
+                    await _deadLetterQueueSender.Send(context.QueueMessageReader, binding.CustomDeadLetterQueue);
                 }
                 else
                 {
-                    await _deadLetterQueueSender.SendToSystem(context.Reader, context.LocalAddress.Uri);
+                    await _deadLetterQueueSender.SendToSystem(context.QueueMessageReader, context.LocalAddress.Uri);
                 }
             }
         }
+        */
     }
 }

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using CoreWCF.Configuration;
+using CoreWCF.Queue.Common;
+using CoreWCF.Queue.CoreWCF.Queue;
 
 namespace CoreWCF.Channels
 {
@@ -55,6 +58,20 @@ namespace CoreWCF.Channels
             {
                 _useActiveDirectory = value;
             }
+        }
+
+        public override QueueTransportPump BuildQueueTransportPump(BindingContext context)
+        {
+            IQueueTransport queueTransport = CreateMyQueueTransport(context);  
+            return QueueTransportPump.CreateDefaultPump(queueTransport);
+        }
+
+        private IQueueTransport CreateMyQueueTransport(BindingContext context)
+        {
+            var _queueOptions = context.BindingParameters.Find<QueueOptions>();
+            var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
+            //TODO : add queue before exists
+            return new MsmqNetcoreTransport(_queueOptions, serviceDispatcher);
         }
 
         public override BindingElement Clone()

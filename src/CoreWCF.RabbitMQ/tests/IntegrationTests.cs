@@ -6,6 +6,8 @@ using Contracts;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Queue;
+using CoreWCF.Queue.Common.Configuration;
+using CoreWCF.Queue.Common;
 using CoreWCF.RabbitMQ.Tests.Fakes;
 using CoreWCF.RabbitMQ.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -57,19 +59,20 @@ namespace CoreWCF.RabbitMQ.Tests
             }
         }
 
+        /*
         [Fact(Skip = "Need rabbitmq")]
         public async Task ReceiveMessage()
         {
             var handler = new TestConnectionHandler();
             var factory = new RabbitMqTransportFactory(new NullLoggerFactory(), handler);
-            var settings = new QueueSettings { QueueName = QueueName };
+            var settings = new QueueOptions { QueueName = QueueName };
             var transport = factory.Create(settings);
             _ = transport.StartAsync();
             MessageQueueHelper.SendMessageInQueue();
             await Task.Delay(1000);
             await transport.StopAsync();
             Assert.Equal(1, handler.CallCount);
-        }
+        }*/
     }
 
     public class Startup
@@ -79,8 +82,8 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddSingleton<Interceptor>();
             services.AddScoped<TestService>();
             services.AddServiceModelServices();
-            services.AddServiceModelQueue(x =>
-                x.Queues.Add(new QueueSettings { QueueName = IntegrationTests.QueueName }));
+            services.AddQueueTransport(x =>
+                x.QueueName = IntegrationTests.QueueName);
             services.AddServiceModelRabbitMqSupport();
         }
 

@@ -11,8 +11,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
-    public class MsmqConnectionHandler : IQueueConnectionHandler
+    //TODO : Remove this file
+    public class MsmqConnectionHandler //: IQueueConnectionHandler
     {
+        /*
         private readonly IServiceProvider _services;
         private static UriPrefixTable<TransportContext> s_addressTable;
 
@@ -33,7 +35,7 @@ namespace CoreWCF.Channels
             ILogger<MsmqConnectionHandler> logger = services.GetRequiredService<ILogger<MsmqConnectionHandler>>();
             IServiceBuilder serviceBuilder = services.GetRequiredService<IServiceBuilder>();
             IDispatcherBuilder dispatcherBuilder = services.GetRequiredService<IDispatcherBuilder>();
-            IQueueMessagePipelineBuilder builder = services.GetRequiredService<IQueueMessagePipelineBuilder>();
+            IQueueMiddlewareBuilder builder = services.GetRequiredService<IQueueMiddlewareBuilder>();
             var addressTable = new UriPrefixTable<TransportContext>();
             foreach (Type serviceType in serviceBuilder.Services)
             {
@@ -49,7 +51,7 @@ namespace CoreWCF.Channels
                     BindingElementCollection be = dispatcher.Binding.CreateBindingElements();
                     var encodingBindingElement = be.Find<MessageEncodingBindingElement>();
 
-                    QueueMessageDispatch handshake = BuildHandshake(builder);
+                    QueueMessageDispatcherDelegate handshake = BuildHandshake(builder);
 
 
                     logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with {nameof(MsmqConnectionHandler)}");
@@ -63,7 +65,7 @@ namespace CoreWCF.Channels
             return addressTable;
         }
 
-        private static QueueMessageDispatch BuildHandshake(IQueueMessagePipelineBuilder pipelineBuilder)
+        private static QueueMessageDispatcherDelegate BuildHandshake(IQueueMiddlewareBuilder pipelineBuilder)
         {
             pipelineBuilder.UseMiddleware<MsmqFetchMessageMiddleware>();
             pipelineBuilder.UseMiddleware<QueueProcessMessageMiddleware>();
@@ -76,7 +78,7 @@ namespace CoreWCF.Channels
             var transportContext = Lookup(queueUrl);
             var context = new QueueMessageContext
             {
-                Reader = reader,
+                QueueMessageReader = reader,
                 LocalAddress = new EndpointAddress(queueUrl),
                 QueueTransportContext = new QueueTransportContext
                 {
@@ -100,7 +102,7 @@ namespace CoreWCF.Channels
 
         internal class TransportContext
         {
-            public TransportContext(QueueMessageDispatch queueDispatch, IServiceDispatcher serviceDispatcher,
+            public TransportContext(QueueMessageDispatcherDelegate queueDispatch, IServiceDispatcher serviceDispatcher,
                 MessageEncoder messageEncoder, Binding binding)
             {
                 QueueDispatch = queueDispatch;
@@ -109,10 +111,11 @@ namespace CoreWCF.Channels
                 Binding = binding;
             }
 
-            public QueueMessageDispatch QueueDispatch { get; }
+            public QueueMessageDispatcherDelegate QueueDispatch { get; }
             public IServiceDispatcher ServiceDispatcher { get; }
             public MessageEncoder MessageEncoder { get; }
             public Binding Binding { get; }
         }
+        */
     }
 }

@@ -11,16 +11,18 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
+    //TODO :- Remove this file
     internal class RabbitMqFetchMessageMiddleware
     {
-        private readonly QueueMessageDispatch _next;
+        /*
+        private readonly QueueMessageDispatcherDelegate _next;
         private readonly ILogger<RabbitMqFetchMessageMiddleware> _logger;
         private readonly IServiceScopeFactory _servicesScopeFactory;
 
         public RabbitMqFetchMessageMiddleware(
             IServiceScopeFactory servicesScopeFactory,
             ILogger<RabbitMqFetchMessageMiddleware> logger,
-            QueueMessageDispatch next)
+            QueueMessageDispatcherDelegate next)
         {
             _servicesScopeFactory = servicesScopeFactory;
             _logger = logger;
@@ -49,5 +51,6 @@ namespace CoreWCF.Channels
 
             await _next(context);
         }
+        */
     }
 }

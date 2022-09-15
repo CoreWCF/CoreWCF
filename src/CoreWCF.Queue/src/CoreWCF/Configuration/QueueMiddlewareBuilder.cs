@@ -6,19 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CoreWCF.Queue
+namespace CoreWCF.Queue.Common.Configuration
 {
-    public class QueueMessagePipelineBuilder : IQueueMessagePipelineBuilder
+    public class QueueMiddlewareBuilder : IQueueMiddlewareBuilder
     {
-        private readonly IList<Func<QueueMessageDispatch, QueueMessageDispatch>> _components = new List<Func<QueueMessageDispatch,QueueMessageDispatch>>();
+        private readonly IList<Func<QueueMessageDispatcherDelegate, QueueMessageDispatcherDelegate>> _components = new List<Func<QueueMessageDispatcherDelegate,QueueMessageDispatcherDelegate>>();
 
-        public QueueMessagePipelineBuilder(IServiceProvider serviceProvider)
+        public QueueMiddlewareBuilder(IServiceProvider serviceProvider)
         {
             Properties = new Dictionary<string, object>(StringComparer.Ordinal);
             Services = serviceProvider;
         }
 
-        private QueueMessagePipelineBuilder(QueueMessagePipelineBuilder builder)
+        private QueueMiddlewareBuilder(QueueMiddlewareBuilder builder)
         {
             Properties = new Dictionary<string, object>(builder.Properties, StringComparer.Ordinal);
         }
@@ -37,22 +37,22 @@ namespace CoreWCF.Queue
 
         public IDictionary<string, object> Properties { get; }
 
-        public IQueueMessagePipelineBuilder Use(Func<QueueMessageDispatch, QueueMessageDispatch> middleware)
+        public IQueueMiddlewareBuilder Use(Func<QueueMessageDispatcherDelegate, QueueMessageDispatcherDelegate> middleware)
         {
             _components.Add(middleware);
             return this;
         }
 
-        public IQueueMessagePipelineBuilder New()
+        public IQueueMiddlewareBuilder New()
         {
-            return new QueueMessagePipelineBuilder(this);
+            return new QueueMiddlewareBuilder(this);
         }
 
-        public QueueMessageDispatch Build()
+        public QueueMessageDispatcherDelegate Build()
         {
-            QueueMessageDispatch app = context => Task.CompletedTask;
+            QueueMessageDispatcherDelegate app = context => Task.CompletedTask;
 
-            foreach (Func<QueueMessageDispatch, QueueMessageDispatch> component in _components.Reverse())
+            foreach (Func<QueueMessageDispatcherDelegate, QueueMessageDispatcherDelegate> component in _components.Reverse())
             {
                 app = component(app);
             }

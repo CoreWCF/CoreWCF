@@ -4,31 +4,31 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Queue.Common;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
-    internal class RabbitMqInputChannel : ServiceChannelBase, IInputChannel
+    internal class RabbitMqInputChannel : QueueInputChannel
     {
         private readonly IServiceProvider _serviceProvider;
 
         public RabbitMqInputChannel(IDefaultCommunicationTimeouts timeouts, IServiceProvider serviceProvider, EndpointAddress endpointAddress)
-            : base(timeouts)
         {
             _serviceProvider = serviceProvider;
             LocalAddress = endpointAddress;
         }
 
-        protected override void OnAbort()
+        protected new void Abort()
         {
         }
 
-        protected override Task OnCloseAsync(CancellationToken token)
+        protected new Task CloseAsync(CancellationToken token)
         {
             return Task.CompletedTask;
         }
 
-        protected override Task OnOpenAsync(CancellationToken token)
+        protected new Task OpenAsync(CancellationToken token)
         {
             return Task.CompletedTask;
         }

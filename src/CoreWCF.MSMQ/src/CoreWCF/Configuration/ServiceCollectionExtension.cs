@@ -11,9 +11,9 @@ namespace CoreWCF.Configuration
     {
         public static IServiceCollection AddServiceModelMsmqSupport(this IServiceCollection services)
         {
-            services.AddSingleton<IQueueTransportFactory, MsmqTransportFactory>();
-            services.AddSingleton(MsmqConnectionHandler.BuildAddressTable);
-            services.AddSingleton<IQueueConnectionHandler, MsmqConnectionHandler>();
+            //services.AddSingleton<IQueueTransportFactory, MsmqTransportFactory>();
+            //services.AddSingleton(MsmqConnectionHandler.BuildAddressTable);
+            //services.AddSingleton<IQueueConnectionHandler, MsmqConnectionHandler>();
             services.AddSingleton<IDeadLetterQueueMsmqSender, DeadLetterQueueSender>();
             
 

@@ -60,8 +60,8 @@ namespace CoreWCF.Channels
         {
             HostName = hostname;
             Port = port;
-            Transport.Username = username;
-            Transport.Password = password;
+            Transport.UsernameConfigKey = username;
+            Transport.PasswordConfigKey = password;
             Transport.VirtualHost = virtualHost;
             MaxMessageSize = maxMessageSize;
 
@@ -82,8 +82,8 @@ namespace CoreWCF.Channels
 
         public override BindingElementCollection CreateBindingElements()
         {
-            Transport.HostName = HostName;
-            Transport.Port = Port;
+            //Transport.HostName = HostName;
+            //Transport.Port = Port;
             Transport.BrokerProtocol = BrokerProtocol;
             if (MaxMessageSize != DefaultMaxMessageSize)
             {
