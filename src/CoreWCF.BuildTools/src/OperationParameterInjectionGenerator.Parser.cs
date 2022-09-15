@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -16,204 +14,95 @@ namespace CoreWCF.BuildTools
         private sealed class Parser
         {
             private readonly Compilation _compilation;
-            private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
-            private readonly Lazy<IEnumerable<SyntaxNode>> _allNodes;
-            private readonly Lazy<IEnumerable<(INamedTypeSymbol ServiceImplementation, INamedTypeSymbol ServiceContract)>> _serviceImplementationsAndContracts;
-            private readonly IDictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>> _operationContracts;
+            private readonly OperationParameterInjectionSourceGenerationContext _context;
             private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
             private readonly INamedTypeSymbol? _httpContextSymbol;
             private readonly INamedTypeSymbol? _httpRequestSymbol;
             private readonly INamedTypeSymbol? _httpResponseSymbol;
+            private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
+            private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
 
-            public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext sourceGenerationContext)
+            public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext context)
             {
                 _compilation = compilation;
-                _sourceGenerationContext = sourceGenerationContext;
-                _allNodes = new Lazy<IEnumerable<SyntaxNode>>(() => _compilation.SyntaxTrees
-                    .SelectMany(static x => x.GetRoot().DescendantNodes())
-                    .ToImmutableArray());
-                _serviceImplementationsAndContracts = new Lazy<IEnumerable<(INamedTypeSymbol ServiceImplementation, INamedTypeSymbol ServiceContract)>>(() => FindServiceImplementationAndContracts(_allNodes.Value));
-                _operationContracts = new Dictionary<INamedTypeSymbol, ImmutableArray<IMethodSymbol>>(SymbolEqualityComparer.Default);
+                _context = context;
+
                 _sSMOperationContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
                 _coreWCFOperationContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+                _sSMServiceContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
+                _coreWCFServiceContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
                 _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
             }
 
-            private OperationContractSpec? GetOperationContractSpec(MethodDeclarationSyntax methodDeclarationSyntax)
+            public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
             {
-                SemanticModel model = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree);
-                IMethodSymbol? methodSymbol = model.GetDeclaredSymbol(methodDeclarationSyntax);
-                if (methodSymbol == null)
-                {
-                    return null;
-                }
+                ImmutableArray<IMethodSymbol> methods = (from methodDeclarationSyntax in methodDeclarationSyntaxes
+                    let semanticModel = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree)
+                    let symbol = semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)
+                    where symbol is not null
+                    let methodSymbol = symbol as IMethodSymbol
+                    select methodSymbol).ToImmutableArray();
 
-                OperationContractSpec? operationContractSpec = FindOperationContractSpec(methodSymbol);
-                if(operationContractSpec == null)
-                {
-                    return null;
-                }
+                var methodServiceContractAndOperationContractsValues = from method in methods
+                    from @interface in method.ContainingType.AllInterfaces
+                    where @interface.HasOneOfAttributes(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol)
+                    let methodMembers = (from member in @interface.GetMembers()
+                        let methodMember = member as IMethodSymbol
+                        where methodMember is not null
+                        where methodMember.HasOneOfAttributes(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
+                        select methodMember).ToImmutableArray()
+                    select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
 
-                if (!methodSymbol.ContainingType.IsPartial(out INamedTypeSymbol parentType))
-                {
-                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, methodSymbol.Name, parentType.Locations[0]));
-                    return null;
-                }
+                var methodMissingOperationServiceContractAndOperationContractsValues =
+                    from value in methodServiceContractAndOperationContractsValues
+                    let missingOperationContract =
+                        value.OperationContracts
+                            .SingleOrDefault(x => x.Name == value.Method.Name
+                                                  && x.Parameters.All(p =>
+                                                      value.Method.Parameters.Any(msp =>
+                                                          msp.IsMatchingParameter(p))))
+                    where missingOperationContract is not null
+                    let nonNullMissingOperationContract = missingOperationContract as IMethodSymbol
+                    select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
+                        value.ServiceContract, value.OperationContracts);
 
-                return operationContractSpec;
-            }
+                var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
 
-            private OperationContractSpec? FindOperationContractSpec(IMethodSymbol methodSymbol)
-            {
-                var allServiceContractCandidates = methodSymbol.ContainingType.AllInterfaces;
-                foreach (var serviceContractCandidate in allServiceContractCandidates)
+                foreach (var value in methodMissingOperationServiceContractAndOperationContractsValues)
                 {
-                    foreach (var serviceImplementationAndContract in _serviceImplementationsAndContracts.Value)
+                    if (!value.Method.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                     {
-                        if (SymbolEqualityComparer.Default.Equals(serviceImplementationAndContract.ServiceContract, serviceContractCandidate))
-                        {
-                            if (!_operationContracts.ContainsKey(serviceImplementationAndContract.ServiceContract))
-                            {
-                                _operationContracts.Add(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceContract.GetMembers().OfType<IMethodSymbol>()
-                                    .Where(x => x.HasOneOfAttributes(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)).ToImmutableArray());
-                            }
-
-                            var operationContractCandidates = _operationContracts[serviceImplementationAndContract.ServiceContract]
-                                .Where(x => x.Name == methodSymbol.Name)
-                                .Where(x => x.Parameters.All(occp => methodSymbol.Parameters.Any(msp => msp.IsMatchingParameter(occp))))
-                                .ToImmutableArray();
-
-                            if (operationContractCandidates.Length == 1)
-                            {
-                                IMethodSymbol operationContractCandidate = operationContractCandidates[0];
-                                if (serviceImplementationAndContract.ServiceImplementation.FindImplementationForInterfaceMember(operationContractCandidate) != null)
-                                {
-                                    _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.RaiseOperationContractShouldNotBeAlreadyImplementedError(operationContractCandidate.ContainingType.Name, operationContractCandidate.Name, methodSymbol.Locations[0]));
-                                    return null;
-                                }
-
-                                return new OperationContractSpec(serviceImplementationAndContract.ServiceContract, serviceImplementationAndContract.ServiceImplementation, operationContractCandidate, methodSymbol, _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol);
-                            }
-                        }
-                    }
-                }
-
-                return null;
-            }
-
-            public SourceGenerationSpec? GetGenerationSpec(IEnumerable<MethodDeclarationSyntax> methodDeclarationSyntaxList)
-            {
-                List<OperationContractSpec>? operationContractSpecs = null;
-
-                foreach (MethodDeclarationSyntax methodDeclarationSyntax in methodDeclarationSyntaxList)
-                {
-                    OperationContractSpec? operationContractSpec = GetOperationContractSpec(methodDeclarationSyntax);
-                    if (operationContractSpec != null)
-                    {
-                        (operationContractSpecs ??= new List<OperationContractSpec>()).Add(operationContractSpec);
-                    }
-                }
-
-                if (operationContractSpecs == null)
-                {
-                    return null;
-                }
-
-                return new SourceGenerationSpec(operationContractSpecs)
-                {
-                    SSMOperationContractSymbol = _sSMOperationContractSymbol,
-                    CoreWCFOperationContractSymbol = _coreWCFOperationContractSymbol,
-                    TaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
-                    GenericTaskSymbol = _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
-                    CoreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    MicrosoftAspNetCoreMvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
-                };
-            }
-
-            private IEnumerable<(INamedTypeSymbol service, INamedTypeSymbol contract)> FindServiceImplementationAndContracts(
-                IEnumerable<SyntaxNode> allNodes)
-            {
-                var serviceContracts = FindServiceContracts(allNodes);
-
-                IEnumerable<ClassDeclarationSyntax> allClasses = allNodes
-                    .Where(static d => d.IsKind(SyntaxKind.ClassDeclaration))
-                    .OfType<ClassDeclarationSyntax>();
-
-                foreach (var @class in allClasses)
-                {
-                    var model = _compilation.GetSemanticModel(@class.SyntaxTree);
-                    var namedTypeSymbol = model.GetDeclaredSymbol(@class);
-
-                    if (namedTypeSymbol == null)
-                    {
+                        _context.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, value.Method.Name, parentType.Locations[0]));
                         continue;
                     }
 
-                    foreach (var @interface in namedTypeSymbol.AllInterfaces)
-                    {
-                        foreach (var serviceContract in serviceContracts)
-                        {
-                            if (SymbolEqualityComparer.Default.Equals(serviceContract, @interface))
-                            {
-                                yield return (namedTypeSymbol, serviceContract);
-                            }
-                        }
-                    }
+                    builder.Add(new OperationContractSpec(value.ServiceContract,
+                        value.Method.ContainingType, value.MissingOperationContract,
+                        value.Method,
+                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol));
                 }
-            }
 
-            private IEnumerable<INamedTypeSymbol> FindServiceContracts(IEnumerable<SyntaxNode> allNodes)
-            {
-                var SSMServiceContractSymbol = _compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
-                var CoreWCFServiceContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
+                ImmutableArray<OperationContractSpec> operationContractSpecs = builder.ToImmutable();
 
-                IEnumerable<InterfaceDeclarationSyntax> allInterfaces = allNodes
-                   .Where(static d => d.IsKind(SyntaxKind.InterfaceDeclaration))
-                   .OfType<InterfaceDeclarationSyntax>();
-
-                foreach (var @interface in allInterfaces)
+                if (operationContractSpecs.IsEmpty)
                 {
-                    var model = _compilation.GetSemanticModel(@interface.SyntaxTree);
-                    var symbol = model.GetDeclaredSymbol(@interface);
-                    if (symbol == null)
-                    {
-                        continue;
-                    }
-
-                    if (symbol.HasOneOfAttributes(SSMServiceContractSymbol, CoreWCFServiceContractSymbol))
-                    {
-                        yield return symbol;
-                    }
+                    return SourceGenerationSpec.None;
                 }
 
-                foreach (var reference in _compilation.References)
-                {
-                    if (_compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assemblySymbol)
-                    {
-                        continue;
-                    }
-
-                    var visitor = new FindAllServiceContractsVisitor(new INamedTypeSymbol?[]
-                    {
-                        SSMServiceContractSymbol,
-                        CoreWCFServiceContractSymbol
-                    });
-
-                    foreach(var serviceContract in visitor.Visit(assemblySymbol.GlobalNamespace))
-                    {
-                        yield return serviceContract;
-                    }
-                }
+                return new SourceGenerationSpec(operationContractSpecs,
+                    _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
+                    _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"));
             }
 
             internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
                 && methodDeclarationSyntax.ParameterList.Parameters.Count > 0
                 && methodDeclarationSyntax.ParameterList.Parameters.Any(static p => p.AttributeLists.Count > 0)
                 && (methodDeclarationSyntax.Body != null || methodDeclarationSyntax.ExpressionBody != null);
-
 
             internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
             {

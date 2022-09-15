@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -16,10 +15,11 @@ namespace CoreWCF.BuildTools
                 transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
                 .Where(static c => c is not null);
 
-            IncrementalValueProvider<(Compilation, ImmutableArray<MethodDeclarationSyntax?>)> compilationAndMethods =
+            IncrementalValueProvider<(Compilation Compilation, ImmutableArray<MethodDeclarationSyntax?> Methods)> compilationAndMethods =
               context.CompilationProvider.Combine(methodDeclarations.Collect());
 
-            context.RegisterSourceOutput(compilationAndMethods, (spc, source) => Execute(source.Item1, source.Item2!, spc));
+            context.RegisterSourceOutput(compilationAndMethods, (spc, source)
+                => Execute(source.Compilation, source.Methods!, spc));
         }
 
         private void Execute(Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
@@ -29,10 +29,10 @@ namespace CoreWCF.BuildTools
                 return;
             }
 
-            OperationParameterInjectionSourceGenerationContext context = new OperationParameterInjectionSourceGenerationContext(sourceProductionContext);
+            OperationParameterInjectionSourceGenerationContext context = new(sourceProductionContext);
             Parser parser = new(compilation, context);
-            SourceGenerationSpec? spec = parser.GetGenerationSpec(contextMethods);
-            if (spec != null)
+            SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
+            if (spec != SourceGenerationSpec.None)
             {
                 Emitter emitter = new(context, spec);
                 emitter.Emit();
