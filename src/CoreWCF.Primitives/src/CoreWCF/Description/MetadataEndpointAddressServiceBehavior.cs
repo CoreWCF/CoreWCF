@@ -6,11 +6,11 @@ using CoreWCF.Channels;
 
 namespace CoreWCF.Description
 {
-    public class CustomEndpointAddressForMetadataBehavior : IServiceBehavior
+    public class MetadataEndpointAddressServiceBehavior : IServiceBehavior
     {
         private readonly IMetadataEndpointAddressProvider _provider;
 
-        public CustomEndpointAddressForMetadataBehavior(IMetadataEndpointAddressProvider provider)
+        public MetadataEndpointAddressServiceBehavior(IMetadataEndpointAddressProvider provider)
         {
             _provider = provider;
         }

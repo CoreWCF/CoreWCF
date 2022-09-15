@@ -14,11 +14,11 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Metadata.Tests
 {
-    public class CustomEndpointAddressForMetadataBehaviorTests
+    public class MetadataEndpointAddressServiceBehaviorTests
     {
         private readonly ITestOutputHelper _output;
 
-        public CustomEndpointAddressForMetadataBehaviorTests(ITestOutputHelper output)
+        public MetadataEndpointAddressServiceBehaviorTests(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -30,7 +30,7 @@ namespace CoreWCF.Metadata.Tests
                 _output,
                 configureServices: services =>
                 {
-                    services.AddSingleton<IServiceBehavior, CustomEndpointAddressForMetadataBehavior>();
+                    services.AddSingleton<IServiceBehavior, MetadataEndpointAddressServiceBehavior>();
                     services.AddSingleton<IMetadataEndpointAddressProvider, UseXForwardedHeadersForMetadataAddressProvider>();
                 },
                 configureHttpClient: httpClient =>
