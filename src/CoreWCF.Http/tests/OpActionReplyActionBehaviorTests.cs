@@ -26,13 +26,11 @@ namespace CoreWCF.Http.Tests
         }
 
         [Theory]
-        /* message handled in service but client throws
         [InlineData("defaultaction")]
         [InlineData("customaction")]
         [InlineData("uriaction")]
         [InlineData("emptyaction")]
         [InlineData("untypedaction")]
-        */
         [InlineData("defaultreplyaction")]
         [InlineData("customreplyaction")]
         [InlineData("urireplyaction")]
@@ -180,7 +178,7 @@ namespace CoreWCF.Http.Tests
                 services.AddServiceModelServices();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

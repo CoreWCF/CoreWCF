@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF;
 using CoreWCF.Channels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers
 {
@@ -117,50 +118,50 @@ namespace Helpers
 
         private static Task<Message> DeserialzieMessageFromStreamAsync(MemoryStream ms, MessageVersion messageVersion)
         {
-            var bmebe = new BinaryMessageEncodingBindingElement
+            var tmebe = new TextMessageEncodingBindingElement
             {
                 MessageVersion = messageVersion,
                 ReaderQuotas = XmlDictionaryReaderQuotas.Max
             };
-            MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
-            return bmef.Encoder.ReadMessageAsync(ms, int.MaxValue);
+            MessageEncoderFactory tmef = tmebe.CreateMessageEncoderFactory();
+            return tmef.Encoder.ReadMessageAsync(ms, int.MaxValue);
         }
 
         private static MemoryStream SerializeMessageToStream(System.ServiceModel.Channels.Message requestMessage)
         {
-            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement
+            var tmebe = new System.ServiceModel.Channels.TextMessageEncodingBindingElement
             {
                 MessageVersion = requestMessage.Version,
                 ReaderQuotas = XmlDictionaryReaderQuotas.Max
             };
-            System.ServiceModel.Channels.MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
+            System.ServiceModel.Channels.MessageEncoderFactory tmef = tmebe.CreateMessageEncoderFactory();
             var ms = new MemoryStream(64 * 1024); // 64K to keep out of LOH
-            bmef.Encoder.WriteMessage(requestMessage, ms);
+            tmef.Encoder.WriteMessage(requestMessage, ms);
             ms.Position = 0;
             return ms;
         }
 
-        private static System.ServiceModel.Channels.Message DeserialzieMessageFromStream(MemoryStream ms, System.ServiceModel.Channels.MessageVersion messageVersion)
+        internal static System.ServiceModel.Channels.Message DeserialzieMessageFromStream(MemoryStream ms, System.ServiceModel.Channels.MessageVersion messageVersion)
         {
-            var bmebe = new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement
+            var tmebe = new System.ServiceModel.Channels.TextMessageEncodingBindingElement
             {
                 MessageVersion = messageVersion,
                 ReaderQuotas = XmlDictionaryReaderQuotas.Max
             };
-            System.ServiceModel.Channels.MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
-            return bmef.Encoder.ReadMessage(ms, int.MaxValue);
+            System.ServiceModel.Channels.MessageEncoderFactory tmef = tmebe.CreateMessageEncoderFactory();
+            return tmef.Encoder.ReadMessage(ms, int.MaxValue);
         }
 
         private static MemoryStream SerializeMessageToStream(Message requestMessage)
         {
-            var bmebe = new BinaryMessageEncodingBindingElement
+            var tmebe = new TextMessageEncodingBindingElement
             {
                 MessageVersion = requestMessage.Version,
                 ReaderQuotas = XmlDictionaryReaderQuotas.Max
             };
-            MessageEncoderFactory bmef = bmebe.CreateMessageEncoderFactory();
+            MessageEncoderFactory tmef = tmebe.CreateMessageEncoderFactory();
             var ms = new MemoryStream(64 * 1024); // 64K to keep out of LOH
-            bmef.Encoder.WriteMessageAsync(requestMessage, ms);
+            tmef.Encoder.WriteMessageAsync(requestMessage, ms);
             ms.Position = 0;
             return ms;
         }
@@ -195,6 +196,25 @@ namespace Helpers
                     comObj.Abort();
                 }
             }
+        }
+
+        public static void RegisterApplicationLifetime(this IServiceCollection services)
+        {
+#if NETCOREAPP3_1_OR_GREATER
+            var applicationLifetimeType =
+                typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(
+                "Microsoft.AspNetCore.Hosting.ApplicationLifetime");
+            services.AddSingleton(typeof(Microsoft.Extensions.Hosting.IHostApplicationLifetime), applicationLifetimeType);
+#pragma warning disable CS0618 // Type or member is obsolete
+            services.AddSingleton(provider =>
+                provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.AspNetCore.Hosting.IApplicationLifetime);
+            services.AddSingleton(provider =>
+                provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.Extensions.Hosting.IApplicationLifetime);
+#pragma warning restore CS0618 // Type or member is obsolete
+#else
+            services.AddSingleton<Microsoft.Extensions.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
+#endif
+
         }
     }
 }

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
-//using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Xml;
@@ -28,7 +27,7 @@ namespace CoreWCF.Description
             typeof(DataContractFormatAttribute)
         };
 
-        //static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
+        static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
 
         internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
 
@@ -83,7 +82,7 @@ namespace CoreWCF.Description
                         }
                         UpdateOperationsWithInterfaceAttributes(contractDescription, reflectionInfo);
                         AddBehaviors(contractDescription, false, reflectionInfo);
-
+                        AddAuthorizeOperations(contractDescription,false, reflectionInfo);
                         _contracts.Add(actualContractType, contractDescription);
                     }
                 }
@@ -204,6 +203,28 @@ namespace CoreWCF.Description
             return contract;
         }
 
+        //This needs proper review.
+        private void AddAuthorizeOperations(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
+        {
+
+            for(int i=0; i< contractDesc.Operations.Count; i++)
+            {
+                OperationDescription opDesc = contractDesc.Operations[i];
+                Type targetIface = implIsCallback ? opDesc.DeclaringContract.CallbackContractType : opDesc.DeclaringContract.ContractType;
+                ApplyServiceInheritance(
+                    opDesc.AuthorizeOperation,
+                    delegate (Type currentType, KeyedByTypeCollection<IAuthorizeOperation> behaviors)
+                    {
+                        KeyedByTypeCollection<IAuthorizeOperation> toAdd =
+                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
+                        for (int j = 0; j < toAdd.Count; j++)
+                        {
+                            opDesc.AuthorizeOperation.Add(toAdd[j]);
+                        }
+                    });
+            }
+        }
+
         private void AddBehaviors(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
         {
             ServiceContractAttribute contractAttr = ServiceReflector.GetRequiredSingleAttribute<ServiceContractAttribute>(reflectionInfo.iface);
@@ -230,12 +251,13 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                     {
                         KeyedByTypeCollection<IOperationBehavior> toAdd =
-                            GetIOperationBehaviorAttributesFromType(opDesc, targetIface, currentType);
+                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
                             behaviors.Add(toAdd[j]);
                         }
                     });
+
                 // then look for IOperationBehaviors on interface type
                 if (!isInherited)
                 {
@@ -244,7 +266,7 @@ namespace CoreWCF.Description
                         delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                         {
                             KeyedByTypeCollection<IOperationBehavior> toAdd =
-                                GetIOperationBehaviorAttributesFromType(opDesc, targetIface, null);
+                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null);
                             for (int j = 0; j < toAdd.Count; j++)
                             {
                                 behaviors.Add(toAdd[j]);
@@ -356,32 +378,30 @@ namespace CoreWCF.Description
             }
         }
 
-        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, CustomAttributeProvider provider)
+        private IEnumerable<Type> GetKnownTypes(object[] knownTypeAttributes, ICustomAttributeProvider provider)
         {
-            // The named method must take a parameter of ICustomAttributeProvider which isn't available so this can only specify known types by Type
-            //if (knownTypeAttributes.Length == 1)
-            //{
-            //    ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
-            //    if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
-            //    {
-            //        Type type = knownTypeAttribute.DeclaringType;
-            //        if (type == null)
-            //        {
-            //            type = (provider as TypeInfo)?.AsType();
-            //            if (type == null)
-            //                type = ((MethodInfo)provider).DeclaringType;
-            //        }
-            //        type.GetMethods()
-            //        MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, knownTypesMethodParamType, null);
-            //        if (method == null)
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
+            if (knownTypeAttributes.Length == 1)
+            {
+                ServiceKnownTypeAttribute knownTypeAttribute = (ServiceKnownTypeAttribute)knownTypeAttributes[0];
+                if (!string.IsNullOrEmpty(knownTypeAttribute.MethodName))
+                {
+                    Type type = knownTypeAttribute.DeclaringType;
+                    if (type == null)
+                    {
+                        type = (provider as TypeInfo)?.AsType();
+                        if (type == null)
+                            type = ((MethodInfo)provider).DeclaringType;
+                    }
+                    MethodInfo method = type.GetMethod(knownTypeAttribute.MethodName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public, null, knownTypesMethodParamType, null);
+                    if (method == null)
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeUnknownMethod3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
-            //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
+                    if (!typeof(IEnumerable<Type>).IsAssignableFrom(method.ReturnType))
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxKnownTypeAttributeReturnType3, provider, knownTypeAttribute.MethodName, type.FullName)));
 
-            //        return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
-            //    }
-            //}
+                    return (IEnumerable<Type>)method.Invoke(null, new object[] { provider });
+                }
+            }
 
             List<Type> knownTypes = new List<Type>();
             for (int i = 0; i < knownTypeAttributes.Length; ++i)
@@ -397,17 +417,22 @@ namespace CoreWCF.Description
             return knownTypes;
         }
 
-        private KeyedByTypeCollection<IOperationBehavior> GetIOperationBehaviorAttributesFromType(OperationDescription opDesc, Type targetIface, Type implType)
+        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType)
         {
-            var result = new KeyedByTypeCollection<IOperationBehavior>();
+            var result = new KeyedByTypeCollection<TOperation>();
             var ifaceMap = default(InterfaceMapping);
             bool useImplAttrs = false;
             if (implType != null)
             {
                 if (targetIface.IsAssignableFrom(implType) && targetIface.IsInterface)
                 {
-                    ifaceMap = implType.GetInterfaceMap(targetIface);
-                    useImplAttrs = true;
+                    // if implType is an interface not an implementation class
+                    // we cannot use the interface map for looking up the implementation methods
+                    if (!implType.IsInterface)
+                    {
+                        ifaceMap = implType.GetInterfaceMap(targetIface);
+                        useImplAttrs = true;
+                    }
                 }
                 else
                 {
@@ -432,8 +457,8 @@ namespace CoreWCF.Description
             return result;
         }
 
-        private void ProcessOpMethod(MethodInfo opMethod, bool canHaveBehaviors,
-                             OperationDescription opDesc, KeyedByTypeCollection<IOperationBehavior> result,
+        private void ProcessOpMethod<IOperation>(MethodInfo opMethod, bool canHaveBehaviors,
+                             OperationDescription opDesc, KeyedByTypeCollection<IOperation> result,
                              InterfaceMapping ifaceMap, bool useImplAttrs)
         {
             MethodInfo method = null;
@@ -462,10 +487,10 @@ namespace CoreWCF.Description
                 method = opMethod;
             }
 
-            object[] methodAttributes = ServiceReflector.GetCustomAttributes(method, typeof(IOperationBehavior), false);
+            object[] methodAttributes = ServiceReflector.GetCustomAttributes(method, typeof(IOperation), false);
             for (int k = 0; k < methodAttributes.Length; k++)
             {
-                IOperationBehavior opBehaviorAttr = (IOperationBehavior)methodAttributes[k];
+                IOperation opBehaviorAttr = (IOperation)methodAttributes[k];
                 if (canHaveBehaviors)
                 {
                     result.Add(opBehaviorAttr);
@@ -802,9 +827,9 @@ namespace CoreWCF.Description
                 }
             }
 
-            // this contract 
+            // this contract
             CreateOperationDescriptions(contractDescription, reflectionInfo, contractType, contractDescription, MessageDirection.Input);
-            // CallbackContract 
+            // CallbackContract
             if (callbackType != null && !inheritedCallbackTypes.Contains(callbackType))
             {
                 CreateOperationDescriptions(contractDescription, reflectionInfo, callbackType, contractDescription, MessageDirection.Output);
@@ -813,15 +838,18 @@ namespace CoreWCF.Description
             return contractDescription;
         }
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetDualCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetDualCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
@@ -917,7 +945,7 @@ namespace CoreWCF.Description
                         existingOp.TaskTResult = newOp.TaskTResult;
                         if (existingOp.SyncMethod != null)
                         {
-                            // Task vs. Sync 
+                            // Task vs. Sync
                             VerifyConsistency(new SyncTaskOperationConsistencyVerifier(existingOp, newOp));
                         }
                         else
@@ -1224,7 +1252,7 @@ namespace CoreWCF.Description
 
         private MessageDescription CreateParameterMessageDescription(ParameterInfo[] parameters,
                                                   Type returnType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string methodName,
                                                   string defaultNS,
@@ -1276,7 +1304,7 @@ namespace CoreWCF.Description
             return messageDescription;
         }
 
-        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, CustomAttributeProvider attrProvider, Type type)
+        private static MessagePartDescription CreateParameterPartDescription(XmlName defaultName, string defaultNS, int index, ICustomAttributeProvider attrProvider, Type type)
         {
             MessagePartDescription parameterPart;
             MessageParameterAttribute paramAttr = ServiceReflector.GetSingleAttribute<MessageParameterAttribute>(attrProvider);
@@ -1292,7 +1320,7 @@ namespace CoreWCF.Description
         }
 
         internal MessageDescription CreateTypedMessageDescription(Type typedMessageType,
-                                                  CustomAttributeProvider returnAttrProvider,
+                                                  ICustomAttributeProvider returnAttrProvider,
                                                   XmlName returnValueName,
                                                   string defaultNS,
                                                   string action,
@@ -1430,7 +1458,7 @@ namespace CoreWCF.Description
         }
 
         private MessagePartDescription CreateMessagePartDescription(Type bodyType,
-                                                         CustomAttributeProvider attrProvider,
+                                                         ICustomAttributeProvider attrProvider,
                                                          XmlName defaultName,
                                                          string defaultNS,
                                                          int parameterIndex,
@@ -1456,9 +1484,9 @@ namespace CoreWCF.Description
                 };
             }
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                partDescription.MemberInfo = attrProvider.MemberInfo;
+                partDescription.MemberInfo = (MemberInfo)attrProvider;
             }
             partDescription.Type = bodyType;
             partDescription.Index = parameterIndex;
@@ -1466,7 +1494,7 @@ namespace CoreWCF.Description
         }
 
         private MessageHeaderDescription CreateMessageHeaderDescription(Type headerParameterType,
-                                                                    CustomAttributeProvider attrProvider,
+                                                                    ICustomAttributeProvider attrProvider,
                                                                     XmlName defaultName,
                                                                     string defaultNS,
                                                                     int parameterIndex,
@@ -1505,16 +1533,16 @@ namespace CoreWCF.Description
                 headerDescription.Relay = headerAttr.Relay;
             }
             headerDescription.SerializationPosition = serializationPosition;
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                headerDescription.MemberInfo = attrProvider.MemberInfo;
+                headerDescription.MemberInfo = attrProvider as MemberInfo;
             }
 
             headerDescription.Index = parameterIndex;
             return headerDescription;
         }
 
-        private MessagePropertyDescription CreateMessagePropertyDescription(CustomAttributeProvider attrProvider,
+        private MessagePropertyDescription CreateMessagePropertyDescription(ICustomAttributeProvider attrProvider,
                                                             XmlName defaultName,
                                                             int parameterIndex)
         {
@@ -1525,9 +1553,9 @@ namespace CoreWCF.Description
                 Index = parameterIndex
             };
 
-            if (attrProvider.MemberInfo != null)
+            if (attrProvider is MemberInfo)
             {
-                propertyDescription.MemberInfo = attrProvider.MemberInfo;
+                propertyDescription.MemberInfo = attrProvider as MemberInfo;
             }
 
             return propertyDescription;
@@ -1981,10 +2009,10 @@ namespace CoreWCF.Description
         //  - the service type you want to pull behavior attributes from
         //  - the "destination" behavior collection, where all the right behavior attributes should be added to
         //  - a delegate
-        // The delegate is just a function you write that behaves like this: 
+        // The delegate is just a function you write that behaves like this:
         //    imagine that "currentType" was the only type (imagine there was no inheritance hierarchy)
         //    find desired behavior attributes on this type, and add them to "behaviors"
-        // ApplyServiceInheritance then uses the logic you provide for getting behavior attributes from a single type, 
+        // ApplyServiceInheritance then uses the logic you provide for getting behavior attributes from a single type,
         // and it walks the actual type hierarchy and does the inheritance/override logic for you.
         public static void ApplyServiceInheritance<IBehavior, TBehaviorCollection>(
                      TBehaviorCollection descriptionBehaviors,
@@ -2006,10 +2034,10 @@ namespace CoreWCF.Description
         //  - the type you want to pull behavior attributes from
         //  - the "destination" behavior collection, where all the right behavior attributes should be added to
         //  - a delegate
-        // The delegate is just a function you write that behaves like this: 
+        // The delegate is just a function you write that behaves like this:
         //    imagine that "currentType" was the only type (imagine there was no inheritance hierarchy)
         //    find desired behavior attributes on this type, and add them to "behaviors"
-        // AddBehaviorsAtOneScope then uses the logic you provide for getting behavior attributes from a single type, 
+        // AddBehaviorsAtOneScope then uses the logic you provide for getting behavior attributes from a single type,
         // and it does the override logic for you (only add the behavior if it wasn't already in the descriptionBehaviors)
         private static void AddBehaviorsAtOneScope<IBehavior, TBehaviorCollection>(
                      Type type,
@@ -2049,18 +2077,22 @@ namespace CoreWCF.Description
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };
+        internal static DataContractFormatAttribute DefaultDataContractFormatAttribute = new DataContractFormatAttribute();
 
         internal const string ResponseSuffix = "Response";
 
-        internal static Attribute GetFormattingAttribute(CustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
+        internal static Attribute GetFormattingAttribute(ICustomAttributeProvider attrProvider, Attribute defaultFormatAttribute)
         {
             if (attrProvider != null)
             {
-                if (attrProvider.IsDefined(typeof(XmlSerializerFormatAttribute), false))
+                var attributes = attrProvider.GetDualCustomAttributes(typeof(XmlSerializerFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<XmlSerializerFormatAttribute>(attrProvider, s_formatterAttributes);
                 }
-                if (attrProvider.IsDefined(typeof(DataContractFormatAttribute), false))
+
+                attributes = attrProvider.GetDualCustomAttributes(typeof(DataContractFormatAttribute), false);
+                if(attributes.Length > 0)
                 {
                     return ServiceReflector.GetSingleAttribute<DataContractFormatAttribute>(attrProvider, s_formatterAttributes);
                 }

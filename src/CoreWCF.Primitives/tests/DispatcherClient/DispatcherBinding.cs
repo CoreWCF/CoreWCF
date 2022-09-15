@@ -14,18 +14,24 @@ namespace DispatcherClient
     {
         private readonly Action<IServiceCollection> _configureServices;
         private readonly Action<ServiceHostBase> _configureServiceHostBase;
+        private readonly MessageVersion _messageVersion;
 
-        internal DispatcherBinding(Action<IServiceCollection> configureServices, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default)
+        internal DispatcherBinding(Action<IServiceCollection> configureServices, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default, MessageVersion messageVersion = null)
         {
             _configureServices = configureServices;
             _configureServiceHostBase = configureServiceHostBase;
+            if (messageVersion == default)
+            {
+                messageVersion = MessageVersion.Default;
+            }
+            _messageVersion = messageVersion;
         }
 
         public override string Scheme => "corewcf";
 
         public override BindingElementCollection CreateBindingElements()
         {
-            var messageEncoder = new TextMessageEncodingBindingElement();
+            var messageEncoder = new TextMessageEncodingBindingElement() { MessageVersion = _messageVersion };
             var transportBindingElement = new DispatcherTransportBindingElement<TService, TContract>(_configureServices, _configureServiceHostBase);
             var elements = new BindingElementCollection(new BindingElement[] { messageEncoder, transportBindingElement });
             return elements;

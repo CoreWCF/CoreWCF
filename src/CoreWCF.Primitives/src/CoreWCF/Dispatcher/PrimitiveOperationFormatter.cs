@@ -24,6 +24,7 @@ namespace CoreWCF.Dispatcher
         private ActionHeader _actionHeader10;
         private ActionHeader _replyActionHeaderNone;
         private ActionHeader _replyActionHeader10;
+        private ActionHeader _replyActionHeaderAugust2004;
         private readonly XmlDictionaryString _requestWrapperName;
         private readonly XmlDictionaryString _requestWrapperNamespace;
         private readonly XmlDictionaryString _responseWrapperName;
@@ -158,19 +159,19 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        //ActionHeader ReplyActionHeaderAugust2004
-        //{
-        //    get
-        //    {
-        //        if (replyActionHeaderAugust2004 == null)
-        //        {
-        //            replyActionHeaderAugust2004 =
-        //                ActionHeader.Create(this.replyAction, AddressingVersion.WSAddressingAugust2004);
-        //        }
+        ActionHeader ReplyActionHeaderAugust2004
+        {
+            get
+            {
+                if (_replyActionHeaderAugust2004 == null)
+                {
+                    _replyActionHeaderAugust2004 =
+                        ActionHeader.Create(_replyAction, AddressingVersion.WSAddressingAugust2004);
+                }
 
-        //        return replyActionHeaderAugust2004;
-        //    }
-        //}
+                return _replyActionHeaderAugust2004;
+            }
+        }
 
         private static XmlDictionaryString AddToDictionary(XmlDictionary dictionary, string s)
         {
@@ -225,12 +226,11 @@ namespace CoreWCF.Dispatcher
                 return null;
             }
 
-            //if (addressing == AddressingVersion.WSAddressingAugust2004)
-            //{
-            //    return ReplyActionHeaderAugust2004;
-            //}
-            //else 
-            if (addressing == AddressingVersion.WSAddressing10)
+            if (addressing == AddressingVersion.WSAddressingAugust2004)
+            {
+                return ReplyActionHeaderAugust2004;
+            }
+            else if (addressing == AddressingVersion.WSAddressing10)
             {
                 return ReplyActionHeader10;
             }
@@ -549,14 +549,14 @@ namespace CoreWCF.Dispatcher
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operation.Name, xe.Message),
                         xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    OperationFormatter.CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, _operation.Name, fe.Message),
                         fe));
             }

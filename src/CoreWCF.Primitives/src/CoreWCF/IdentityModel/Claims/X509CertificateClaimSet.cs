@@ -15,7 +15,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Claims
 {
-    internal class X509CertificateClaimSet : ClaimSet, IIdentityInfo, IDisposable
+    public class X509CertificateClaimSet : ClaimSet, IIdentityInfo, IDisposable
     {
         private readonly X509Certificate2 _certificate;
         private DateTime _expirationTime = SecurityUtils.MinUtcDateTime;

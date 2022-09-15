@@ -16,6 +16,7 @@ using System.Security.Authentication;
 #endif // NET472
 using System.Text;
 using Xunit.Abstractions;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Helpers
 {
@@ -80,6 +81,9 @@ namespace Helpers
         //    };
         //}
 
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public static IWebHostBuilder CreateHttpSysBuilder<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -96,7 +100,6 @@ namespace Helpers
             {
                 options.Authentication.Schemes = Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.None;
                 options.Authentication.AllowAnonymous = true;
-                options.AllowSynchronousIO = true;
                 options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices");
                 options.UrlPrefixes.Add("http://+:80/Temporary_Listen_Addresses/CoreWCFTestServices/MorePath");
             })
@@ -116,7 +119,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.AllowSynchronousIO = true;
                     options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                     {
                         if (Debugger.IsAttached)
@@ -126,6 +128,7 @@ namespace Helpers
                     });
                 })
             .UseStartup<TStartup>();
+
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
@@ -139,7 +142,6 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 8080, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -164,8 +166,108 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
                 {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+                options.Listen(address: IPAddress.Any, 8443, listenOptions =>
+                {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
+            .UseStartup<TStartup>();
+
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+        public static IWebHostBuilder CreateHttpsWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
+        WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                if(outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseHttpSys(options =>
+            {
+                options.Authentication.Schemes = Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.Negotiate
+                                                 | Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.NTLM;
+                options.MaxConnections = null;
+                options.MaxRequestBodySize = 30000000;
+                options.UrlPrefixes.Add("https://localhost:44300");
+            })
+            .UseStartup<TStartup>();
+
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+        public static IWebHostBuilder CreateWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default) where TStartup : class =>
+        WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+                .ConfigureLogging((ILoggingBuilder logging) =>
+                {
+                    if (outputHelper != default)
+                        logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                    logging.AddFilter("Default", LogLevel.Debug);
+                    logging.AddFilter("Microsoft", LogLevel.Debug);
+                    logging.SetMinimumLevel(LogLevel.Debug);
+                })
+#endif // DEBUG
+                .UseHttpSys(options =>
+                {
+                    options.AllowSynchronousIO = true;
+                    options.Authentication.AllowAnonymous = true;
+                    options.Authentication.Schemes = Microsoft.AspNetCore.Server.HttpSys.AuthenticationSchemes.None;
+                    options.MaxConnections = null;
+                    options.MaxRequestBodySize = 30000000;
+                    options.UrlPrefixes.Add("http://localhost:8085");
+                })
+                .UseStartup<TStartup>();
+
+        public static IWebHostBuilder CreateHttpsWebHostBuilder(ITestOutputHelper outputHelper, Type startupType) =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                if (outputHelper != default)
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseKestrel(options =>
+            {
+                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
+                {
+                    listenOptions.UseHttps(httpsOptions =>
+                    {
+#if NET472
+                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+#endif // NET472
+                    });
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
@@ -185,7 +287,7 @@ namespace Helpers
                     }
                 });
             })
-            .UseStartup<TStartup>();
+            .UseStartup(startupType);
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
         {
@@ -308,6 +410,45 @@ namespace Helpers
             }
             Stream stream = input.stream;
             return GetStringFrom(stream);
+        }
+
+        //only for test, don't use in production code
+        public static X509Certificate2 GetServiceCertificate()
+        {
+            string AspNetHttpsOid = "1.3.6.1.4.1.311.84.1.1";
+            X509Certificate2 foundCert = null;
+            using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+            {
+                // X509Store.Certificates creates a new instance of X509Certificate2Collection with
+                // each access to the property. The collection needs to be cleaned up correctly so
+                // keeping a single reference to fetched collection.
+                store.Open(OpenFlags.ReadOnly);
+                var certificates = store.Certificates;
+                foreach (var cert in certificates)
+                {
+                    foreach (var extension in cert.Extensions)
+                    {
+                        if (AspNetHttpsOid.Equals(extension.Oid?.Value))
+                        {
+                            // Always clone certificate instances when you don't own the creation
+                            foundCert = new X509Certificate2(cert);
+                            break;
+                        }
+                    }
+
+                    if (foundCert != null)
+                    {
+                        break;
+                    }
+                }
+                // Cleanup
+                foreach (var cert in certificates)
+                {
+                    cert.Dispose();
+                }
+            }
+
+            return foundCert;
         }
     }
 }

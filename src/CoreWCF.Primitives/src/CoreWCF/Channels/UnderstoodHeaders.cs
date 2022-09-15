@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace CoreWCF.Channels
 {
-    internal sealed class UnderstoodHeaders : IEnumerable<MessageHeaderInfo>
+    public sealed class UnderstoodHeaders : IEnumerable<MessageHeaderInfo>
     {
         private readonly MessageHeaders _messageHeaders;
 
@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
             Modified = modified;
         }
 
-        internal bool Modified { get; set; }
+        public bool Modified { get; set; }
 
         public void Add(MessageHeaderInfo headerInfo)
         {

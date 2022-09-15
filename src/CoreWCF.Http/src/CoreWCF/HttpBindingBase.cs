@@ -23,14 +23,19 @@ namespace CoreWCF
             {
                 MessageVersion = MessageVersion.Soap11
             };
+            MtomMessageEncodingBindingElement = new MtomMessageEncodingBindingElement
+            {
+                MessageVersion = MessageVersion.Soap11
+            };
+
+            _httpsTransport.WebSocketSettings = _httpTransport.WebSocketSettings;
         }
+
         // [System.ComponentModel.DefaultValueAttribute(false)]
         // public bool AllowCookies { get { return default(bool); } set { } }
 
         // [System.ComponentModel.DefaultValueAttribute((long)524288)]
         // public long MaxBufferPoolSize { get { return default(long); } set { } }
-        // [System.ComponentModel.DefaultValueAttribute(65536)]
-        // public int MaxBufferSize { get { return default(int); } set { } }
 
         [DefaultValue(TransportDefaults.MaxReceivedMessageSize)]
         public long MaxReceivedMessageSize
@@ -42,7 +47,7 @@ namespace CoreWCF
             set
             {
                 _httpTransport.MaxReceivedMessageSize = value;
-                //_httpsTransport.MaxReceivedMessageSize = value;
+                _httpsTransport.MaxReceivedMessageSize = value;
             }
         }
 
@@ -52,7 +57,8 @@ namespace CoreWCF
             set
             {
                 _httpTransport.MaxBufferSize = value;
-                //_httpsTransport.MaxBufferSize = value;
+                _httpsTransport.MaxBufferSize = value;
+                MtomMessageEncodingBindingElement.MaxBufferSize = value;
             }
         }
 
@@ -71,7 +77,7 @@ namespace CoreWCF
                 }
 
                 value.CopyTo(TextMessageEncodingBindingElement.ReaderQuotas);
-                //value.CopyTo(this.mtomEncoding.ReaderQuotas);
+                value.CopyTo(MtomMessageEncodingBindingElement.ReaderQuotas);
 
                 SetReaderQuotas(value);
             }
@@ -89,7 +95,7 @@ namespace CoreWCF
             set
             {
                 TextMessageEncodingBindingElement.WriteEncoding = value;
-                //_mtomEncoding.WriteEncoding = value;
+                MtomMessageEncodingBindingElement.WriteEncoding = value;
             }
         }
 
@@ -110,6 +116,8 @@ namespace CoreWCF
 
         internal TextMessageEncodingBindingElement TextMessageEncodingBindingElement { get; }
 
+        internal MtomMessageEncodingBindingElement MtomMessageEncodingBindingElement { get; }
+
         internal abstract BasicHttpSecurity BasicHttpSecurity
         {
             get;
@@ -128,11 +136,11 @@ namespace CoreWCF
             Fx.Assert(BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
-            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential || basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
+            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
             {
                 throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.TransportWithMessageCredential));
             }
-            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport)
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
             {
                 basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
                 return _httpsTransport;

@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
+using System.Net.Http;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -77,6 +81,23 @@ namespace CoreWCF.Http.Tests
             }
         }
 
+        [Fact]
+        public async Task BadRequest400ResponseAsync()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                using (var httpClient = new HttpClient())
+                {
+                    var response = await httpClient.GetAsync("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc");
+                    Assert.False(response.IsSuccessStatusCode);
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                    Assert.Equal(0, response.Content.Headers.ContentLength);
+                }
+            }
+        }
+
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)
@@ -84,7 +105,7 @@ namespace CoreWCF.Http.Tests
                 services.AddServiceModelServices();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

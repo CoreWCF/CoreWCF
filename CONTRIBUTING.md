@@ -11,11 +11,11 @@ Please start a discussion on the [core repo issue tracker](https://github.com/Co
 
 ## Platform
 
-Core WCF is built targeting .NET Standard 2.0
+CoreWCF is built targeting .NET Standard 2.0
 
 ## Building
 
-Run `dotnet build` from the command line inside the src folder. This builds Core WCF.
+Run `dotnet build` from the command line inside the src folder. This builds CoreWCF.
 
 ## Other discussions
 
@@ -41,7 +41,7 @@ You will need to sign a [Contributor License Agreement](https://cla.dotnetfounda
 
 Make sure you can build the code. Familiarize yourself with the project workflow and our coding conventions. If you don't know what a pull request is read this article: https://help.github.com/articles/using-pull-requests.
 
-**We only accept PRs to the master branch.**
+**We only accept PRs to the main branch.**
 
 Before submitting a feature or substantial code contribution please discuss it with the team and ensure it follows the product roadmap. Here's a list of blog posts that are worth reading before doing a pull request:
 

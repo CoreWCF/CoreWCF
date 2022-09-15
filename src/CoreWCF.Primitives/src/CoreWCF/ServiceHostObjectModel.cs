@@ -4,15 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
+using CoreWCF.Dispatcher;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,69 +52,46 @@ namespace CoreWCF
 
         protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
         {
-            ServiceDescription description;
-            TService instance = _serviceProvider.GetService<TService>();
-            if (instance != null)
-            {
-                description = ServiceDescription.GetService(instance);
-            }
-            else
-            {
-                description = ServiceDescription.GetService<TService>();
-            }
-
-            // Any user supplied IServiceBehaviors can be applied now
-            IEnumerable<IServiceBehavior> serviceBehaviors = _serviceProvider.GetServices<IServiceBehavior>();
-            foreach (IServiceBehavior behavior in serviceBehaviors)
-            {
-                description.Behaviors.Add(behavior);
-            }
+            ServiceDescription description = _serviceProvider.GetService<ServiceDescription<TService>>();
 
             ServiceBehaviorAttribute serviceBehavior = description.Behaviors.Find<ServiceBehaviorAttribute>();
-            object serviceInstanceUsedAsABehavior = serviceBehavior.GetWellKnownSingleton();
+            TService serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetWellKnownSingleton();
             if (serviceInstanceUsedAsABehavior == null)
             {
-                serviceInstanceUsedAsABehavior = serviceBehavior.GetHiddenSingleton();
+                serviceInstanceUsedAsABehavior = (TService)serviceBehavior.GetHiddenSingleton();
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
+            // serviceInstanceUsedAsBehavior will be null when InstanceContextMode != Single
+            // In this case, we need to check if the service type is a behavior and if it is, create an instance to apply to behaviors
             if ((typeof(IServiceBehavior).IsAssignableFrom(typeof(TService)) || typeof(IContractBehavior).IsAssignableFrom(typeof(TService)))
-                && serviceInstanceUsedAsABehavior == null)
+                    && serviceInstanceUsedAsABehavior == null)
             {
-                if (instance == null)
+                serviceInstanceUsedAsABehavior = _serviceProvider.GetService<TService>(); // First try DI to get an instance
+                if (serviceInstanceUsedAsABehavior == null) // Not in DI so create the old WCF way using reflection
                 {
                     serviceInstanceUsedAsABehavior = ServiceDescription.CreateImplementation<TService>();
                 }
-                else
-                {
-                    serviceInstanceUsedAsABehavior = instance;
-                }
 
                 _disposableInstance = serviceInstanceUsedAsABehavior as IDisposable;
             }
 
-            if (instance != null)
+            if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
             {
-                if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
-                {
-                    SingletonInstance = instance;
-                }
-                else
-                {
-                    serviceBehavior.InstanceProvider = new DependencyInjectionInstanceProvider(_serviceProvider, typeof(TService));
-                    if (serviceInstanceUsedAsABehavior == null && instance is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
-                }
+                serviceBehavior.ServicePovider = _serviceProvider;
+
+                // If using Single, then ServiceBehavior fetched/created the instance and need to set on SingletonInstance
+                Debug.Assert(serviceInstanceUsedAsABehavior != null, "Service behavior should have created a singleton instance");
+                SingletonInstance = serviceInstanceUsedAsABehavior;
+            }
+            else
+            {
+                serviceBehavior.InstanceProvider = new DependencyInjectionWithLegacyFallbackInstanceProvider(_serviceProvider, typeof(TService));
             }
 
-            if (instance == null)
+            if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
             {
-                if (serviceInstanceUsedAsABehavior is IServiceBehavior behavior)
-                {
-                    description.Behaviors.Add(behavior);
-                }
+                description.Behaviors.Add(behavior);
             }
 
             ReflectedContractCollection reflectedContracts = new ReflectedContractCollection();
@@ -202,10 +179,10 @@ namespace CoreWCF
                     return true;
                 }
 
-                //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
-                //{
-                //    return true;
-                //}
+                if (_behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
+                {
+                    return true;
+                }
 
                 return false;
             }
@@ -217,10 +194,10 @@ namespace CoreWCF
                     return ReflectedContractCollection.GetConfigKey(_reflectedContracts[implementedContract]);
                 }
 
-                //if (this.behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
-                //{
-                //    return ServiceMetadataBehavior.MexContractName;
-                //}
+                if (_behaviors.Contains(typeof(ServiceMetadataBehavior)) && ServiceMetadataBehavior.IsMetadataImplementedType(implementedContract))
+                {
+                    return ServiceMetadataBehavior.MexContractName;
+                }
 
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SfxReflectedContractKeyNotFound2, implementedContract.FullName, string.Empty)));
             }
@@ -274,9 +251,19 @@ namespace CoreWCF
                      address.StartsWith("https://*:", StringComparison.OrdinalIgnoreCase) ||
                      address.StartsWith("https://*/", StringComparison.OrdinalIgnoreCase))
             {
-                address = "https://localhost" + address.Substring(8);
+                address = "https://localhost" + address.Substring(9);
             }
-
+            else if (address.StartsWith("https://*.", StringComparison.OrdinalIgnoreCase) ||
+                    address.StartsWith("http://*.", StringComparison.OrdinalIgnoreCase))
+            {
+                int colonIndex = address.IndexOf(':');
+                string beforeAsterisk = address.Substring(0, colonIndex + 3);
+                string rest = address.Substring(colonIndex + 4);
+                StringBuilder sb = new StringBuilder(beforeAsterisk);
+                sb.Append(System.Net.Dns.GetHostName());
+                sb.Append(rest);
+                address = sb.ToString();
+            }
             return new Uri(address);
         }
 

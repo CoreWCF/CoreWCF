@@ -35,6 +35,46 @@ namespace CoreWCF.IdentityModel
             }
         }
 
+        public static byte[] GenerateSymmetricKey(int keySizeInBits)
+        {
+            int keySizeInBytes = ValidateKeySizeInBytes(keySizeInBits);
+            byte[] key = new byte[keySizeInBytes];
+            CryptoHelper.GenerateRandomBytes(key);
+            return key;
+        }
+
+        private static int ValidateKeySizeInBytes(int keySizeInBits)
+        {
+            int keySizeInBytes = keySizeInBits / 8;
+
+            if (keySizeInBits <= 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(keySizeInBits), SR.Format(SR.ID6033, keySizeInBits)));
+            }
+            else if (keySizeInBytes * 8 != keySizeInBits)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.ID6002, keySizeInBits), nameof(keySizeInBits)));
+            }
+
+            return keySizeInBytes;
+        }
+
+        internal static void ValidateBufferBounds(Array buffer, int offset, int count)
+        {
+            if (buffer == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(buffer)));
+            }
+            if (count < 0 || count > buffer.Length)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.ValueMustBeInRange, 0, buffer.Length)));
+            }
+            if (offset < 0 || offset > buffer.Length - count)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), SR.Format(SR.ValueMustBeInRange, 0, buffer.Length - count)));
+            }
+        }
+
         public static bool FixedTimeEquals(byte[] a, byte[] b)
         {
             if (a == null && b == null)

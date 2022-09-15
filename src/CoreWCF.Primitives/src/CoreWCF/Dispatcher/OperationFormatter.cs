@@ -13,11 +13,11 @@ using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Dispatcher
 {
-    internal abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
+    public abstract class OperationFormatter : IClientMessageFormatter, IDispatchMessageFormatter
     {
         private readonly XmlDictionaryString _action;
         private readonly XmlDictionaryString _replyAction;
-        protected StreamFormatter requestStreamFormatter, replyStreamFormatter;
+        internal StreamFormatter requestStreamFormatter, replyStreamFormatter;
 
         public OperationFormatter(OperationDescription description, bool isRpc, bool isEncoded)
         {
@@ -198,14 +198,14 @@ namespace CoreWCF.Dispatcher
             catch (XmlException xe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, xe.Message),
                         xe));
             }
             catch (FormatException fe)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxErrorDeserializingRequestBodyMore, OperationName, fe.Message),
                         fe));
             }
@@ -513,14 +513,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal static NetDispatcherFaultException CreateDeserializationFailedFault(string reason, Exception innerException)
-        {
-            reason = SR.Format(SR.SFxDeserializationFailed1, reason);
-            FaultCode code = new FaultCode(FaultCodeConstants.Codes.DeserializationFailed, FaultCodeConstants.Namespaces.NetDispatch);
-            code = FaultCode.CreateSenderFaultCode(code);
-            return new NetDispatcherFaultException(reason, code, innerException);
-        }
-
         internal static void TraceAndSkipElement(XmlReader xmlReader)
         {
             //if (DiagnosticUtility.ShouldTraceVerbose)
@@ -728,54 +720,50 @@ namespace CoreWCF.Dispatcher
 
         internal abstract class OperationFormatterHeader : MessageHeader
         {
-            protected MessageHeader innerHeader; //use innerHeader to handle versionSupported, actor/role handling etc.
-            protected OperationFormatter operationFormatter;
-            protected MessageVersion version;
+            private readonly MessageHeader _innerHeader; //use innerHeader to handle versionSupported, actor/role handling etc.
 
             public OperationFormatterHeader(OperationFormatter operationFormatter, MessageVersion version, string name, string ns, bool mustUnderstand, string actor, bool relay)
             {
-                this.operationFormatter = operationFormatter;
-                this.version = version;
                 if (actor != null)
                 {
-                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
+                    _innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, actor, relay);
                 }
                 else
                 {
-                    innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
+                    _innerHeader = CreateHeader(name, ns, null/*headerValue*/, mustUnderstand, "", relay);
                 }
             }
 
 
             public override bool IsMessageVersionSupported(MessageVersion messageVersion)
             {
-                return innerHeader.IsMessageVersionSupported(messageVersion);
+                return _innerHeader.IsMessageVersionSupported(messageVersion);
             }
 
 
             public override string Name
             {
-                get { return innerHeader.Name; }
+                get { return _innerHeader.Name; }
             }
 
             public override string Namespace
             {
-                get { return innerHeader.Namespace; }
+                get { return _innerHeader.Namespace; }
             }
 
             public override bool MustUnderstand
             {
-                get { return innerHeader.MustUnderstand; }
+                get { return _innerHeader.MustUnderstand; }
             }
 
             public override bool Relay
             {
-                get { return innerHeader.Relay; }
+                get { return _innerHeader.Relay; }
             }
 
             public override string Actor
             {
-                get { return innerHeader.Actor; }
+                get { return _innerHeader.Actor; }
             }
 
             protected override void OnWriteStartHeader(XmlDictionaryWriter writer, MessageVersion messageVersion)

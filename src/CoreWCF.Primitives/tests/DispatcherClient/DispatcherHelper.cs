@@ -3,9 +3,8 @@
 
 using System;
 using System.ServiceModel;
-using CoreWCF.Description;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
+using System.ServiceModel.Channels;
+using Helpers;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,7 +16,7 @@ namespace DispatcherClient
     {
         internal static string s_endpointAddress = "corewcf://localhost/Service.svc";
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default) where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(Action<IServiceCollection> configure, Action<CoreWCF.ServiceHostBase> configureServiceHostBase = default, MessageVersion messageVersion = default) where TService : class
         {
             var binding = new DispatcherBinding<TService, TContract>((services) =>
             {
@@ -26,14 +25,14 @@ namespace DispatcherClient
                 serverAddressesFeature.Addresses.Add(new Uri(s_endpointAddress).GetLeftPart(UriPartial.Authority) + "/");
                 services.AddSingleton(serverAddressesFeature);
                 services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
-                services.AddSingleton<IApplicationLifetime, ApplicationLifetime>();
-            }, configureServiceHostBase);
+                services.RegisterApplicationLifetime();
+            }, configureServiceHostBase, messageVersion);
             return new ChannelFactory<TContract>(binding, new EndpointAddress(s_endpointAddress));
         }
 
-        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>() where TService : class
+        internal static ChannelFactory<TContract> CreateChannelFactory<TService, TContract>(MessageVersion messageVersion = default) where TService : class
         {
-            return CreateChannelFactory<TService, TContract>(null);
+            return CreateChannelFactory<TService, TContract>(null, null, messageVersion);
         }
     }
 }

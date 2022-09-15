@@ -4,8 +4,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -14,7 +16,8 @@ namespace CoreWCF.Channels.Framing
         private readonly HandshakeDelegate _next;
         private readonly IServiceScopeFactory _servicesScopeFactory;
         private readonly IApplicationLifetime _appLifetime;
-        private readonly IDictionary<IServiceDispatcher, ITransportFactorySettings> _transportSettingsCache = new Dictionary<IServiceDispatcher, ITransportFactorySettings>();
+        private readonly Hashtable _transportSettingsCache = new Hashtable();
+        private readonly object _lock = new object();
 
         public ServerSessionConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory, IApplicationLifetime appLifetime)
         {
@@ -25,26 +28,37 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            if (!_transportSettingsCache.TryGetValue(connection.ServiceDispatcher, out ITransportFactorySettings settings))
+            ITransportFactorySettings settings;
+            if (_transportSettingsCache.Contains(connection.ServiceDispatcher))
             {
-                BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
-                TransportBindingElement tbe = be.Find<TransportBindingElement>();
-                settings = new NetFramingTransportSettings
+                settings = (ITransportFactorySettings)_transportSettingsCache[connection.ServiceDispatcher];
+            }
+            else
+            {
+                lock (_lock)
                 {
-                    CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
-                    OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
-                    ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
-                    SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
-                    ManualAddressing = tbe.ManualAddressing,
-                    BufferManager = connection.BufferManager,
-                    MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
-                    MessageEncoderFactory = connection.MessageEncoderFactory
-                };
+                    // Double locked checking not necessary as there's no functional harm to having multiple instances
+                    BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
+                    TransportBindingElement tbe = be.Find<TransportBindingElement>();
+                    settings = new NetFramingTransportSettings
+                    {
+                        CloseTimeout = connection.ServiceDispatcher.Binding.CloseTimeout,
+                        OpenTimeout = connection.ServiceDispatcher.Binding.OpenTimeout,
+                        ReceiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout,
+                        SendTimeout = connection.ServiceDispatcher.Binding.SendTimeout,
+                        ManualAddressing = tbe.ManualAddressing,
+                        BufferManager = connection.BufferManager,
+                        MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
+                        MessageEncoderFactory = connection.MessageEncoderFactory
+                    };
+                    _transportSettingsCache[connection.ServiceDispatcher] = settings;
+                }
             }
 
             var channel = new ServerFramingDuplexSessionChannel(connection, settings, false, _servicesScopeFactory.CreateScope().ServiceProvider);
             channel.ChannelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
             await channel.StartReceivingAsync();
+            await channel.CloseAsync();
         }
     }
 }

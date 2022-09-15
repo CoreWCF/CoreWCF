@@ -20,7 +20,7 @@ namespace CoreWCF.Dispatcher
     internal class MessageRpc
     {
         internal readonly ServiceChannel Channel;
-        internal readonly ChannelHandler channelHandler;
+        internal readonly ChannelHandler ChannelHandler;
         internal readonly object[] Correlation;
         internal readonly ServiceHostBase Host;
         internal readonly OperationContext OperationContext;
@@ -81,7 +81,7 @@ namespace CoreWCF.Dispatcher
             TaskResult = null;
             CanSendReply = true;
             Channel = channel;
-            this.channelHandler = channelHandler;
+            ChannelHandler = channelHandler;
             Correlation = EmptyArray.Allocate(operation.Parent.CorrelationCount);
             DidDeserializeRequestBody = false;
             Error = null;
@@ -194,7 +194,7 @@ namespace CoreWCF.Dispatcher
                     throw;
                 }
 
-                channelHandler.HandleError(e);
+                ChannelHandler.HandleError(e);
             }
         }
 
@@ -227,24 +227,24 @@ namespace CoreWCF.Dispatcher
             //}
         }
 
-        internal void CloseRequestContext()
+        internal async Task CloseRequestContextAsync()
         {
             if (OperationContext.RequestContext != null)
             {
-                DisposeRequestContext(OperationContext.RequestContext);
+                await DisposeRequestContextAsync(OperationContext.RequestContext);
             }
             if ((RequestContext != null) && (RequestContext != OperationContext.RequestContext))
             {
-                DisposeRequestContext(RequestContext);
+                await DisposeRequestContextAsync(RequestContext);
             }
             TraceCallDurationInDispatcherIfNecessary(true);
         }
 
-        private void DisposeRequestContext(RequestContext context)
+        private async Task DisposeRequestContextAsync(RequestContext context)
         {
             try
             {
-                context.CloseAsync().GetAwaiter().GetResult();
+                await context.CloseAsync();
             }
             catch (Exception e)
             {
@@ -254,7 +254,7 @@ namespace CoreWCF.Dispatcher
                 }
 
                 AbortRequestContext(context);
-                channelHandler.HandleError(e);
+                ChannelHandler.HandleError(e);
             }
         }
 
@@ -273,20 +273,19 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
 
-        // TODO: Make async
-        internal void CloseChannel()
+        internal async Task CloseChannelAsync()
         {
             if ((Channel != null) && Channel.HasSession)
             {
                 try
                 {
                     var helper = new TimeoutHelper(ChannelHandler.CloseAfterFaultTimeout);
-                    Channel.CloseAsync(helper.GetCancellationToken()).GetAwaiter().GetResult();
+                    await Channel.CloseAsync(helper.GetCancellationToken());
                 }
                 catch (Exception e)
                 {
@@ -295,7 +294,7 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
@@ -315,7 +314,7 @@ namespace CoreWCF.Dispatcher
                         throw;
                     }
 
-                    channelHandler.HandleError(e);
+                    ChannelHandler.HandleError(e);
                 }
             }
         }
@@ -324,7 +323,7 @@ namespace CoreWCF.Dispatcher
         {
             //using (ServiceModelActivity.BoundOperation(this.Activity))
             //{
-            channelHandler.EnsureReceive();
+            ChannelHandler.EnsureReceive();
             //}
         }
 
@@ -410,7 +409,7 @@ namespace CoreWCF.Dispatcher
                             throw;
                         }
 
-                        channelHandler.HandleError(e);
+                        ChannelHandler.HandleError(e);
                     }
                 }
 
@@ -437,7 +436,7 @@ namespace CoreWCF.Dispatcher
                                 throw;
                             }
 
-                            channelHandler.HandleError(e);
+                            ChannelHandler.HandleError(e);
                         }
                     }
                 }

@@ -6,21 +6,43 @@ using System.Collections.Generic;
 
 namespace CoreWCF.Configuration
 {
-    internal class ServiceConfigurationDelegateHolder<TService> where TService : class
+    internal class ServiceConfigurationDelegateHolder
     {
         private readonly List<Action<ServiceHostBase>> _configDelegates = new List<Action<ServiceHostBase>>();
-
-        public void AddConfigDelegate(Action<ServiceHostBase> func)
+        private readonly List<Action<ServiceOptions>> _serviceOptionsDelegates = new List<Action<ServiceOptions>>();
+        internal void AddConfigDelegate(Action<ServiceHostBase> func)
         {
             _configDelegates.Add(func);
         }
 
-        public void Configure(ServiceHostBase host)
+        internal void Configure(ServiceHostBase host)
         {
             foreach (Action<ServiceHostBase> del in _configDelegates)
             {
                 del(host);
             }
         }
+
+        internal void AddServiceOptionsDelegate(Action<ServiceOptions> options)
+        {
+            _serviceOptionsDelegates.Add(options);
+        }
+
+        internal bool ApplyOptions(ServiceOptions options)
+        {
+            if (_serviceOptionsDelegates.Count == 0) return false;
+            foreach(Action<ServiceOptions> del in _serviceOptionsDelegates)
+            {
+                del(options);
+            }
+
+            return true;
+        }
+    }
+
+    internal class ServiceConfigurationDelegateHolder<TService> : ServiceConfigurationDelegateHolder
+        where TService : class
+    {
+        
     }
 }

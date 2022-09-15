@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -49,12 +50,12 @@ namespace CoreWCF.Http.Tests
                 services.AddServiceModelServices();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.EchoService>();
-                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(new CoreWCF.BasicHttpBinding(BasicHttpSecurityMode.Transport), "/BasicWcfService/basichttp.svc");
                 });
             }
         }

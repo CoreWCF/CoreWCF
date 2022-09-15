@@ -1,0 +1,56 @@
+parameters:
+- name: libraryProjects
+  default: ''
+- name: templateTestProjects
+  default: '**/CoreWCF.Templates.Tests.csproj'
+
+stages:
+- stage: 'TestTemplates'
+  displayName: Run Templates Tests
+  dependsOn: Build
+  jobs:
+  - job: TestTemplatesRelease
+    strategy:
+      matrix:
+        Windows:
+          imageName: 'windows-latest'
+          testArgs: '--filter Category=Templates'
+        Linux_net6.0:
+          imageName: 'ubuntu-latest'
+          testArgs: '--filter Category=Templates'
+    displayName: Test Templates Release
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: Download build artifacts
+      inputs:
+        source: current
+        artifact: ReleaseBuild
+        path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 3.1 sdk'
+      inputs:
+        packageType: sdk
+        version: '3.1.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 5 sdk'
+      inputs:
+        packageType: sdk
+        version: '5.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet          
+
+    - task: PowerShell@2
+      inputs:
+        targetType: 'filePath'
+        filePath: src/CoreWCF.Templates/Run-Templates-UnitTests.ps1

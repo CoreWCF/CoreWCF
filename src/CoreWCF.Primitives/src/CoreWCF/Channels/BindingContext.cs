@@ -45,7 +45,6 @@ namespace CoreWCF.Channels
                 string listenUriRelativeAddress)
         {
             Binding = binding;
-
             RemainingBindingElements = new BindingElementCollection(remainingBindingElements);
             BindingParameters = new BindingParameterCollection(parameters);
             ListenUriBaseAddress = listenUriBaseAddress;
@@ -62,21 +61,18 @@ namespace CoreWCF.Channels
 
         public BindingElementCollection RemainingBindingElements { get; private set; }
 
-        public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher)
-    where TChannel : class, IChannel
+        public IServiceDispatcher BuildNextServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
             return RemoveNextElement().BuildServiceDispatcher<TChannel>(this, innerDispatcher);
         }
 
-        public bool CanBuildNextServiceDispatcher<TChannel>()
-    where TChannel : class, IChannel
+        public bool CanBuildNextServiceDispatcher<TChannel>() where TChannel : class, IChannel
         {
             BindingContext clone = Clone();
             return clone.RemoveNextElement().CanBuildServiceDispatcher<TChannel>(clone);
         }
 
-        public T GetInnerProperty<T>()
-            where T : class
+        public T GetInnerProperty<T>() where T : class
         {
             if (RemainingBindingElements.Count == 0)
             {

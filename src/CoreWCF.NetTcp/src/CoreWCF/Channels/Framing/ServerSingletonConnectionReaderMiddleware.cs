@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections;
 using System.IO;
 using System.IO.Pipelines;
 using System.Net;
@@ -19,9 +20,8 @@ namespace CoreWCF.Channels.Framing
     internal class ServerSingletonConnectionReaderMiddleware
     {
         private readonly HandshakeDelegate _next;
+        private readonly Hashtable _serviceChannelDispatcherCache = new Hashtable();
         private readonly IServiceScopeFactory _servicesScopeFactory;
-        private ConnectionOrientedTransportReplyChannel _replyChannel;
-        private IServiceChannelDispatcher _channelDispatcher;
         private readonly AsyncLock _lock = new AsyncLock();
 
         public ServerSingletonConnectionReaderMiddleware(HandshakeDelegate next, IServiceScopeFactory servicesScopeFactory)
@@ -32,25 +32,20 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            await EnsureChannelAsync(connection);
-            // TODO: I think that the receive timeout starts counting at the start of the preamble on .NET Framework. This implementation basically resets the timer
-            // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
-            // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
-            var timeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_replyChannel).ReceiveTimeout);
-            StreamedFramingRequestContext requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
-            await _channelDispatcher.DispatchAsync(requestContext);
-            await requestContext.ReplySent;
-            //await channelDispatcher.DispatchAsync();
-            //await requestContext.ReplySent;
-        }
-
-        private async Task EnsureChannelAsync(FramingConnection connection)
-        {
-            if (_replyChannel == null)
+            IServiceChannelDispatcher channelDispatcher;
+            if (_serviceChannelDispatcherCache.ContainsKey(connection.ServiceDispatcher))
             {
-                using (await _lock.TakeLockAsync())
+                channelDispatcher = (IServiceChannelDispatcher)_serviceChannelDispatcherCache[connection.ServiceDispatcher];
+            }
+            else
+            {
+                await using (await _lock.TakeLockAsync())
                 {
-                    if (_replyChannel == null)
+                    if (_serviceChannelDispatcherCache.ContainsKey(connection.ServiceDispatcher))
+                    {
+                        channelDispatcher = (IServiceChannelDispatcher)_serviceChannelDispatcherCache[connection.ServiceDispatcher];
+                    }
+                    else
                     {
                         BindingElementCollection be = connection.ServiceDispatcher.Binding.CreateBindingElements();
                         TransportBindingElement tbe = be.Find<TransportBindingElement>();
@@ -65,11 +60,21 @@ namespace CoreWCF.Channels.Framing
                             MaxReceivedMessageSize = tbe.MaxReceivedMessageSize,
                             MessageEncoderFactory = connection.MessageEncoderFactory
                         };
-                        _replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
-                        _channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(_replyChannel);
+                        // Even though channel is reused for multiple connections, there are some scoped dependencies used so a scope is needed
+                        var replyChannel = new ConnectionOrientedTransportReplyChannel(settings, null, _servicesScopeFactory.CreateScope().ServiceProvider);
+                        channelDispatcher = await connection.ServiceDispatcher.CreateServiceChannelDispatcherAsync(replyChannel);
+                        _serviceChannelDispatcherCache[connection.ServiceDispatcher] = channelDispatcher;
                     }
                 }
             }
+
+            // TODO: I think that the receive timeout starts counting at the start of the preamble on .NET Framework. This implementation basically resets the timer
+            // after the preamble has completed. This probably needs to be addressed otherwise worse case you could end up taking 2X as long to timeout.
+            // I believe the preamble should really use the OpenTimeout but that's not how this is implemented on .NET Framework.
+            var timeoutHelper = new TimeoutHelper(connection.ServiceDispatcher.Binding.ReceiveTimeout);
+            StreamedFramingRequestContext requestContext = await ReceiveRequestAsync(connection, timeoutHelper.RemainingTime());
+            await channelDispatcher.DispatchAsync(requestContext);
+            await requestContext.ReplySent;
         }
 
         public async Task<StreamedFramingRequestContext> ReceiveRequestAsync(FramingConnection connection, TimeSpan timeout)
@@ -215,7 +220,7 @@ namespace CoreWCF.Channels.Framing
             {
                 _connection = connection;
                 _timeouts = defaultTimeouts;
-                _decoder = new SingletonMessageDecoder();
+                _decoder = new SingletonMessageDecoder(connection.Logger);
                 _chunkBytesRemaining = 0;
                 _timeoutHelper = new TimeoutHelper(_timeouts.ReceiveTimeout);
             }
@@ -339,7 +344,7 @@ namespace CoreWCF.Channels.Framing
 
                     if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
-                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
+                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
                         int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 
@@ -411,7 +416,7 @@ namespace CoreWCF.Channels.Framing
 
                     if (_chunkBytesRemaining > 0) // We're in the middle of a chunk.
                     {
-                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes 
+                        // How many bytes to copy into the buffer passed to this method. The read from the input pipe might have read bytes
                         // from the next chunk and we're not ready to consume them yet. Also we can't copy more bytes than the passed in buffer.
                         int bytesToCopy = Math.Min((int)Math.Min((int)_buffer.Length, _chunkBytesRemaining), count);
 

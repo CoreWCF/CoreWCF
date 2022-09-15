@@ -3940,7 +3940,7 @@
     <value>Cannot handle invocation of {0} on interface {1} because the OperationSelector on ClientRuntime is null.</value>
   </data>
   <data name = "SFxNoDefaultConstructor" xml:space="preserve">
-    <value>The service type provided could not be loaded as a service because it does not have a default (parameter-less) constructor. To fix the problem, add a default constructor to the type, or pass an instance of the type to the host.</value>
+    <value>The service type provided could not be loaded as a service because it does not have a default (parameter-less) constructor. To fix the problem, add a default constructor to the type, or register a service of the type (e.g. IServiceCollection.AddSingleton&lt;ServiceType&gt;()).</value>
   </data>
   <data name = "SFxNoMostDerivedContract" xml:space="preserve">
     <value>The contract specified by type '{0}' is ambiguous.  The type derives from at least two different types that each define its own service contract.  For this type to be used as a contract type, exactly one of its inherited contracts must be more derived than any of the others.</value>

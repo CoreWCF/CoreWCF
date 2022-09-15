@@ -12,7 +12,7 @@ namespace CoreWCF.Security
         public SspiNegotiationTokenAuthenticatorState(ISspiNegotiation sspiNegotiation)
             : base()
         {
-            SspiNegotiation = sspiNegotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("sspiNegotiation");
+            SspiNegotiation = sspiNegotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(sspiNegotiation));
             NegotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
         }
 
@@ -41,7 +41,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                lock (ThisLock)
+                using (AsyncLock.TakeLock())
                 {
                     if (SspiNegotiation != null)
                     {

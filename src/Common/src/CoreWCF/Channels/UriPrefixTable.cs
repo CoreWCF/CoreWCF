@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using CoreWCF.Runtime;
 using CoreWCF.Runtime.Collections;
 
 namespace CoreWCF.Channels
 {
-    internal sealed class UriPrefixTable<TItem>
+    internal sealed class UriPrefixTable<TItem> : IEnumerable<KeyValuePair<BaseUriWithWildcard, TItem>>
         where TItem : class
     {
         private const int HopperSize = 128;
@@ -52,9 +54,9 @@ namespace CoreWCF.Channels
         {
             get
             {
-                // The UriPrefixTable instance itself is used as a 
-                // synchronization primitive in the TransportManagers and the 
-                // TransportManagerContainers so we return 'this' to keep them in sync.                 
+                // The UriPrefixTable instance itself is used as a
+                // synchronization primitive in the TransportManagers and the
+                // TransportManagerContainers so we return 'this' to keep them in sync.
                 return this;
             }
         }
@@ -67,7 +69,7 @@ namespace CoreWCF.Channels
         {
             Uri uri = key.BaseAddress;
 
-            // don't need to normalize path since SegmentHierarchyNode is 
+            // don't need to normalize path since SegmentHierarchyNode is
             // already OrdinalIgnoreCase
             string[] paths = UriSegmenter.ToPath(uri, key.HostNameComparisonMode, _includePortInComparison);
             bool exactMatch;
@@ -150,8 +152,8 @@ namespace CoreWCF.Channels
                 SegmentHierarchyNode<TItem> node = FindOrCreateNode(key);
                 if (node.Data != null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(
-                        SR.DuplicateRegistration, uri)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SRCommon.Format(
+                        SRCommon.DuplicateRegistration, uri)));
                 }
                 node.SetData(item, key);
                 Count++;
@@ -219,6 +221,9 @@ namespace CoreWCF.Channels
             }
             return current;
         }
+
+        public IEnumerator<KeyValuePair<BaseUriWithWildcard, TItem>> GetEnumerator() => GetAll().GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetAll().GetEnumerator();
 
         private static class UriSegmenter
         {

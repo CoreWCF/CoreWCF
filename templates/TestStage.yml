@@ -10,26 +10,41 @@ stages:
   - job: TestRelease
     strategy:
       matrix:
-        Windows_netcore2.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: ''
         Windows_netcore3.1:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: ''
+          additionalDotNetCoreSdk: '3.1.x'
+        Windows_net5.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net5.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: '5.0.x'
+        Windows_net6.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net6.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: ''
-        Linux_netcore2.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: '--filter Category!=WindowsOnly'
+          testArgs: '--filter Category!=NetCoreOnly'
+          additionalDotNetCoreSdk: ''
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '3.1.x'
+        Linux_net5.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net5.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '5.0.x'
+        Linux_net6.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net6.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
     displayName: Test Release
     pool:
       vmImage: $(imageName)
@@ -40,49 +55,83 @@ stages:
         source: current
         artifact: ReleaseBuild
         path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use additional .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: $(additionalDotNetCoreSdk)
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
+
     - task: DotNetCoreCLI@2
       displayName: Restore packages
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Release /t:restore'
+
     - task: DotNetCoreCLI@2
       displayName: Build test projects
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Release --framework $(targetFramework)'
+
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 5
+      timeoutInMinutes: 15
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+
   - job: TestDebug
     strategy:
       matrix:
-        Windows_netcore2.1:
-          imageName: 'windows-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: ''
         Windows_netcore3.1:
           imageName: 'windows-latest'
           targetFramework: 'netcoreapp3.1'
+          testArgs: ''       
+          additionalDotNetCoreSdk: '3.1.x'
+        Windows_net5.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net5.0'
           testArgs: ''
+          additionalDotNetCoreSdk: '5.0.x'
+        Windows_net6.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net6.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: ''
-        Linux_netcore2.1:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'netcoreapp2.1'
-          testArgs: '--filter Category!=WindowsOnly'
+          testArgs: '--filter Category!=NetCoreOnly'
+          additionalDotNetCoreSdk: ''
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '3.1.x'
+        Linux_net5.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net5.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: '5.0.x'
+        Linux_net6.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net6.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
@@ -93,75 +142,41 @@ stages:
         source: current
         artifact: DebugBuild
         path: $(System.DefaultWorkingDirectory)/bin
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 6 sdk'
+      inputs:
+        packageType: sdk
+        version: '6.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
+      displayName: 'Use additional .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: $(additionalDotNetCoreSdk)
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
+
     - task: DotNetCoreCLI@2
       displayName: Restore packages
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Debug /t:restore'
+        
     - task: DotNetCoreCLI@2
       displayName: Build test projects
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Debug --framework $(targetFramework)'
+
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 5
-      inputs:
-        command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
-  - job: CodeCoverage
-    displayName: Code Coverage
-    pool:
-      vmImage: 'windows-latest'
-    dependsOn:
-    - TestDebug
-    - TestRelease
-    steps:
-    - script: set PATH=%PATH%;%USERPROFILE%\.dotnet\tools
-      displayName: Add dotnet tools folder to path
-    - task: DotNetCoreCLI@2
-      displayName: 'Install ReportGenerator'
-      inputs:
-        command: 'custom'
-        custom: 'tool'
-        arguments: 'install -g dotnet-reportgenerator-globaltool --version 4.6.1'
-    - task: DownloadPipelineArtifact@2
-      displayName: Download build artifacts
-      inputs:
-        source: current
-        artifact: ReleaseBuild
-        path: $(System.DefaultWorkingDirectory)/bin
-    - task: DotNetCoreCLI@2
-      displayName: Restore packages
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Release /t:restore'
-    - task: DotNetCoreCLI@2
-      displayName: Build test projects
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Release --framework netcoreapp3.1'
-    - task: DotNetCoreCLI@2
-      displayName: Run Tests with Coverage
       timeoutInMinutes: 10
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Release --framework netcoreapp3.1 /p:CollectCoverage=true /p:CoverletOutputDir=$(Build.ArtifactStagingDirectory)/Coverage'
-    - script: reportgenerator "-reports:$(Build.ArtifactStagingDirectory)/Coverage/*.xml" "-targetdir:$(Build.ArtifactStagingDirectory)/Coverage/Report" -reporttypes:HtmlInline_AzurePipelines;Cobertura;Badges
-      displayName: 'Generate Coverage Report'
-    - task: PublishCodeCoverageResults@1
-      displayName: Publish Code Coverage report
-      inputs:
-        codeCoverageTool: 'Cobertura'
-        summaryFileLocation: $(Build.ArtifactStagingDirectory)/Coverage/Report/Cobertura.xml
-        # To make the task not regenerate the report an environment variable was added to the pipeline in Azure DevOps; "disable.coverage.autogenerate: 'true'"
-        # see: https://github.com/danielpalme/ReportGenerator/wiki/Integration#attention
-        reportDirectory: $(Build.ArtifactStagingDirectory)/Coverage/Report/
+        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'

@@ -4,11 +4,13 @@
 using System.ComponentModel;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Xml;
+using CoreWCF.Description;
 using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
-    public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement
+    public class SslStreamSecurityBindingElement : StreamUpgradeBindingElement, ITransportTokenAssertionProvider, IPolicyExportExtension
     {
         private IdentityVerifier _identityVerifier;
         private SslProtocols _sslProtocols;
@@ -92,6 +94,40 @@ namespace CoreWCF.Channels
             return SslStreamSecurityUpgradeProvider.CreateServerProvider(this, context);
         }
 
+        #region ITransportTokenAssertionProvider Members
+
+        public XmlElement GetTransportTokenAssertion()
+        {
+            XmlDocument document = new XmlDocument();
+            XmlElement assertion =
+                document.CreateElement(TransportPolicyConstants.DotNetFramingPrefix,
+                TransportPolicyConstants.SslTransportSecurityName,
+                TransportPolicyConstants.DotNetFramingNamespace);
+            if (RequireClientCertificate)
+            {
+                assertion.AppendChild(document.CreateElement(TransportPolicyConstants.DotNetFramingPrefix,
+                    TransportPolicyConstants.RequireClientCertificateName,
+                    TransportPolicyConstants.DotNetFramingNamespace));
+            }
+            return assertion;
+        }
+
+        #endregion
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SecurityBindingElement.ExportPolicyForTransportTokenAssertionProviders(exporter, context);
+        }
+
         protected override bool IsMatch(BindingElement b)
         {
             if (b == null)
@@ -104,6 +140,14 @@ namespace CoreWCF.Channels
             }
 
             return RequireClientCertificate == ssl.RequireClientCertificate && _sslProtocols == ssl._sslProtocols;
+        }
+
+        private static class TransportPolicyConstants
+        {
+            public const string DotNetFramingNamespace = FramingEncodingString.NamespaceUri + "/policy";
+            public const string DotNetFramingPrefix = "msf";
+            public const string RequireClientCertificateName = "RequireClientCertificate";
+            public const string SslTransportSecurityName = "SslTransportSecurity";
         }
     }
 }

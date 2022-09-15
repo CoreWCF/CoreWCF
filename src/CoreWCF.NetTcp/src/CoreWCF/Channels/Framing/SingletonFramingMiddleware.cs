@@ -21,7 +21,7 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            var decoder = new ServerSingletonDecoder(ConnectionOrientedTransportDefaults.MaxViaSize, ConnectionOrientedTransportDefaults.MaxContentTypeSize);
+            var decoder = new ServerSingletonDecoder(ConnectionOrientedTransportDefaults.MaxViaSize, ConnectionOrientedTransportDefaults.MaxContentTypeSize, connection.Logger);
             bool success = false;
 
             try

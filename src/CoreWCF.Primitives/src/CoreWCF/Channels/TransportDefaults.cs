@@ -137,6 +137,11 @@ namespace CoreWCF.Channels
         }
     }
 
+    internal static class MtomEncoderDefaults
+    {
+        internal const int MaxBufferSize = 65536;
+    }
+
     internal static class BinaryEncoderDefaults
     {
         internal static EnvelopeVersion EnvelopeVersion { get { return EnvelopeVersion.Soap12; } }

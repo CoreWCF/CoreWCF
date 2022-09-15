@@ -10,6 +10,7 @@ namespace CoreWCF.Security
         private bool _allowAnonymousLogons = SspiSecurityTokenProvider.DefaultAllowUnauthenticatedCallers;
         private bool _includeWindowsGroups = SspiSecurityTokenProvider.DefaultExtractWindowsGroupClaims;
         private bool _isReadOnly;
+        private LdapSettings _ldapSettings;
 
         internal WindowsServiceCredential()
         {
@@ -21,6 +22,7 @@ namespace CoreWCF.Security
             _allowAnonymousLogons = other._allowAnonymousLogons;
             _includeWindowsGroups = other._includeWindowsGroups;
             _isReadOnly = other._isReadOnly;
+            _ldapSettings = other._ldapSettings;
         }
 
         public bool AllowAnonymousLogons
@@ -48,6 +50,21 @@ namespace CoreWCF.Security
                 _includeWindowsGroups = value;
             }
         }
+
+        public LdapSettings LdapSetting
+        {
+            get
+            {
+                return _ldapSettings;
+            }
+            set
+            {
+                ThrowIfImmutable();
+                value.Validate();
+                _ldapSettings = value;
+            }
+        }
+
 
         internal void MakeReadOnly()
         {

@@ -19,17 +19,27 @@ namespace CoreWCF.Configuration
     {
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder)
         {
+            // Using default port for net.tcp
             return webHostBuilder.UseNetTcp(808);
         }
 
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, int port)
         {
-            // Using default port
+            return webHostBuilder.UseNetTcp(IPAddress.Any, port);
+        }
+
+        public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress)
+        {
+            return webHostBuilder.UseNetTcp(ipAddress, 808);
+        }
+
+        public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress, int port)
+        {
             webHostBuilder.ConfigureServices(services =>
             {
                 services.TryAddEnumerable(ServiceDescriptor.Singleton<ITransportServiceBuilder, NetTcpTransportServiceBuilder>());
                 services.AddSingleton(NetMessageFramingConnectionHandler.BuildAddressTable);
-                services.AddNetTcpServices(new IPEndPoint(IPAddress.Any, port));
+                services.AddNetTcpServices(new IPEndPoint(ipAddress, port));
                 services.AddTransient<IFramingConnectionHandshakeBuilder, FramingConnectionHandshakeBuilder>();
             });
 
@@ -91,7 +101,10 @@ namespace CoreWCF.Configuration
             foreach (ListenOptions listenOptions in ListenOptions)
             {
                 IPEndPoint endpoint = listenOptions.IPEndPoint;
-                var baseAddress = new Uri($"net.tcp://localhost:{endpoint.Port}/");
+                string address = endpoint.Address.ToString();
+                if (endpoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    address = $"[{address}]";
+                var baseAddress = new Uri($"net.tcp://{address}:{endpoint.Port}/");
                 _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
                 _serviceBuilder.BaseAddresses.Add(baseAddress);
             }

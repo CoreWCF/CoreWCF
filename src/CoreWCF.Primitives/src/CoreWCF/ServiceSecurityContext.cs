@@ -159,7 +159,7 @@ namespace CoreWCF
             }
         }
 
-        private IList<IIdentity> GetIdentities()
+        public IList<IIdentity> GetIdentities()
         {
             AuthorizationContext authContext = AuthorizationContext;
             if (authContext != null && authContext.Properties.TryGetValue(SecurityUtils.Identities, out object identities))

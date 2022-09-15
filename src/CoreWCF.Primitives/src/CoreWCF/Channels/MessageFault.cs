@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.Serialization;
 using System.Xml;
 using CoreWCF.Diagnostics;
@@ -611,9 +612,9 @@ namespace CoreWCF.Channels
         private bool ShouldWriteDetailAttribute(EnvelopeVersion targetVersion, string prefix, string localName, string attributeValue)
         {
             // Handle fault detail version conversion from Soap12 to Soap11 -- scope tightly to only conversion from Soap12 -> Soap11
-            // SOAP 1.1 specifications allow an arbitrary element within <fault>, hence: 
-            // transform this IFF the SOAP namespace specified will affect the namespace of the <detail> element, 
-            // AND the namespace specified is exactly the Soap12 Namespace. 
+            // SOAP 1.1 specifications allow an arbitrary element within <fault>, hence:
+            // transform this IFF the SOAP namespace specified will affect the namespace of the <detail> element,
+            // AND the namespace specified is exactly the Soap12 Namespace.
             bool shouldSkip = _receivedVersion == EnvelopeVersion.Soap12    // original incoming version
                                 && targetVersion == EnvelopeVersion.Soap11      // version to serialize to
                                 && string.IsNullOrEmpty(prefix)                 // attribute prefix

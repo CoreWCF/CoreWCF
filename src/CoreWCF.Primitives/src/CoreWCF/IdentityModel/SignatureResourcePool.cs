@@ -72,25 +72,6 @@ namespace CoreWCF.IdentityModel
         {
             return TakeHashStream(TakeHashAlgorithm(algorithm));
         }
-#if NO
-        public XmlC14NWriter TakeIntegratedWriter(Stream stream)
-        {
-            return TakeIntegratedWriter(stream, false, null);
-        }
- 
-        public XmlC14NWriter TakeIntegratedWriter(Stream stream, bool includeComments, string[] inclusivePrefixes)
-        {
-            if (this.integratedWriter == null)
-            {
-                this.integratedWriter = new XmlC14NWriter(stream, includeComments, inclusivePrefixes);
-            }
-            else
-            {
-                this.integratedWriter.SetOutput(stream, includeComments, inclusivePrefixes);
-            }
-            return this.integratedWriter;
-        }
-#endif
 
         public XmlDictionaryWriter TakeUtf8Writer()
         {

@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace CoreWCF.Channels
 {
-    internal interface ITransportTokenAssertionProvider
+    public interface ITransportTokenAssertionProvider
     {
         XmlElement GetTransportTokenAssertion();
     }

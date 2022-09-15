@@ -62,7 +62,6 @@ namespace CoreWCF.Channels.Framing
                 }
 
                 // send back EOF and then recycle the connection
-                _connection.RawStream?.StartUnwrapRead();
                 try
                 {
                     await _connection.Output.WriteAsync(SingletonEncoder.EndBytes, token);
@@ -72,10 +71,10 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (_connection.RawStream != null)
                     {
-                        await _connection.RawStream.FinishUnwrapReadAsync();
+                        _connection.Logger.UnwrappingRawStream();
                         _connection.RawStream = null;
-                        _connection.Output.Complete();
-                        _connection.Input.Complete();
+                        await _connection.Output.CompleteAsync();
+                        await _connection.Input.CompleteAsync();
                     }
                 }
 

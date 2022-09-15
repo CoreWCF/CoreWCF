@@ -97,25 +97,27 @@ namespace CoreWCF.Channels
                 throw new InvalidOperationException("Channel Dispatcher can't be null");
             }
 
-            var requestContext = HttpRequestContext.CreateContext(_httpSettings, context);
-            HttpInput httpInput = requestContext.GetHttpInput(true);
-            (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
-            if ((requestMessage == null) && (requestException == null))
+            using (var requestContext = HttpRequestContext.CreateContext(_httpSettings, context))
             {
-                throw Fx.Exception.AsError(
-                        new ProtocolException(
-                            SR.MessageXmlProtocolError,
-                            new XmlException(SR.MessageIsEmpty)));
-            }
+                await requestContext.ProcessAuthenticationAsync();
 
-            requestContext.SetMessage(requestMessage, requestException);
-            if (requestMessage != null)
-            {
-                requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
-            }
+                HttpInput httpInput = requestContext.GetHttpInput(true);
+                (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
+                if ((requestMessage == null) && (requestException == null))
+                {
+                    await requestContext.SendResponseAndCloseAsync(System.Net.HttpStatusCode.BadRequest);
+                    return;
+                }
 
-            await ChannelDispatcher.DispatchAsync(requestContext);
-            await requestContext.ReplySent;
+                requestContext.SetMessage(requestMessage, requestException);
+                if (requestMessage != null)
+                {
+                    requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
+                }
+
+                await ChannelDispatcher.DispatchAsync(requestContext);
+                await requestContext.ReplySent;
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Dispatcher
 {
@@ -32,7 +33,7 @@ namespace CoreWCF.Dispatcher
 
         public IList<Type> SupportedChannelTypes => ChannelDispatcher.SupportedChannelTypes;
 
-        public object ThisLock { get; } = new object();
+        public AsyncLock ThisLock { get; } = new AsyncLock();
 
         public async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {

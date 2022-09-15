@@ -10,14 +10,14 @@ using System.Xml;
 using CoreWCF.Channels.Framing;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
     internal class ServerFramingDuplexSessionChannel : FramingDuplexSessionChannel
     {
-        private readonly IServiceProvider _serviceProvider;
+        private IServiceProvider _serviceProvider;
         private CancellationTokenRegistration _applicationStoppingRegistration;
 
         public ServerFramingDuplexSessionChannel(FramingConnection connection, ITransportFactorySettings settings,
@@ -88,6 +88,22 @@ namespace CoreWCF.Channels
             _applicationStoppingRegistration.Dispose();
         }
 
+        protected override async Task OnCloseAsync(CancellationToken token)
+        {
+            await base.OnCloseAsync(token);
+
+            if (_serviceProvider is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (_serviceProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            _serviceProvider = null;
+        }
+
         internal class ServerSessionConnectionMessageSource : IMessageSource
         {
             private readonly FramingConnection _connection;
@@ -104,7 +120,7 @@ namespace CoreWCF.Channels
                 ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
                 for (; ; )
                 {
-                    System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync(token);
                     if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                     {
                         if (!readResult.IsCompleted)
@@ -122,9 +138,10 @@ namespace CoreWCF.Channels
                     }
 
                     buffer = readResult.Buffer;
-                    message = DecodeMessage(ref buffer);
+                    (message, buffer) = await DecodeMessageAsync(buffer);
                     _connection.Input.AdvanceTo(buffer.Start);
 
+                    _connection.Logger.ReceivedMessage(message);
                     if (message != null)
                     {
                         PrepareMessage(message);
@@ -156,7 +173,7 @@ namespace CoreWCF.Channels
                 }
             }
 
-            private Message DecodeMessage(ref ReadOnlySequence<byte> buffer)
+            private async ValueTask<(Message, ReadOnlySequence<byte>)> DecodeMessageAsync(ReadOnlySequence<byte> buffer)
             {
                 int maxBufferSize = _connection.MaxBufferSize;
                 var decoder = (ServerSessionDecoder)_connection.FramingDecoder;
@@ -181,8 +198,7 @@ namespace CoreWCF.Channels
                             int envelopeSize = decoder.EnvelopeSize;
                             if (envelopeSize > maxBufferSize)
                             {
-                                // TODO: Remove synchronous wait. This is needed because the buffer is passed by ref.
-                                _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, _connection.ServiceDispatcher.Binding.SendTimeout, TransportDefaults.MaxDrainSize).GetAwaiter().GetResult();
+                                await _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, _connection.ServiceDispatcher.Binding.SendTimeout, TransportDefaults.MaxDrainSize);
 
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                     MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
@@ -211,7 +227,7 @@ namespace CoreWCF.Channels
                                 }
 
                                 _connection.EnvelopeBuffer = null;
-                                return message;
+                                return (message, buffer);
                             }
                             break;
 
@@ -221,7 +237,7 @@ namespace CoreWCF.Channels
                     }
                 }
 
-                return null;
+                return (null, buffer);
             }
 
             private void CopyBuffer(ReadOnlySequence<byte> src, Memory<byte> dest, int bytesToCopy)
@@ -307,28 +323,20 @@ namespace CoreWCF.Channels
 
         protected override async Task CloseOutputSessionCoreAsync(CancellationToken token)
         {
-            Connection.RawStream?.StartUnwrapRead();
-            try
-            {
-                await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
-                await Connection.Output.FlushAsync();
-            }
-            finally
-            {
-                if (Connection.RawStream != null)
-                {
-                    await Connection.RawStream.FinishUnwrapReadAsync();
-                    Connection.RawStream = null;
-                    Connection.Output.Complete();
-                    Connection.Input.Complete();
-                }
-            }
+            await Connection.Output.WriteAsync(SessionEncoder.EndBytes, token);
+            await Connection.Output.FlushAsync();
         }
 
-        protected override Task CompleteCloseAsync(CancellationToken token)
+        protected override async Task CompleteCloseAsync(CancellationToken token)
         {
+            if (Connection.RawStream != null)
+            {
+                Connection.Logger.UnwrappingRawStream();
+                Connection.RawStream = null;
+                await Connection.Output.CompleteAsync();
+                await Connection.Input.CompleteAsync();
+            }
             ReturnConnectionIfNecessary(false, token);
-            return Task.CompletedTask;
         }
 
         protected override async Task OnSendCoreAsync(Message message, CancellationToken token)
@@ -336,6 +344,7 @@ namespace CoreWCF.Channels
             bool allowOutputBatching;
             ArraySegment<byte> messageData;
             allowOutputBatching = message.Properties.AllowOutputBatching;
+            Connection.Logger.SendMessage(message);
             messageData = EncodeMessage(message);
             await Connection.Output.WriteAsync(messageData, token);
             await Connection.Output.FlushAsync();

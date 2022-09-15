@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CoreWCF.Runtime
 {
@@ -49,9 +51,12 @@ namespace CoreWCF.Runtime
         }
 
         private static IOThreadScheduler s_current = new IOThreadScheduler(32, 32);
+        private static SynchronizationContext s_syncContext = new IOThreadSchedulerSynchronizationContext();
+        private static TaskScheduler s_IOTaskScheduler;
         private readonly ScheduledOverlapped _overlapped;
         private readonly Slot[] _slots;
         private readonly Slot[] _slotsLowPri;
+        private static ThreadLocal<bool> s_isIoThread = new ThreadLocal<bool>();
 
         // This field holds both the head (HiWord) and tail (LoWord) indices into the slot array.  This limits each
         // value to 64k.  In order to be able to distinguish wrapping the slot array (allowed) from wrapping the
@@ -85,6 +90,22 @@ namespace CoreWCF.Runtime
             Fx.Assert((_slotsLowPri.Length & SlotMaskLowPri) == 0, "Low-priority capacity must be a power of two.");
 
             _overlapped = new ScheduledOverlapped();
+        }
+        
+        public static TaskScheduler IOTaskScheduler
+        {
+            get
+            {
+                if (s_IOTaskScheduler == null)
+                {
+                    var savedCtx = SynchronizationContext.Current;
+                    SynchronizationContext.SetSynchronizationContext(s_syncContext);
+                    s_IOTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                    SynchronizationContext.SetSynchronizationContext(savedCtx);
+                }
+
+                return s_IOTaskScheduler;
+            }
         }
 
         public static void ScheduleCallbackNoFlow(Action<object> callback, object state)
@@ -347,6 +368,8 @@ namespace CoreWCF.Runtime
             }
         }
 
+        public static bool IsRunningOnIOThread => s_isIoThread.IsValueCreated && s_isIoThread.Value;
+
         //TODO, Dev10,607596 cannot apply security critical on finalizer
         //[Fx.Tag.SecurityNote(Critical = "touches slots, may be called outside of user context")]
         //[SecurityCritical]
@@ -581,6 +604,32 @@ namespace CoreWCF.Runtime
 
             private void Callback()
             {
+                try
+                {
+                    InitThreadDebugData();
+                    CallbackCore();
+                }
+                finally
+                {
+                    ClearThreadDebugData();
+                }
+            }
+
+            [Conditional("DEBUG")]
+            private static void InitThreadDebugData()
+            {
+                s_isIoThread.Value = true;
+                Thread.CurrentThread.Name = "IOThreadScheduler.IOCallback";
+            }
+
+            [Conditional("DEBUG")]
+            private static void ClearThreadDebugData()
+            {
+                s_isIoThread.Value = false;
+            }
+
+            private void CallbackCore()
+            {
                 // Unhook the IOThreadScheduler ASAP to prevent it from leaking.
                 IOThreadScheduler iots = _scheduler;
                 _scheduler = null;
@@ -645,6 +694,14 @@ namespace CoreWCF.Runtime
                 {
                     Overlapped.Free(_nativeOverlapped);
                 }
+            }
+        }
+
+        private class IOThreadSchedulerSynchronizationContext : SynchronizationContext
+        {
+            public override void Post(SendOrPostCallback d, object state)
+            {
+                ScheduleCallbackNoFlow((s) => d(s), state);
             }
         }
     }

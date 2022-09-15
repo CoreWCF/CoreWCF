@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using CoreWCF.Description;
 
 namespace CoreWCF.Dispatcher
 {
@@ -16,24 +18,30 @@ namespace CoreWCF.Dispatcher
 
     internal delegate object CreateInstanceDelegate();
 
-    internal sealed class InvokerUtil
+    internal static class InvokerUtil
     {
-        private readonly CriticalHelper _helper;
+        private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
+        // private readonly CriticalHelper _helper;
 
-        public InvokerUtil()
+        //public InvokerUtil()
+        //{
+        //    _helper = new CriticalHelper();
+        //}
+
+        internal static bool HasDefaultConstructor(Type type)
         {
-            _helper = new CriticalHelper();
+            return type.GetConstructor(DefaultBindingFlags, null, Type.EmptyTypes, null) != null;
         }
 
-        internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
+        internal static CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type)
         {
-            return _helper.GenerateCreateInstanceDelegate(type, constructor);
+            return CriticalHelper.GenerateCreateInstanceDelegate(type);
         }
 
-        internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
+        internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return _helper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return CriticalHelper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -46,9 +54,9 @@ namespace CoreWCF.Dispatcher
         //    return helper.GenerateInvokeEndDelegate(method, out outputParameterCount);
         //}
 
-        private class CriticalHelper
+        private static class CriticalHelper
         {
-            internal CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type, ConstructorInfo constructor)
+            internal static CreateInstanceDelegate GenerateCreateInstanceDelegate(Type type)
             {
                 if (type.GetTypeInfo().IsValueType)
                 {
@@ -76,35 +84,44 @@ namespace CoreWCF.Dispatcher
                 return default(T);
             }
 
-            internal InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
-                int inputCount = parameters.Length;
-                inputParameterCount = inputCount;
-
+                int paramCount = parameters.Length;
+                
+                var inputParamPositions = new List<int>();
                 var outputParamPositions = new List<int>();
-                for (int i = 0; i < inputParameterCount; i++)
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    if (parameters[i].ParameterType.IsByRef)
+                    if (ServiceReflector.FlowsIn(parameters[i]))
+                    {
+                        inputParamPositions.Add(i);
+                    }
+
+                    if (ServiceReflector.FlowsOut(parameters[i]))
                     {
                         outputParamPositions.Add(i);
                     }
                 }
-
+                
+                int[] inputPos = inputParamPositions.ToArray();
                 int[] outputPos = outputParamPositions.ToArray();
+
+                inputParameterCount = inputPos.Length;
                 outputParameterCount = outputPos.Length;
 
                 // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
                 InvokeDelegate lambda = delegate (object target, object[] inputs, object[] outputs)
                 {
-                    object[] inputsLocal = null;
-                    if (inputCount > 0)
+                    object[] paramsLocal = null;
+                    if (paramCount > 0)
                     {
-                        inputsLocal = new object[inputCount];
-                        for (int i = 0; i < inputCount; i++)
+                        paramsLocal = new object[paramCount];
+
+                        for (int i = 0; i < inputPos.Length; i++)
                         {
-                            inputsLocal[i] = inputs[i];
+                            paramsLocal[inputPos[i]] = inputs[i];
                         }
                     }
 
@@ -113,11 +130,11 @@ namespace CoreWCF.Dispatcher
                     {
                         if (returnsValue)
                         {
-                            result = method.Invoke(target, inputsLocal);
+                            result = method.Invoke(target, paramsLocal);
                         }
                         else
                         {
-                            method.Invoke(target, inputsLocal);
+                            method.Invoke(target, paramsLocal);
                         }
                     }
                     catch (TargetInvocationException tie)
@@ -127,7 +144,8 @@ namespace CoreWCF.Dispatcher
 
                     for (int i = 0; i < outputPos.Length; i++)
                     {
-                        outputs[i] = inputs[outputPos[i]];
+                        Debug.Assert(paramsLocal != null);
+                        outputs[i] = paramsLocal[outputPos[i]];
                     }
 
                     return result;

@@ -4,7 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CoreWCF.Collections.Generic;
+using CoreWCF.Dispatcher;
+using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -61,6 +65,8 @@ namespace CoreWCF.Description
 
         public string Namespace { get; set; } = NamingHelper.DefaultNamespace;
 
+        internal IServiceProvider ServiceProvider { get; set; }
+
         // This was KeyedByTypeCollection, maybe change to Collection<IServiceBehavior>
         public KeyedByTypeCollection<IServiceBehavior> Behaviors { get; } = new KeyedByTypeCollection<IServiceBehavior>();
 
@@ -77,10 +83,23 @@ namespace CoreWCF.Description
 
         public Type ServiceType { get; set; }
 
-        internal static void AddBehaviors<TService>(ServiceDescription serviceDescription) where TService : class
+        internal static void AddBehaviors<TService>(ServiceDescription serviceDescription, IEnumerable<IServiceBehavior> injectedBehaviors = null) where TService : class
         {
             TypeLoader<TService>.ApplyServiceInheritance<IServiceBehavior, KeyedByTypeCollection<IServiceBehavior>>(
                 serviceDescription.Behaviors, GetIServiceBehaviorAttributes);
+
+            if (injectedBehaviors != null)
+            {
+                // Only add IServiceBehavior from DI if concrete type not already added
+                // TODO: Add logging to state when an injected behavior has been skipped
+                foreach(var behavior in injectedBehaviors)
+                {
+                    if (!serviceDescription.Behaviors.Contains(behavior.GetType()))
+                    {
+                        serviceDescription.Behaviors.Add(behavior);
+                    }
+                }
+            }
 
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
 
@@ -142,17 +161,13 @@ namespace CoreWCF.Description
 
         internal static TService CreateImplementation<TService>() where TService : class
         {
-            System.Reflection.ConstructorInfo constructor = typeof(TService).GetConstructor(TypeLoader.DefaultBindingFlags, null, Type.EmptyTypes, null);
-            if (constructor == null)
+            if (!InvokerUtil.HasDefaultConstructor(typeof(TService)))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
                     SR.SFxNoDefaultConstructor));
             }
 
-            var implementation = constructor.Invoke(
-                TypeLoader.DefaultBindingFlags, null, null, System.Globalization.CultureInfo.InvariantCulture)
-                as TService;
-            return implementation;
+            return (TService)InvokerUtil.GenerateCreateInstanceDelegate(typeof(TService))();
         }
 
         //internal static object CreateImplementation(Type serviceType)
@@ -177,9 +192,23 @@ namespace CoreWCF.Description
         //    return constructor.Invoke(null, null);
         //}
 
+        internal ServiceCredentials EnsureCredentials()
+        {
+           // 
+            ServiceCredentials c = Behaviors.Find<ServiceCredentials>();
+
+            if (c == null)
+            {
+                c = ServiceProvider?.GetRequiredService<ServiceCredentials>() ?? new ServiceCredentials();
+                Behaviors.Add(c);
+            }
+
+            return c;
+        }
+
         private static ServiceBehaviorAttribute EnsureBehaviorAttribute(ServiceDescription description)
         {
-            ServiceBehaviorAttribute attr = ((KeyedByTypeCollection<IServiceBehavior>)description.Behaviors).Find<ServiceBehaviorAttribute>();
+            ServiceBehaviorAttribute attr = description.Behaviors.Find<ServiceBehaviorAttribute>();
 
             if (attr == null)
             {
@@ -213,7 +242,7 @@ namespace CoreWCF.Description
             }
         }
 
-        private static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
+        internal static void SetupSingleton<TService>(ServiceDescription serviceDescription, TService implementation) where TService : class
         {
             ServiceBehaviorAttribute serviceBehavior = EnsureBehaviorAttribute(serviceDescription);
             if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
@@ -221,6 +250,26 @@ namespace CoreWCF.Description
                 if (implementation == null)
                 {
                     // implementation will only be null if not provided using DI
+                    implementation = CreateImplementation<TService>();
+                    serviceBehavior.SetHiddenSingleton(implementation);
+                }
+                else
+                {
+                    serviceBehavior.SetWellKnownSingleton(implementation);
+                }
+            }
+        }
+
+        internal static void SetupSingleton<TService>(ServiceDescription serviceDescription, IServiceProvider services) where TService : class
+        {
+            ServiceBehaviorAttribute serviceBehavior = serviceDescription.Behaviors.Find<ServiceBehaviorAttribute>();
+            Debug.Assert(serviceBehavior != null, "EnsureServiceBehavior should have ensured the serviceBehavior");
+
+            if (serviceBehavior.InstanceContextMode == InstanceContextMode.Single)
+            {
+                TService implementation = services.GetService<TService>();
+                if (implementation == null)
+                {
                     implementation = CreateImplementation<TService>();
                     serviceBehavior.SetHiddenSingleton(implementation);
                 }
@@ -262,6 +311,17 @@ namespace CoreWCF.Description
             {
                 return contract.ConfigurationName;
             }
+        }
+    }
+
+    internal class ServiceDescription<TService> : ServiceDescription where TService : class
+    {
+        public ServiceDescription(IEnumerable<IServiceBehavior> injectedBehaviors, IServiceProvider services)
+        {
+            ServiceType = typeof(TService);
+            ServiceProvider = services;
+            AddBehaviors<TService>(this, injectedBehaviors);
+            SetupSingleton<TService>(this, services);
         }
     }
 }

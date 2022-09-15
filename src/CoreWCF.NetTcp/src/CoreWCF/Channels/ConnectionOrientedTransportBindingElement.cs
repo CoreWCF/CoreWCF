@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Xml;
+using WsdlNS = System.Web.Services.Description;
+using CoreWCF.Description;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     // TODO: Consider moving to primitives
-    public abstract class ConnectionOrientedTransportBindingElement : TransportBindingElement
+    public abstract class ConnectionOrientedTransportBindingElement : TransportBindingElement, IWsdlExportExtension, IPolicyExportExtension
     {
         private int _connectionBufferSize;
         private readonly bool _exposeConnectionProperty;
@@ -213,6 +217,16 @@ namespace CoreWCF.Channels
             }
         }
 
+        public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            return true;
+        }
+
         internal bool IsMaxPendingAcceptsSet { get; private set; }
 
         [DefaultValue(ConnectionOrientedTransportDefaults.TransferMode)]
@@ -227,6 +241,66 @@ namespace CoreWCF.Channels
                 TransferModeHelper.Validate(value);
                 _transferMode = value;
             }
+        }
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            ICollection<XmlElement> policyAssertions = context.GetBindingAssertions();
+            if (TransferModeHelper.IsRequestStreamed(TransferMode)
+                || TransferModeHelper.IsResponseStreamed(TransferMode))
+            {
+                policyAssertions.Add(new XmlDocument().CreateElement(TransportPolicyConstants.DotNetFramingPrefix,
+                    TransportPolicyConstants.StreamedName, TransportPolicyConstants.DotNetFramingNamespace));
+            }
+
+            bool createdNew;
+            MessageEncodingBindingElement encodingBindingElement = FindMessageEncodingBindingElement(context.BindingElements, out createdNew);
+            if (createdNew && encodingBindingElement is IPolicyExportExtension)
+            {
+                encodingBindingElement = new BinaryMessageEncodingBindingElement();
+                ((IPolicyExportExtension)encodingBindingElement).ExportPolicy(exporter, context);
+            }
+
+            WsdlExporter.AddWSAddressingAssertion(exporter, context, encodingBindingElement.MessageVersion.Addressing);
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext context) { }
+
+        internal abstract string WsdlTransportUri { get; }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext)
+        {
+            bool createdNew;
+            MessageEncodingBindingElement encodingBindingElement = FindMessageEncodingBindingElement(endpointContext, out createdNew);
+            ExportWsdlEndpoint(exporter, endpointContext, WsdlTransportUri, encodingBindingElement.MessageVersion.Addressing);
+        }
+
+        private MessageEncodingBindingElement FindMessageEncodingBindingElement(BindingElementCollection bindingElements, out bool createdNew)
+        {
+            createdNew = false;
+            MessageEncodingBindingElement encodingBindingElement = bindingElements.Find<MessageEncodingBindingElement>();
+            if (encodingBindingElement == null)
+            {
+                createdNew = true;
+                encodingBindingElement = new BinaryMessageEncodingBindingElement();
+            }
+            return encodingBindingElement;
+        }
+
+        private MessageEncodingBindingElement FindMessageEncodingBindingElement(WsdlEndpointConversionContext endpointContext, out bool createdNew)
+        {
+            BindingElementCollection bindingElements = endpointContext.Endpoint.Binding.CreateBindingElements();
+            return FindMessageEncodingBindingElement(bindingElements, out createdNew);
         }
 
         public override T GetProperty<T>(BindingContext context)
@@ -304,5 +378,48 @@ namespace CoreWCF.Channels
 
             return true;
         }
+
+        internal static void ExportWsdlEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext,
+            string wsdlTransportUri, AddressingVersion addressingVersion)
+        {
+            ExportWsdlEndpoint(exporter, endpointContext, wsdlTransportUri, endpointContext.Endpoint.Address, addressingVersion);
+        }
+    }
+
+    // Originally lived in TransportBindingElementImporter.cs
+    internal static class TransportPolicyConstants
+    {
+        public const string BasicHttpAuthenticationName = "BasicAuthentication";
+        public const string CompositeDuplex = "CompositeDuplex";
+        public const string CompositeDuplexNamespace = "http://schemas.microsoft.com/net/2006/06/duplex";
+        public const string CompositeDuplexPrefix = "cdp";
+        public const string DigestHttpAuthenticationName = "DigestAuthentication";
+        public const string DotNetFramingNamespace = Framing.FramingEncodingString.NamespaceUri + "/policy";
+        public const string DotNetFramingPrefix = "msf";
+        public const string HttpTransportNamespace = "http://schemas.microsoft.com/ws/06/2004/policy/http";
+        public const string HttpTransportPrefix = "http";
+        public const string HttpTransportUri = "http://schemas.xmlsoap.org/soap/http";
+        public const string MsmqBestEffort = "MsmqBestEffort";
+        public const string MsmqSession = "MsmqSession";
+        public const string MsmqTransportNamespace = "http://schemas.microsoft.com/ws/06/2004/mspolicy/msmq";
+        public const string MsmqTransportPrefix = "msmq";
+        public const string MsmqTransportUri = "http://schemas.microsoft.com/soap/msmq";
+        public const string MsmqVolatile = "MsmqVolatile";
+        public const string MsmqAuthenticated = "Authenticated";
+        public const string MsmqWindowsDomain = "WindowsDomain";
+        public const string NamedPipeTransportUri = "http://schemas.microsoft.com/soap/named-pipe";
+        public const string NegotiateHttpAuthenticationName = "NegotiateAuthentication";
+        public const string NtlmHttpAuthenticationName = "NtlmAuthentication";
+        public const string PeerTransportUri = "http://schemas.microsoft.com/soap/peer";
+        public const string ProtectionLevelName = "ProtectionLevel";
+        public const string RequireClientCertificateName = "RequireClientCertificate";
+        public const string SslTransportSecurityName = "SslTransportSecurity";
+        public const string StreamedName = "Streamed";
+        public const string TcpTransportUri = "http://schemas.microsoft.com/soap/tcp";
+        public const string WebSocketPolicyPrefix = "mswsp";
+        public const string WebSocketPolicyNamespace = "http://schemas.microsoft.com/soap/websocket/policy";
+        public const string WebSocketTransportUri = "http://schemas.microsoft.com/soap/websocket";
+        public const string WebSocketEnabled = "WebSocketEnabled";
+        public const string WindowsTransportSecurityName = "WindowsTransportSecurity";
     }
 }

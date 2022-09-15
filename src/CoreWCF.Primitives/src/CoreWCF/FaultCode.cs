@@ -109,13 +109,12 @@ namespace CoreWCF
             return new FaultCode("Sender", subCode);
         }
 
-        // TODO: Consider making this public
-        internal static FaultCode CreateSenderFaultCode(string name, string ns)
+        public static FaultCode CreateSenderFaultCode(string name, string ns)
         {
             return CreateSenderFaultCode(new FaultCode(name, ns));
         }
 
-        internal static FaultCode CreateReceiverFaultCode(FaultCode subCode)
+        public static FaultCode CreateReceiverFaultCode(FaultCode subCode)
         {
             if (subCode == null)
             {
@@ -123,6 +122,11 @@ namespace CoreWCF
             }
 
             return new FaultCode("Receiver", subCode);
+        }
+
+        public static FaultCode CreateReceiverFaultCode(string name, string ns)
+        {
+            return CreateReceiverFaultCode(new FaultCode(name, ns));
         }
     }
 }

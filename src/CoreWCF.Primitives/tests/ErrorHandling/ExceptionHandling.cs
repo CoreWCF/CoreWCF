@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
 using DispatcherClient;
@@ -83,6 +84,7 @@ namespace ErrorHandling
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public static void ServiceThrowsExceptionDetailsIncludedInFault()
         {
             string exceptionMessage = "This is the exception message";

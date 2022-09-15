@@ -24,9 +24,9 @@ namespace CoreWCF.Security
 {
     internal class SecuritySessionSecurityTokenAuthenticator : CommunicationObjectSecurityTokenAuthenticator, IIssuanceSecurityTokenAuthenticator //, ILogonTokenCacheManager
     {
-        internal static readonly TimeSpan defaultSessionTokenLifetime = TimeSpan.MaxValue;
-        internal const int defaultMaxCachedSessionTokens = int.MaxValue;
-        internal static readonly SecurityStandardsManager defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
+        internal static readonly TimeSpan s_defaultSessionTokenLifetime = TimeSpan.MaxValue;
+        internal const int DefaultMaxCachedSessionTokens = int.MaxValue;
+        internal static readonly SecurityStandardsManager s_defaultStandardsManager = SecurityStandardsManager.DefaultInstance;
         private bool _isClientAnonymous;
         private TimeSpan _sessionTokenLifetime;
         private ISecurityContextSecurityTokenCache _issuedTokenCache;
@@ -48,9 +48,9 @@ namespace CoreWCF.Security
         public SecuritySessionSecurityTokenAuthenticator()
         {
             SessionTokenAuthenticator = new SecurityContextSecurityTokenAuthenticator();
-            _sessionTokenLifetime = defaultSessionTokenLifetime;
+            _sessionTokenLifetime = s_defaultSessionTokenLifetime;
             _isClientAnonymous = false;
-            _standardsManager = defaultStandardsManager;
+            _standardsManager = s_defaultStandardsManager;
             _keyEntropyMode = SecurityKeyEntropyMode.CombinedEntropy;// AcceleratedTokenProvider.defaultKeyEntropyMode;
             _maximumConcurrentNegotiations = 128;// AcceleratedTokenAuthenticator.defaultServerMaxActiveNegotiations;
             _negotiationTimeout = TimeSpan.Parse("00:01:00", CultureInfo.InvariantCulture); // AcceleratedTokenAuthenticator.defaultServerMaxNegotiationLifetime;
@@ -515,10 +515,10 @@ namespace CoreWCF.Security
             return (token is SecurityContextSecurityToken);
         }
 
-        protected override ReadOnlyCollection<IAuthorizationPolicy> ValidateTokenCore(SecurityToken token)
+        protected override ValueTask<ReadOnlyCollection<IAuthorizationPolicy>> ValidateTokenCoreAsync(SecurityToken token)
         {
             SecurityContextSecurityToken sct = (SecurityContextSecurityToken)token;
-            return sct.AuthorizationPolicies;
+            return new ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>(sct.AuthorizationPolicies);
         }
 
         private static bool IsSameIdentity(ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies, ServiceSecurityContext incomingContext)
@@ -1107,13 +1107,28 @@ namespace CoreWCF.Security
 
             internal ChannelDispatcher InitializeRuntime(SecurityServiceDispatcher securityDispatcher)
             {
+                if (securityDispatcher.AcceptorChannelType.Equals(typeof(IReplyChannel)))
+                {
+                    return InitializeRuntime<IReplyChannel>(securityDispatcher);
+                }
+
+                if (securityDispatcher.AcceptorChannelType.Equals(typeof(IDuplexSessionChannel)))
+                {
+                    return InitializeRuntime<IDuplexSessionChannel>(securityDispatcher);
+                }
+
+                throw new NotImplementedException();
+            }
+
+            internal ChannelDispatcher InitializeRuntime<TChannel>(SecurityServiceDispatcher securityDispatcher) where TChannel : class, IChannel
+            {
                 MessageFilter contractFilter = _filter;
                 int filterPriority = int.MaxValue - 10;
                 List<Type> endpointChannelTypes = new List<Type> {  typeof(IReplyChannel),
                                                            typeof(IDuplexChannel),
                                                            typeof(IReplySessionChannel),
                                                            typeof(IDuplexSessionChannel) };
-
+                
                 //  IChannelListener listener = null;
                 //  BindingParameterCollection parameters = new BindingParameterCollection(this.channelBuilder.BindingParameters);
                 //  Binding binding = this.channelBuilder.Binding;
@@ -1127,12 +1142,13 @@ namespace CoreWCF.Security
                 //  }
 
                 //Replacing above code by below 3 lines.(adding securityservicedispatcher to demuxer, how to respond)
+
                 Binding binding = _authenticator.IssuerBindingContext.Binding;
                 binding.ReceiveTimeout = _authenticator.NegotiationTimeout;
-                securityDispatcher.ChannelBuilder.AddServiceDispatcher<IReplyChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
+                securityDispatcher.ChannelBuilder.AddServiceDispatcher<TChannel>(securityDispatcher, new ChannelDemuxerFilter(contractFilter, filterPriority));
 
                 //Injecting here the BuildResponderChannelListener
-                _authenticator.BuildResponderChannelListener<IReplyChannel>(_authenticator.IssuerBindingContext, securityDispatcher);
+                _authenticator.BuildResponderChannelListener<TChannel>(_authenticator.IssuerBindingContext, securityDispatcher);
                 //end
 
                 var bindingQname = new XmlQualifiedName(binding.Name, binding.Namespace);
@@ -1270,7 +1286,7 @@ namespace CoreWCF.Security
                 return _innerTokenManager.CreateSecurityTokenProvider(requirement);
             }
 
-            internal override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
+            public override SecurityTokenSerializer CreateSecurityTokenSerializer(SecurityTokenVersion version)
             {
                 return _innerTokenManager.CreateSecurityTokenSerializer(version);
             }

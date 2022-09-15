@@ -9,6 +9,7 @@ using System.IO.Pipelines;
 using System.Text;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -25,6 +26,14 @@ namespace CoreWCF.Channels.Framing
 
     internal struct IntDecoder
     {
+        public IntDecoder(ILogger logger)
+        {
+            Logger = logger;
+            IsValueDecoded = false;
+            _value = 0;
+            _index = 0;
+        }
+
         private int _value;
         private short _index;
         private const int LastIndex = 4;
@@ -43,6 +52,8 @@ namespace CoreWCF.Channels.Framing
         }
 
         public bool IsValueDecoded { get; private set; }
+
+        private ILogger Logger { get; }
 
         public void Reset()
         {
@@ -70,6 +81,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.FramingSizeTooLarge));
                 }
+                Logger.DecodingInt(next, _index,_value);
                 _index++;
                 if ((next & 0x80) == 0)
                 {
@@ -93,23 +105,26 @@ namespace CoreWCF.Channels.Framing
         private readonly int _sizeQuota;
         private int _valueLengthInBytes;
 
-        public StringDecoder(int sizeQuota)
+        public StringDecoder(int sizeQuota, ILogger logger)
         {
+            Logger = logger;
             _sizeQuota = sizeQuota;
-            _sizeDecoder = new IntDecoder();
+            _sizeDecoder = new IntDecoder(logger);
             Reset();
         }
 
+        protected ILogger Logger { get; }
+
         public bool IsValueDecoded
         {
-            get { return _currentState == State.Done; }
+            get { return CurrentState == State.Done; }
         }
 
         public string Value
         {
             get
             {
-                if (_currentState != State.Done)
+                if (CurrentState != State.Done)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
@@ -118,12 +133,15 @@ namespace CoreWCF.Channels.Framing
             }
         }
 
+        public State CurrentState { get => _currentState; private set => _currentState = value; }
+
         public int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
 
             int bytesConsumed;
-            switch (_currentState)
+            Logger.LogStartState(this);
+            switch (CurrentState)
             {
                 case State.ReadingSize:
                     bytesConsumed = _sizeDecoder.Decode(buffer);
@@ -140,7 +158,7 @@ namespace CoreWCF.Channels.Framing
                             _encodedBytes = Fx.AllocateByteArray(_encodedSize);
                             _value = null;
                         }
-                        _currentState = State.ReadingBytes;
+                        CurrentState = State.ReadingBytes;
                         _bytesNeeded = _encodedSize;
                     }
                     break;
@@ -168,6 +186,7 @@ namespace CoreWCF.Channels.Framing
                         {
                             _value = Encoding.UTF8.GetString(_encodedBytes, 0, _encodedSize);
                             _valueLengthInBytes = _encodedSize;
+                            Logger.StringDecoded(_value);
                             OnComplete(_value);
                         }
                     }
@@ -176,12 +195,13 @@ namespace CoreWCF.Channels.Framing
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.InvalidDecoderStateMachine));
             }
 
+            Logger.LogEndState(this, bytesConsumed);
             return bytesConsumed;
         }
 
         protected virtual void OnComplete(string value)
         {
-            _currentState = State.Done;
+            CurrentState = State.Done;
         }
 
         private static bool CompareBuffers(byte[] buffer1, ReadOnlySequence<byte> buffer2)
@@ -201,11 +221,11 @@ namespace CoreWCF.Channels.Framing
 
         public void Reset()
         {
-            _currentState = State.ReadingSize;
+            CurrentState = State.ReadingSize;
             _sizeDecoder.Reset();
         }
 
-        private enum State
+        public enum State
         {
             ReadingSize,
             ReadingBytes,
@@ -217,8 +237,8 @@ namespace CoreWCF.Channels.Framing
     {
         private Uri _via;
 
-        public ViaStringDecoder(int sizeQuota)
-            : base(sizeQuota)
+        public ViaStringDecoder(int sizeQuota, ILogger logger)
+            : base(sizeQuota, logger)
         {
         }
 
@@ -260,8 +280,8 @@ namespace CoreWCF.Channels.Framing
     {
         internal const int FaultSizeQuota = 256;
 
-        public FaultStringDecoder()
-            : base(FaultSizeQuota)
+        public FaultStringDecoder(ILogger logger)
+            : base(FaultSizeQuota, logger)
         {
         }
 
@@ -332,8 +352,8 @@ namespace CoreWCF.Channels.Framing
 
     internal class ContentTypeStringDecoder : StringDecoder
     {
-        public ContentTypeStringDecoder(int sizeQuota)
-            : base(sizeQuota)
+        public ContentTypeStringDecoder(int sizeQuota, ILogger logger)
+            : base(sizeQuota, logger)
         {
         }
 
@@ -366,6 +386,14 @@ namespace CoreWCF.Channels.Framing
                     return FramingEncodingString.Binary;
                 case FramingEncodingType.BinarySession:
                     return FramingEncodingString.BinarySession;
+                case FramingEncodingType.ExtendedBinaryGZip:
+                    return FramingEncodingString.ExtendedBinaryGZip;
+                case FramingEncodingType.ExtendedBinarySessionGZip:
+                    return FramingEncodingString.ExtendedBinarySessionGZip;
+                case FramingEncodingType.ExtendedBinaryDeflate:
+                    return FramingEncodingString.ExtendedBinaryDeflate;
+                case FramingEncodingType.ExtendedBinarySessionDeflate:
+                    return FramingEncodingString.ExtendedBinarySessionDeflate;
                 default:
                     return "unknown" + ((int)type).ToString(CultureInfo.InvariantCulture);
             }
@@ -374,13 +402,13 @@ namespace CoreWCF.Channels.Framing
 
     internal abstract class FramingDecoder
     {
-        protected FramingDecoder()
-        {
-        }
+        protected FramingDecoder(ILogger logger) => Logger = logger;
 
         protected abstract string CurrentStateAsString { get; }
 
         public virtual string ContentType { get { throw new NotImplementedException(); } }
+
+        protected ILogger Logger { get; }
 
         public virtual Uri Via { get { throw new NotImplementedException(); } }
 
@@ -474,7 +502,7 @@ namespace CoreWCF.Channels.Framing
         private int _minorVersion;
         private FramingMode _mode;
 
-        public ServerModeDecoder()
+        public ServerModeDecoder(ILogger logger) : base(logger)
         {
             Reset();
         }
@@ -487,6 +515,7 @@ namespace CoreWCF.Channels.Framing
             try
             {
                 int bytesConsumed;
+                Logger.LogStartState(this);
                 switch (CurrentState)
                 {
                     case State.ReadingVersionRecord:
@@ -521,6 +550,7 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
+                Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -587,10 +617,7 @@ namespace CoreWCF.Channels.Framing
 
         public State CurrentState { get; private set; }
 
-        protected override string CurrentStateAsString
-        {
-            get { return CurrentState.ToString(); }
-        }
+        protected override string CurrentStateAsString => CurrentState.ToString();
 
         public FramingMode Mode
         {
@@ -658,20 +685,17 @@ namespace CoreWCF.Channels.Framing
         private int _envelopeSize;
         private string _upgrade;
 
-        public ServerSessionDecoder(int maxViaLength, int maxContentTypeLength)
+        public ServerSessionDecoder(int maxViaLength, int maxContentTypeLength, ILogger logger) : base(logger)
         {
-            _viaDecoder = new ViaStringDecoder(maxViaLength);
-            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
-            _sizeDecoder = new IntDecoder();
+            _viaDecoder = new ViaStringDecoder(maxViaLength, logger);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength, logger);
+            _sizeDecoder = new IntDecoder(logger);
             Reset();
         }
 
         public State CurrentState { get; private set; }
 
-        protected override string CurrentStateAsString
-        {
-            get { return CurrentState.ToString(); }
-        }
+        protected override string CurrentStateAsString => CurrentState.ToString();
 
         public override string ContentType
         {
@@ -738,6 +762,7 @@ namespace CoreWCF.Channels.Framing
             {
                 int bytesConsumed;
                 FramingRecordType recordType;
+                Logger.LogStartState(this);
                 switch (CurrentState)
                 {
                     case State.ReadingViaRecord:
@@ -880,6 +905,7 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
+                Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -917,9 +943,9 @@ namespace CoreWCF.Channels.Framing
         private int _chunkBytesNeeded;
         private int _chunkSize;
 
-        public SingletonMessageDecoder()
+        public SingletonMessageDecoder(ILogger logger) : base(logger)
         {
-            _sizeDecoder = new IntDecoder();
+            _sizeDecoder = new IntDecoder(logger);
             CurrentState = State.ChunkStart;
         }
 
@@ -930,10 +956,7 @@ namespace CoreWCF.Channels.Framing
 
         public State CurrentState { get; private set; }
 
-        protected override string CurrentStateAsString
-        {
-            get { return CurrentState.ToString(); }
-        }
+        protected override string CurrentStateAsString => CurrentState.ToString();
 
         public int ChunkSize
         {
@@ -955,6 +978,7 @@ namespace CoreWCF.Channels.Framing
             try
             {
                 int bytesConsumed;
+                Logger.LogStartState(this);
                 switch (CurrentState)
                 {
                     case State.ReadingEnvelopeChunkSize:
@@ -1009,6 +1033,7 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
+                Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1039,10 +1064,10 @@ namespace CoreWCF.Channels.Framing
         private string _contentType;
         private string _upgrade;
 
-        public ServerSingletonDecoder(int maxViaLength, int maxContentTypeLength)
+        public ServerSingletonDecoder(int maxViaLength, int maxContentTypeLength, ILogger logger) : base(logger)
         {
-            _viaDecoder = new ViaStringDecoder(maxViaLength);
-            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
+            _viaDecoder = new ViaStringDecoder(maxViaLength, logger);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength, logger);
             Reset();
         }
 
@@ -1053,10 +1078,7 @@ namespace CoreWCF.Channels.Framing
 
         public State CurrentState { get; private set; }
 
-        protected override string CurrentStateAsString
-        {
-            get { return CurrentState.ToString(); }
-        }
+        protected override string CurrentStateAsString => CurrentState.ToString();
 
         public override Uri Via
         {
@@ -1105,6 +1127,7 @@ namespace CoreWCF.Channels.Framing
             {
                 int bytesConsumed;
                 FramingRecordType recordType;
+                Logger.LogStartState(this);
                 switch (CurrentState)
                 {
                     case State.ReadingViaRecord:
@@ -1202,6 +1225,7 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
+                Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1242,10 +1266,10 @@ namespace CoreWCF.Channels.Framing
         private readonly ContentTypeStringDecoder _contentTypeDecoder;
         private string _contentType;
 
-        public ServerSingletonSizedDecoder(int maxViaLength, int maxContentTypeLength)
+        public ServerSingletonSizedDecoder(int maxViaLength, int maxContentTypeLength, ILogger logger) : base(logger)
         {
-            _viaDecoder = new ViaStringDecoder(maxViaLength);
-            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength);
+            _viaDecoder = new ViaStringDecoder(maxViaLength, logger);
+            _contentTypeDecoder = new ContentTypeStringDecoder(maxContentTypeLength, logger);
             CurrentState = State.ReadingViaRecord;
         }
 
@@ -1257,6 +1281,7 @@ namespace CoreWCF.Channels.Framing
             {
                 int bytesConsumed;
                 FramingRecordType recordType;
+                Logger.LogStartState(this);
                 switch (CurrentState)
                 {
                     case State.ReadingViaRecord:
@@ -1310,6 +1335,7 @@ namespace CoreWCF.Channels.Framing
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
+                Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1325,10 +1351,7 @@ namespace CoreWCF.Channels.Framing
 
         public State CurrentState { get; private set; }
 
-        protected override string CurrentStateAsString
-        {
-            get { return CurrentState.ToString(); }
-        }
+        protected override string CurrentStateAsString => CurrentState.ToString();
 
         public override Uri Via
         {
@@ -1365,25 +1388,5 @@ namespace CoreWCF.Channels.Framing
             ReadingContentTypeByte,
             Start,
         }
-    }
-
-    // common set of states used on the client-side.
-    internal enum ClientFramingDecoderState
-    {
-        ReadingUpgradeRecord,
-        ReadingUpgradeMode,
-        UpgradeResponse,
-        ReadingAckRecord,
-        Start,
-        ReadingFault,
-        ReadingFaultString,
-        Fault,
-        ReadingEnvelopeRecord,
-        ReadingEnvelopeSize,
-        EnvelopeStart,
-        ReadingEnvelopeBytes,
-        EnvelopeEnd,
-        ReadingEndRecord,
-        End,
     }
 }

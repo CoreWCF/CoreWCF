@@ -35,6 +35,12 @@ namespace CoreWCF.Description
             Messages = new MessageDescriptionCollection();
             Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
             KnownTypes = new Collection<Type>();
+            AuthorizeOperation = new KeyedByTypeCollection<IAuthorizeOperation>();
+        }
+
+        internal OperationDescription(string name, ContractDescription declaringContract, bool validateRpcWrapperName) : this(name, declaringContract)
+        {
+            IsValidateRpcWrapperName = validateRpcWrapperName;
         }
 
         internal bool HasNoDisposableParameters
@@ -114,7 +120,9 @@ namespace CoreWCF.Description
             get { return XmlName.EncodedName; }
         }
 
-        internal bool IsValidateRpcWrapperName { get; } = true;
+        internal bool IsValidateRpcWrapperName { private set; get; } = true;
+
+        internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {
@@ -125,7 +133,7 @@ namespace CoreWCF.Description
 
         internal XmlName XmlName { get; }
 
-        internal bool IsInitiating { get; set; }
+        public bool IsInitiating { get; set; }
 
         internal bool IsServerInitiated()
         {
@@ -133,7 +141,7 @@ namespace CoreWCF.Description
             return Messages[0].Direction == MessageDirection.Output;
         }
 
-        internal bool IsTerminating { get; set; }
+        public bool IsTerminating { get; set; }
 
         internal void EnsureInvariants()
         {

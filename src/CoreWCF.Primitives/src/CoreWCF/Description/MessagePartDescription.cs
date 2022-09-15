@@ -13,8 +13,7 @@ namespace CoreWCF.Description
         private ProtectionLevel _protectionLevel;
         private bool _hasProtectionLevel;
 
-        // TODO: Was ICustomAttributeProvider
-        private CustomAttributeProvider _additionalAttributesProvider;
+        private ICustomAttributeProvider _additionalAttributesProvider;
 
         public MessagePartDescription(string name, string ns)
         {
@@ -49,7 +48,13 @@ namespace CoreWCF.Description
             //this.uniquePartName = other.uniquePartName;
         }
 
-        internal virtual MessagePartDescription Clone()
+        internal MessagePartDescription(MessagePartDescription other, string name, string ns) : this(other)
+        {
+            XmlName = new XmlName(name, true /*isEncoded*/);
+            Namespace = ns;
+        }
+
+        public virtual MessagePartDescription Clone()
         {
             return new MessagePartDescription(this);
         }
@@ -87,7 +92,7 @@ namespace CoreWCF.Description
 
         internal bool HasProtectionLevel => false;
 
-        internal CustomAttributeProvider AdditionalAttributesProvider
+        internal ICustomAttributeProvider AdditionalAttributesProvider
         {
             get { return _additionalAttributesProvider ?? MemberInfo; }
             set { _additionalAttributesProvider = value; }

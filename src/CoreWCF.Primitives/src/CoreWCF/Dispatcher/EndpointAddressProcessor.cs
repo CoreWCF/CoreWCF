@@ -24,7 +24,6 @@ namespace CoreWCF.Dispatcher
         internal const string FactoryTypeLN = "FactoryType";
 
         // Pooling
-        internal EndpointAddressProcessor next;
         private readonly StringBuilder _builder;
         private byte[] _resultData;
 
@@ -34,17 +33,7 @@ namespace CoreWCF.Dispatcher
             _resultData = new byte[length];
         }
 
-        internal EndpointAddressProcessor Next
-        {
-            get
-            {
-                return next;
-            }
-            set
-            {
-                next = value;
-            }
-        }
+        internal EndpointAddressProcessor Next { get; set; }
 
         internal static string GetComparableForm(StringBuilder builder, XmlReader reader)
         {
@@ -105,11 +94,11 @@ namespace CoreWCF.Dispatcher
                             {
                                 Attr a = attrSet[i];
 
-                                AppendString(builder, a.local);
+                                AppendString(builder, a._local);
                                 builder.Append(":");
-                                AppendString(builder, a.ns);
+                                AppendString(builder, a._ns);
                                 builder.Append("=\"");
-                                AppendString(builder, a.val);
+                                AppendString(builder, a._val);
                                 builder.Append("\" ");
                             }
                         }
@@ -224,16 +213,16 @@ namespace CoreWCF.Dispatcher
         {
             if (bits.Length == 1)
             {
-                _resultData[bits[0].index] |= bits[0].mask;
+                _resultData[bits[0]._index] |= bits[0]._mask;
             }
             else
             {
                 byte[] results = _resultData;
                 for (int i = 0; i < bits.Length; ++i)
                 {
-                    if ((results[bits[i].index] & bits[i].mask) == 0)
+                    if ((results[bits[i]._index] & bits[i]._mask) == 0)
                     {
-                        results[bits[i].index] |= bits[i].mask;
+                        results[bits[i]._index] |= bits[i]._mask;
                         break;
                     }
                 }
@@ -317,42 +306,42 @@ namespace CoreWCF.Dispatcher
 
         internal struct HeaderBit
         {
-            internal int index;
-            internal byte mask;
+            internal int _index;
+            internal byte _mask;
 
             internal HeaderBit(int bitNum)
             {
-                index = bitNum / 8;
-                mask = (byte)(1 << (bitNum % 8));
+                _index = bitNum / 8;
+                _mask = (byte)(1 << (bitNum % 8));
             }
 
             internal void AddToMask(ref byte[] mask)
             {
                 if (mask == null)
                 {
-                    mask = new byte[index + 1];
+                    mask = new byte[_index + 1];
                 }
-                else if (mask.Length <= index)
+                else if (mask.Length <= _index)
                 {
-                    Array.Resize(ref mask, index + 1);
+                    Array.Resize(ref mask, _index + 1);
                 }
 
-                mask[index] |= this.mask;
+                mask[_index] |= _mask;
             }
         }
 
         private class Attr : IComparable<Attr>
         {
-            internal string local;
-            internal string ns;
-            internal string val;
+            internal string _local;
+            internal string _ns;
+            internal string _val;
             private readonly string _key;
 
             internal Attr(string l, string ns, string v)
             {
-                local = l;
-                this.ns = ns;
-                val = v;
+                _local = l;
+                _ns = ns;
+                _val = v;
                 _key = ns + ":" + l;
             }
 

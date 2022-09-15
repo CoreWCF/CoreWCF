@@ -3,7 +3,7 @@
 
 namespace CoreWCF
 {
-    internal interface IOperationContractAttributeProvider
+    public interface IOperationContractAttributeProvider
     {
         OperationContractAttribute GetOperationContractAttribute();
     }

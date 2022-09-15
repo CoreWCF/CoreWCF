@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
+using CoreWCF.Runtime.Serialization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -60,7 +61,7 @@ namespace CoreWCF.Dispatcher
         }
     }
 
-    internal class DataContractSerializerOperationFormatter : OperationFormatter
+    public class DataContractSerializerOperationFormatter : OperationFormatter
     {
         private static readonly Type s_typeOfIQueryable = typeof(IQueryable);
         private static readonly Type s_typeOfIQueryableGeneric = typeof(IQueryable<>);
@@ -71,7 +72,7 @@ namespace CoreWCF.Dispatcher
         protected MessageInfo replyMessageInfo;
         private readonly IList<Type> _knownTypes;
 
-        //XsdDataContractExporter dataContractExporter;
+        private XsdDataContractExporterEx _dataContractExporter;
         private readonly DataContractSerializerOperationBehavior _serializerFactory;
 
         public DataContractSerializerOperationFormatter(OperationDescription description, DataContractFormatAttribute dataContractFormatAttribute,
@@ -156,17 +157,17 @@ namespace CoreWCF.Dispatcher
 
         private void ValidateDataContractType(Type type)
         {
-            //if (dataContractExporter == null)
-            //{
-            //    dataContractExporter = new XsdDataContractExporter();
-            //    if (serializerFactory != null && serializerFactory.DataContractSurrogate != null)
-            //    {
-            //        ExportOptions options = new ExportOptions();
-            //        options.DataContractSurrogate = serializerFactory.DataContractSurrogate;
-            //        dataContractExporter.Options = options;
-            //    }
-            //}
-            //dataContractExporter.GetSchemaTypeName(type); //Throws if the type is not a valid data contract
+            if (_dataContractExporter == null)
+            {
+                _dataContractExporter = new XsdDataContractExporterEx();
+                //if (_serializerFactory != null && _serializerFactory.DataContractSurrogate != null)
+                //{
+                //    ExportOptions options = new ExportOptions();
+                //    options.DataContractSurrogate = serializerFactory.DataContractSurrogate;
+                //    dataContractExporter.Options = options;
+                //}
+            }
+            _dataContractExporter.GetSchemaTypeName(type); //Throws if the type is not a valid data contract
         }
 
         private PartInfo CreatePartInfo(MessagePartDescription part, OperationFormatStyle style, DataContractSerializerOperationBehavior serializerFactory)
@@ -549,14 +550,14 @@ namespace CoreWCF.Dispatcher
             catch (System.FormatException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
             catch (System.Runtime.Serialization.SerializationException e)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    CreateDeserializationFailedFault(
+                    NetDispatcherFaultException.CreateDeserializationFailedFault(
                         SR.Format(SR.SFxInvalidMessageBodyErrorDeserializingParameterMore, part.Description.Namespace, part.Description.Name, e.Message),
                                      e));
             }
@@ -606,10 +607,10 @@ namespace CoreWCF.Dispatcher
         protected class MessageInfo
         {
             internal PartInfo[] HeaderParts;
-            internal XmlDictionaryString WrapperName;
-            internal XmlDictionaryString WrapperNamespace;
-            internal PartInfo[] BodyParts;
-            internal PartInfo ReturnPart;
+            public XmlDictionaryString WrapperName;
+            public XmlDictionaryString WrapperNamespace;
+            public PartInfo[] BodyParts;
+            public PartInfo ReturnPart;
             internal MessageHeaderDescriptionTable HeaderDescriptionTable;
             internal MessageHeaderDescription UnknownHeaderDescription;
             internal bool AnyHeaders;

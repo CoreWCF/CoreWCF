@@ -206,10 +206,10 @@ namespace CoreWCF.Channels
                     keys.Add(AllowOutputBatchingKey);
                 }
 
-                //if ((object)security != null)
-                //{
-                //    keys.Add(SecurityKey);
-                //}
+                if ((object)_security != null)
+                {
+                    keys.Add(SecurityKey);
+                }
 
                 if ((object)_encoder != null)
                 {
@@ -279,10 +279,10 @@ namespace CoreWCF.Channels
                     values.Add(_allowOutputBatching);
                 }
 
-                //if ((object)security != null)
-                //{
-                //    values.Add(security);
-                //}
+                if ((object)_security != null)
+                {
+                    values.Add(_security);
+                }
 
                 if ((object)_encoder != null)
                 {
@@ -383,7 +383,7 @@ namespace CoreWCF.Channels
 
             _via = null;
             _allowOutputBatching = null;
-            //security = null;
+            _security = null;
             _encoder = null;
             _propertyCount = 0;
         }
@@ -422,7 +422,7 @@ namespace CoreWCF.Channels
 
             Via = properties.Via;
             AllowOutputBatching = properties.AllowOutputBatching;
-            //this.Security = (properties.Security != null) ? (SecurityMessageProperty)properties.Security.CreateCopy() : null;
+            Security = (properties.Security != null) ? (SecurityMessageProperty)properties.Security.CreateCopy() : null;
             Encoder = properties.Encoder;
         }
 
@@ -467,7 +467,7 @@ namespace CoreWCF.Channels
 
             Via = properties.Via;
             AllowOutputBatching = properties.AllowOutputBatching;
-            //this.Security = (properties.Security != null) ? (SecurityMessageProperty)properties.Security.CreateCopy() : null;
+            Security = (properties.Security != null) ? (SecurityMessageProperty)properties.Security.CreateCopy() : null;
             Encoder = properties.Encoder;
         }
 
@@ -506,8 +506,8 @@ namespace CoreWCF.Channels
                     return (object)_via != null;
                 case AllowOutputBatchingIndex:
                     return (object)_allowOutputBatching != null;
-                //case SecurityIndex:
-                //    return (object)security != null;
+                case SecurityIndex:
+                    return (object)_security != null;
                 case EncoderIndex:
                     return (object)_encoder != null;
                 case NotFoundIndex:
@@ -555,10 +555,10 @@ namespace CoreWCF.Channels
                 }
             }
 
-            //if (this.security != null)
-            //{
-            //    this.security.Dispose();
-            //}
+            if (_security != null)
+            {
+                _security.Dispose();
+            }
         }
 
         private int FindProperty(string name)
@@ -640,9 +640,9 @@ namespace CoreWCF.Channels
                 case AllowOutputBatchingIndex:
                     value = _allowOutputBatching;
                     break;
-                //case SecurityIndex:
-                //    value = security;
-                //    break;
+                case SecurityIndex:
+                    value = _security;
+                    break;
                 case EncoderIndex:
                     value = _encoder;
                     break;
@@ -657,10 +657,16 @@ namespace CoreWCF.Channels
             return value != null;
         }
 
-        internal bool TryGetValue<TProperty>(string name, out TProperty property)
+        public bool TryGetValue<TProperty>(string name, out TProperty property)
         {
             if (TryGetValue(name, out object o))
             {
+                if (!(o is TProperty))
+                {
+                    property = default;
+                    return false;
+                }
+                    
                 property = (TProperty)o;
                 return true;
             }
@@ -707,9 +713,9 @@ namespace CoreWCF.Channels
                         case AllowOutputBatchingIndex:
                             exists = (object)_allowOutputBatching != null;
                             break;
-                        //case SecurityIndex:
-                        //    exists = (object)security != null;
-                        //    break;
+                        case SecurityIndex:
+                            exists = (object)_security != null;
+                            break;
                         case EncoderIndex:
                             exists = (object)_encoder != null;
                             break;
@@ -756,11 +762,11 @@ namespace CoreWCF.Channels
                         case AllowOutputBatchingIndex:
                             AllowOutputBatching = (bool)value;
                             break;
-                        //case SecurityIndex:
-                        //    if (Security != null)
-                        //        Security.Dispose();
-                        //    Security = (SecurityMessageProperty)CreateCopyOfPropertyValue(value);
-                        //    break;
+                        case SecurityIndex:
+                            if (Security != null)
+                                Security.Dispose();
+                            Security = (SecurityMessageProperty)CreateCopyOfPropertyValue(value);
+                            break;
                         case EncoderIndex:
                             Encoder = (MessageEncoder)value;
                             break;
@@ -836,8 +842,8 @@ namespace CoreWCF.Channels
                 array[index++] = new KeyValuePair<string, object>(AllowOutputBatchingKey, _allowOutputBatching);
             }
 
-            //if (this.security != null)
-            //    array[index++] = new KeyValuePair<string, object>(SecurityKey, this.security.CreateCopy());
+            if (_security != null)
+                array[index++] = new KeyValuePair<string, object>(SecurityKey, _security.CreateCopy());
 
             if (_encoder != null)
             {
@@ -928,8 +934,8 @@ namespace CoreWCF.Channels
                 pairs.Add(new KeyValuePair<string, object>(AllowOutputBatchingKey, _allowOutputBatching));
             }
 
-            //if (this.security != null)
-            //    pairs.Add(new KeyValuePair<string, object>(SecurityKey, security));
+            if (_security != null)
+                pairs.Add(new KeyValuePair<string, object>(SecurityKey, _security));
 
             if (_encoder != null)
             {

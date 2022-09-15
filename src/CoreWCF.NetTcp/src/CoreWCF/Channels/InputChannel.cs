@@ -36,11 +36,6 @@ namespace CoreWCF.Channels
             throw new NotImplementedException();
         }
 
-        public Task<bool> WaitForMessageAsync(CancellationToken token)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override void OnAbort()
         {
             return;

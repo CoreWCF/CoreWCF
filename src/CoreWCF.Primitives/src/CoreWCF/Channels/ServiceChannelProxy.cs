@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Reflection;
@@ -15,7 +16,10 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal sealed class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("This API supports the .NET Framework infrastructure and is not intended to be used directly from your code.")]
+    public class ServiceChannelProxy : DispatchProxy, ICommunicationObject, IChannel, IClientChannel, IOutputChannel, IRequestChannel, IServiceChannel, IDuplexContextChannel
     {
         private const string activityIdSlotName = "E2ETrace.ActivityID";
         private Type _proxiedType;
@@ -45,7 +49,7 @@ namespace CoreWCF.Channels
         //Workaround is to set the activityid in remoting call's LogicalCallContext
 
         // Override ToString() to reveal only the expected proxy type, not the generated one
-        public override string ToString()
+        public sealed override string ToString()
         {
             return _proxiedType.ToString();
         }
@@ -115,7 +119,7 @@ namespace CoreWCF.Channels
             return _serviceChannel;
         }
 
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
+        protected sealed override object Invoke(MethodInfo targetMethod, object[] args)
         {
             if (args == null)
             {
@@ -659,14 +663,14 @@ namespace CoreWCF.Channels
             return _serviceChannel.RequestAsync(message, token);
         }
 
-        public Task CloseOutputSessionAsync(CancellationToken token)
+        Task IDuplexContextChannel.CloseOutputSessionAsync(CancellationToken token)
         {
             return ((IDuplexContextChannel)_serviceChannel).CloseOutputSessionAsync(token);
         }
 
         EndpointAddress IRequestChannel.RemoteAddress
         {
-            get { return ((IContextChannel)_serviceChannel).RemoteAddress; }
+            get { return _serviceChannel.RemoteAddress; }
         }
 
         Uri IRequestChannel.Via
@@ -679,7 +683,7 @@ namespace CoreWCF.Channels
             get { return _serviceChannel.ListenUri; }
         }
 
-        public bool AutomaticInputSessionShutdown
+        bool IDuplexContextChannel.AutomaticInputSessionShutdown
         {
             get
             {
@@ -692,7 +696,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public InstanceContext CallbackInstance
+        InstanceContext IDuplexContextChannel.CallbackInstance
         {
             get
             {
@@ -705,7 +709,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public IServiceChannelDispatcher ChannelDispatcher { get => ((IChannel)_serviceChannel).ChannelDispatcher; set => ((IChannel)_serviceChannel).ChannelDispatcher = value; }
+        IServiceChannelDispatcher IChannel.ChannelDispatcher { get => ((IChannel)_serviceChannel).ChannelDispatcher; set => ((IChannel)_serviceChannel).ChannelDispatcher = value; }
         #endregion // Channel interfaces
     }
 }

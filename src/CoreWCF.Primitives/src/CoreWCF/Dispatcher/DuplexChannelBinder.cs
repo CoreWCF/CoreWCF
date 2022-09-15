@@ -18,8 +18,6 @@ namespace CoreWCF.Dispatcher
     {
         private IDuplexChannel _channel;
         private IRequestReplyCorrelator _correlator;
-        private TimeSpan _defaultCloseTimeout;
-        private TimeSpan _defaultSendTimeout;
         private IdentityVerifier _identityVerifier;
         private int _pending;
         private List<IDuplexRequest> _requests;
@@ -27,6 +25,7 @@ namespace CoreWCF.Dispatcher
         private ChannelHandler _channelHandler;
         private bool _requestAborted;
         private bool _initialized = false;
+        private IDefaultCommunicationTimeouts _timeouts;
         private IServiceChannelDispatcher _next;
 
         public DuplexChannelBinder() { }
@@ -57,15 +56,12 @@ namespace CoreWCF.Dispatcher
             _initialized = true;
         }
 
+        public TimeSpan DefaultSendTimeout => _timeouts.SendTimeout;
+        public TimeSpan DefaultCloseTimeout => _timeouts.CloseTimeout;
+
         public IChannel Channel
         {
             get { return _channel; }
-        }
-
-        public TimeSpan DefaultCloseTimeout
-        {
-            get { return _defaultCloseTimeout; }
-            set { _defaultCloseTimeout = value; }
         }
 
         internal ChannelHandler ChannelHandler
@@ -86,12 +82,6 @@ namespace CoreWCF.Dispatcher
                 }
                 _channelHandler = value;
             }
-        }
-
-        public TimeSpan DefaultSendTimeout
-        {
-            get { return _defaultSendTimeout; }
-            set { _defaultSendTimeout = value; }
         }
 
         public bool HasSession { get; private set; }
@@ -389,6 +379,8 @@ namespace CoreWCF.Dispatcher
 
         public void SetNextDispatcher(IServiceChannelDispatcher dispatcher)
         {
+            Fx.Assert(dispatcher is IDefaultCommunicationTimeouts, "Next Dispatcher must implement IDefaultCommunicationTimeouts");
+            _timeouts = dispatcher as IDefaultCommunicationTimeouts;
             _next = dispatcher;
         }
 
@@ -400,13 +392,14 @@ namespace CoreWCF.Dispatcher
         public Task DispatchAsync(Message message)
         {
             Fx.Assert(_next != null, "SetNextDispatcher wasn't called");
+            Fx.Assert(_channel.State != CommunicationState.Closed, "Expected dispatcher state to be Opened or Faulted, instead it's " + _channel.State.ToString());
             if (_channel.State == CommunicationState.Faulted || message == null)
             {
                 AbortRequests();
                 return _next.DispatchAsync((RequestContext)null);
             }
 
-            return _next.DispatchAsync(new DuplexRequestContext(_channel, message, this));
+            return _next.DispatchAsync(CreateRequestContext(message));
         }
 
         private class DuplexRequestContext : RequestContextBase

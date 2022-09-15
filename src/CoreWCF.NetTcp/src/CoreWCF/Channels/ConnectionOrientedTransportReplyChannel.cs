@@ -12,7 +12,7 @@ namespace CoreWCF.Channels
     internal class ConnectionOrientedTransportReplyChannel : ReplyChannel
     {
         private StreamUpgradeProvider _upgrade;
-        private readonly IServiceProvider _serviceProvider;
+        private IServiceProvider _serviceProvider;
 
         public ConnectionOrientedTransportReplyChannel(ITransportFactorySettings settings, EndpointAddress localAddress, IServiceProvider serviceProvider)
             : base(settings, localAddress)
@@ -51,6 +51,17 @@ namespace CoreWCF.Channels
             }
 
             await base.OnCloseAsync(token);
+
+            if (_serviceProvider is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (_serviceProvider is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            _serviceProvider = null;
         }
 
         public override T GetProperty<T>()

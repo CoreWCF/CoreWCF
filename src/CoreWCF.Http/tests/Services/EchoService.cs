@@ -3,9 +3,11 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using CoreWCF;
 
 namespace Services
 {
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
     public class EchoService : ServiceContract.IEchoService
     {
         public string EchoString(string echo)
@@ -39,5 +41,14 @@ namespace Services
         {
             return echo;
         }
+
+        [CoreWCF.OperationBehavior(Impersonation = CoreWCF.ImpersonationOption.Required)]
+        public string EchoForImpersonation(string value)
+        {
+            return value;
+        }
     }
+
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    public class EchoService2 : EchoService { }
 }

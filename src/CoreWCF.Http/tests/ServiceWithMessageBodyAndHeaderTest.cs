@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
 using ClientContract;
@@ -38,9 +39,13 @@ namespace BasicHttp
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
                 IServiceWithMessageBodyAndHeader channel = factory.CreateChannel();
 
-
-                CoreEchoMessageResponse result = channel.EchoWithMessageContract(new CoreEchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST" });
+                var request = new CoreEchoMessageRequest() { Text = "Message Hello", APIKey = "DEVKEYTOTEST", HeaderArrayValues = new[] { "One", "Two", "Three" } };
+                CoreEchoMessageResponse result = channel.EchoWithMessageContract(request);
                 Assert.NotNull(result);
+                Assert.Equal("Saying Hello " + request.Text, result.SayHello);
+                Assert.Equal("Saying Hi " + request.Text, result.SayHi);
+                Assert.Equal(request.HeaderArrayValues.Length, result.HeaderArrayValues.Length);
+                Assert.Equal(request.HeaderArrayValues, result.HeaderArrayValues);
                 ((IChannel)channel).Close();
             }
         }
@@ -52,7 +57,7 @@ namespace BasicHttp
                 services.AddServiceModelServices();
             }
 
-            public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+            public void Configure(IApplicationBuilder app)
             {
                 app.UseServiceModel(builder =>
                 {

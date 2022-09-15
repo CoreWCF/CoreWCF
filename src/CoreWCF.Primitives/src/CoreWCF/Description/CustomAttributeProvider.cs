@@ -9,74 +9,12 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
-    internal class CustomAttributeProvider
+    internal static class CustomAttributeProvider
     {
-        private enum AttributeProviderType
-        {
-            Unknown,
-            Type,
-            MethodInfo,
-            MemberInfo,
-            ParameterInfo,
-        };
 
-        private CustomAttributeProvider(object attrProvider)
+        public static object[] GetDualCustomAttributes(this ICustomAttributeProvider provider, Type attributeType, bool inherit)
         {
-            if (attrProvider is Type)
-            {
-                Type = (Type)attrProvider;
-                TypeInfo = Type.GetTypeInfo();
-                ProviderType = AttributeProviderType.Type;
-            }
-            else if (attrProvider is MethodInfo)
-            {
-                MethodInfo = (MethodInfo)attrProvider;
-                ProviderType = AttributeProviderType.MethodInfo;
-            }
-            else if (attrProvider is MemberInfo)
-            {
-                MemberInfo = (MemberInfo)attrProvider;
-                ProviderType = AttributeProviderType.MemberInfo;
-            }
-            else if (attrProvider is ParameterInfo)
-            {
-                ParameterInfo = (ParameterInfo)attrProvider;
-                ProviderType = AttributeProviderType.ParameterInfo;
-            }
-            else
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(attrProvider));
-            }
-        }
-
-        private AttributeProviderType ProviderType { get; set; }
-        internal Type Type { get; private set; }
-        internal TypeInfo TypeInfo { get; private set; }
-        internal MemberInfo MemberInfo { get; private set; }
-        internal MethodInfo MethodInfo { get; private set; }
-        internal ParameterInfo ParameterInfo { get; private set; }
-
-        public object[] GetCustomAttributes(bool inherit)
-        {
-            switch (ProviderType)
-            {
-                case AttributeProviderType.Type:
-                    return Type.GetTypeInfo().GetCustomAttributes(inherit).ToArray();
-                case AttributeProviderType.MethodInfo:
-                    return MethodInfo.GetCustomAttributes(inherit).ToArray();
-                case AttributeProviderType.MemberInfo:
-                    return MemberInfo.GetCustomAttributes(inherit).ToArray();
-                case AttributeProviderType.ParameterInfo:
-                    // ParameterInfo.GetCustomAttributes can return null instead of an empty enumerable
-                    return ParameterInfo.GetCustomAttributes(inherit)?.ToArray();
-            }
-            Contract.Assert(false, "This should never execute.");
-            throw new InvalidOperationException();
-        }
-
-        public object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
-            object[] attributes = GetCustomAttributes(inherit);
+            object[] attributes = provider.GetCustomAttributes(inherit);
             if (attributes == null || attributes.Length == 0)
             {
                 return attributes;
@@ -113,7 +51,8 @@ namespace CoreWCF.Description
                 }
                 else if (attributeType == typeof(MessageHeaderAttribute))
                 {
-                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName)).ToArray();
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName) ||
+                                                           attribute.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderArrayAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
                     {
                         result[i] = ConvertFromServiceModelMessageHeaderAttribute(result[i]);
@@ -127,7 +66,7 @@ namespace CoreWCF.Description
                         result[i] = ConvertFromServiceModelMessageBodyMemberAttribute(result[i]);
                     }
                 }
-                else if (attributeType == typeof(MessageBodyMemberAttribute))
+                else if (attributeType == typeof(MessagePropertyAttribute))
                 {
                     result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName)).ToArray();
                     for (int i = 0; i < result.Length; i++)
@@ -141,6 +80,30 @@ namespace CoreWCF.Description
                     for (int i = 0; i < result.Length; i++)
                     {
                         result[i] = ConvertFromServiceModelMessageParameterAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(XmlSerializerFormatAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMXmlSerializerFormatAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelXmlSerializerFormatAttribute(result[i]);
+                    }
+                }
+                else if (attributeType == typeof(FaultContractAttribute))
+                {
+                   result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMFaultContractAttributeFullName)).ToArray();
+                   for (int i = 0; i < result.Length; i++)
+                   {
+                       result[i] = ConvertFromServiceModelFaultContractAttribute(result[i]);
+                   }
+                }
+                else if (attributeType == typeof(ServiceKnownTypeAttribute))
+                {
+                    result = attributes.Where(attribute => attribute.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName)).ToArray();
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = ConvertFromServiceModelServiceKnownTypeAttribute(result[i]);
                     }
                 }
             }
@@ -199,7 +162,10 @@ namespace CoreWCF.Description
 
         private static MessageHeaderAttribute ConvertFromServiceModelMessageHeaderAttribute(object attr)
         {
-            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName), "Expected attribute of type System.ServiceModel.MessageHeader");
+            string attributeFullName = attr.GetType().FullName;
+            Fx.Assert(attributeFullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName) ||
+                      attributeFullName.Equals(ServiceReflector.SMMessageHeaderArrayAttributeFullName),
+                      "Expected attribute of type System.ServiceModel.MessageHeaderAttribute or System.ServiceModel.MessageHeaderArrayAttribute");
 
             bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
             if (hasProtectionLevel)
@@ -208,24 +174,35 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.ServiceContractAttribute.ProtectionLevel"));
             }
 
-            var messageHeader = new MessageHeaderAttribute();
+            MessageHeaderAttribute messageHeader;
+            Type declaringPropertyType; // Used so that we call GetProperty on the SM MessageHeaderAttribute type and not the array variant
+            if (attributeFullName.Equals(ServiceReflector.SMMessageHeaderAttributeFullName))
+            {
+                messageHeader = new MessageHeaderAttribute();
+                declaringPropertyType = attr.GetType();
+            }
+            else
+            {
+                messageHeader = new MessageHeaderArrayAttribute();
+                declaringPropertyType = attr.GetType().BaseType;
+            }
 
-            string tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Actor));
+            string tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Actor));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Actor = tmpStr;
             }
-            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Name));
+            tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Name = tmpStr;
             }
-            tmpStr = GetProperty<string>(attr, nameof(MessageHeaderAttribute.Namespace));
+            tmpStr = GetProperty<string>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.Namespace));
             if (!string.IsNullOrEmpty(tmpStr))
             {
                 messageHeader.Namespace = tmpStr;
             }
-            messageHeader.MustUnderstand = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.MustUnderstand));
+            messageHeader.MustUnderstand = GetProperty<bool>(attr, declaringPropertyType, nameof(MessageHeaderAttribute.MustUnderstand));
             messageHeader.Relay = GetProperty<bool>(attr, nameof(MessageHeaderAttribute.Relay));
             return messageHeader;
         }
@@ -254,6 +231,7 @@ namespace CoreWCF.Description
 
         private static MessagePropertyAttribute ConvertFromServiceModelMessagePropertyAttribute(object attr)
         {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessagePropertyAttributeFullName), "Expected attribute of type S.SM.MessagePropertyAttribute");
             var messageProperty = new MessagePropertyAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessagePropertyAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
@@ -266,6 +244,7 @@ namespace CoreWCF.Description
 
         private static MessageParameterAttribute ConvertFromServiceModelMessageParameterAttribute(object attr)
         {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMMessageParameterAttributeFullName), "Expected attribute of type S.SM.MessageParameterAttribute");
             var messageParameter = new MessageParameterAttribute();
             string tmpStr = GetProperty<string>(attr, nameof(MessageParameterAttribute.Name));
             if (!string.IsNullOrEmpty(tmpStr))
@@ -274,6 +253,50 @@ namespace CoreWCF.Description
             }
 
             return messageParameter;
+        }
+
+        private static XmlSerializerFormatAttribute ConvertFromServiceModelXmlSerializerFormatAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMXmlSerializerFormatAttributeFullName), "Expected attribute of type S.SM.XmlSerializerFormatAttribute");
+            var xmlSerializerFormatAttribute = new XmlSerializerFormatAttribute();
+
+            xmlSerializerFormatAttribute.Style = GetProperty<OperationFormatStyle>(attr, nameof(XmlSerializerFormatAttribute.Style));
+            xmlSerializerFormatAttribute.SupportFaults = GetProperty<bool>(attr, nameof(XmlSerializerFormatAttribute.SupportFaults));
+            xmlSerializerFormatAttribute.Use = GetProperty<OperationFormatUse>(attr, nameof(XmlSerializerFormatAttribute.Use));
+
+            return xmlSerializerFormatAttribute;
+        }
+
+        public static FaultContractAttribute ConvertFromServiceModelFaultContractAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMFaultContractAttributeFullName), "Expected attribute of type S.SM.FaultContractAttribute");
+            bool hasProtectionLevel = GetProperty<bool>(attr, "HasProtectionLevel");
+            if (hasProtectionLevel)
+            {
+                // ProtectionLevel isn't supported yet so if it was set on the S.SM.SCA, then we can't do the mapping so throw
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new PlatformNotSupportedException("System.ServiceModel.OperationContractAttribute.ProtectionLevel"));
+            }
+
+            var detailType = GetProperty<Type>(attr, nameof(FaultContractAttribute.DetailType));
+            var faultContractAttribute = new FaultContractAttribute(detailType);
+
+            string tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Action));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Action = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Name));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Name = tmpStr;
+            }
+            tmpStr = GetProperty<string>(attr, nameof(FaultContractAttribute.Namespace));
+            if (!string.IsNullOrEmpty(tmpStr))
+            {
+                faultContractAttribute.Namespace = tmpStr;
+            }
+
+            return faultContractAttribute;
         }
 
         private static OperationContractAttribute ConvertFromServiceModelOperationContractAttribute(object attr)
@@ -311,59 +334,40 @@ namespace CoreWCF.Description
             return oca;
         }
 
+        private static ServiceKnownTypeAttribute ConvertFromServiceModelServiceKnownTypeAttribute(object attr)
+        {
+            Fx.Assert(attr.GetType().FullName.Equals(ServiceReflector.SMServiceKnownTypeAttributeFullName), "Expected attribute of type S.SM.ServiceKnownType");
+            var skta = new ServiceKnownTypeAttribute();
+
+            skta.MethodName= GetProperty<string>(attr, nameof(ServiceKnownTypeAttribute.MethodName));
+            skta.Type = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.Type));
+            skta.DeclaringType = GetProperty<Type>(attr, nameof(ServiceKnownTypeAttribute.DeclaringType));
+
+            return skta;
+        }
+
         private static TProp GetProperty<TProp>(object obj, string propName)
+        {
+            Fx.Assert(obj != null, "Expected non-null object");
+            return GetProperty<TProp>(obj, obj.GetType(), propName);
+        }
+
+        private static TProp GetProperty<TProp>(object obj, Type declaringPropertyType, string propName)
         {
             Fx.Assert(obj != null, "Expected non-null object");
             PropertyInfo propInfo;
             if (typeof(TProp).IsEnum)
             {
-                propInfo = obj.GetType().GetProperty(propName);
+                propInfo = declaringPropertyType.GetProperty(propName);
                 Fx.Assert(propInfo != null, $"Could not find property with name {propName} on object of type {obj.GetType().FullName}");
                 return (TProp)Enum.ToObject(typeof(TProp), propInfo.GetValue(obj));
             }
             else
             {
-                propInfo = obj.GetType().GetProperty(propName, typeof(TProp));
+                propInfo = declaringPropertyType.GetProperty(propName, typeof(TProp));
                 Fx.Assert(propInfo != null, $"Could not find property with name {propName} of type {typeof(TProp).FullName} on object of type {obj.GetType().FullName}");
                 return (TProp)propInfo.GetValue(obj);
             }
-        }
-
-        public bool IsDefined(Type attributeType, bool inherit)
-        {
-            switch (ProviderType)
-            {
-                case AttributeProviderType.Type:
-                    return Type.GetTypeInfo().IsDefined(attributeType, inherit);
-                case AttributeProviderType.MethodInfo:
-                    return MethodInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.MemberInfo:
-                    return MemberInfo.IsDefined(attributeType, inherit);
-                case AttributeProviderType.ParameterInfo:
-                    return ParameterInfo.IsDefined(attributeType, inherit);
-            }
-            Contract.Assert(false, "This should never execute.");
-            throw new InvalidOperationException();
-        }
-
-        public static implicit operator CustomAttributeProvider(MemberInfo attrProvider)
-        {
-            return new CustomAttributeProvider(attrProvider);
-        }
-
-        public static implicit operator CustomAttributeProvider(MethodInfo attrProvider)
-        {
-            return new CustomAttributeProvider(attrProvider);
-        }
-
-        public static implicit operator CustomAttributeProvider(ParameterInfo attrProvider)
-        {
-            return new CustomAttributeProvider(attrProvider);
-        }
-
-        public static implicit operator CustomAttributeProvider(Type attrProvider)
-        {
-            return new CustomAttributeProvider(attrProvider);
         }
     }
 }

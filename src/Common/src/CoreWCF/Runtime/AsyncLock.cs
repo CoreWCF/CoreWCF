@@ -2,243 +2,149 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-#if DEBUG
-using System.Diagnostics;
-#endif
+using Microsoft.Extensions.ObjectPool;
 
 namespace CoreWCF.Runtime
 {
-    internal class AsyncLock
+    internal class AsyncLock : IAsyncDisposable
     {
-#if DEBUG
-        private StackTrace _lockTakenCallStack;
-        private string _lockTakenCallStackString;
-#endif
-        private readonly SemaphoreSlim _semaphore;
-        private readonly SafeSemaphoreRelease _semaphoreRelease;
-        private static readonly AsyncLocal<object> s_heldLocks = new AsyncLocal<object>(LockTakenValueChanged);
+        private static readonly ObjectPool<SemaphoreSlim> s_semaphorePool = (new DefaultObjectPoolProvider { MaximumRetained = 100 })
+            .Create(new SemaphoreSlimPooledObjectPolicy());
+
+        private AsyncLocal<SemaphoreSlim> _currentSemaphore;
+        private SemaphoreSlim _topLevelSemaphore;
+        private bool _isDisposed;
 
         public AsyncLock()
         {
-            _semaphore = new SemaphoreSlim(1);
-            _semaphoreRelease = new SafeSemaphoreRelease(this);
+            _topLevelSemaphore = s_semaphorePool.Get();
+            _currentSemaphore = new AsyncLocal<SemaphoreSlim>();
         }
 
-        private static void LockTakenValueChanged(AsyncLocalValueChangedArgs<object> obj)
+        public Task<IAsyncDisposable> TakeLockAsync()
         {
-            // Without this fixup, when completing the call to await TakeLockAsync there is
-            // a switch of Context and _heldLocks will be reset to null. This is because
-            // of leaving the task.
+            if (_isDisposed)
+                throw new ObjectDisposedException(nameof(AsyncLock));
 
-            if (obj.ThreadContextChanged)
-            {
-                s_heldLocks.Value = obj.PreviousValue;
-            }
+            _currentSemaphore.Value = _currentSemaphore.Value ?? _topLevelSemaphore;
+            SemaphoreSlim currentSem = _currentSemaphore.Value;
+            var nextSem = s_semaphorePool.Get();
+            _currentSemaphore.Value = nextSem;
+            var safeRelease = new SafeSemaphoreRelease(currentSem, nextSem, this);
+            return TakeLockCoreAsync(currentSem, safeRelease);
         }
 
-        public Task<IDisposable> TakeLockAsync()
+        private async Task<IAsyncDisposable> TakeLockCoreAsync(SemaphoreSlim currentSemaphore, SafeSemaphoreRelease safeSemaphoreRelease)
         {
-            return TakeLockAsync(default(CancellationToken));
-        }
-
-        public async Task<IDisposable> TakeLockAsync(CancellationToken token)
-        {
-#if DEBUG
-            object existingValue = s_heldLocks.Value;
-#endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
-            if (existingLock == this)
-            {
-                return null;
-            }
-
-            List<AsyncLock> existingLocks = null;
-            if (existingLock == null)
-            {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
-                if (existingLocks?.Contains(this) ?? false)
-                {
-                    return null;
-                }
-            }
-
-            await _semaphore.WaitAsync(token);
-
-#if DEBUG
-            Debug.Assert(existingValue == s_heldLocks.Value, "AsyncLocal modified while awaiting");
-#endif // DEBUG
-
-            if (s_heldLocks.Value == null) // No locks previously entered
-            {
-                s_heldLocks.Value = this;
-            }
-            else if (existingLock != null) // A single AsyncLock already entered but not this instance
-            {
-                // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
-            }
-            else
-            {
-#if DEBUG
-                Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif
-                existingLocks.Add(this);
-            }
-#if DEBUG
-            _lockTakenCallStack = new StackTrace();
-            _lockTakenCallStackString = _lockTakenCallStack.ToString();
-#endif
-            return _semaphoreRelease;
-        }
-
-        public async Task<IDisposable> TakeLockAsync(TimeSpan timeout)
-        {
-#if DEBUG
-            object existingValue = s_heldLocks.Value;
-#endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
-            if (existingLock == this)
-            {
-                return null;
-            }
-
-            List<AsyncLock> existingLocks = null;
-            if (existingLock == null)
-            {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
-                if (existingLocks?.Contains(this) ?? false)
-                {
-                    return null;
-                }
-            }
-
-            await _semaphore.WaitAsync(timeout);
-
-#if DEBUG
-            Debug.Assert(existingValue == s_heldLocks.Value, "AsyncLocal modified while awaiting");
-#endif // DEBUG
-
-            if (s_heldLocks.Value == null) // No locks previously entered
-            {
-                s_heldLocks.Value = this;
-            }
-            else if (existingLock != null) // A single AsyncLock already entered but not this instance
-            {
-                // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
-            }
-            else
-            {
-#if DEBUG
-                Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif 
-                existingLocks.Add(this);
-            }
-#if DEBUG
-            _lockTakenCallStack = new StackTrace();
-            _lockTakenCallStackString = _lockTakenCallStack.ToString();
-#endif
-            return _semaphoreRelease;
+            await currentSemaphore.WaitAsync();
+            return safeSemaphoreRelease;
         }
 
         public IDisposable TakeLock()
         {
-            return TakeLock(Timeout.Infinite);
+            if (_isDisposed)
+                throw new ObjectDisposedException(nameof(AsyncLock));
+
+            _currentSemaphore.Value = _currentSemaphore.Value ?? _topLevelSemaphore;
+            SemaphoreSlim currentSem = _currentSemaphore.Value;
+            currentSem.Wait();
+            var nextSem = s_semaphorePool.Get();
+            _currentSemaphore.Value = nextSem;
+            return new SafeSemaphoreRelease(currentSem, nextSem, this);
         }
 
-        public IDisposable TakeLock(TimeSpan timeout)
+        public async ValueTask DisposeAsync()
         {
-            return TakeLock((int)timeout.TotalMilliseconds);
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            // Ensure the lock isn't held. If it is, wait for it to be released
+            // before completing the dispose.
+            await _topLevelSemaphore.WaitAsync();
+            _topLevelSemaphore.Release();
+            s_semaphorePool.Return(_topLevelSemaphore);
+            _topLevelSemaphore = null;
         }
 
-        public IDisposable TakeLock(int timeout)
+        private struct SafeSemaphoreRelease : IAsyncDisposable, IDisposable
         {
-#if DEBUG
-            object existingValue = s_heldLocks.Value;
-#endif // DEBUG
-            AsyncLock existingLock = s_heldLocks.Value as AsyncLock;
-            if (existingLock == this)
-            {
-                return null;
-            }
+            private SemaphoreSlim _currentSemaphore;
+            private SemaphoreSlim _nextSemaphore;
+            private AsyncLock _asyncLock;
 
-            List<AsyncLock> existingLocks = null;
-            if (existingLock == null)
+            public SafeSemaphoreRelease(SemaphoreSlim currentSemaphore, SemaphoreSlim nextSemaphore, AsyncLock asyncLock)
             {
-                existingLocks = s_heldLocks.Value as List<AsyncLock>;
-                if (existingLocks?.Contains(this) ?? false)
-                {
-                    return null;
-                }
-            }
-
-            _semaphore.Wait(timeout);
-
-#if DEBUG
-            Debug.Assert(existingValue == s_heldLocks.Value, "AsyncLocal modified while awaiting");
-#endif // DEBUG
-
-            if (s_heldLocks.Value == null) // No locks previously entered
-            {
-                s_heldLocks.Value = this;
-            }
-            else if (existingLock != null) // A single AsyncLock already entered but not this instance
-            {
-                // Create new list of held locks and add the single existing lock and this lock to it
-                s_heldLocks.Value = new List<AsyncLock>(new AsyncLock[] { existingLock, this });
-            }
-            else
-            {
-#if DEBUG
-                Debug.Assert(existingLocks != null, "_heldLocks.Value has invalid value, type of value is " + s_heldLocks.Value?.GetType() ?? "(null)");
-#endif               
-                existingLocks.Add(this);
-            }
-#if DEBUG
-            _lockTakenCallStack = new StackTrace();
-            _lockTakenCallStackString = _lockTakenCallStack.ToString();
-#endif
-            return _semaphoreRelease;
-        }
-
-        public struct SafeSemaphoreRelease : IDisposable
-        {
-            private readonly AsyncLock _asyncLock;
-
-            public SafeSemaphoreRelease(AsyncLock asyncLock)
-            {
+                _currentSemaphore = currentSemaphore;
+                _nextSemaphore = nextSemaphore;
                 _asyncLock = asyncLock;
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Debug.Assert(_nextSemaphore == _asyncLock._currentSemaphore.Value, "_nextSemaphore was expected to by the current semaphore");
+                // Update _asyncLock._currentSemaphore in the calling ExecutionContext
+                // and defer any awaits to DisposeCoreAsync(). If this isn't done, the
+                // update will happen in a copy of the ExecutionContext and the caller
+                // won't see the changes.
+                if (_currentSemaphore == _asyncLock._topLevelSemaphore)
+                {
+                    _asyncLock._currentSemaphore.Value = null;
+                }
+                else
+                {
+                    _asyncLock._currentSemaphore.Value = _currentSemaphore;
+                }
+
+                return DisposeCoreAsync();
+            }
+
+            private async ValueTask DisposeCoreAsync()
+            {
+                await _nextSemaphore.WaitAsync();
+                _currentSemaphore.Release();
+                _nextSemaphore.Release();
+                s_semaphorePool.Return(_nextSemaphore);
             }
 
             public void Dispose()
             {
-#if DEBUG
-                _asyncLock._lockTakenCallStack = null;
-                _asyncLock._lockTakenCallStackString = null;
-#endif
-                if (s_heldLocks.Value == _asyncLock) // This is the only lock entered
+                Debug.Assert(_nextSemaphore == _asyncLock._currentSemaphore.Value, "_nextSemaphore was expected to by the current semaphore");
+                if (_currentSemaphore == _asyncLock._topLevelSemaphore)
                 {
-                    s_heldLocks.Value = null;
+                    _asyncLock._currentSemaphore.Value = null;
                 }
-                else if (s_heldLocks.Value is List<AsyncLock> listOfLocks)
+                else
                 {
-#if DEBUG
-                    Debug.Assert(listOfLocks.Contains(_asyncLock), "The list of AsyncLock's didn't contain the expected lock");
-#endif 
-                    // As locks are expected to be released in the order they are taken and they are always appended to the end,
-                    // removal should be O(n) simply to look for the lock and removal should be constant time. If this becomes
-                    // a significant overhead, then manual search in reverse will fix it. Keeping simple for now.
-                    listOfLocks.Remove(_asyncLock);
-                    if (listOfLocks.Count == 1) // If only one lock left, replace list with single lock.
-                    {
-                        s_heldLocks.Value = listOfLocks[0];
-                    }
+                    _asyncLock._currentSemaphore.Value = _currentSemaphore;
                 }
 
-                _asyncLock._semaphore.Release();
+                _nextSemaphore.Wait();
+                _currentSemaphore.Release();
+                _nextSemaphore.Release();
+                s_semaphorePool.Return(_nextSemaphore);
+            }
+        }
+
+        private class SemaphoreSlimPooledObjectPolicy : PooledObjectPolicy<SemaphoreSlim>
+        {
+            public override SemaphoreSlim Create()
+            {
+                return new SemaphoreSlim(1);
+            }
+
+            public override bool Return(SemaphoreSlim obj)
+            {
+                if (obj.CurrentCount != 1)
+                {
+                    Debug.Fail("Shouldn't be returning semaphore with a count != 1");
+                    return false;
+                }
+
+                return true;
             }
         }
     }

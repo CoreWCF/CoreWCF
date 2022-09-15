@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Channels
 {
-    internal interface ITransportCompressionSupport
+    public interface ITransportCompressionSupport
     {
         bool IsCompressionFormatSupported(CompressionFormat compressionFormat);
     }

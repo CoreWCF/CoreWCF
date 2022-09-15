@@ -16,7 +16,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Description
 {
-    internal class XmlSerializerOperationBehavior : IOperationBehavior
+    public class XmlSerializerOperationBehavior : IOperationBehavior, IWsdlExportExtension
     {
         public XmlSerializerOperationBehavior(OperationDescription operation)
             : this(operation, null)
@@ -34,11 +34,10 @@ namespace CoreWCF.Description
             OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
-        internal XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute, Reflector parentReflector)
+        public XmlSerializerOperationBehavior(OperationDescription operation, XmlSerializerFormatAttribute attribute, string contractType)
             : this(operation, attribute)
         {
-            // used by System.ServiceModel.Web
-            OperationReflector = parentReflector.ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
+            OperationReflector = new Reflector(contractType, null).ReflectOperation(operation, attribute ?? new XmlSerializerFormatAttribute());
         }
 
         private XmlSerializerOperationBehavior(Reflector.OperationReflector reflector, bool builtInOperationBehavior)
@@ -175,6 +174,26 @@ namespace CoreWCF.Description
             {
                 proxy.FaultFormatter = (IClientFaultFormatter)CreateFaultFormatter(proxy.FaultContractInfos);
             }
+        }
+
+        void IWsdlExportExtension.ExportEndpoint(WsdlExporter exporter, WsdlEndpointConversionContext endpointContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (endpointContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(endpointContext));
+
+            MessageContractExporter.ExportMessageBinding(exporter, endpointContext, typeof(XmlSerializerMessageContractExporter), OperationReflector.Operation);
+        }
+
+        void IWsdlExportExtension.ExportContract(WsdlExporter exporter, WsdlContractConversionContext contractContext)
+        {
+            if (exporter == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            if (contractContext == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(contractContext));
+
+            new XmlSerializerMessageContractExporter(exporter, contractContext, OperationReflector.Operation, this).ExportMessageContract();
         }
 
         public Collection<XmlMapping> GetXmlMappings()
@@ -332,22 +351,27 @@ namespace CoreWCF.Description
 
                     if (header.AdditionalAttributesProvider != null)
                     {
-                        object[] attrs = header.AdditionalAttributesProvider.GetCustomAttributes(false).ToArray();
+                        object[] attributes = header
+                            .AdditionalAttributesProvider
+                            .GetCustomAttributes(false)
+                            .ToArray();
+
                         bool isUnknown = false;
                         bool xmlIgnore = false;
 
-                        foreach (object attr in attrs)
+                        foreach (object attribute in attributes)
                         {
-                            if (attr is XmlAnyElementAttribute)
+                            if (attribute is XmlAnyElementAttribute elementAttribute)
                             {
-                                if (string.IsNullOrEmpty(((XmlAnyElementAttribute)attr).Name))
+                                if (string.IsNullOrEmpty(elementAttribute.Name))
                                 {
                                     isUnknown = true;
                                 }
                             }
+
                             // In the original full framework code using XmlAttributes, the XmlAnyElements collection is cleared
                             // if the XmlIgnore attribute is present.
-                            if (attr is XmlIgnoreAttribute)
+                            if (attribute is XmlIgnoreAttribute)
                             {
                                 xmlIgnore = true;
                                 break; // XmlIgnore overrides all so no need to continue if found.
@@ -605,9 +629,12 @@ namespace CoreWCF.Description
                         {
                             continue;
                         }
-                        // TODO: SoapIgnoreAttribute is in 1.7
-                        //if (member.IsDefined(typeof(SoapIgnoreAttribute), false/*inherit*/))
-                        //    continue;
+
+                        if (member.IsDefined(typeof(SoapIgnoreAttribute), inherit: false))
+                        {
+                            continue;
+                        }
+
                         XmlName xmlName = new XmlName(member.Name);
                         MessagePartDescription part = new MessagePartDescription(xmlName.EncodedName, string.Empty);
                         part.AdditionalAttributesProvider = part.MemberInfo = member;
@@ -700,29 +727,27 @@ namespace CoreWCF.Description
             {
                 private readonly string _defaultNs;
                 private XmlReflectionImporter _xmlImporter;
-
-                // TODO: Available in 1.7
-                //SoapReflectionImporter soapImporter;
+                private SoapReflectionImporter _soapImporter;
                 private Dictionary<string, XmlMembersMapping> _xmlMappings;
 
                 internal XmlSerializerImporter(string defaultNs)
                 {
                     _defaultNs = defaultNs;
                     _xmlImporter = null;
-                    //this.soapImporter = null;
+                    _soapImporter = null;
                 }
 
-                //SoapReflectionImporter SoapImporter
-                //{
-                //    get
-                //    {
-                //        if (this.soapImporter == null)
-                //        {
-                //            this.soapImporter = new SoapReflectionImporter(NamingHelper.CombineUriStrings(defaultNs, "encoded"));
-                //        }
-                //        return this.soapImporter;
-                //    }
-                //}
+                private SoapReflectionImporter SoapImporter
+                {
+                    get
+                    {
+                        if (_soapImporter == null)
+                        {
+                            _soapImporter = new SoapReflectionImporter(NamingHelper.CombineUriStrings(_defaultNs, "encoded"));
+                        }
+                        return _soapImporter;
+                    }
+                }
 
                 private XmlReflectionImporter XmlImporter
                 {
@@ -758,9 +783,8 @@ namespace CoreWCF.Description
 
                     if (isEncoded)
                     {
-                        throw new PlatformNotSupportedException();
+                        mapping = SoapImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
                     }
-                    //mapping = this.SoapImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
                     else
                     {
                         mapping = XmlImporter.ImportMembersMapping(mappingName, ns, members, hasWrapperElement, rpc);
@@ -775,9 +799,8 @@ namespace CoreWCF.Description
                 {
                     if (isEncoded)
                     {
-                        throw new PlatformNotSupportedException();
+                        return SoapImporter.ImportTypeMapping(type);
                     }
-                    //return this.SoapImporter.ImportTypeMapping(type);
                     else
                     {
                         return XmlImporter.ImportTypeMapping(type);
@@ -788,9 +811,8 @@ namespace CoreWCF.Description
                 {
                     if (isEncoded)
                     {
-                        throw new PlatformNotSupportedException();
+                        SoapImporter.IncludeType(knownType);
                     }
-                    //this.SoapImporter.IncludeType(knownType);
                     else
                     {
                         XmlImporter.IncludeType(knownType);
@@ -1002,18 +1024,16 @@ namespace CoreWCF.Description
         internal static XmlReflectionMember GetXmlReflectionMember(MessagePartDescription part, bool isRpc, bool isEncoded, bool isWrapped)
         {
             string ns = isRpc ? null : part.Namespace;
-            MemberInfo additionalAttributesProvider = null;
-            if (part.AdditionalAttributesProvider.MemberInfo != null)
-            {
-                additionalAttributesProvider = part.AdditionalAttributesProvider.MemberInfo;
-            }
+            ICustomAttributeProvider additionalAttributesProvider = null;
+            if (isEncoded || part.AdditionalAttributesProvider is MemberInfo)
+                additionalAttributesProvider = part.AdditionalAttributesProvider;
 
             XmlName memberName = string.IsNullOrEmpty(part.UniquePartName) ? null : new XmlName(part.UniquePartName, true /*isEncoded*/);
             XmlName elementName = part.XmlName;
             return GetXmlReflectionMember(memberName, elementName, ns, part.Type, additionalAttributesProvider, part.Multiple, isEncoded, isWrapped);
         }
 
-        internal static XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, MemberInfo additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
+        internal static XmlReflectionMember GetXmlReflectionMember(XmlName memberName, XmlName elementName, string ns, Type type, ICustomAttributeProvider additionalAttributesProvider, bool isMultiple, bool isEncoded, bool isWrapped)
         {
             if (isEncoded && isMultiple)
             {
@@ -1039,21 +1059,50 @@ namespace CoreWCF.Description
             {
                 if (isEncoded)
                 {
-                    throw new PlatformNotSupportedException();
+                    member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
                 }
-                //member.SoapAttributes = new SoapAttributes(additionalAttributesProvider);
                 else
                 {
                     member.XmlAttributes = new XmlAttributes(additionalAttributesProvider);
                 }
             }
+
             if (isEncoded)
             {
-                throw new PlatformNotSupportedException();
+                if (member.SoapAttributes is null)
+                {
+                    member.SoapAttributes = new SoapAttributes();
+                }
+                else
+                {
+                    Type invalidAttributeType = null;
+                    if (member.SoapAttributes.SoapAttribute != null)
+                    {
+                        invalidAttributeType = typeof(SoapAttributeAttribute);
+                    }
+                    else if (member.SoapAttributes.SoapIgnore)
+                    {
+                        invalidAttributeType = typeof(SoapIgnoreAttribute);
+                    }
+                    else if (member.SoapAttributes.SoapType != null)
+                    {
+                        invalidAttributeType = typeof(SoapTypeAttribute);
+                    }
+
+                    if (invalidAttributeType != null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxInvalidSoapAttribute, invalidAttributeType, elementName.DecodedName)));
+                    }
+                }
+
+                if (member.SoapAttributes.SoapElement == null)
+                {
+                    member.SoapAttributes.SoapElement = new SoapElementAttribute(elementName.DecodedName);
+                }
             }
             else
             {
-                if (member.XmlAttributes == null)
+                if (member.XmlAttributes is null)
                 {
                     member.XmlAttributes = new XmlAttributes();
                 }
@@ -1099,7 +1148,6 @@ namespace CoreWCF.Description
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SFxXmlArrayNotAllowedForMultiple, elementName.DecodedName, ns)));
                     }
                 }
-
 
                 bool isArray = member.MemberType.IsArray;
                 if ((isArray && !isMultiple && member.MemberType != typeof(byte[])) ||
@@ -1157,6 +1205,7 @@ namespace CoreWCF.Description
                     }
                 }
             }
+
             return member;
         }
 
