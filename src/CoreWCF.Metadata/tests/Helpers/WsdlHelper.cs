@@ -19,7 +19,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
     {
         private const string XmlDeclaration = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
         public static async Task ValidateSingleWsdl(string serviceMetadataPath, string endpointAddress,
-                string callerMethodName, string sourceFilePath)
+                string callerMethodName, string sourceFilePath, Action<HttpClient> configureHttpClient = null)
         {
             var singleWsdlPath = serviceMetadataPath + "?singleWsdl";
             string generatedWsdlTxt = string.Empty;
@@ -29,6 +29,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             httpClientHandler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
             using (var client = new HttpClient(httpClientHandler))
             {
+                configureHttpClient?.Invoke(client);
                 var response = await client.GetAsync(singleWsdlPath);
                 Assert.True(response.IsSuccessStatusCode, $"Response status for url {singleWsdlPath} is {(int)response.StatusCode} {response.StatusCode} {response.ReasonPhrase}");
                 generatedWsdlTxt = await response.Content.ReadAsStringAsync();

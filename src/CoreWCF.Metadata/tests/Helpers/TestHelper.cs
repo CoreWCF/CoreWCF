@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using Helpers;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace CoreWCF.Metadata.Tests.Helpers
@@ -16,13 +17,19 @@ namespace CoreWCF.Metadata.Tests.Helpers
     internal static class TestHelper
     {
         private const string EndpointRelativePath = "/endpointAddress.svc";
+
         internal static async Task RunSingleWsdlTestAsync<TService, TContract>(Binding binding, ITestOutputHelper output,
-                [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
-                [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService : class
-        {
+            Action<IServiceCollection> configureServices = null,
+            Action<HttpClient> configureHttpClient = null,
+            string endpointAddress= null,
+            [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
+                 where TService : class
+        { 
             IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 binding,
                 EndpointRelativePath,
+                configureServices,
                 output)
                 .Build();
             string wsdlAddress = "http://localhost:8080" + EndpointRelativePath;
@@ -33,8 +40,9 @@ namespace CoreWCF.Metadata.Tests.Helpers
             using (host)
             {
                 await host.StartAsync();
-                var endpointAddress = ServiceHelper.GetEndpointBaseAddress(host, binding) + EndpointRelativePath;
-                await WsdlHelper.ValidateSingleWsdl(wsdlAddress, endpointAddress, callerMethodName, sourceFilePath);
+                endpointAddress ??= ServiceHelper.GetEndpointBaseAddress(host, binding);
+                endpointAddress += EndpointRelativePath;
+                await WsdlHelper.ValidateSingleWsdl(wsdlAddress, endpointAddress, callerMethodName, sourceFilePath, configureHttpClient);
             }
         }
 

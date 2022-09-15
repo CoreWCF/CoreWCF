@@ -29,8 +29,12 @@ namespace Helpers
         private const int HttpListenPort = 8080;
         private const int HttpsListenPort = 8443;
 
-        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(Binding binding, string url, ITestOutputHelper outputHelper = default) where TService : class
+        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(Binding binding, string url,
+            Action<IServiceCollection> configureServices = null,
+            ITestOutputHelper outputHelper = default)
+            where TService : class
         {
+
             var customBinding = new CustomBinding(binding);
             ApplyDebugTimeouts(customBinding);
             var transportScheme = binding.Scheme;
@@ -39,6 +43,7 @@ namespace Helpers
                 {
                     services.AddServiceModelServices()
                             .AddServiceModelMetadata();
+                    configureServices?.Invoke(services);
                 },
                 app =>
                 {
