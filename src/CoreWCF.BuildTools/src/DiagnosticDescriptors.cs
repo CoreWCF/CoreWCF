@@ -7,7 +7,7 @@ namespace CoreWCF.BuildTools
 {
     internal static class DiagnosticDescriptors
     {
-        internal static readonly DiagnosticDescriptor ParentClassShouldBePartialError = new(id: "COREWCF_0100",
+        internal static readonly DiagnosticDescriptor ParentClassShouldBePartialError = new DiagnosticDescriptor(id: "COREWCF_0100",
                                                                               title: "Parent class should be partial",
                                                                               messageFormat: "Parent class '{0}' of method '{1}' should be partial",
                                                                               category: nameof(OperationParameterInjectionGenerator),
