@@ -50,7 +50,7 @@
   </PropertyGroup>
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
-      <Version>3.4.244</Version>
+      <Version>3.5.109</Version>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- Include license file in packages -->

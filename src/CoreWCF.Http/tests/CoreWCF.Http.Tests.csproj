@@ -17,22 +17,22 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="System.ServiceModel.Federation" Version="4.9.0" />
-    <PackageReference Include="System.ServiceModel.Security" Version="4.9.0" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="4.10.0" />
+    <PackageReference Include="System.ServiceModel.Security" Version="4.10.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.ServiceModel.Http" Version="4.9.0" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.10.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" Version="2.1.12" />
   </ItemGroup>
 
@@ -50,8 +50,8 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="6.0.9" />
   </ItemGroup>
 
   <ItemGroup>
