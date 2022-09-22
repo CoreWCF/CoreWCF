@@ -600,6 +600,11 @@ namespace CoreWCF.Channels
 
         protected virtual bool PrepareHttpSend(Message message)
         {
+            if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
+            {
+                return true;
+            }
+
             string action = message.Headers.Action;
 
             if (message.Version.Addressing == AddressingVersion.None)
@@ -682,8 +687,8 @@ namespace CoreWCF.Channels
             // const int BufferSize = 16384;   // buffer size used for asynchronous writes
             // const int BufferCount = 4;      // buffer count used for asynchronous writes
 
-            // Writing an HTTP request chunk has a high fixed cost, so use BufferedStream to avoid writing 
-            // small ones. 
+            // Writing an HTTP request chunk has a high fixed cost, so use BufferedStream to avoid writing
+            // small ones.
             // TODO: Evaluate whether we need to buffer the output stream and if concurrent io is supported
             //return supportsConcurrentIO ? (Stream)new BufferedOutputAsyncStream(outputStream, BufferSize, BufferCount) : new BufferedStream(outputStream, ChunkSize);
             //return this.supportsConcurrentIO ? (Stream)new BufferedOutputAsyncStream(this.outputStream, BufferSize, BufferCount) : new BufferedStream(this.outputStream, ChunkSize);
@@ -694,7 +699,7 @@ namespace CoreWCF.Channels
         {
             _outputStream = GetWrappedOutputStream();
 
-            // Since HTTP streams don't support timeouts, we can't just use TimeoutStream here. 
+            // Since HTTP streams don't support timeouts, we can't just use TimeoutStream here.
             // Rather, we need to run a timer to bound the overall operation
             if (s_onStreamSendTimeout == null)
             {
@@ -760,8 +765,8 @@ namespace CoreWCF.Channels
             {
                 if (IsChannelBindingSupportEnabled)
                 {
-                    //need to get the Channel binding token (CBT), apply channel binding info to the message and then write the message                    
-                    //CBT is only enabled when message security is in the stack, which also requires an HTTP entity body, so we 
+                    //need to get the Channel binding token (CBT), apply channel binding info to the message and then write the message
+                    //CBT is only enabled when message security is in the stack, which also requires an HTTP entity body, so we
                     //should be safe to always get the stream.
                     _outputStream = GetOutputStream();
 
@@ -1171,7 +1176,7 @@ namespace CoreWCF.Channels
         //    {
         //        result = null;
         //        //Internet Explorer will send the referrer header on the wire in unicode without encoding it
-        //        //this will cause errors when added to a WebHeaderCollection.  This is a workaround for sharepoint, 
+        //        //this will cause errors when added to a WebHeaderCollection.  This is a workaround for sharepoint,
         //        //but will only work for WebHosted Scenarios.
         //        if (String.Compare(headerName, "Referer", StringComparison.OrdinalIgnoreCase) == 0)
         //        {
@@ -1550,7 +1555,7 @@ namespace CoreWCF.Channels
         //        {
         //            responseIsEmpty = false;
         //        }
-        //        else if (response.ContentLength == -1) // chunked 
+        //        else if (response.ContentLength == -1) // chunked
         //        {
         //            Stream responseStream = response.GetResponseStream();
         //            byte[] testBuffer = new byte[1];
@@ -1593,7 +1598,7 @@ namespace CoreWCF.Channels
         //        // we mitigate EOP by preemptively not allowing Identification)
         //        if (!SecurityUtils.IsDefaultNetworkCredential(credential))
         //        {
-        //            // With a non-default credential, Digest will not honor a client impersonation constraint of 
+        //            // With a non-default credential, Digest will not honor a client impersonation constraint of
         //            // TokenImpersonationLevel.Identification.
         //            if (!TokenImpersonationLevelHelper.IsGreaterOrEqual(impersonationLevel,
         //                TokenImpersonationLevel.Impersonation))
@@ -1612,8 +1617,8 @@ namespace CoreWCF.Channels
 
         //        HttpInput httpInput = null;
 
-        //        // We will close the HttpWebResponse if we got an error code betwen 200 and 300 and 
-        //        // 1) an exception was thrown out or 
+        //        // We will close the HttpWebResponse if we got an error code betwen 200 and 300 and
+        //        // 1) an exception was thrown out or
         //        // 2) it's an empty message and we are using SOAP.
         //        // For responses with status code above 300, System.Net will close the underlying connection so we don't need to worry about that.
         //        if ((200 <= (int)response.StatusCode && (int)response.StatusCode < 300) || response.StatusCode == HttpStatusCode.InternalServerError)
@@ -1724,12 +1729,12 @@ namespace CoreWCF.Channels
     //    bool isHttpOutputClosed;
 
     //    /// <summary>
-    //    /// Indicates whether the HttpOutput should be closed when this stream is closed. In the streamed case, 
+    //    /// Indicates whether the HttpOutput should be closed when this stream is closed. In the streamed case,
     //    /// we�ll leave the HttpOutput opened (and it will be closed by the HttpRequestContext, so we won't leak it).
     //    /// </summary>
     //    bool closeHttpOutput;
 
-    //    // sometimes we can't flush the HTTP output until we're done reading the end of the 
+    //    // sometimes we can't flush the HTTP output until we're done reading the end of the
     //    // incoming stream of the HTTP input
     //    protected HttpDelayedAcceptStream(Stream stream)
     //        : base(stream)

@@ -98,4 +98,38 @@ namespace CoreWCF.Channels
         {
         }
     }
+
+    internal class AuthorizationErrorMessage : ContentOnlyMessage
+    {
+        public AuthorizationErrorMessage(string authenticationScheme)
+        {
+            AuthenticationScheme = authenticationScheme;
+        }
+
+        public override bool IsAuthorizationError => true;
+
+        public override string AuthenticationScheme { get; }
+
+        protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
+        {
+            // intentionally left blank
+        }
+    }
+
+    internal class AuthenticationErrorMessage : ContentOnlyMessage
+    {
+        public AuthenticationErrorMessage(string authenticationScheme)
+        {
+            AuthenticationScheme = authenticationScheme;
+        }
+
+        public override bool IsAuthenticationError => true;
+
+        public override string AuthenticationScheme { get; }
+
+        protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
+        {
+            // intentionally left blank
+        }
+    }
 }

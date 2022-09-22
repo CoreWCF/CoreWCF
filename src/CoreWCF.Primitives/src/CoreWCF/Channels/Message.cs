@@ -39,6 +39,45 @@ namespace CoreWCF.Channels
             }
         }
 
+        public virtual bool IsAuthenticationError
+        {
+            get
+            {
+                if (IsDisposed)
+                {
+                    throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
+                }
+
+                return false;
+            }
+        }
+
+        public virtual bool IsAuthorizationError
+        {
+            get
+            {
+                if (IsDisposed)
+                {
+                    throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
+                }
+
+                return false;
+            }
+        }
+
+        public virtual string AuthenticationScheme
+        {
+            get
+            {
+                if (IsDisposed)
+                {
+                    throw TraceUtility.ThrowHelperError(CreateMessageDisposedException(), this);
+                }
+
+                return null;
+            }
+        }
+
         public virtual bool IsEmpty
         {
             get

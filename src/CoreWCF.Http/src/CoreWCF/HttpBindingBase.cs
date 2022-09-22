@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Net;
 using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
@@ -148,6 +149,13 @@ namespace CoreWCF
             else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportCredentialOnly)
             {
                 basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
+                return _httpTransport;
+            }
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.None
+                     && basicHttpSecurity.Transport.ClientCredentialType == HttpClientCredentialType.Custom)
+            {
+                basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
+                _httpTransport.CustomAuthenticationScheme = basicHttpSecurity.Transport.CustomAuthenticationScheme;
                 return _httpTransport;
             }
             else

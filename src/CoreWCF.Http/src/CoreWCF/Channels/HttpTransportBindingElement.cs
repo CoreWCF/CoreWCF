@@ -43,6 +43,7 @@ namespace CoreWCF.Channels
 
         protected HttpTransportBindingElement(HttpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
+            CustomAuthenticationScheme = elementToBeCloned.CustomAuthenticationScheme;
             AuthenticationScheme = elementToBeCloned.AuthenticationScheme;
             _maxBufferSize = elementToBeCloned._maxBufferSize;
             _maxBufferSizeInitialized = elementToBeCloned._maxBufferSizeInitialized;
@@ -58,6 +59,8 @@ namespace CoreWCF.Channels
         /// </summary>
         /// <value>The authentication scheme.</value>
         public AuthenticationSchemes AuthenticationScheme { get; set; }
+
+        public string CustomAuthenticationScheme { get; set; }
 
         // public System.Net.AuthenticationSchemes AuthenticationScheme { get { return default(System.Net.AuthenticationSchemes); } set { } }
 

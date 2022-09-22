@@ -14,6 +14,8 @@ using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -165,8 +167,8 @@ namespace CoreWCF.Dispatcher
                 }
                 try
                 {
-                    // If the field is true, then this operation is to be invoked at the time the service 
-                    // channel is opened. The incoming message is created at ChannelHandler level with no 
+                    // If the field is true, then this operation is to be invoked at the time the service
+                    // channel is opened. The incoming message is created at ChannelHandler level with no
                     // content, so we don't need to deserialize the message.
                     if (!_isSessionOpenNotificationEnabled)
                     {
@@ -355,8 +357,18 @@ namespace CoreWCF.Dispatcher
                         (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                     }
 
-                    InspectOutputs(rpc);
-                    SerializeOutputs(rpc);
+                    rpc.Reply = rpc.ReturnParameter switch
+                    {
+                        AuthenticationErrorMessage authenticationErrorMessage => authenticationErrorMessage,
+                        AuthorizationErrorMessage authorizationErrorMessage => authorizationErrorMessage,
+                        _ => null
+                    };
+
+                    if (rpc.Reply == null)
+                    {
+                        InspectOutputs(rpc);
+                        SerializeOutputs(rpc);
+                    }
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)

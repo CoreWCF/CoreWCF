@@ -23,6 +23,8 @@ namespace CoreWCF.Channels
         public IAnonymousUriPrefixMatcher AnonymousUriPrefixMatcher { get; set; }
         public WebSocketTransportSettings WebSocketSettings { get; set; }
         public AuthenticationSchemes AuthenticationScheme { get; set; }
+        public string CustomAuthenticationScheme { get; set; }
+        public bool IsCustomAuthenticationRequired => !string.IsNullOrEmpty(CustomAuthenticationScheme);
         public bool IsAuthenticationRequired => AuthenticationScheme.IsNotSet(AuthenticationSchemes.Anonymous);
         public bool IsAuthenticationSupported => AuthenticationScheme != AuthenticationSchemes.Anonymous;
     }

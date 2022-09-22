@@ -17,6 +17,7 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
@@ -107,6 +108,8 @@ namespace CoreWCF.Channels
 
         protected abstract Task<SecurityMessageProperty> OnProcessAuthenticationAsync();
 
+        protected abstract Task OnProcessAuthorizationPoliciesAsync(Message message);
+
         public abstract HttpOutput GetHttpOutput(Message message);
 
         protected abstract HttpInput GetHttpInput();
@@ -189,7 +192,7 @@ namespace CoreWCF.Channels
             if (message == null)
             {
                 // A null message means either a one-way request or that the service operation returned null and
-                // hence we can close the HttpOutput. By default we keep the HttpOutput open to allow the writing to the output 
+                // hence we can close the HttpOutput. By default we keep the HttpOutput open to allow the writing to the output
                 // even after the HttpInput EOF is received and the HttpOutput will be closed only on close of the HttpRequestContext.
                 closeOnReceivedEof = true;
                 message = CreateAckMessage(HttpStatusCode.Accepted, string.Empty);
@@ -233,6 +236,12 @@ namespace CoreWCF.Channels
         {
             Message responseMessage = message;
 
+            if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
+            {
+                await OnProcessAuthorizationPoliciesAsync(message);
+                return;
+            }
+
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
@@ -258,7 +267,7 @@ namespace CoreWCF.Channels
         public async Task<bool> ProcessAuthenticationAsync()
         {
             HttpStatusCode statusCode = ValidateAuthentication();
-            
+
             if (statusCode == HttpStatusCode.OK)
             {
                 bool authenticationSucceeded = false;
@@ -358,6 +367,19 @@ namespace CoreWCF.Channels
             {
                 return new AspNetCoreHttpInput(this);
             }
+
+            protected override async Task OnProcessAuthorizationPoliciesAsync(Message message)
+            {
+                if (message.IsAuthenticationError)
+                {
+                    await _aspNetContext.ChallengeAsync(message.AuthenticationScheme);
+                }
+                else if (message.IsAuthorizationError)
+                {
+                    await _aspNetContext.ForbidAsync(message.AuthenticationScheme);
+                }
+            }
+
             public override HttpOutput GetHttpOutput(Message message)
             {
                 if (StringComparer.OrdinalIgnoreCase.Equals(Http11ProtocolString, _aspNetContext.Request.Protocol))
@@ -386,7 +408,7 @@ namespace CoreWCF.Channels
                 if (HttpTransportSettings.IsAuthenticationRequired)
                 {
                     ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User.Identity);
-                    SecurityMessageProperty securityMessageProperty = new SecurityMessageProperty
+                    SecurityMessageProperty securityMessageProperty = new()
                     {
                         ServiceSecurityContext = securityContext
                     };
@@ -441,6 +463,7 @@ namespace CoreWCF.Channels
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(genericToken);
                     return new ServiceSecurityContext(authorizationPolicies);
                 }
+
                 return null;
             }
 

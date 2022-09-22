@@ -35,7 +35,7 @@ namespace CoreWCF.Channels
             BuildHandler();
         }
 
-        public bool IsAuthenticationRequired => _httpSettings.IsAuthenticationRequired;
+        public bool IsAuthenticationRequired => _httpSettings.IsAuthenticationRequired || _httpSettings.IsCustomAuthenticationRequired;
 
         internal WebSocketOptions WebSocketOptions { get; set; }
 
@@ -56,6 +56,7 @@ namespace CoreWCF.Channels
 
             var httpSettings = new HttpTransportSettings
             {
+                CustomAuthenticationScheme = tbe.CustomAuthenticationScheme,
                 BufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, tbe.MaxBufferSize),
                 OpenTimeout = _serviceDispatcher.Binding.OpenTimeout,
                 ReceiveTimeout = _serviceDispatcher.Binding.ReceiveTimeout,
@@ -101,8 +102,17 @@ namespace CoreWCF.Channels
         {
             if (IsAuthenticationRequired)
             {
-                string scheme = _httpSettings.AuthenticationScheme.ToString();
-                AuthenticateResult authenticateResult = await context.AuthenticateAsync(scheme);
+                string scheme = string.IsNullOrEmpty(_httpSettings.CustomAuthenticationScheme)
+                    ? _httpSettings.AuthenticationScheme.ToString()
+                    : _httpSettings.CustomAuthenticationScheme;
+
+                var authenticateResult = await context.AuthenticateAsync(scheme);
+
+                // When using ASP.NET Core builtin AuthenticationScheme we should never get an AuthenticationResult.None
+                // However we need to delay AuthN / AuthZ evaluation to the AuthorizationOperationInvoker implementation
+                // to handle the case where user decorated the OperationContract service implementation with [AllowAnonymous]
+                // Thus we store the CustomAuthenticationScheme to retrieve it later
+                context.Items["CoreWCF.Channels.HttpTransportSettings.CustomAuthenticationScheme"] = _httpSettings.CustomAuthenticationScheme;
                 if (authenticateResult.None)
                 {
                     await context.ChallengeAsync(scheme);
@@ -133,8 +143,6 @@ namespace CoreWCF.Channels
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
             }
-
-            return;
         }
 
         private async Task<WebSocketContext> AcceptWebSocketAsync(HttpContext context, CancellationToken token)

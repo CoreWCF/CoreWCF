@@ -22,6 +22,8 @@ namespace CoreWCF
             _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
 
+        public string CustomAuthenticationScheme { get; set; }
+
         public HttpClientCredentialType ClientCredentialType
         {
             get { return _clientCredentialType; }
