@@ -177,21 +177,21 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(path));
             }
 
-            if (protocol.Equals(UriEx.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+            if (protocol.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
             {
                 // For http, binding format is: "<ipAddress>:<port>:<hostName>"
                 // as specified in http://www.microsoft.com/resources/documentation/WindowsServ/2003/standard/proddocs/en-us/Default.asp?url=/resources/documentation/WindowsServ/2003/standard/proddocs/en-us/ref_mb_serverbindings.asp
-                return new BaseUriWithWildcard(UriEx.UriSchemeHttp, HttpUriDefaultPort, binding, 3, path, ":80:");
+                return new BaseUriWithWildcard(Uri.UriSchemeHttp, HttpUriDefaultPort, binding, 3, path, ":80:");
             }
-            if (protocol.Equals(UriEx.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            if (protocol.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
             {
                 // For https, binding format is the same as http
-                return new BaseUriWithWildcard(UriEx.UriSchemeHttps, HttpsUriDefaultPort, binding, 3, path, ":443:");
+                return new BaseUriWithWildcard(Uri.UriSchemeHttps, HttpsUriDefaultPort, binding, 3, path, ":443:");
             }
-            if (protocol.Equals(UriEx.UriSchemeNetTcp, StringComparison.OrdinalIgnoreCase))
+            if (protocol.Equals(Uri.UriSchemeNetTcp, StringComparison.OrdinalIgnoreCase))
             {
                 // For net.tcp, binding format is: "<port>:<hostName>"
-                return new BaseUriWithWildcard(UriEx.UriSchemeNetTcp, TransportDefaults.TcpUriDefaultPort, binding, 2, path, "808:*");
+                return new BaseUriWithWildcard(Uri.UriSchemeNetTcp, TransportDefaults.TcpUriDefaultPort, binding, 2, path, "808:*");
             }
 
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new UriFormatException(SR.Format(SR.Hosting_NotSupportedProtocol, binding)));
@@ -300,7 +300,7 @@ namespace CoreWCF.Channels
             _comparand.Port = _baseAddress.Port;
             _comparand.Scheme = _baseAddress.Scheme;
 
-            if ((_comparand.Port == -1) && (_comparand.Scheme == (object)UriEx.UriSchemeNetTcp))
+            if ((_comparand.Port == -1) && (_comparand.Scheme == (object)Uri.UriSchemeNetTcp))
             {
                 // Compensate for the fact that the Uri type doesn't know about our default TCP port number
                 _comparand.Port = TransportDefaults.TcpUriDefaultPort;
