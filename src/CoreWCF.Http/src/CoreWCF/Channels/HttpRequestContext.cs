@@ -372,11 +372,11 @@ namespace CoreWCF.Channels
             {
                 if (message.IsAuthenticationError)
                 {
-                    await _aspNetContext.ChallengeAsync(message.AuthenticationScheme);
+                    await _aspNetContext.ChallengeAsync(message.CustomAuthenticationScheme);
                 }
                 else if (message.IsAuthorizationError)
                 {
-                    await _aspNetContext.ForbidAsync(message.AuthenticationScheme);
+                    await _aspNetContext.ForbidAsync(message.CustomAuthenticationScheme);
                 }
             }
 

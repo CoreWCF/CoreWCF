@@ -357,18 +357,8 @@ namespace CoreWCF.Dispatcher
                         (rpc.ReturnParameter, rpc.OutputParameters) = await Invoker.InvokeAsync(target, rpc.InputParameters);
                     }
 
-                    rpc.Reply = rpc.ReturnParameter switch
-                    {
-                        AuthenticationErrorMessage authenticationErrorMessage => authenticationErrorMessage,
-                        AuthorizationErrorMessage authorizationErrorMessage => authorizationErrorMessage,
-                        _ => null
-                    };
-
-                    if (rpc.Reply == null)
-                    {
-                        InspectOutputs(rpc);
-                        SerializeOutputs(rpc);
-                    }
+                    InspectOutputs(rpc);
+                    SerializeOutputs(rpc);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)

@@ -103,12 +103,12 @@ namespace CoreWCF.Channels
     {
         public AuthorizationErrorMessage(string authenticationScheme)
         {
-            AuthenticationScheme = authenticationScheme;
+            CustomAuthenticationScheme = authenticationScheme;
         }
 
         public override bool IsAuthorizationError => true;
 
-        public override string AuthenticationScheme { get; }
+        public override string CustomAuthenticationScheme { get; }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {
@@ -120,12 +120,12 @@ namespace CoreWCF.Channels
     {
         public AuthenticationErrorMessage(string authenticationScheme)
         {
-            AuthenticationScheme = authenticationScheme;
+            CustomAuthenticationScheme = authenticationScheme;
         }
 
         public override bool IsAuthenticationError => true;
 
-        public override string AuthenticationScheme { get; }
+        public override string CustomAuthenticationScheme { get; }
 
         protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
         {

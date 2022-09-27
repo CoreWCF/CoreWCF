@@ -65,7 +65,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public virtual string AuthenticationScheme
+        public virtual string CustomAuthenticationScheme
         {
             get
             {
