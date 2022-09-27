@@ -1,16 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
     internal class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
     {
-        protected override bool CheckAccessCore(OperationContext operationContext)
+        protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext)
         {
             // Extract the action URI from the OperationContext. Match this against the claims
             // in the AuthorizationContext.
@@ -27,7 +25,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                         // If the Claim resource matches the action URI then return true to allow access.
                         if (action == c.Resource.ToString())
                         {
-                            return true;
+                            return new ValueTask<bool>(true);
                         }
                     }
                 }
@@ -38,7 +36,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
             }
 
             // If this point is reached, return false to deny access.
-            return (isWIndowIdentity || false);
+            return new ValueTask<bool>(isWIndowIdentity || false);
         }
     }
 }

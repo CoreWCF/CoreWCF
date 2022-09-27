@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
@@ -19,16 +20,18 @@ namespace CoreWCF.Dispatcher
 
         private AuthorizationBehavior() { }
 
-        public void Authorize(ref MessageRpc rpc)
+        public async ValueTask<MessageRpc> AuthorizeAsync(MessageRpc rpc)
         {
-            // TODO: Events 
+            // TODO: Events
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
             security.ExternalAuthorizationPolicies = _externalAuthorizationPolicies;
 
             ServiceAuthorizationManager serviceAuthorizationManager = _serviceAuthorizationManager ?? s_defaultServiceAuthorizationManager;
             try
             {
-                if (!serviceAuthorizationManager.CheckAccess(rpc.OperationContext, ref rpc.Request))
+                var checkAccessResult = await serviceAuthorizationManager.CheckAccessAsync(rpc.OperationContext, rpc.Request);
+                rpc.Request = checkAccessResult.message;
+                if(!checkAccessResult.isAuthorized)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateAccessDeniedFaultException());
                 }
@@ -45,6 +48,8 @@ namespace CoreWCF.Dispatcher
                 // TODO: Auditing
                 throw;
             }
+
+            return rpc;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
