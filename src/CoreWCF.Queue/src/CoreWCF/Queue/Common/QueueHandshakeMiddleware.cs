@@ -1,26 +1,20 @@
-﻿using System;
-using CoreWCF.Configuration;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Queue.Common.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Common
 {
     public class QueueHandShakeMiddleWare
     {
         private readonly IQueueMiddlewareBuilder _queueMiddlewareBuilder;
-        private readonly IServiceProvider _services;
-        private readonly IServiceScopeFactory _servicesScopeFactory;
 
-        public QueueHandShakeMiddleWare(
-            IServiceProvider services,
-            IServiceScopeFactory servicesScopeFactory, IQueueMiddlewareBuilder queueBuilder)
+        public QueueHandShakeMiddleWare(IQueueMiddlewareBuilder queueBuilder)
         {
-            _services = services;
-            _servicesScopeFactory = servicesScopeFactory;
             _queueMiddlewareBuilder = InitQueueMiddleWare(queueBuilder);
         }
 
-        private IQueueMiddlewareBuilder InitQueueMiddleWare(IQueueMiddlewareBuilder queueBuilder)
+        private static IQueueMiddlewareBuilder InitQueueMiddleWare(IQueueMiddlewareBuilder queueBuilder)
         {
             queueBuilder.UseMiddleware<QueueFetchMessage>();
             queueBuilder.UseMiddleware<QueueProcessMessage>();
@@ -33,4 +27,3 @@ namespace CoreWCF.Queue.Common
         }
     }
 }
-

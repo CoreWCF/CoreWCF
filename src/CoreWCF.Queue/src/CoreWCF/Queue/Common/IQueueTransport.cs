@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Queue.Common;
 
 namespace CoreWCF.Queue.Common
 {

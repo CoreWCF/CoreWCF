@@ -1,17 +1,12 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.IO.Pipelines;
-using System.Net;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using CoreWCF.Channels;
-using CoreWCF.Queue;
 using CoreWCF.Queue.Common;
-using CoreWCF.Queue.Common.Configuration;
-using CoreWCF.Queue.CoreWCF.Queue;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -19,11 +14,10 @@ using RabbitMQ.Client.Events;
 
 namespace CoreWCF.RabbitMQ.CoreWCF.Channels
 {
-    //FYI : - New file added
     public class RabbitMqTransportPump : QueueTransportPump
     {
         private readonly ILogger<RabbitMqTransportPump> _logger;
-        IOptions<QueueOptions> _queueOptions;
+        private readonly IOptions<QueueOptions> _queueOptions;
         private ConnectionFactory _factory;
         private IConnection _connection;
         private IModel _channel;
@@ -43,10 +37,11 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
             //Create a queue for messages destined to this service, bind it to the service URI routing key
             string queue = _channel.QueueDeclare();
             var exchange = "amq.direct";
-            _channel.QueueBind(queue, exchange, _queueOptions.Value.QueueName, null); // /hello
+            // routing key begin with "/", for example: /hello
+            _channel.QueueBind(queue, exchange, _queueOptions.Value.QueueName, null);
 
             var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += (model, ea) => { ConsumeMessage(ea, queueTransportContext); };
+            consumer.Received += (_, ea) => { ConsumeMessage(ea, queueTransportContext); };
             _channel.BasicConsume(queue, true, consumer);
 
 
@@ -59,12 +54,12 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
             _connection.Dispose();
             return Task.CompletedTask;
         }
+
         private async void ConsumeMessage(BasicDeliverEventArgs eventArgs, QueueTransportContext queueTransportContext)
         {
             _logger.LogInformation("Receiving message from rabbitmq");
             var reader = PipeReader.Create(new MemoryStream(eventArgs.Body.ToArray()));
 
-            var queueUrl = $"soap.amqp://{_queueOptions.Value.QueueName}";
             await queueTransportContext.QueueHandShakeDelegate(GetContext(reader, queueTransportContext));
         }
 
@@ -81,4 +76,3 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
         }
     }
 }
-

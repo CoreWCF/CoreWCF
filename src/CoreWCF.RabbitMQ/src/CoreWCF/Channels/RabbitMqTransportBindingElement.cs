@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using CoreWCF.Configuration;
-using CoreWCF.Queue;
+using CoreWCF.Queue.Common;
 using CoreWCF.Queue.Common.Configuration;
-using CoreWCF.Queue.CoreWCF.Queue;
 using CoreWCF.RabbitMQ.CoreWCF.Channels;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace CoreWCF.Channels
@@ -56,8 +53,8 @@ namespace CoreWCF.Channels
 
         public override QueueTransportPump BuildQueueTransportPump(BindingContext context)
         {
-            IServiceProvider _serviceProvider = context.BindingParameters.Find<IServiceProvider>();
-            return _serviceProvider.GetRequiredService<RabbitMqTransportPump>();
+            IServiceProvider serviceProvider = context.BindingParameters.Find<IServiceProvider>();
+            return serviceProvider.GetRequiredService<RabbitMqTransportPump>();
         }
 
         /// <summary>

@@ -19,7 +19,8 @@ namespace CoreWCF.Channels
         {
             if (size <= 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(size), size, SR.ValueMustBePositive));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new ArgumentOutOfRangeException(nameof(size), size, SR.ValueMustBePositive));
             }
         }
     }
@@ -44,7 +45,8 @@ namespace CoreWCF.Channels
             {
                 if (!IsValueDecoded)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _value;
@@ -67,8 +69,10 @@ namespace CoreWCF.Channels
             DecoderHelper.ValidateSize(buffer.Length);
             if (IsValueDecoded)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new InvalidOperationException(SR.FramingValueNotAvailable));
             }
+
             int bytesConsumed = 0;
 
             while (bytesConsumed < buffer.Length)
@@ -79,17 +83,21 @@ namespace CoreWCF.Channels
                 bytesConsumed++;
                 if (_index == LastIndex && (next & 0xF8) != 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.FramingSizeTooLarge));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidDataException(SR.FramingSizeTooLarge));
                 }
-               // Logger.DecodingInt(next, _index,_value);
+
+                // Logger.DecodingInt(next, _index,_value);
                 _index++;
                 if ((next & 0x80) == 0)
                 {
                     IsValueDecoded = true;
                     break;
                 }
+
                 buffer = buffer.Slice(buffer.GetPosition(1));
             }
+
             return bytesConsumed;
         }
     }
@@ -126,21 +134,26 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.Done)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _value;
             }
         }
 
-        public State CurrentState { get => _currentState; private set => _currentState = value; }
+        public State CurrentState
+        {
+            get => _currentState;
+            private set => _currentState = value;
+        }
 
         public int Decode(ReadOnlySequence<byte> buffer)
         {
             DecoderHelper.ValidateSize(buffer.Length);
 
             int bytesConsumed;
-           // //Logger.LogStartState(this);
+            // //Logger.LogStartState(this);
             switch (CurrentState)
             {
                 case State.ReadingSize:
@@ -153,14 +166,17 @@ namespace CoreWCF.Channels
                             Exception quotaExceeded = OnSizeQuotaExceeded(_encodedSize);
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(quotaExceeded);
                         }
+
                         if (_encodedBytes == null || _encodedBytes.Length < _encodedSize)
                         {
                             _encodedBytes = Fx.AllocateByteArray(_encodedSize);
                             _value = null;
                         }
+
                         CurrentState = State.ReadingBytes;
                         _bytesNeeded = _encodedSize;
                     }
+
                     break;
                 case State.ReadingBytes:
                     if (_value != null && _valueLengthInBytes == _encodedSize && _bytesNeeded == _encodedSize &&
@@ -190,12 +206,14 @@ namespace CoreWCF.Channels
                             OnComplete(_value);
                         }
                     }
+
                     break;
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.InvalidDecoderStateMachine));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidDataException(SR.InvalidDecoderStateMachine));
             }
 
-          //  Logger.LogEndState(this, bytesConsumed);
+            //  Logger.LogEndState(this, bytesConsumed);
             return bytesConsumed;
         }
 
@@ -214,6 +232,7 @@ namespace CoreWCF.Channels
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -258,7 +277,8 @@ namespace CoreWCF.Channels
             }
             catch (UriFormatException exception)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.Format(SR.FramingViaNotUri, value), exception));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new InvalidDataException(SR.Format(SR.FramingViaNotUri, value), exception));
             }
         }
 
@@ -268,7 +288,8 @@ namespace CoreWCF.Channels
             {
                 if (!IsValueDecoded)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _via;
@@ -406,11 +427,17 @@ namespace CoreWCF.Channels
 
         protected abstract string CurrentStateAsString { get; }
 
-        public virtual string ContentType { get { throw new NotImplementedException(); } }
+        public virtual string ContentType
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         protected ILogger Logger { get; }
 
-        public virtual Uri Via { get { throw new NotImplementedException(); } }
+        public virtual Uri Via
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         public abstract int Decode(ReadOnlySequence<byte> buffer);
 
@@ -436,7 +463,8 @@ namespace CoreWCF.Channels
         {
             if (foundType != expectedType)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateInvalidRecordTypeException(expectedType, foundType));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    CreateInvalidRecordTypeException(expectedType, foundType));
             }
         }
 
@@ -455,13 +483,16 @@ namespace CoreWCF.Channels
                 {
                     exceptionString = SR.PreambleAckIncorrect;
                 }
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(exceptionString, inner));
+
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(exceptionString,
+                    inner));
             }
         }
 
         private Exception CreateInvalidRecordTypeException(FramingRecordType expectedType, FramingRecordType foundType)
         {
-            return new InvalidDataException(SR.Format(SR.FramingRecordTypeMismatch, expectedType.ToString(), foundType.ToString()));
+            return new InvalidDataException(SR.Format(SR.FramingRecordTypeMismatch, expectedType.ToString(),
+                foundType.ToString()));
         }
 
         protected void ValidateMajorVersion(int majorVersion)
@@ -550,7 +581,7 @@ namespace CoreWCF.Channels
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-              //  Logger.LogEndState(this, bytesConsumed);
+                //  Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -596,6 +627,7 @@ namespace CoreWCF.Channels
                             //    MaxViaSize + MaxContentTypeSize);
                             //base.Close(GetRemainingTimeout());
                         }
+
                         throw;
                     }
 
@@ -625,7 +657,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.Done)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _mode;
@@ -638,7 +671,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.Done)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _majorVersion;
@@ -651,7 +685,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.Done)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _minorVersion;
@@ -703,7 +738,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.PreUpgradeStart)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _contentType;
@@ -716,7 +752,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.ReadingContentTypeRecord)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _viaDecoder.ValueAsUri;
@@ -734,7 +771,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.UpgradeRequest)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _upgrade;
@@ -747,7 +785,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.EnvelopeStart)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _envelopeSize;
@@ -778,6 +817,7 @@ namespace CoreWCF.Channels
                         {
                             CurrentState = State.ReadingContentTypeRecord;
                         }
+
                         break;
                     case State.ReadingContentTypeRecord:
                         recordType = (FramingRecordType)data[0];
@@ -793,6 +833,7 @@ namespace CoreWCF.Channels
                             _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
+
                         break;
                     case State.ReadingContentTypeByte:
                         _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
@@ -806,6 +847,7 @@ namespace CoreWCF.Channels
                             CurrentState = State.PreUpgradeStart;
                             _contentType = _contentTypeDecoder.Value;
                         }
+
                         break;
                     case State.PreUpgradeStart:
                         bytesConsumed = 0;
@@ -824,6 +866,7 @@ namespace CoreWCF.Channels
                             bytesConsumed = 0;
                             CurrentState = State.ReadingPreambleEndRecord;
                         }
+
                         break;
                     case State.ReadingUpgradeString:
                         bytesConsumed = _contentTypeDecoder.Decode(buffer);
@@ -832,6 +875,7 @@ namespace CoreWCF.Channels
                             CurrentState = State.UpgradeRequest;
                             _upgrade = _contentTypeDecoder.Value;
                         }
+
                         break;
                     case State.UpgradeRequest:
                         bytesConsumed = 0;
@@ -859,6 +903,7 @@ namespace CoreWCF.Channels
                             bytesConsumed = 0;
                             CurrentState = State.ReadingEnvelopeRecord;
                         }
+
                         break;
                     case State.ReadingEnvelopeRecord:
                         ValidateRecordType(FramingRecordType.SizedEnvelope, (FramingRecordType)data[0]);
@@ -874,6 +919,7 @@ namespace CoreWCF.Channels
                             _envelopeSize = _sizeDecoder.Value;
                             _envelopeBytesNeeded = _envelopeSize;
                         }
+
                         break;
                     case State.EnvelopeStart:
                         bytesConsumed = 0;
@@ -905,7 +951,7 @@ namespace CoreWCF.Channels
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-               // Logger.LogEndState(this, bytesConsumed);
+                // Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -964,7 +1010,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.ChunkStart)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _chunkSize;
@@ -998,6 +1045,7 @@ namespace CoreWCF.Channels
                                 _chunkBytesNeeded = _chunkSize;
                             }
                         }
+
                         break;
                     case State.ChunkStart:
                         bytesConsumed = 0;
@@ -1009,11 +1057,13 @@ namespace CoreWCF.Channels
                         {
                             bytesConsumed = _chunkBytesNeeded;
                         }
+
                         _chunkBytesNeeded -= bytesConsumed;
                         if (_chunkBytesNeeded == 0)
                         {
                             CurrentState = State.ChunkEnd;
                         }
+
                         break;
                     case State.ChunkEnd:
                         bytesConsumed = 0;
@@ -1033,7 +1083,7 @@ namespace CoreWCF.Channels
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-               // Logger.LogEndState(this, bytesConsumed);
+                // Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1086,7 +1136,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.ReadingContentTypeRecord)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _viaDecoder.ValueAsUri;
@@ -1099,7 +1150,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.PreUpgradeStart)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _contentType;
@@ -1112,7 +1164,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState != State.UpgradeRequest)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _upgrade;
@@ -1143,6 +1196,7 @@ namespace CoreWCF.Channels
                         {
                             CurrentState = State.ReadingContentTypeRecord;
                         }
+
                         break;
                     case State.ReadingContentTypeRecord:
                         recordType = (FramingRecordType)data[0];
@@ -1158,6 +1212,7 @@ namespace CoreWCF.Channels
                             _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
+
                         break;
                     case State.ReadingContentTypeByte:
                         _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
@@ -1171,6 +1226,7 @@ namespace CoreWCF.Channels
                             CurrentState = State.PreUpgradeStart;
                             _contentType = _contentTypeDecoder.Value;
                         }
+
                         break;
                     case State.PreUpgradeStart:
                         bytesConsumed = 0;
@@ -1189,6 +1245,7 @@ namespace CoreWCF.Channels
                             bytesConsumed = 0;
                             CurrentState = State.ReadingPreambleEndRecord;
                         }
+
                         break;
                     case State.ReadingUpgradeString:
                         bytesConsumed = _contentTypeDecoder.Decode(buffer);
@@ -1197,6 +1254,7 @@ namespace CoreWCF.Channels
                             CurrentState = State.UpgradeRequest;
                             _upgrade = _contentTypeDecoder.Value;
                         }
+
                         break;
                     case State.UpgradeRequest:
                         bytesConsumed = 0;
@@ -1225,7 +1283,7 @@ namespace CoreWCF.Channels
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-               // Logger.LogEndState(this, bytesConsumed);
+                // Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1313,6 +1371,7 @@ namespace CoreWCF.Channels
                             _contentTypeDecoder.Reset();
                             CurrentState = State.ReadingContentTypeString;
                         }
+
                         break;
                     case State.ReadingContentTypeByte:
                         _contentType = ContentTypeStringDecoder.GetString((FramingEncodingType)data[0]);
@@ -1326,6 +1385,7 @@ namespace CoreWCF.Channels
                             CurrentState = State.Start;
                             _contentType = _contentTypeDecoder.Value;
                         }
+
                         break;
                     case State.Start:
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
@@ -1335,7 +1395,7 @@ namespace CoreWCF.Channels
                             CreateException(new InvalidDataException(SR.InvalidDecoderStateMachine)));
                 }
 
-              //  Logger.LogEndState(this, bytesConsumed);
+                //  Logger.LogEndState(this, bytesConsumed);
                 return bytesConsumed;
             }
             catch (InvalidDataException e)
@@ -1359,7 +1419,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.ReadingContentTypeRecord)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _viaDecoder.ValueAsUri;
@@ -1372,7 +1433,8 @@ namespace CoreWCF.Channels
             {
                 if (CurrentState < State.Start)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new InvalidOperationException(SR.FramingValueNotAvailable));
                 }
 
                 return _contentType;

@@ -1,0 +1,120 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
+using CoreWCF.Configuration;
+using CoreWCF.Queue.Common.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+
+namespace CoreWCF.Queue.Common
+{
+    public class QueuePollingService : IHostedService
+    {
+        private readonly QueueHandShakeMiddleWare _queueHandShakeMiddleWare;
+        private readonly IServiceProvider _services;
+        private readonly List<QueueTransportContext> _queueTransportContexts;
+        private readonly IOptions<QueueOptions> _options;
+        private readonly IServiceBuilder _serviceBuilder;
+        private bool _isServiceBuilderOpened;
+
+        public QueuePollingService(IServiceProvider services, QueueHandShakeMiddleWare queueHandShakeMiddle,
+            IOptions<QueueOptions> queueOptions)
+        {
+            _services = services;
+            _queueHandShakeMiddleWare = queueHandShakeMiddle;
+            _options = queueOptions;
+            _serviceBuilder = _services.GetRequiredService<IServiceBuilder>();
+            _queueTransportContexts = new List<QueueTransportContext>();
+            _serviceBuilder.Opened += (_, _) => _isServiceBuilderOpened = true;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Task.Run(() => WaitAndStart(cancellationToken), cancellationToken);
+            return Task.CompletedTask;
+        }
+
+        private async Task WaitAndStart(CancellationToken cancellationToken)
+        {
+            while (!_isServiceBuilderOpened)
+            {
+                await Task.Delay(100, cancellationToken);
+            }
+
+            await Init();
+            var tasks = _queueTransportContexts.Select(x => StartFetchingMessage(x, cancellationToken));
+            await Task.WhenAll(tasks); // handle cancellation
+        }
+
+        private Task Init()
+        {
+            IDispatcherBuilder dispatcherBuilder = _services.GetRequiredService<IDispatcherBuilder>();
+            var optnVal = _options.Value ?? new QueueOptions();
+            foreach (Type serviceType in _serviceBuilder.Services)
+            {
+                List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(serviceType);
+                foreach (IServiceDispatcher dispatcher in dispatchers)
+                {
+                    if (dispatcher.BaseAddress == null)
+                    {
+                        continue;
+                    }
+
+                    BindingElementCollection be = dispatcher.Binding.CreateBindingElements();
+                    QueueBaseTransportBindingElement
+                        queueTransportBinding = be.Find<QueueBaseTransportBindingElement>();
+                    var msgEncBindingElement = be.Find<MessageEncodingBindingElement>();
+
+                    if (queueTransportBinding == null)
+                    {
+                        continue;
+                    }
+
+                    IServiceDispatcher serviceDispatcher = null;
+                    var customBinding = new CustomBinding(dispatcher.Binding);
+                    var parameters = new BindingParameterCollection { optnVal, _services, };
+                    // add service cred
+                    if (customBinding.CanBuildServiceDispatcher<IInputChannel>(parameters))
+                    {
+                        serviceDispatcher =
+                            customBinding.BuildServiceDispatcher<IInputChannel>(parameters, dispatcher);
+                    }
+
+                    parameters.Add(serviceDispatcher);
+                    BindingContext bindingContext = new BindingContext(customBinding, parameters);
+                    QueueTransportPump queuePump = queueTransportBinding.BuildQueueTransportPump(bindingContext);
+
+                    _queueTransportContexts.Add(new QueueTransportContext
+                    {
+                        QueuePump = queuePump,
+                        ServiceDispatcher = serviceDispatcher,
+                        QueueBindingElement = queueTransportBinding,
+                        MessageEncoderFactory = msgEncBindingElement.CreateMessageEncoderFactory(),
+                        QueueHandShakeDelegate = _queueHandShakeMiddleWare.Build(),
+                    });
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private static async Task StartFetchingMessage(QueueTransportContext queueTransport, CancellationToken token)
+        {
+            await queueTransport.QueuePump.StartPumpAsync(queueTransport, token);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            var tasks = _queueTransportContexts.Select(queueTransport =>
+                queueTransport.QueuePump.StopPumpAsync(cancellationToken));
+            return Task.WhenAll(tasks);
+        }
+    }
+}

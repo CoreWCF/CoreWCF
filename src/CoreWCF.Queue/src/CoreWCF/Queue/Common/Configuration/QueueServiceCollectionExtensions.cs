@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using CoreWCF.Queue;
-using CoreWCF.Queue.CoreWCF.Queue;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Common.Configuration
@@ -18,17 +16,11 @@ namespace CoreWCF.Queue.Common.Configuration
             {
                 services.Configure(configureQueues);
             }
+
             services.AddSingleton<QueueHandShakeMiddleWare>();
             services.AddHostedService<QueuePollingService>();
             services.AddTransient<QueueInputChannel>();
             return services;
-
-           /* services.Configure(configureQueues);
-
-            services.AddSingleton(ReceiverFactory.Create);
-            services.AddHostedService<QueueMessageReceiver>();
-
-            return services;*/
         }
     }
 }

@@ -6,12 +6,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using CoreWCF.Queue;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Common.Configuration
 {
-    public static class QueueMiddleWareBuilderExtension
+    public static class QueueMiddlewareBuilderExtension
     {
         private const string InvokeAsyncMethodName = "InvokeAsync";
 
@@ -144,7 +143,7 @@ namespace CoreWCF.Queue.Common.Configuration
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
-                var getServiceInfo = typeof(QueueMiddleWareBuilderExtension).GetMethod(nameof(GetService),
+                var getServiceInfo = typeof(QueueMiddlewareBuilderExtension).GetMethod(nameof(GetService),
                     BindingFlags.NonPublic | BindingFlags.Static);
                 if (getServiceInfo == null)
                 {

@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\msmqEmptyTestMessage.bin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\msmqEmptyTestMessage.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\msmqTestMessage.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -31,6 +38,10 @@
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="..\..\CoreWCF.Queue\src\CoreWCF.Queue.csproj" />
     <ProjectReference Include="..\src\CoreWCF.MSMQ.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Fakes\" />
   </ItemGroup>
 
 </Project>

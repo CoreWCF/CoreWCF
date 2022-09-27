@@ -6,7 +6,7 @@ namespace CoreWCF.Queue.Common
 {
     public class QueueOptions
     {
-        int _concurrencyLevel = 1;
+        private int _concurrencyLevel = 1;
 
         public int ConcurrencyLevel
         {

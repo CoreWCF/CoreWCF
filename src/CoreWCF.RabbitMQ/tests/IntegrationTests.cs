@@ -5,15 +5,12 @@ using System.Threading.Tasks;
 using Contracts;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Queue;
 using CoreWCF.Queue.Common.Configuration;
-using CoreWCF.Queue.Common;
 using CoreWCF.RabbitMQ.Tests.Fakes;
 using CoreWCF.RabbitMQ.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,28 +33,20 @@ namespace CoreWCF.RabbitMQ.Tests
             using (host)
             {
                 host.Start();
+                await Task.Delay(3000);
                 MessageQueueHelper.SendMessageInQueue();
                 var resolver = new DependencyResolverHelper(host);
-                var watch = System.Diagnostics.Stopwatch.StartNew();
                 var testService = resolver.GetService<TestService>();
                 Assert.True(testService.ManualResetEvent.Wait(System.TimeSpan.FromSeconds(5)));
             }
         }
 
-        /*
-        [Fact(Skip = "Need rabbitmq")]
-        public async Task ReceiveMessage()
+        
+        [Fact]
+        public void ReceiveMessage()
         {
-            var handler = new TestConnectionHandler();
-            var factory = new RabbitMqTransportFactory(new NullLoggerFactory(), handler);
-            var settings = new QueueOptions { QueueName = QueueName };
-            var transport = factory.Create(settings);
-            _ = transport.StartAsync();
             MessageQueueHelper.SendMessageInQueue();
-            await Task.Delay(1000);
-            await transport.StopAsync();
-            Assert.Equal(1, handler.CallCount);
-        }*/
+        }
     }
 
     public class Startup

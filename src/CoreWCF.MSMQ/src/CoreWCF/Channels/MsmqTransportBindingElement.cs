@@ -4,7 +4,7 @@
 using System;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
-using CoreWCF.Queue.CoreWCF.Queue;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
@@ -68,10 +68,11 @@ namespace CoreWCF.Channels
 
         private IQueueTransport CreateMyQueueTransport(BindingContext context)
         {
-            var _queueOptions = context.BindingParameters.Find<QueueOptions>();
+            var queueOptions = context.BindingParameters.Find<QueueOptions>();
             var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
+            var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
             //TODO : add queue before exists
-            return new MsmqNetcoreTransport(_queueOptions, serviceDispatcher);
+            return new MsmqNetcoreTransport(queueOptions, serviceDispatcher, serviceProvider);
         }
 
         public override BindingElement Clone()

@@ -1,15 +1,16 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Buffers;
 using System.IO;
 using System.Threading.Tasks;
-using CoreWCF.Channels;
 using CoreWCF.Queue.Common.Configuration;
 
 namespace CoreWCF.Queue.Common
 {
     public class QueueFetchMessage
     {
-        public readonly QueueMessageDispatcherDelegate _next;
+        private readonly QueueMessageDispatcherDelegate _next;
 
         public QueueFetchMessage(QueueMessageDispatcherDelegate next)
         {
@@ -18,8 +19,8 @@ namespace CoreWCF.Queue.Common
 
         public async Task InvokeAsync(QueueMessageContext queueMessageContext)
         {
-            var pipereader = queueMessageContext.QueueMessageReader;
-            var readResult = await pipereader.ReadAsync();
+            var pipeReader = queueMessageContext.QueueMessageReader;
+            var readResult = await pipeReader.ReadAsync();
             var memStream = new MemoryStream(readResult.Buffer.ToArray());
             var encoder = queueMessageContext.QueueTransportContext.MessageEncoderFactory.Encoder;
             var maxReceivedMessageSize = queueMessageContext.QueueTransportContext.QueueBindingElement.MaxReceivedMessageSize;

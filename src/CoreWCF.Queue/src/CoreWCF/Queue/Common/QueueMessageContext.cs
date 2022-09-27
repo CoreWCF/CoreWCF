@@ -46,33 +46,48 @@ namespace CoreWCF.Queue.Common
         public QueueTransportContext QueueTransportContext { get; set; }
         public EndpointAddress LocalAddress { get; set; }
 
-        public override void Abort() => throw new System.NotImplementedException();
-
-        public override Task ReplyAsync(Message message)
+        public override void Abort()
         {
-           if (DispatchResultHandler != null)
-            {
-                if (message!=null && message.IsFault) DispatchResultHandler(QueueDispatchResult.Failed, this);
-                else DispatchResultHandler(QueueDispatchResult.Processed, this);
-            }
-            return Task.CompletedTask;
+            _requestMessage.Close();
         }
+
+        public override async Task ReplyAsync(Message message)
+        {
+            if (DispatchResultHandler != null)
+            {
+                if (message != null && message.IsFault)
+                {
+                    await DispatchResultHandler(QueueDispatchResult.Failed, this);
+                }
+                else
+                {
+                    await DispatchResultHandler(QueueDispatchResult.Processed, this);
+                }
+            }
+        }
+
         public override Task ReplyAsync(Message message, CancellationToken token)
         {
             return ReplyAsync(message);
-
         }
-        public override Task CloseAsync() { return Task.CompletedTask; }
-        public override Task CloseAsync(CancellationToken token) { return Task.CompletedTask; }
 
-        public Action<QueueDispatchResult, QueueMessageContext> DispatchResultHandler { get; set; }
+        public override Task CloseAsync()
+        {
+            return Task.CompletedTask;
+        }
 
+        public override Task CloseAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Func<QueueDispatchResult, QueueMessageContext, Task> DispatchResultHandler { get; set; }
     }
 
     public enum QueueDispatchResult
     {
         Processed,
         Failed,
-        ABorted
+        Aborted
     }
 }

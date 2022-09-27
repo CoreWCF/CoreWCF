@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using MSMQ.Messaging;
-using Xunit;
 
 namespace CoreWCF.MSMQ.Tests.Helpers
 {
@@ -14,19 +13,22 @@ namespace CoreWCF.MSMQ.Tests.Helpers
         public static void Purge(string queueName)
         {
             var queue = new MessageQueue($".\\Private$\\{queueName}");
-            
+
             queue.Purge();
         }
 
         public static void SendMessageInQueue(string queueName)
         {
-            string path = $".\\Private$\\{queueName}";
-           if(!MessageQueue.Exists(path))
-            {
-                MessageQueue.Create(path);
-            }
             Stream stream = MessageContainer.GetTestMessage();
-            var queue = new MessageQueue(path);
+            var queue = new MessageQueue($".\\Private$\\{queueName}");
+            var mess = new Message { BodyStream = stream, };
+            queue.Send(mess);
+        }
+
+        public static void SendEmptyMessageInQueue(string queueName)
+        {
+            Stream stream = MessageContainer.GetEmptyTestMessage();
+            var queue = new MessageQueue($".\\Private$\\{queueName}");
             var mess = new Message { BodyStream = stream, };
             queue.Send(mess);
         }
@@ -43,7 +45,7 @@ namespace CoreWCF.MSMQ.Tests.Helpers
         {
             string queueName = $"FormatName:DIRECT=OS:{System.Environment.MachineName}\\System$;Deadletter";
             var queue = new MessageQueue(queueName);
-          
+
             var watch = Stopwatch.StartNew();
             var enumerator = queue.GetMessageEnumerator2();
             while (true)

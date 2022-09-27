@@ -1,8 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Queue.CoreWCF.Queue;
-using Microsoft.AspNetCore.Builder;
 
 namespace CoreWCF.Queue.Common.Configuration
 {
@@ -17,7 +17,11 @@ namespace CoreWCF.Queue.Common.Configuration
         {
         }
 
-        public virtual int MaxPendingReceives { get { return 1; } }
+        public virtual int MaxPendingReceives
+        {
+            get { return 1; }
+        }
+
         public abstract QueueTransportPump BuildQueueTransportPump(BindingContext context);
 
         public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
@@ -25,11 +29,10 @@ namespace CoreWCF.Queue.Common.Configuration
             return (typeof(TChannel) == typeof(IInputChannel));
         }
 
-        public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
+        public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context,
+            IServiceDispatcher innerDispatcher)
         {
             return innerDispatcher;
         }
-
     }
 }
-

@@ -1,45 +1,75 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
 using CoreWCF.Queue.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MSMQ.Messaging;
 using MSMQM = MSMQ.Messaging;
-
 
 namespace CoreWCF.Channels
 {
     public class MsmqNetcoreTransport : IQueueTransport, IDisposable
     {
-        private readonly QueueOptions _queueOptions;
         private readonly Uri _baseAddress;
         private readonly MessageQueue _messageQueue;
         private readonly TimeSpan _queueReceiveTimeOut;
+        private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
+        private readonly ILogger<MsmqNetcoreTransport> _logger;
 
-        public MsmqNetcoreTransport(QueueOptions options, IServiceDispatcher serviceDispatcher)
+        public MsmqNetcoreTransport(QueueOptions options, IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
         {
+            _deadLetterQueueSender = serviceProvider.GetRequiredService<IDeadLetterQueueMsmqSender>();
             _baseAddress = serviceDispatcher.BaseAddress;
-            _queueOptions = options;
-            var nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(_queueOptions.QueueName);
+            string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(options.QueueName);
             _messageQueue = new MessageQueue(nativeQueueName);
             _queueReceiveTimeOut = serviceDispatcher.Binding.ReceiveTimeout;
+            _logger = serviceProvider.GetRequiredService<ILogger<MsmqNetcoreTransport>>();
         }
 
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Func<IAsyncResult, MSMQM.Message> endDelegate = _messageQueue.EndReceive;
-            var message = await Task.Factory.FromAsync<MessageQueue, TimeSpan, MSMQM.Message>(MessageQueueBeginReceive, endDelegate, _messageQueue, _queueReceiveTimeOut, null);
+           
+            var message = await Task.Factory.FromAsync(MessageQueueBeginReceive,
+                MessageQueueEndReceive, _messageQueue, _queueReceiveTimeOut, null);
+
+            if(message == null)
+                return null;
+
             var reader = PipeReader.Create(message.BodyStream);
-            MsmqDecodeHelper.DecodeTransportDatagram(reader);
+            try
+            {
+                await MsmqDecodeHelper.DecodeTransportDatagram(reader);
+            }
+            catch (MsmqPoisonMessageException)
+            {
+                await _deadLetterQueueSender.SendToSystem(reader, _baseAddress);
+                return null;
+            }
+
             return GetContext(reader, _baseAddress);
+        }
+
+        private MSMQM.Message MessageQueueEndReceive(IAsyncResult result)
+        {
+            MSMQM.Message message = null;
+            try
+            {
+                message = _messageQueue.EndReceive(result);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return message;
         }
 
         private QueueMessageContext GetContext(PipeReader reader, Uri uri)
@@ -54,17 +84,25 @@ namespace CoreWCF.Channels
             return context;
         }
 
-        private static IAsyncResult MessageQueueBeginReceive(MessageQueue messageQueue, TimeSpan timeout, AsyncCallback callback, object state)
+        private static IAsyncResult MessageQueueBeginReceive(MessageQueue messageQueue, TimeSpan timeout,
+            AsyncCallback callback, object state)
         {
             return messageQueue.BeginReceive(timeout, state, callback);
         }
 
-        //TODO : Wireup DeadLetter based on QueueDispatchResult.Failed
-        private void NotifyError(QueueDispatchResult dispatchResult, QueueMessageContext queueMessageContext)
+        private async Task NotifyError(QueueDispatchResult dispatchResult, QueueMessageContext context)
         {
-           if(dispatchResult == QueueDispatchResult.Failed)
+            if (dispatchResult == QueueDispatchResult.Failed)
             {
-                //DO Something
+                if (context.QueueTransportContext.ServiceDispatcher.Binding is NetMsmqBinding binding &&
+                    binding.DeadLetterQueue == DeadLetterQueue.Custom)
+                {
+                    await _deadLetterQueueSender.Send(context.QueueMessageReader, binding.CustomDeadLetterQueue);
+                }
+                else
+                {
+                    await _deadLetterQueueSender.SendToSystem(context.QueueMessageReader, context.LocalAddress.Uri);
+                }
             }
         }
 
@@ -74,4 +112,3 @@ namespace CoreWCF.Channels
         }
     }
 }
-

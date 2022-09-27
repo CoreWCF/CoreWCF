@@ -25,4 +25,8 @@
     <ProjectReference Include="..\src\CoreWCF.Queue.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Fakes\" />
+  </ItemGroup>
+
 </Project>

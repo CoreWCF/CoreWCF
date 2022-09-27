@@ -50,7 +50,7 @@ namespace CoreWCF.Queue.Common.Configuration
 
         public QueueMessageDispatcherDelegate Build()
         {
-            QueueMessageDispatcherDelegate app = context => Task.CompletedTask;
+            QueueMessageDispatcherDelegate app = _ => Task.CompletedTask;
 
             foreach (Func<QueueMessageDispatcherDelegate, QueueMessageDispatcherDelegate> component in _components.Reverse())
             {

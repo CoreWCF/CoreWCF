@@ -3,7 +3,6 @@
 
 using System.Threading;
 using CoreWCF;
-using CoreWCF.MSMQ.Tests.Fakes;
 
 namespace Contracts
 {
@@ -16,17 +15,16 @@ namespace Contracts
 
     public class TestService : ITestContract
     {
-        private readonly Interceptor _interceptor;
-
-        public TestService(Interceptor interceptor)
+        public TestService()
         {
-            _interceptor = interceptor;
             ManualResetEvent = new ManualResetEventSlim(false);
         }
 
         public void Create(string name)
         {
-            _interceptor.SetName(name);
+            if (string.IsNullOrEmpty(name))
+                throw new FaultException();
+
             ManualResetEvent.Set();
         }
 
