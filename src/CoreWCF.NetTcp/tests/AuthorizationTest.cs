@@ -22,6 +22,7 @@ namespace CoreWCF.NetTcp.Tests
     public class AuthorizationTest
     {
         private readonly ITestOutputHelper _output;
+        public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
 
         public AuthorizationTest(ITestOutputHelper output)
         {
@@ -31,7 +32,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact(Skip ="Skipped in pipeline run")]
         public void AuthorizationBasedonRolesTest()
         {
-            string testString = "a" + PrincipalPermissionMode.Always.ToString() + "test";
+            string testString = "a" + PrincipalPermissionMode.Always + "test";
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupForAuthorization>(_output).Build();
             using (host)
             {
@@ -42,7 +43,7 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath));
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + WindowsAuthRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoForAuthorizarionOneRole(testString);

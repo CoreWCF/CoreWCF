@@ -23,32 +23,24 @@ namespace CoreWCF
         [Obsolete("Implementers should override CheckAccessAsync.")]
         public virtual bool CheckAccess(OperationContext operationContext, ref Message message)
         {
-            // We don't call this internally, so we won't have problems with sync over async causing performance issues
-            ValueTask<(bool isAuthorized, Message message)> checkAccessResult = CheckAccessAsync(operationContext, message);
-            (bool isAuthorized, Message message) result = checkAccessResult.IsCompleted
-                ? checkAccessResult.Result
-                : checkAccessResult.AsTask().GetAwaiter().GetResult();
-            message = result.message;
-            return result.isAuthorized;
+            // delegate to the async CheckAccessAsync(OperationContext operationContext)
+            // to give a chance to users who are no longer overriding sync method but th async one to get their code called
+            ValueTask<bool> checkAccessAsyncResult = CheckAccessAsync(operationContext);
+            return checkAccessAsyncResult.IsCompleted
+                ? checkAccessAsyncResult.Result
+                : checkAccessAsyncResult.GetAwaiter().GetResult();
         }
 
-        public virtual async ValueTask<(bool isAuthorized, Message message)> CheckAccessAsync(OperationContext operationContext, Message message)
+
+        public virtual ValueTask<(bool isAuthorized, Message message)> CheckAccessAsync(OperationContext operationContext, Message message)
         {
-            bool checkAccessResult = await CheckAccessAsync(operationContext);
-            return (checkAccessResult, message);
+            // delegate to matching sync call overload
+            bool checkAccessResult = CheckAccess(operationContext, ref message);
+            return new ValueTask<(bool isAuthorized, Message message)>((checkAccessResult, message));
         }
 
         [Obsolete("Implementers should override CheckAccessAsync.")]
         public virtual bool CheckAccess(OperationContext operationContext)
-        {
-            // We don't call this internally, so we won't have problems with sync over async causing performance issues
-            var checkAccessResult = CheckAccessAsync(operationContext);
-            return checkAccessResult.IsCompleted
-                ? checkAccessResult.Result
-                : checkAccessResult.AsTask().GetAwaiter().GetResult();
-        }
-
-        public virtual async ValueTask<bool> CheckAccessAsync(OperationContext operationContext)
         {
             if (operationContext == null)
             {
@@ -64,13 +56,19 @@ namespace CoreWCF
             operationContext.IncomingMessageProperties.Security.ServiceSecurityContext =
                 new ServiceSecurityContext(authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
 
-            // 3) Call the CheckAccessCore
-            return await CheckAccessCoreAsync(operationContext);
+            // 3) Call the CheckAccessCoreAsync(OperationContext operationContext)
+            // to give a chance to users who are no longer overriding sync method but th async one to get their code called
+            ValueTask<bool> checkAccessCoreAsyncResult = CheckAccessCoreAsync(operationContext);
+            return checkAccessCoreAsyncResult.IsCompleted
+                ? checkAccessCoreAsyncResult.Result
+                : checkAccessCoreAsyncResult.GetAwaiter().GetResult();
         }
+
+        public virtual ValueTask<bool> CheckAccessAsync(OperationContext operationContext) => new(CheckAccess(operationContext));
 
         // Define the set of policies taking part in chaining.  We will provide
         // the safe default set (primary token + all supporting tokens except token with
-        // with SecurityTokenAttachmentMode.Signed + transport token).  Implementor
+        // with SecurityTokenAttachmentMode.Signed + transport token). Implementor
         // can override and provide different selection of policies set.
         protected virtual ReadOnlyCollection<IAuthorizationPolicy> GetAuthorizationPolicies(OperationContext operationContext)
         {
@@ -99,20 +97,11 @@ namespace CoreWCF
         }
 
         [Obsolete("Implementers should override CheckAccessCoreAsync.")]
-        protected virtual bool CheckAccessCore(OperationContext operationContext)
-        {
-            // We don't call this internally, so we won't have problems with sync over async causing performance issues
-            var checkAccessCoreResult = CheckAccessCoreAsync(operationContext);
-            return checkAccessCoreResult.IsCompleted
-                ? checkAccessCoreResult.Result
-                : checkAccessCoreResult.AsTask().GetAwaiter().GetResult();
-        }
+        protected virtual bool CheckAccessCore(OperationContext operationContext) => true;
 
         // Implementor overrides this API to make authoritive decision.
         // The AuthorizationContext in opContext is generally the result from forward chain.
-        protected virtual ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext)
-        {
-            return new ValueTask<bool>(true);
-        }
+        protected virtual ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new(CheckAccessCore(operationContext));
+
     }
 }

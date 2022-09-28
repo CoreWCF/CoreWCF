@@ -19,6 +19,27 @@ namespace Helpers
 {
     public static class ServiceHelper
     {
+        public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, IPAddress ipAddress = null, int port = 0)
+        {
+            if (ipAddress == null)
+            {
+                //using .Any breaks the getaddress method
+                ipAddress = IPAddress.Loopback;
+            }
+            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+                .ConfigureLogging((ILoggingBuilder logging) =>
+                {
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                    logging.AddFilter("Default", LogLevel.Debug);
+                    logging.AddFilter("Microsoft", LogLevel.Debug);
+                    logging.SetMinimumLevel(LogLevel.Debug);
+                })
+#endif // DEBUG
+                .UseNetTcp(ipAddress, port)
+                .UseStartup(startupType);
+        }
+
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0) where TStartup : class
         {
             if (ipAddress == null)

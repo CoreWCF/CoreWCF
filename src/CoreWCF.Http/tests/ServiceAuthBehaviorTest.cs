@@ -26,11 +26,18 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-        [Fact]
-        public void BasicHttpRequestReplyEchoWithServiceBehavior()
+        public static IEnumerable<object[]> GetTestVariations()
+        {
+            yield return new object[] { typeof(Startup<MySyncTestServiceAuthorizationManager>) };
+            yield return new object[] { typeof(Startup<MyAsyncTestServiceAuthorizationManager>) };
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public void BasicHttpRequestReplyEchoWithServiceBehavior(Type type)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
                 host.Start();
@@ -43,11 +50,12 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        [Fact]
-        public void AccessDeniedForBasicHttpRequestReplyEcho()
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public void AccessDeniedForBasicHttpRequestReplyEcho(Type type)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
                 host.Start();
@@ -61,12 +69,12 @@ namespace CoreWCF.Http.Tests
         }
 
 
-        internal class Startup
+        internal class Startup<TServiceAuthorizationManager> where TServiceAuthorizationManager : ServiceAuthorizationManager
         {
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
-                services.AddSingleton<ServiceAuthorizationManager, MyTestServiceAuthorizationManager>();
+                services.AddSingleton<ServiceAuthorizationManager, TServiceAuthorizationManager>();
             }
 
             public void Configure(IApplicationBuilder app)
