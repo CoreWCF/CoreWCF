@@ -17,18 +17,13 @@ namespace CoreWCF
         [Obsolete("Implementers should override AuthenticateAsync.")]
         public virtual ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
         {
-            // We don't call this internally, so we won't have problems with sync over async causing performance issues
-            var authenticateResult = AuthenticateAsync(authPolicy, listenUri, message);
-            (ReadOnlyCollection<IAuthorizationPolicy> policies, Message message) result = authenticateResult.IsCompleted
-                ? authenticateResult.Result
-                : authenticateResult.AsTask().GetAwaiter().GetResult();
-            message = result.message;
-            return result.policies;
+            return authPolicy;
         }
 
         public virtual ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
         {
-            return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((authPolicy, message));
+            var policies = Authenticate(authPolicy, listenUri, ref message);
+            return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((policies, message));
         }
     }
 
