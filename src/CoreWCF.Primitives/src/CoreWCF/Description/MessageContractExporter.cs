@@ -259,18 +259,18 @@ namespace CoreWCF.Description
             return elementName;
         }
 
-        protected XsdDataContractExporterEx DataContractExporter
+        protected IXsdDataContractExporter DataContractExporter
         {
             get
             {
                 object dataContractExporter;
-                if (!_exporter.State.TryGetValue(typeof(XsdDataContractExporterEx), out dataContractExporter))
+                if (!_exporter.State.TryGetValue(typeof(IXsdDataContractExporter), out dataContractExporter))
                 {
-                    dataContractExporter = new XsdDataContractExporterEx(_exporter.GeneratedXmlSchemas);
-                    _exporter.State.Add(typeof(XsdDataContractExporterEx), dataContractExporter);
+                    dataContractExporter = XsdDataContractExporterFactory.Create(_exporter.GeneratedXmlSchemas);
+                    _exporter.State.Add(typeof(IXsdDataContractExporter), dataContractExporter);
                 }
 
-                return (XsdDataContractExporterEx)dataContractExporter;
+                return (IXsdDataContractExporter)dataContractExporter;
             }
         }
 
