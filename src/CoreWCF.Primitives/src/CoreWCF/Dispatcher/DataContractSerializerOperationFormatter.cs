@@ -8,75 +8,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
-using System.Xml.Schema;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Runtime.Serialization;
 
 namespace CoreWCF.Dispatcher
 {
-    internal interface IXsdDataContractExporter
-    {
-        void Export(Type type);
-        XmlQualifiedName GetRootElementName(Type type);
-        XmlSchemaType GetSchemaType(Type type);
-        XmlQualifiedName GetSchemaTypeName(Type type);
-    }
-
-    internal class XsdDataContractExporterWrapper : IXsdDataContractExporter
-    {
-        private readonly XsdDataContractExporter _xsdDataContractExporter;
-
-        public XsdDataContractExporterWrapper()
-        {
-            _xsdDataContractExporter = new XsdDataContractExporter();
-        }
-
-        public XsdDataContractExporterWrapper(XmlSchemaSet xmlSchemaSet)
-        {
-            _xsdDataContractExporter = new XsdDataContractExporter(xmlSchemaSet);
-        }
-
-        public void Export(Type type) => _xsdDataContractExporter.Export(type);
-
-        public XmlQualifiedName GetRootElementName(Type type) => _xsdDataContractExporter.GetRootElementName(type);
-
-        public XmlSchemaType GetSchemaType(Type type) => _xsdDataContractExporter.GetSchemaType(type);
-
-        public XmlQualifiedName GetSchemaTypeName(Type type) => _xsdDataContractExporter.GetSchemaTypeName(type);
-    }
-
-    internal class XsdDataContractExporterExWrapper : IXsdDataContractExporter
-    {
-        private readonly XsdDataContractExporterEx _xsdDataContractExporter;
-
-        public XsdDataContractExporterExWrapper()
-        {
-            _xsdDataContractExporter = new XsdDataContractExporterEx();
-        }
-
-        public XsdDataContractExporterExWrapper(XmlSchemaSet xmlSchemaSet)
-        {
-            _xsdDataContractExporter = new XsdDataContractExporterEx(xmlSchemaSet);
-        }
-
-        public void Export(Type type) => _xsdDataContractExporter.Export(type);
-        public XmlQualifiedName GetRootElementName(Type type) => _xsdDataContractExporter.GetRootElementName(type);
-        public XmlSchemaType GetSchemaType(Type type) => _xsdDataContractExporter.GetSchemaType(type);
-        public XmlQualifiedName GetSchemaTypeName(Type type) => _xsdDataContractExporter.GetSchemaTypeName(type);
-    }
-
-    internal static class XsdDataContractExporterFactory
-    {
-        public static IXsdDataContractExporter Create() => Environment.Version.Major < 7
-            ? new XsdDataContractExporterExWrapper()
-            : new XsdDataContractExporterWrapper();
-
-        public static IXsdDataContractExporter Create(XmlSchemaSet xmlSchemaSet) => Environment.Version.Major < 7
-            ? new XsdDataContractExporterExWrapper(xmlSchemaSet)
-            : new XsdDataContractExporterWrapper(xmlSchemaSet);
-    }
-
     internal static class DataContractSerializerDefaults
     {
         internal const bool IgnoreExtensionDataObject = false;
