@@ -206,7 +206,7 @@ namespace CoreWCF.Dispatcher
                         {
                             if (returnValueTask.IsFaulted)
                             {
-                                throw ConvertExceptionForFaultedTask(antecedant);
+                                ExceptionDispatchInfo.Capture(ConvertExceptionForFaultedTask(antecedant)).Throw();
                             }
                             else
                             {
