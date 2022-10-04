@@ -244,25 +244,15 @@ namespace CoreWCF.Dispatcher
 
         private Exception ConvertExceptionForFaultedTask(Task task)
         {
-            Exception exception = task.Exception.InnerException;
-            //bool callFaulted;
-            if (exception is SecurityException)
+            if (task.Exception?.InnerException is SecurityException innerException)
             {
-                DiagnosticUtility.TraceHandledException(exception, TraceEventType.Warning);
-                exception = DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
+                DiagnosticUtility.TraceHandledException(innerException, TraceEventType.Warning);
+                return DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
             }
-            else if (exception is FaultException)
-            {
-                //callFaulted = true;
-            }
-            else
-            {
-                TraceUtility.TraceUserCodeException(exception, TaskMethod);
-            }
-            //AsyncMethodInvoker.StopOperationInvokeTrace(true, callFaulted, TaskMethod.Name);
-            //AsyncMethodInvoker.StopOperationInvokePerformanceCounters(true, callFaulted, TaskMethod.Name);
 
-            return exception;
+            TraceUtility.TraceUserCodeException(task.Exception, TaskMethod);
+
+            return task.Exception;
         }
 
         private void EnsureIsInitialized()
