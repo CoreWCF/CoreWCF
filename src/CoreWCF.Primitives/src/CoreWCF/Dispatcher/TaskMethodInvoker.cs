@@ -224,7 +224,7 @@ namespace CoreWCF.Dispatcher
             finally
             {
                 // TODO: When brining boundActivity back, make sure it executes in the correct order with relation to
-                // called task completing.
+                // called task completing..
                 //if (boundActivity != null)
                 //{
                 //    ((IDisposable)boundActivity).Dispose();
