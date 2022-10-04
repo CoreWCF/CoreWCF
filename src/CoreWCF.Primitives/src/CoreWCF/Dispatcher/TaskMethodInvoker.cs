@@ -208,10 +208,9 @@ namespace CoreWCF.Dispatcher
                             {
                                 ExceptionDispatchInfo.Capture(ConvertExceptionForFaultedTask(antecedant)).Throw();
                             }
-                            else
-                            {
-                                return (returnValue: antecedant, outputs);
-                            }
+                            
+                            return (returnValue: antecedant, outputs);
+                            
                         });
 
                         return new ValueTask<(Task returnValue, object[] outputs)>(completionTask);
