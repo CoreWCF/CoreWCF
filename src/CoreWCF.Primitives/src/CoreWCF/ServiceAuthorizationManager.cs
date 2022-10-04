@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Policy;
@@ -13,6 +15,28 @@ namespace CoreWCF
 {
     public class ServiceAuthorizationManager
     {
+        private bool _isCheckAccessCoreAsyncOverridden;
+        private bool _isCheckAccessAsyncWithSingleParameterOverridden;
+
+        public ServiceAuthorizationManager()
+        {
+            Type implementorType = GetType();
+            var methods = implementorType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var checkAccessCoreAsyncMethodInfo = methods.Single(static x => x.Name == nameof(CheckAccessCoreAsync));
+            var baseCheckAccessCoreAsyncMethodInfo = checkAccessCoreAsyncMethodInfo!.GetBaseDefinition();
+
+            _isCheckAccessCoreAsyncOverridden = baseCheckAccessCoreAsyncMethodInfo.DeclaringType != checkAccessCoreAsyncMethodInfo.DeclaringType;
+
+            var checkAccessAsyncWithSingleParameterMethodInfo = methods.SingleOrDefault(static x =>
+                x.Name == nameof(CheckAccessAsync) && x.GetParameters().Length == 1);
+            var baseCheckAccessAsyncWithSingleParameterMethodInfo =
+                checkAccessAsyncWithSingleParameterMethodInfo!.GetBaseDefinition();
+
+            _isCheckAccessAsyncWithSingleParameterOverridden =
+                baseCheckAccessAsyncWithSingleParameterMethodInfo.DeclaringType != checkAccessAsyncWithSingleParameterMethodInfo.DeclaringType;
+        }
+
         // This is the API called by framework to perform CheckAccess.
         // The API is responsible for ...
         // 1) Evaluate all policies (Forward\Backward)
@@ -21,22 +45,19 @@ namespace CoreWCF
         // 3) An availability of message content to make an authoritive decision.
         // 4) Return the authoritive decision true/false (allow/deny).
         [Obsolete("Implementers should override CheckAccessAsync.")]
-        public virtual bool CheckAccess(OperationContext operationContext, ref Message message)
-        {
-            // delegate to the async CheckAccessAsync(OperationContext operationContext)
-            // to give a chance to users who are no longer overriding sync method but th async one to get their code called
-            ValueTask<bool> checkAccessAsyncResult = CheckAccessAsync(operationContext);
-            return checkAccessAsyncResult.IsCompleted
-                ? checkAccessAsyncResult.Result
-                : checkAccessAsyncResult.GetAwaiter().GetResult();
-        }
+        public virtual bool CheckAccess(OperationContext operationContext, ref Message message) => CheckAccess(operationContext);
 
-
-        public virtual ValueTask<(bool isAuthorized, Message message)> CheckAccessAsync(OperationContext operationContext, Message message)
+        public virtual async ValueTask<(bool isAuthorized, Message message)> CheckAccessAsync(OperationContext operationContext, Message message)
         {
+            if (_isCheckAccessAsyncWithSingleParameterOverridden || _isCheckAccessCoreAsyncOverridden)
+            {
+                var isAuthorized = await CheckAccessAsync(operationContext);
+                return (isAuthorized, message);
+            }
+
             // delegate to matching sync call overload
             bool checkAccessResult = CheckAccess(operationContext, ref message);
-            return new ValueTask<(bool isAuthorized, Message message)>((checkAccessResult, message));
+            return (checkAccessResult, message);
         }
 
         [Obsolete("Implementers should override CheckAccessAsync.")]
@@ -57,14 +78,28 @@ namespace CoreWCF
                 new ServiceSecurityContext(authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
 
             // 3) Call the CheckAccessCoreAsync(OperationContext operationContext)
-            // to give a chance to users who are no longer overriding sync method but th async one to get their code called
-            ValueTask<bool> checkAccessCoreAsyncResult = CheckAccessCoreAsync(operationContext);
-            return checkAccessCoreAsyncResult.IsCompleted
-                ? checkAccessCoreAsyncResult.Result
-                : checkAccessCoreAsyncResult.GetAwaiter().GetResult();
+            return CheckAccessCore(operationContext);
         }
 
-        public virtual ValueTask<bool> CheckAccessAsync(OperationContext operationContext) => new(CheckAccess(operationContext));
+        public virtual async ValueTask<bool> CheckAccessAsync(OperationContext operationContext)
+        {
+            if (operationContext == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(operationContext));
+            }
+
+            // default to forward-chaining implementation
+            // 1) Get policies that will participate in chain process.
+            //    We provide a safe default policies set below.
+            ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = GetAuthorizationPolicies(operationContext);
+
+            // 2) Do forward chaining and wire the new ServiceSecurityContext
+            operationContext.IncomingMessageProperties.Security.ServiceSecurityContext =
+                new ServiceSecurityContext(authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
+
+            // 3) Call the CheckAccessCoreAsync(OperationContext operationContext)
+            return await CheckAccessCoreAsync(operationContext);
+        }
 
         // Define the set of policies taking part in chaining.  We will provide
         // the safe default set (primary token + all supporting tokens except token with
@@ -101,7 +136,7 @@ namespace CoreWCF
 
         // Implementor overrides this API to make authoritive decision.
         // The AuthorizationContext in opContext is generally the result from forward chain.
-        protected virtual ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new(CheckAccessCore(operationContext));
+        protected virtual ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new (true);
 
     }
 }

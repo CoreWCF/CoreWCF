@@ -44,6 +44,7 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 
     internal class MySyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
     {
+        [Obsolete("Implementers should override CheckAccessCoreAsync.")]
         protected override bool CheckAccessCore(OperationContext operationContext) => Logic(operationContext);
     }
 
