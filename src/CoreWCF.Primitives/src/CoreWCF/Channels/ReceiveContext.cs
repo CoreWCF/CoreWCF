@@ -8,7 +8,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class ReceiveContext
+    public abstract class ReceiveContext
     {
         public static readonly string Name = "ReceiveContext";
         private readonly SemaphoreSlim _stateLock; // protects state that may be reverted

@@ -32,6 +32,8 @@ namespace CoreWCF.Channels
             _logger = serviceProvider.GetRequiredService<ILogger<MsmqQueueTransport>>();
         }
 
+        public int ConcurrencyLevel => 1;
+
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -76,9 +78,11 @@ namespace CoreWCF.Channels
             var context = new QueueMessageContext
             {
                 QueueMessageReader = reader,
-                LocalAddress = new EndpointAddress(uri),
-                DispatchResultHandler = NotifyError,
+                LocalAddress = new EndpointAddress(uri)
             };
+            var receiveContext = new MsmqReceiveContext(context, _deadLetterQueueSender);
+            context.ReceiveContext = receiveContext;
+
             return context;
         }
 
@@ -86,22 +90,6 @@ namespace CoreWCF.Channels
             AsyncCallback callback, object state)
         {
             return messageQueue.BeginReceive(timeout, state, callback);
-        }
-
-        private async Task NotifyError(QueueDispatchResult dispatchResult, QueueMessageContext context)
-        {
-            if (dispatchResult == QueueDispatchResult.Failed)
-            {
-                if (context.QueueTransportContext.ServiceDispatcher.Binding is NetMsmqBinding binding &&
-                    binding.DeadLetterQueue == DeadLetterQueue.Custom)
-                {
-                    await _deadLetterQueueSender.Send(context.QueueMessageReader, binding.CustomDeadLetterQueue);
-                }
-                else
-                {
-                    await _deadLetterQueueSender.SendToSystem(context.QueueMessageReader, context.LocalAddress.Uri);
-                }
-            }
         }
 
         public void Dispose()

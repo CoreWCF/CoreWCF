@@ -19,7 +19,7 @@ namespace CoreWCF.RabbitMQ.Tests
 #if DEBUG
                 .ConfigureLogging((ILoggingBuilder logging) =>
                 {
-                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper, nameof(CreateWebHostBuilder)));
                     logging.AddFilter("Default", LogLevel.Debug);
                     logging.AddFilter("Microsoft", LogLevel.Debug);
                     logging.SetMinimumLevel(LogLevel.Debug);

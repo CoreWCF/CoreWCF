@@ -14,6 +14,7 @@ namespace CoreWCF.Queue.Common
     public class QueueMessageContext : RequestContext
     {
         public PipeReader QueueMessageReader { get; set; }
+        public ReceiveContext ReceiveContext { get; set; }
         public virtual IDictionary<string, object> Properties { get { return _properties.Value; } }
         private Message _requestMessage;
         private Exception _requestMessageException;
@@ -54,15 +55,15 @@ namespace CoreWCF.Queue.Common
 
         public override async Task ReplyAsync(Message message)
         {
-            if (DispatchResultHandler != null)
+            if (ReceiveContext != null)
             {
                 if (message != null && message.IsFault)
                 {
-                    await DispatchResultHandler(QueueDispatchResult.Failed, this);
+                    await ReceiveContext.AbandonAsync(CancellationToken.None);
                 }
                 else
                 {
-                    await DispatchResultHandler(QueueDispatchResult.Processed, this);
+                    await ReceiveContext.CompleteAsync(CancellationToken.None);
                 }
             }
         }
@@ -81,14 +82,5 @@ namespace CoreWCF.Queue.Common
         {
             return Task.CompletedTask;
         }
-
-        public Func<QueueDispatchResult, QueueMessageContext, Task> DispatchResultHandler { get; set; }
-    }
-
-    public enum QueueDispatchResult
-    {
-        Processed,
-        Failed,
-        Aborted
     }
 }

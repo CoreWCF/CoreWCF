@@ -11,6 +11,7 @@ namespace CoreWCF.Queue.Tests.Fakes
     internal class FakeQueueTransport : IQueueTransport
     {
         public int CallCount { get; private set; }
+        public int ConcurrencyLevel => 1;
         private readonly CallType _callType;
 
         public FakeQueueTransport(CallType callType)

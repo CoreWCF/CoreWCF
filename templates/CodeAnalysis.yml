@@ -15,6 +15,13 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
+    - bash: |
+        echo 'Starting docker services...'
+        docker-compose up -d
+      name: DockerComposeLinuxServices
+      displayName: Start services hosted by linux containers
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
 
     - task: UseDotNet@2
       displayName: 'Use .NET Core 7 sdk'
@@ -51,7 +58,7 @@ stages:
 
     - task: DotNetCoreCLI@2
       displayName: Run tests with Coverage
-      timeoutInMinutes: 10
+      timeoutInMinutes: 12
       inputs:
         command: test
         projects: ${{ parameters.testProjects}}

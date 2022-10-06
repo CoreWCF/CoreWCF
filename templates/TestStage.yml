@@ -13,32 +13,46 @@ stages:
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
-          testArgs: ''
+          testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
+          platformOs: windows
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: ''          
+          testArgs: '--filter Category!=LinuxOnly'
+          additionalDotNetCoreSdk: ''
+          platformOs: windows
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
+          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
+          platformOs: windows
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '6.0.x'
+          platformOs: linux
         Linux_net7.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''          
+          additionalDotNetCoreSdk: ''
+          platformOs: linux
     displayName: Test Release
     pool:
       vmImage: $(imageName)
     steps:
+    - bash: |
+        echo 'Starting docker services...'
+        docker-compose up -d
+      name: DockerComposeLinuxServices
+      displayName: Start services hosted by linux containers
+      condition: eq(variables.platformOs, 'linux')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
+
     - task: DownloadPipelineArtifact@2
       displayName: Download build artifacts
       inputs:
@@ -90,32 +104,46 @@ stages:
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
-          testArgs: ''
+          testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
+          platformOs: windows
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: ''          
+          testArgs: '--filter Category!=LinuxOnly'
+          additionalDotNetCoreSdk: ''
+          platformOs: windows
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
+          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
+          platformOs: windows
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '6.0.x'
+          platformOs: linux
         Linux_net7.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''          
+          additionalDotNetCoreSdk: ''
+          platformOs: linux
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
     steps:
+    - bash: |
+        echo 'Starting docker services...'
+        docker-compose up -d
+      name: DockerComposeLinuxServices
+      displayName: Start services hosted by linux containers
+      condition: eq(variables.platformOs, 'linux')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
+
     - task: DownloadPipelineArtifact@2
       displayName: Download build artifacts
       inputs:

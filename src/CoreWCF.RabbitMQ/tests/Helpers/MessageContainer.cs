@@ -11,7 +11,7 @@ namespace CoreWCF.RabbitMQ.Tests.Helpers
         public static Stream GetTestMessage()
         {
             string currentDirectory = Environment.CurrentDirectory ?? throw new Exception("Environment current directroy is empty");
-            string path = Path.Combine(currentDirectory, "Resources/rabbitmqTestMessage.bin");
+            string path = Path.Combine(currentDirectory, "MessageFiles/rabbitmqTestMessage.bin");
             return File.OpenRead(path);
         }
     }

@@ -24,7 +24,7 @@ namespace CoreWCF.Queue.Common
 
         public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
         {
-            for (int i = 0; i < queueTransportContext.QueueBindingElement.MaxPendingReceives; i++)
+            for (int i = 0; i < _transport.ConcurrencyLevel; i++)
             {
                 _tasks.Add(FetchAndProcessAsync(queueTransportContext, _cancellationTokenSource.Token));
             }
