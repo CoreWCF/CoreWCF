@@ -48,6 +48,7 @@ namespace CoreWCF.Dispatcher
             FaultFormatter = operation.FaultFormatter;
             Impersonation = operation.Impersonation;
             AuthorizeClaims = operation.AuthorizeClaims;
+            AuthorizationPolicy = operation.AuthorizationPolicy;
             _deserializeRequest = operation.DeserializeRequest;
             SerializeReply = operation.SerializeReply;
             Formatter = operation.Formatter;
@@ -108,6 +109,8 @@ namespace CoreWCF.Dispatcher
         internal ImpersonationOption Impersonation { get; }
 
         internal ConcurrentDictionary<string, List<Claim>> AuthorizeClaims { get; }
+
+        internal AuthorizationPolicy AuthorizationPolicy { get; }
 
         internal IOperationInvoker Invoker { get; }
 

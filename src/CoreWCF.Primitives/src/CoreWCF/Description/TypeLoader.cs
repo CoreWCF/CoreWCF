@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -1117,7 +1119,40 @@ namespace CoreWCF.Description
                     requestDescription.Body.WrapperName = requestDescription.Body.WrapperNamespace = null;
                 }
             }
+
+            var serviceImplMethodInfo = FindServiceImplMethodInfo(operationDescription, contractDescription);
+            // When Duplex channel we can't find a method matching the OperationOperation
+            if (serviceImplMethodInfo != null)
+            {
+                methodAttributes = ServiceReflector.GetCustomAttributes(serviceImplMethodInfo, typeof(AuthorizeAttribute), false);
+                foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
+                {
+                    operationDescription.AuthorizeData.Add(methodAttribute);
+                }
+            }
+
             return operationDescription;
+        }
+
+        private static MethodInfo FindServiceImplMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
+        {
+            Type serviceType = typeof(TService);
+            MethodInfo[] methodInfos = serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var methodInfo in methodInfos)
+            {
+                if (methodInfo.Name == operationDescription.OperationMethod.Name)
+                {
+                    return methodInfo;
+                }
+
+                // handle explicit interface implementations
+                if (methodInfo.Name == $"{contractDescription.ConfigurationName}.{operationDescription.OperationMethod.Name}")
+                {
+                    return methodInfo;
+                }
+            }
+
+            return null;
         }
 
         private void CheckDuplicateFaultContract(FaultDescriptionCollection faultDescriptionCollection, FaultDescription fault, string operationName)

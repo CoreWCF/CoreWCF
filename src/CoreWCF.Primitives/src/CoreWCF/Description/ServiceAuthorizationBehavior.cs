@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -20,9 +21,13 @@ namespace CoreWCF.Description
         private readonly bool _impersonateOnSerializingReply;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
+        // private IAuthorizationPolicyProvider _authorizationPolicyProvider;
+        private IAuthorizationService _authorizationService;
         private PrincipalPermissionMode _principalPermissionMode;
         private bool _isExternalPoliciesSet;
         private bool _isAuthorizationManagerSet;
+        private bool _isAuthorizationServiceSet;
+        //private bool _isAuthorizationPolicyProviderSet;
         private bool _isReadOnly;
 
         public ServiceAuthorizationBehavior()
@@ -44,6 +49,19 @@ namespace CoreWCF.Description
             {
                 CopyAuthorizationPoliciesAndManager(other);
             }
+
+            _isAuthorizationServiceSet = other._isAuthorizationServiceSet;
+            if (other._isAuthorizationServiceSet)
+            {
+                _authorizationService = other._authorizationService;
+            }
+
+            // _isAuthorizationPolicyProviderSet = other._isAuthorizationPolicyProviderSet;
+            // if (other._isAuthorizationPolicyProviderSet)
+            // {
+            //     _authorizationPolicyProvider = other._authorizationPolicyProvider;
+            // }
+
             _isReadOnly = other._isReadOnly;
         }
 
@@ -134,6 +152,28 @@ namespace CoreWCF.Description
             }
         }
 
+        // public IAuthorizationPolicyProvider AuthorizationPolicyProvider
+        // {
+        //     get => _authorizationPolicyProvider;
+        //     set
+        //     {
+        //         ThrowIfImmutable();
+        //         _isAuthorizationPolicyProviderSet = true;
+        //         _authorizationPolicyProvider = value;
+        //     }
+        // }
+
+        public IAuthorizationService AuthorizationService
+        {
+            get => _authorizationService;
+            set
+            {
+                ThrowIfImmutable();
+                _isAuthorizationServiceSet = true;
+                _authorizationService = value;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
         {
@@ -191,6 +231,16 @@ namespace CoreWCF.Description
                         {
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
+
+                        if (_isAuthorizationServiceSet)
+                        {
+                            behavior.AuthorizationService = _authorizationService;
+                        }
+
+                        // if (_isAuthorizationPolicyProviderSet)
+                        // {
+                        //     behavior.AuthorizationPolicyProvider = _authorizationPolicyProvider;
+                        // }
                     }
                 }
             }

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,7 +109,7 @@ namespace CoreWCF.Channels
 
         protected abstract Task<SecurityMessageProperty> OnProcessAuthenticationAsync();
 
-        protected abstract Task OnProcessAuthorizationPoliciesAsync(Message message);
+        //protected abstract Task OnProcessAuthorizationPoliciesAsync(Message message);
 
         public abstract HttpOutput GetHttpOutput(Message message);
 
@@ -236,11 +237,11 @@ namespace CoreWCF.Channels
         {
             Message responseMessage = message;
 
-            if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
-            {
-                await OnProcessAuthorizationPoliciesAsync(message);
-                return;
-            }
+            // if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
+            // {
+            //     await OnProcessAuthorizationPoliciesAsync(message);
+            //     return;
+            // }
 
             try
             {
@@ -368,17 +369,17 @@ namespace CoreWCF.Channels
                 return new AspNetCoreHttpInput(this);
             }
 
-            protected override async Task OnProcessAuthorizationPoliciesAsync(Message message)
-            {
-                if (message.IsAuthenticationError)
-                {
-                    await _aspNetContext.ChallengeAsync(message.CustomAuthenticationScheme);
-                }
-                else if (message.IsAuthorizationError)
-                {
-                    await _aspNetContext.ForbidAsync(message.CustomAuthenticationScheme);
-                }
-            }
+            // protected override async Task OnProcessAuthorizationPoliciesAsync(Message message)
+            // {
+            //     if (message.IsAuthenticationError)
+            //     {
+            //         await _aspNetContext.ChallengeAsync(message.CustomAuthenticationScheme);
+            //     }
+            //     else if (message.IsAuthorizationError)
+            //     {
+            //         await _aspNetContext.ForbidAsync(message.CustomAuthenticationScheme);
+            //     }
+            // }
 
             public override HttpOutput GetHttpOutput(Message message)
             {
@@ -407,7 +408,7 @@ namespace CoreWCF.Channels
             {
                 if (HttpTransportSettings.IsAuthenticationRequired)
                 {
-                    ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User.Identity);
+                    ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User);
                     SecurityMessageProperty securityMessageProperty = new()
                     {
                         ServiceSecurityContext = securityContext
@@ -420,7 +421,13 @@ namespace CoreWCF.Channels
 
             protected override HttpStatusCode ValidateAuthentication()
             {
-                // TODO: Wire up authentication for ASP.Net Core
+                if (HttpTransportSettings.IsAuthenticationRequired)
+                {
+                    return _aspNetContext.User.Identity.IsAuthenticated
+                        ? HttpStatusCode.OK
+                        : HttpStatusCode.Unauthorized;
+                }
+
                 return HttpStatusCode.OK;
                 //return Listener.ValidateAuthentication(listenerContext);
             }
@@ -447,21 +454,28 @@ namespace CoreWCF.Channels
                 //}
             }
 
-            private async Task<ServiceSecurityContext> CreateSecurityContextAsync(IIdentity identity)
+            private async Task<ServiceSecurityContext> CreateSecurityContextAsync(IPrincipal principal)
             {
-                if (identity is WindowsIdentity wid)
+                if (principal.Identity is WindowsIdentity wid)
                 {
                     WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
                     SecurityToken windowsToken = new WindowsSecurityToken(wid);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(windowsToken);
                     return new ServiceSecurityContext(authorizationPolicies);
                 }
-                else if (identity is GenericIdentity gid)
+                else if (principal.Identity is GenericIdentity gid)
                 {
                     WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
                     SecurityToken genericToken = new GenericIdentitySecurityToken(gid, SecurityUniqueId.Create().Value);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(genericToken);
                     return new ServiceSecurityContext(authorizationPolicies);
+                }
+                else if (principal.Identity is ClaimsIdentity cid)
+                {
+                    Fx.AssertAndThrow(cid.IsAuthenticated, "ClaimsPrincipal should be authenticated");
+                    AuthorizationContext authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(null);
+                    authorizationContext.Properties.Add("ClaimsPrincipal", principal);
+                    return new ServiceSecurityContext(authorizationContext);
                 }
 
                 return null;

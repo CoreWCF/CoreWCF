@@ -5,10 +5,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -17,6 +19,7 @@ namespace CoreWCF.Dispatcher
         private static readonly ServiceAuthorizationManager s_defaultServiceAuthorizationManager = new ServiceAuthorizationManager();
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
+        private IAuthorizationService _authorizationService;
 
         private AuthorizationBehavior() { }
 
@@ -52,14 +55,25 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
+        public async ValueTask AuthorizePolicyAsync(ClaimsPrincipal principal, AuthorizationPolicy policy)
+        {
+            var result = await _authorizationService.AuthorizeAsync(principal, policy);
+            if (!result.Succeeded)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateAccessDeniedFaultException());
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
             AuthorizationBehavior behavior = new AuthorizationBehavior
             {
                 _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
-                _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager
+                _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager,
+                _authorizationService = dispatch.AuthorizationService,
             };
+
             return behavior;
         }
 

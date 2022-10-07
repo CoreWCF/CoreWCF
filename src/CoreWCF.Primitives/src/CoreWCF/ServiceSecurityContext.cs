@@ -3,11 +3,12 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Security.Claims;
 using System.Security.Principal;
 using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security;
+using Claim = CoreWCF.IdentityModel.Claims.Claim;
 
 namespace CoreWCF
 {
@@ -157,6 +158,15 @@ namespace CoreWCF
                 }
                 return _authorizationContext;
             }
+        }
+
+        public ClaimsPrincipal ClaimsPrincipal
+        {
+            get => _authorizationContext != null
+                   && _authorizationContext.Properties.TryGetValue("ClaimsPrincipal", out object principal)
+                   && principal is ClaimsPrincipal claimsPrincipal
+                ? claimsPrincipal
+                : null;
         }
 
         public IList<IIdentity> GetIdentities()

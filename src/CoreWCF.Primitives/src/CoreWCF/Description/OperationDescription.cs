@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using CoreWCF.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -36,6 +37,7 @@ namespace CoreWCF.Description
             Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
             KnownTypes = new Collection<Type>();
             AuthorizeOperation = new KeyedByTypeCollection<IAuthorizeOperation>();
+            AuthorizeData = new Collection<IAuthorizeData>();
         }
 
         internal OperationDescription(string name, ContractDescription declaringContract, bool validateRpcWrapperName) : this(name, declaringContract)
@@ -123,6 +125,8 @@ namespace CoreWCF.Description
         internal bool IsValidateRpcWrapperName { private set; get; } = true;
 
         internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
+
+        internal Collection<IAuthorizeData> AuthorizeData { get; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {

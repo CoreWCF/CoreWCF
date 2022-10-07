@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -222,7 +224,7 @@ namespace CoreWCF.Description
                     ServiceEndpoint endpoint = stuff.Value.Endpoints[i];
 
                     //EndpointFilterProvider provider = new EndpointFilterProvider();
-                    EndpointDispatcher dispatcher = BuildEndpointDispatcher(description, endpoint);
+                    EndpointDispatcher dispatcher = BuildEndpointDispatcher(description, endpoint, services);
 
                     if (!endpointInfosPerEndpointAddress.ContainsKey(endpoint.Address))
                     {
@@ -469,7 +471,7 @@ namespace CoreWCF.Description
         }
 
         internal static EndpointDispatcher BuildEndpointDispatcher(ServiceDescription serviceDescription,
-                                                  ServiceEndpoint endpoint)
+                                                  ServiceEndpoint endpoint, IServiceProvider services)
         {
             if (serviceDescription == null)
             {
@@ -500,7 +502,7 @@ namespace CoreWCF.Description
 
                 if (!operation.IsServerInitiated())
                 {
-                    BuildDispatchOperation(operation, dispatch, provider);
+                    BuildDispatchOperation(operation, dispatch, provider, services);
                 }
                 else
                 {
@@ -545,7 +547,8 @@ namespace CoreWCF.Description
             parent.Operations.Add(child);
         }
 
-        private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider)
+        private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider,
+            IServiceProvider services)
         {
             string requestAction = operation.Messages[0].Action;
             DispatchOperation child;
@@ -589,6 +592,16 @@ namespace CoreWCF.Description
                 }
 
                 parent.UnhandledDispatchOperation = child;
+            }
+
+            var authorizationPolicyProvider = services.GetService<IAuthorizationPolicyProvider>();
+            if (authorizationPolicyProvider != null)
+            {
+                // TODO: Make this chain call async
+                Task<AuthorizationPolicy> getPolicyTask = operation.AuthorizeData.Count > 0
+                    ? AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, operation.AuthorizeData)
+                    : authorizationPolicyProvider.GetDefaultPolicyAsync();
+                child.AuthorizationPolicy = getPolicyTask.GetAwaiter().GetResult();
             }
         }
 

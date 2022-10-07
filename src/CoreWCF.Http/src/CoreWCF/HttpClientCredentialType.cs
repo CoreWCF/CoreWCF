@@ -15,8 +15,7 @@ namespace CoreWCF
         Ntlm,
         Windows,
         Certificate,
-        InheritedFromHost,
-        Custom
+        InheritedFromHost
     }
 
     internal static class HttpClientCredentialTypeHelper
@@ -29,8 +28,7 @@ namespace CoreWCF
                 value == HttpClientCredentialType.Ntlm ||
                 value == HttpClientCredentialType.Windows ||
                 value == HttpClientCredentialType.Certificate ||
-                value == HttpClientCredentialType.InheritedFromHost ||
-                value == HttpClientCredentialType.Custom);
+                value == HttpClientCredentialType.InheritedFromHost);
         }
 
         internal static AuthenticationSchemes MapToAuthenticationScheme(HttpClientCredentialType clientCredentialType)
@@ -39,7 +37,6 @@ namespace CoreWCF
             switch (clientCredentialType)
             {
                 case HttpClientCredentialType.Certificate:
-                case HttpClientCredentialType.Custom:
                 case HttpClientCredentialType.None:
                     result = AuthenticationSchemes.Anonymous;
                     break;

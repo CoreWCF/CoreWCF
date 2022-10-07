@@ -139,7 +139,7 @@ namespace CoreWCF
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
             if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
             {
-                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.TransportWithMessageCredential));
+                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.Message));
             }
             else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
             {
@@ -151,11 +151,10 @@ namespace CoreWCF
                 basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
                 return _httpTransport;
             }
-            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.None
-                     && basicHttpSecurity.Transport.ClientCredentialType == HttpClientCredentialType.Custom)
+            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.None &&
+                     basicHttpSecurity.Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost)
             {
-                basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
-                _httpTransport.CustomAuthenticationScheme = basicHttpSecurity.Transport.CustomAuthenticationScheme;
+                _httpTransport.AuthenticationScheme = AuthenticationSchemes.None;
                 return _httpTransport;
             }
             else

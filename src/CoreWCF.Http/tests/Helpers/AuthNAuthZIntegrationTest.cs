@@ -16,7 +16,7 @@ namespace CoreWCF.Http.Tests.Helpers;
 
 public class AuthNAuthZIntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
-    public string DefaultScopeClaimValue { get; set; } = DefinedScopes.Read;
+    public string DefaultScopeClaimValue { get; set; } = AuthorizationStartup.DefinedScopes.Read;
     public bool IsAuthenticated { get; set; } = false;
 
     protected override TestServer CreateServer(IWebHostBuilder builder)

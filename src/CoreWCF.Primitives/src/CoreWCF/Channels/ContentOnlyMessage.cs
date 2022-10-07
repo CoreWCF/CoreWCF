@@ -99,37 +99,37 @@ namespace CoreWCF.Channels
         }
     }
 
-    internal class AuthorizationErrorMessage : ContentOnlyMessage
-    {
-        public AuthorizationErrorMessage(string authenticationScheme)
-        {
-            CustomAuthenticationScheme = authenticationScheme;
-        }
-
-        public override bool IsAuthorizationError => true;
-
-        public override string CustomAuthenticationScheme { get; }
-
-        protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
-        {
-            // intentionally left blank
-        }
-    }
-
-    internal class AuthenticationErrorMessage : ContentOnlyMessage
-    {
-        public AuthenticationErrorMessage(string authenticationScheme)
-        {
-            CustomAuthenticationScheme = authenticationScheme;
-        }
-
-        public override bool IsAuthenticationError => true;
-
-        public override string CustomAuthenticationScheme { get; }
-
-        protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
-        {
-            // intentionally left blank
-        }
-    }
+    // internal class AuthorizationErrorMessage : ContentOnlyMessage
+    // {
+    //     public AuthorizationErrorMessage(string authenticationScheme)
+    //     {
+    //         CustomAuthenticationScheme = authenticationScheme;
+    //     }
+    //
+    //     public override bool IsAuthorizationError => true;
+    //
+    //     public override string CustomAuthenticationScheme { get; }
+    //
+    //     protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
+    //     {
+    //         // intentionally left blank
+    //     }
+    // }
+    //
+    // internal class AuthenticationErrorMessage : ContentOnlyMessage
+    // {
+    //     public AuthenticationErrorMessage(string authenticationScheme)
+    //     {
+    //         CustomAuthenticationScheme = authenticationScheme;
+    //     }
+    //
+    //     public override bool IsAuthenticationError => true;
+    //
+    //     public override string CustomAuthenticationScheme { get; }
+    //
+    //     protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
+    //     {
+    //         // intentionally left blank
+    //     }
+    // }
 }

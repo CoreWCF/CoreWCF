@@ -9,6 +9,7 @@ using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Configuration;
 using CoreWCF.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -80,6 +81,19 @@ namespace CoreWCF.Configuration
                 {
                     behavior.ServiceAuthorizationManager = manager;
                 }
+
+                // IAuthorizationPolicyProvider authorizationPolicyProvider = provider.GetService<IAuthorizationPolicyProvider>();
+                // if (authorizationPolicyProvider != null)
+                // {
+                //     behavior.AuthorizationPolicyProvider = authorizationPolicyProvider;
+                // }
+
+                IAuthorizationService authorizationService = provider.GetService<IAuthorizationService>();
+                if (authorizationService != null)
+                {
+                    behavior.AuthorizationService = authorizationService;
+                }
+
                 return behavior;
             });
             services.TryAddSingleton(typeof(IServiceConfiguration<>), typeof(ServiceConfiguration<>));

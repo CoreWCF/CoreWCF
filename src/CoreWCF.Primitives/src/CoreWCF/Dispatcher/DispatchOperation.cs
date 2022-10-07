@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreWCF.Collections.Generic;
 using CoreWCF.IdentityModel.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -188,6 +189,8 @@ namespace CoreWCF.Dispatcher
         public ICollection<IParameterInspector> ParameterInspectors { get; }
 
         public DispatchRuntime Parent { get; }
+
+        public AuthorizationPolicy AuthorizationPolicy { get; set; }
 
         internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode { get; set; }
 

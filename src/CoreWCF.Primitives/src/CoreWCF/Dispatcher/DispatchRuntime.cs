@@ -11,6 +11,7 @@ using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -19,6 +20,8 @@ namespace CoreWCF.Dispatcher
         private ServiceAuthenticationManager _serviceAuthenticationManager;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
+        // private IAuthorizationPolicyProvider _authorizationPolicyProvider;
+        private IAuthorizationService _authorizationService;
 
         //AuditLogLocation securityAuditLogLocation;
         private ConcurrencyMode _concurrencyMode;
@@ -48,6 +51,8 @@ namespace CoreWCF.Dispatcher
         private bool _impersonateOnSerializingReply;
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
+        private bool _isAuthorizationServiceSet;
+        // private bool _isAuthorizationPolicyProviderSet;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -208,6 +213,40 @@ namespace CoreWCF.Dispatcher
                 }
             }
         }
+
+        public IAuthorizationService AuthorizationService
+        {
+            get
+            {
+                return _authorizationService;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    _authorizationService = value;
+                    _isAuthorizationServiceSet = true;
+                }
+            }
+        }
+
+        // public IAuthorizationPolicyProvider AuthorizationPolicyProvider
+        // {
+        //     get
+        //     {
+        //         return _authorizationPolicyProvider;
+        //     }
+        //     set
+        //     {
+        //         lock (ThisLock)
+        //         {
+        //             InvalidateRuntime();
+        //             _authorizationPolicyProvider = value;
+        //             _isAuthorizationPolicyProviderSet = true;
+        //         }
+        //     }
+        // }
 
         public bool AutomaticInputSessionShutdown
         {
@@ -456,7 +495,7 @@ namespace CoreWCF.Dispatcher
         {
             get
             {
-                return (_isAuthorizationManagerSet || _isExternalPoliciesSet);
+                return (_isAuthorizationManagerSet || _isExternalPoliciesSet || _isAuthorizationServiceSet);
             }
         }
 

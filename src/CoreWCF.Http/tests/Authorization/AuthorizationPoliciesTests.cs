@@ -7,13 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using CoreWCF.Configuration;
-using CoreWCF.Description;
 using CoreWCF.Http.Tests.Helpers;
-using CoreWCF.Security.Authorization;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,24 +16,24 @@ namespace CoreWCF.Http.Tests.Authorization
     public class AuthorizationPoliciesTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
-        private readonly AuthNAuthZIntegrationTest<Startup> _factory;
+        private readonly AuthNAuthZIntegrationTest<AuthorizationStartup> _factory;
 
         public AuthorizationPoliciesTests(ITestOutputHelper output)
         {
             _output = output;
-            _factory = new AuthNAuthZIntegrationTest<Startup>();
+            _factory = new AuthNAuthZIntegrationTest<AuthorizationStartup>();
         }
 
         [Theory]
-        [InlineData(nameof(EchoService.Default))]
-        [InlineData(nameof(EchoService.AdminOnly))]
-        [InlineData(nameof(EchoService.Write))]
+        [InlineData(nameof(AuthorizationStartup.SecuredService.Default))]
+        [InlineData(nameof(AuthorizationStartup.SecuredService.AdminOnly))]
+        [InlineData(nameof(AuthorizationStartup.SecuredService.Write))]
         public async Task Return401WhenUserIsNotAuthenticated(string operationContractName)
         {
             _factory.IsAuthenticated = false;
 
             var client = _factory.CreateClient();
-            string action = $"http://tempuri.org/IEchoService/{operationContractName}";
+            string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
             var request = new HttpRequestMessage(HttpMethod.Post,
                 new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
@@ -70,22 +64,23 @@ namespace CoreWCF.Http.Tests.Authorization
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
-        public static IEnumerable<object[]> GetReturn403WhenUserIsNotAuthorizedTestVariations()
+        public static IEnumerable<object[]> Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations()
         {
-            yield return new object[] { nameof(EchoService.AdminOnly), true, DefinedScopes.Write };
-            yield return new object[] { nameof(EchoService.AdminOnly), true, DefinedScopes.Read };
-            yield return new object[] { nameof(EchoService.Write), true, DefinedScopes.Read };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true,AuthorizationStartup. DefinedScopes.Write };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true, AuthorizationStartup.DefinedScopes.Read };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Read };
         }
 
         [Theory]
-        [MemberData(nameof(GetReturn403WhenUserIsNotAuthorizedTestVariations))]
-        public async Task Return403WhenUserIsNotAuthorized(string operationContractName, bool isAuthenticated, string scopeClaimValue)
+        [MemberData(nameof(Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations))]
+        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(string operationContractName, bool isAuthenticated,
+            string scopeClaimValue)
         {
             _factory.IsAuthenticated = isAuthenticated;
             _factory.DefaultScopeClaimValue = scopeClaimValue;
 
             var client = _factory.CreateClient();
-            string action = $"http://tempuri.org/IEchoService/{operationContractName}";
+            string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
             var request = new HttpRequestMessage(HttpMethod.Post,
                 new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
@@ -107,41 +102,35 @@ namespace CoreWCF.Http.Tests.Authorization
             request.Content.Headers.ContentLength = Encoding.UTF8.GetByteCount(requestBody);
 
             var response = await client.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                _output.WriteLine(await response.Content.ReadAsStringAsync());
-            }
-
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _output.WriteLine(responseContent);
             Assert.False(response.IsSuccessStatusCode);
-            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Contains("Access is denied", responseContent);
         }
 
-        public static IEnumerable<object[]> GetReturn200WhenUserMatchPolicyTestVariations()
+        public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
         {
-            yield return new object[] { nameof(EchoService.AdminOnly), true, DefinedScopes.Admin };
-            yield return new object[] { nameof(EchoService.Write), true, DefinedScopes.Admin };
-            yield return new object[] { nameof(EchoService.Default), true, DefinedScopes.Admin };
-            yield return new object[] { nameof(EchoService.Anonymous), true, DefinedScopes.Admin };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true, AuthorizationStartup.DefinedScopes.Admin };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Admin };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Admin };
 
-            yield return new object[] { nameof(EchoService.Write), true, DefinedScopes.Write };
-            yield return new object[] { nameof(EchoService.Default), true, DefinedScopes.Write };
-            yield return new object[] { nameof(EchoService.Anonymous), true, DefinedScopes.Write };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Write };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Write };
 
-            yield return new object[] { nameof(EchoService.Default), true, DefinedScopes.Read };
-            yield return new object[] { nameof(EchoService.Anonymous), true, DefinedScopes.Read };
-
-            yield return new object[] { nameof(EchoService.Anonymous), false, null };
+            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Read };
         }
 
         [Theory]
-        [MemberData(nameof(GetReturn200WhenUserMatchPolicyTestVariations))]
-        public async Task Return200WhenUserMatchPolicy(string operationContractName, bool isAuthenticated, string scopeClaimValue)
+        [MemberData(nameof(Get_Return200_WhenUserMatchPolicy_TestVariations))]
+        public async Task Return200_WhenUserMatchPolicy(string operationContractName, bool isAuthenticated,
+            string scopeClaimValue)
         {
             _factory.IsAuthenticated = isAuthenticated;
             _factory.DefaultScopeClaimValue = scopeClaimValue;
 
             var client = _factory.CreateClient();
-            string action = $"http://tempuri.org/IEchoService/{operationContractName}";
+            string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
             var request = new HttpRequestMessage(HttpMethod.Post,
                 new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
@@ -167,92 +156,17 @@ namespace CoreWCF.Http.Tests.Authorization
             _output.WriteLine(responseBody);
 
             string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
-                                    "<s:Body>" +
-                                    $"<{operationContractName}Response xmlns=\"http://tempuri.org/\">" +
-                                    $"<{operationContractName}Result>A</{operationContractName}Result>" +
-                                    $"</{operationContractName}Response>" +
-                                    "</s:Body>" +
-                                    "</s:Envelope>";
+                              "<s:Body>" +
+                              $"<{operationContractName}Response xmlns=\"http://tempuri.org/\">" +
+                              $"<{operationContractName}Result>A</{operationContractName}Result>" +
+                              $"</{operationContractName}Response>" +
+                              "</s:Body>" +
+                              "</s:Envelope>";
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(expected, responseBody);
         }
 
-        public class Startup
-        {
-            public void ConfigureServices(IServiceCollection services)
-            {
-                services.AddAuthorization(options =>
-                {
-                    options.AddPolicy(Policies.Write,
-                        policy => policy.RequireClaim("scope", new[] { DefinedScopes.Write, DefinedScopes.Admin }));
-                    options.AddPolicy(Policies.AdminOnly,
-                        policy => policy.RequireClaim("scope", new[] { DefinedScopes.Admin }));
-                });
-                services.AddServiceModelServices();
-                services.AddSingleton<IServiceBehavior, AuthorizationServiceBehavior>();
-            }
-
-            public void Configure(IApplicationBuilder app)
-            {
-                app.UseServiceModel(builder =>
-                {
-                    builder.AddService<EchoService>();
-                    builder.AddServiceEndpoint<EchoService, IEchoService>(
-                        new BasicHttpBinding
-                        {
-                            Security = new BasicHttpSecurity
-                            {
-                                Transport = new HttpTransportSecurity
-                                {
-                                    ClientCredentialType = HttpClientCredentialType.Custom,
-                                    CustomAuthenticationScheme = "Bearer"
-                                }
-                            }
-                        }, "/BasicWcfService/basichttp.svc");
-                });
-            }
-        }
-
-        [ServiceContract]
-        public interface IEchoService
-        {
-            [OperationContract]
-            string Default(string text);
-            [OperationContract]
-            string AdminOnly(string text);
-            [OperationContract]
-            string Anonymous(string text);
-            [OperationContract]
-            Task<string> Write(string text);
-        }
-
-        [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-        public class EchoService : IEchoService
-        {
-            // No attribute => defaults to the builtin default policy which is RequireAuthenticatedUser
-            public string Default(string text) => text;
-            [Authorize(Policy = Policies.AdminOnly)]
-            public string AdminOnly(string text) => text;
-            [AllowAnonymous]
-            public string Anonymous(string text) => text;
-            [Authorize(Policy = Policies.Write)]
-            public Task<string> Write(string text) => Task.FromResult(text);
-        }
-
         public void Dispose() => _factory?.Dispose();
-    }
-
-    internal static class Policies
-    {
-        public const string AdminOnly = nameof(AdminOnly);
-        public const string Write = nameof(Write);
-    }
-
-    internal static class DefinedScopes
-    {
-        public const string Admin = nameof(Admin);
-        public const string Read = nameof(Read);
-        public const string Write = nameof(Write);
     }
 }
