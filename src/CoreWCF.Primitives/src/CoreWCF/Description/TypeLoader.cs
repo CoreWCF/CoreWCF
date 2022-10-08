@@ -1125,7 +1125,7 @@ namespace CoreWCF.Description
             // This null check could be dangerous because a user may think an Operation is protected by an authorization policy but we did not find it..
             if (serviceImplMethodInfo != null)
             {
-                methodAttributes = ServiceReflector.GetCustomAttributes(serviceImplMethodInfo, typeof(AuthorizeAttribute), false);
+                methodAttributes = serviceImplMethodInfo.GetCustomAttributes(false);
                 foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
                 {
                     operationDescription.AuthorizeData.Add(methodAttribute);
