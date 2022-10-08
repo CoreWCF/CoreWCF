@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using CoreWCF.Http.Tests.Authorization;
 using Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -12,17 +11,19 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CoreWCF.Http.Tests.Helpers;
+namespace CoreWCF.Http.Tests.Authorization;
 
-public class AuthNAuthZIntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
+public class AuthorizationIntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 {
-    public string DefaultScopeClaimValue { get; set; } = AuthorizationStartup.DefinedScopes.Read;
+    public string DefaultScopeClaimValue { get; set; } = DefinedScopes.Read;
     public bool IsAuthenticated { get; set; } = false;
 
     protected override TestServer CreateServer(IWebHostBuilder builder)
     {
         var addresses = new ServerAddressesFeature();
         addresses.Addresses.Add("http://localhost/");
+        addresses.Addresses.Add("https://localhost/");
+
         var features = new FeatureCollection();
         features.Set<IServerAddressesFeature>(addresses);
 
@@ -60,7 +61,7 @@ public class AuthNAuthZIntegrationTest<TStartup> : WebApplicationFactory<TStartu
     private static void SetSelfHostedContentRoot()
     {
         var contentRoot = Directory.GetCurrentDirectory();
-        var assemblyName = typeof(AuthNAuthZIntegrationTest<TStartup>).Assembly.GetName().Name;
+        var assemblyName = typeof(AuthorizationIntegrationTest<TStartup>).Assembly.GetName().Name;
         var settingSuffix = assemblyName.ToUpperInvariant().Replace(".", "_");
         var settingName = $"ASPNETCORE_TEST_CONTENTROOT_{settingSuffix}";
         Environment.SetEnvironmentVariable(settingName, contentRoot);

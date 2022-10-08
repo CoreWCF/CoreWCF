@@ -7,36 +7,42 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using CoreWCF.Http.Tests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization
 {
-    public class AuthorizationPoliciesTests : IDisposable
+    public class AuthorizationPoliciesTests
     {
         private readonly ITestOutputHelper _output;
-        private readonly AuthNAuthZIntegrationTest<AuthorizationStartup> _factory;
 
         public AuthorizationPoliciesTests(ITestOutputHelper output)
         {
             _output = output;
-            _factory = new AuthNAuthZIntegrationTest<AuthorizationStartup>();
+        }
+
+        public static IEnumerable<object[]> Get_Return401_WhenUserIsNotAuthenticated_TestVariations()
+        {
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default) };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write) };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default) };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write) };
         }
 
         [Theory]
-        [InlineData(nameof(AuthorizationStartup.SecuredService.Default))]
-        [InlineData(nameof(AuthorizationStartup.SecuredService.AdminOnly))]
-        [InlineData(nameof(AuthorizationStartup.SecuredService.Write))]
-        public async Task Return401WhenUserIsNotAuthenticated(string operationContractName)
+        [MemberData(nameof(Get_Return401_WhenUserIsNotAuthenticated_TestVariations))]
+        public async Task Return401_WhenUserIsNotAuthenticated(Uri baseUri, string operationContractName)
         {
-            _factory.IsAuthenticated = false;
+            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
 
-            var client = _factory.CreateClient();
+            factory.IsAuthenticated = false;
+
+            var client = factory.CreateClient();
             string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
-            var request = new HttpRequestMessage(HttpMethod.Post,
-                new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUri, "/BasicWcfService/basichttp.svc"));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
             string requestBody =
@@ -66,24 +72,28 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations()
         {
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true,AuthorizationStartup. DefinedScopes.Write };
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true, AuthorizationStartup.DefinedScopes.Read };
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Read };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Read };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations))]
-        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(string operationContractName, bool isAuthenticated,
+        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(Uri baseUri, string operationContractName, bool isAuthenticated,
             string scopeClaimValue)
         {
-            _factory.IsAuthenticated = isAuthenticated;
-            _factory.DefaultScopeClaimValue = scopeClaimValue;
+            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
 
-            var client = _factory.CreateClient();
+            factory.IsAuthenticated = isAuthenticated;
+            factory.DefaultScopeClaimValue = scopeClaimValue;
+
+            var client = factory.CreateClient();
             string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
-            var request = new HttpRequestMessage(HttpMethod.Post,
-                new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUri, "/BasicWcfService/basichttp.svc"));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
             string requestBody =
@@ -111,29 +121,33 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
         {
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.AdminOnly), true, AuthorizationStartup.DefinedScopes.Admin };
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Admin };
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Admin };
-
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Write), true, AuthorizationStartup.DefinedScopes.Write };
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Write };
-
-            yield return new object[] { nameof(AuthorizationStartup.SecuredService.Default), true, AuthorizationStartup.DefinedScopes.Read };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Read };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return200_WhenUserMatchPolicy_TestVariations))]
-        public async Task Return200_WhenUserMatchPolicy(string operationContractName, bool isAuthenticated,
-            string scopeClaimValue)
+        public async Task Return200_WhenUserMatchPolicy(Uri baseUri, string operationContractName, bool isAuthenticated, string scopeClaimValue)
         {
-            _factory.IsAuthenticated = isAuthenticated;
-            _factory.DefaultScopeClaimValue = scopeClaimValue;
+            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
 
-            var client = _factory.CreateClient();
+            factory.IsAuthenticated = isAuthenticated;
+            factory.DefaultScopeClaimValue = scopeClaimValue;
+
+            var client = factory.CreateClient();
             string action = $"http://tempuri.org/ISecuredService/{operationContractName}";
 
-            var request = new HttpRequestMessage(HttpMethod.Post,
-                new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(baseUri, "/BasicWcfService/basichttp.svc"));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
             string requestBody =
@@ -166,7 +180,5 @@ namespace CoreWCF.Http.Tests.Authorization
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(expected, responseBody);
         }
-
-        public void Dispose() => _factory?.Dispose();
     }
 }
