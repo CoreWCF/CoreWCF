@@ -566,29 +566,6 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            // var isCustomAuthenticationSchemeConfigured = IsCustomAuthenticationSchemeConfigured();
-            // if (isCustomAuthenticationSchemeConfigured.isConfigured)
-            // {
-            //     var (isAuthorized, message) = await EvaluateAuthorizationPolicies(rpc);
-            //     if (!isAuthorized)
-            //     {
-            //         rpc.Reply = message;
-            //         PrepareReply(rpc);
-            //         if (rpc.CanSendReply)
-            //         {
-            //             rpc.ReplyTimeoutHelper = new TimeoutHelper(rpc.Channel.OperationTimeout);
-            //             //if (rpc.Reply != null)
-            //             //{
-            //             //    TraceUtility.MessageFlowAtMessageSent(rpc.Reply, rpc.EventTraceActivity);
-            //             //}
-            //
-            //             await ReplyAsync(rpc);
-            //         }
-            //         await ProcessMessageCleanupAsync(rpc);
-            //         return rpc;
-            //     }
-            // }
-
             await InstanceBehavior.EnsureInstanceContextAsync(rpc);
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
@@ -671,44 +648,6 @@ namespace CoreWCF.Dispatcher
 
             return rpc;
         }
-
-        // private (bool isConfigured, HttpContext httpContext, string authenticationScheme) IsCustomAuthenticationSchemeConfigured()
-        //     =>  OperationContext.Current.IncomingMessageProperties.TryGetValue<HttpContext>(
-        //             "Microsoft.AspNetCore.Http.HttpContext", out var httpContext)
-        //         && httpContext.Items.TryGetValue("CoreWCF.Channels.HttpTransportSettings.CustomAuthenticationScheme",
-        //             out var authenticationScheme)
-        //         && authenticationScheme is string authenticationSchemeValue
-        //         && !string.IsNullOrEmpty(authenticationSchemeValue)
-        //         ? (true, httpContext, authenticationSchemeValue)
-        //         : (false, null, null);
-
-        // private async ValueTask<(bool isAuthorized, Message message)> EvaluateAuthorizationPolicies(MessageRpc rpc)
-        // {
-        //     var httpContext = OperationContext.Current.IncomingMessageProperties["Microsoft.AspNetCore.Http.HttpContext"] as HttpContext;
-        //     string authenticationScheme = httpContext.Items["CoreWCF.Channels.HttpTransportSettings.CustomAuthenticationScheme"] as string;
-        //     var principal = httpContext.User;
-        //     AuthorizationOperationInvoker invoker = (AuthorizationOperationInvoker)rpc.Operation.Invoker;
-        //
-        //     if (!principal.Identity.IsAuthenticated)
-        //     {
-        //         if (!invoker.IsAllowAnonymous)
-        //         {
-        //             return (false, new AuthenticationErrorMessage(authenticationScheme));
-        //         }
-        //
-        //         return (true, null);
-        //     }
-        //
-        //     var policy = await invoker.GetPolicyTask;
-        //     var authorizationService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-        //     var authorizationResult = await authorizationService.AuthorizeAsync(principal, policy);
-        //     if (!authorizationResult.Succeeded)
-        //     {
-        //         return (false, new AuthorizationErrorMessage(authenticationScheme));
-        //     }
-        //
-        //     return (true, null);
-        // }
 
         private async Task ProcessError(MessageRpc rpc)
         {

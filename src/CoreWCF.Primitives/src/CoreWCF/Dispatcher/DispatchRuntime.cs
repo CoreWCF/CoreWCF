@@ -20,7 +20,6 @@ namespace CoreWCF.Dispatcher
         private ServiceAuthenticationManager _serviceAuthenticationManager;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
-        // private IAuthorizationPolicyProvider _authorizationPolicyProvider;
         private IAuthorizationService _authorizationService;
 
         //AuditLogLocation securityAuditLogLocation;
@@ -52,7 +51,6 @@ namespace CoreWCF.Dispatcher
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
         private bool _isAuthorizationServiceSet;
-        // private bool _isAuthorizationPolicyProviderSet;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -230,23 +228,6 @@ namespace CoreWCF.Dispatcher
                 }
             }
         }
-
-        // public IAuthorizationPolicyProvider AuthorizationPolicyProvider
-        // {
-        //     get
-        //     {
-        //         return _authorizationPolicyProvider;
-        //     }
-        //     set
-        //     {
-        //         lock (ThisLock)
-        //         {
-        //             InvalidateRuntime();
-        //             _authorizationPolicyProvider = value;
-        //             _isAuthorizationPolicyProviderSet = true;
-        //         }
-        //     }
-        // }
 
         public bool AutomaticInputSessionShutdown
         {

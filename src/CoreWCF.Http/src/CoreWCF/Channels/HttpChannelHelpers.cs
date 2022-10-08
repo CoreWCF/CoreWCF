@@ -600,11 +600,6 @@ namespace CoreWCF.Channels
 
         protected virtual bool PrepareHttpSend(Message message)
         {
-            // if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
-            // {
-            //     return true;
-            // }
-
             string action = message.Headers.Action;
 
             if (message.Version.Addressing == AddressingVersion.None)

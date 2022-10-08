@@ -1122,6 +1122,7 @@ namespace CoreWCF.Description
 
             var serviceImplMethodInfo = FindServiceImplMethodInfo(operationDescription, contractDescription);
             // When Duplex channel we can't find a method matching the OperationOperation
+            // This null check could be dangerous because a user may think an Operation is protected by an authorization policy but we did not find it..
             if (serviceImplMethodInfo != null)
             {
                 methodAttributes = ServiceReflector.GetCustomAttributes(serviceImplMethodInfo, typeof(AuthorizeAttribute), false);

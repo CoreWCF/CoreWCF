@@ -109,8 +109,6 @@ namespace CoreWCF.Channels
 
         protected abstract Task<SecurityMessageProperty> OnProcessAuthenticationAsync();
 
-        //protected abstract Task OnProcessAuthorizationPoliciesAsync(Message message);
-
         public abstract HttpOutput GetHttpOutput(Message message);
 
         protected abstract HttpInput GetHttpInput();
@@ -237,12 +235,6 @@ namespace CoreWCF.Channels
         {
             Message responseMessage = message;
 
-            // if (message != null && (message.IsAuthenticationError || message.IsAuthorizationError))
-            // {
-            //     await OnProcessAuthorizationPoliciesAsync(message);
-            //     return;
-            // }
-
             try
             {
                 bool closeOutputAfterReply = PrepareReply(ref responseMessage);
@@ -368,18 +360,6 @@ namespace CoreWCF.Channels
             {
                 return new AspNetCoreHttpInput(this);
             }
-
-            // protected override async Task OnProcessAuthorizationPoliciesAsync(Message message)
-            // {
-            //     if (message.IsAuthenticationError)
-            //     {
-            //         await _aspNetContext.ChallengeAsync(message.CustomAuthenticationScheme);
-            //     }
-            //     else if (message.IsAuthorizationError)
-            //     {
-            //         await _aspNetContext.ForbidAsync(message.CustomAuthenticationScheme);
-            //     }
-            // }
 
             public override HttpOutput GetHttpOutput(Message message)
             {

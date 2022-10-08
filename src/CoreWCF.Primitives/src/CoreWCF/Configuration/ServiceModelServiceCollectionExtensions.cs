@@ -82,12 +82,6 @@ namespace CoreWCF.Configuration
                     behavior.ServiceAuthorizationManager = manager;
                 }
 
-                // IAuthorizationPolicyProvider authorizationPolicyProvider = provider.GetService<IAuthorizationPolicyProvider>();
-                // if (authorizationPolicyProvider != null)
-                // {
-                //     behavior.AuthorizationPolicyProvider = authorizationPolicyProvider;
-                // }
-
                 IAuthorizationService authorizationService = provider.GetService<IAuthorizationService>();
                 if (authorizationService != null)
                 {
