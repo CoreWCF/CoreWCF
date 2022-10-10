@@ -160,14 +160,11 @@ namespace CoreWCF
             }
         }
 
-        public ClaimsPrincipal ClaimsPrincipal
-        {
-            get => _authorizationContext != null
+        public ClaimsPrincipal ClaimsPrincipal => _authorizationContext != null
                    && _authorizationContext.Properties.TryGetValue("ClaimsPrincipal", out object principal)
                    && principal is ClaimsPrincipal claimsPrincipal
                 ? claimsPrincipal
                 : null;
-        }
 
         public IList<IIdentity> GetIdentities()
         {
