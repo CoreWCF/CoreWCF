@@ -102,16 +102,7 @@ namespace CoreWCF.Configuration
             services.AddSingleton(typeof(ServiceDescription<>));
             services.AddSingleton(typeof(ServiceModelOptions));
             AddServicesForFederation(services);
-            AddServicesForAuthorization(services);
             return services;
-        }
-
-        private static void AddServicesForAuthorization(IServiceCollection services)
-        {
-            services.AddAuthentication();
-#if NETFRAMEWORK
-            services.AddAuthorization();
-#endif
         }
 
         private static void AddServicesForFederation(IServiceCollection services)
