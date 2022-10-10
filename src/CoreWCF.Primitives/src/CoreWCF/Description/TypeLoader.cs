@@ -1120,12 +1120,16 @@ namespace CoreWCF.Description
                 }
             }
 
-            var serviceImplMethodInfo = FindServiceImplMethodInfo(operationDescription, contractDescription);
-            // When Duplex channel we can't find a method matching the OperationOperation
-            // This null check could be dangerous because a user may think an Operation is protected by an authorization policy but we did not find it..
-            if (serviceImplMethodInfo != null)
+            var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
+            if (serviceImplementationMethodInfo == null)
             {
-                methodAttributes = serviceImplMethodInfo.GetCustomAttributes(false);
+                // we do care only about Authorize attributes that decorate non callback contract
+                Fx.AssertAndThrow(direction == MessageDirection.Output,
+                    $"Unable to find service implementation in contract {contractDescription.Name}");
+            }
+            else
+            {
+                methodAttributes = serviceImplementationMethodInfo.GetCustomAttributes(false);
                 foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
                 {
                     operationDescription.AuthorizeData.Add(methodAttribute);
@@ -1135,7 +1139,7 @@ namespace CoreWCF.Description
             return operationDescription;
         }
 
-        private static MethodInfo FindServiceImplMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
+        private static MethodInfo FindServiceImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
         {
             Type serviceType = typeof(TService);
             MethodInfo[] methodInfos = serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
