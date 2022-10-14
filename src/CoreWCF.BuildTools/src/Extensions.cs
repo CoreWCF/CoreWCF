@@ -19,7 +19,7 @@ namespace CoreWCF.BuildTools
     {
         public static bool HasOneOfAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
         {
-            if(attributeTypeSymbols.Length == 0)
+            if (attributeTypeSymbols.Length == 0)
             {
                 return false;
             }

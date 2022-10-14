@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-using VerifyCS = CSharpGeneratorVerifier<CoreWCF.BuildTools.OperationParameterInjectionGenerator>;
+using VerifyGenerator = CSharpGeneratorVerifier<CoreWCF.BuildTools.OperationParameterInjectionGenerator>;
 
 namespace CoreWCF.BuildTools.Tests
 {
@@ -39,7 +39,7 @@ namespace CoreWCF.BuildTools.Tests
         [MemberData(nameof(GetTestVariations))]
         public async Task BasicTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -104,7 +104,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task MultipleOperations(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -193,7 +193,7 @@ namespace MyProject
         [Fact]
         public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers()
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -209,11 +209,7 @@ namespace MyProject
     }}
 }}
 "
-                    },
-                    GeneratedSources =
-                    {
-
-                    },
+                    }
                 },
             };
 
@@ -223,7 +219,7 @@ namespace MyProject
         [Fact]
         public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllersWhenCombinedWithInjected()
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -239,11 +235,7 @@ namespace MyProject
     }}
 }}
 "
-                    },
-                    GeneratedSources =
-                    {
-
-                    },
+                    }
                 },
             };
 
@@ -253,7 +245,7 @@ namespace MyProject
         [Fact]
         public async Task FromServicesAttributeShouldWorkAsUsualForMVCControllers_ControllerInheritance()
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -270,11 +262,7 @@ namespace MyProject
     }}
 }}
 "
-                    },
-                    GeneratedSources =
-                    {
-
-                    },
+                    }
                 },
             };
 
@@ -285,7 +273,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task HttpContextTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -357,7 +345,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task HttpRequestTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -429,7 +417,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task HttpResponseTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -501,7 +489,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task NestedClassesMultipleLevelsTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -630,7 +618,7 @@ namespace MyProject
         [InlineData(CoreWCFNamespace, MVCFromServicesAttribute, "internal ", "", "internal ", "private ")]
         public async Task NestedClassContainingTypeHierarchyAccessModifiersTests(string attributeNamespace, string attribute, string containerModifiers, string implementationModifiers, string expectedContainerModifiers, string expectedImplementationModifiers)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -701,7 +689,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task RefParameterTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -766,7 +754,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task OutParameterTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -835,7 +823,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task LeadingInjectedParameterTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -903,7 +891,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task BetweenRegularParameterTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -976,7 +964,7 @@ namespace MyProject
         [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute, "", "internal ")]
         public async Task ServiceImplementationContainingTypeAccessModifiersTests(string attributeNamespace, string attribute, string accessModifier, string expectedAccessModifier)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1041,7 +1029,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task MultipleParametersInjectedTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1108,7 +1096,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task VoidOperationContractTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1176,7 +1164,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ContractAndServiceWithDifferentNamespacesTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1245,7 +1233,7 @@ namespace MyProject.Implementations
         [MemberData(nameof(GetTestVariations))]
         public async Task ComposedNamespaceTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1310,7 +1298,7 @@ namespace MyProject.Dummy
         [MemberData(nameof(GetTestVariations))]
         public async Task ContractAndImplementationInSeparateFilesTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1381,7 +1369,7 @@ namespace MyProject.Dummy
         [MemberData(nameof(GetTestVariations))]
         public async Task TaskReturnTypeTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1447,7 +1435,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task GenericTaskReturnTypeTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1513,7 +1501,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ServiceContractFromOtherAssemblyTests(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1613,7 +1601,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldRaiseCompilationErrorWhenServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1658,7 +1646,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1706,7 +1694,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartial(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1757,7 +1745,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldNotRaiseCompilationErrorWhenServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1795,7 +1783,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldNotRaiseCompilationErrorWhenParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1836,7 +1824,7 @@ namespace MyProject
         [MemberData(nameof(GetTestVariations))]
         public async Task ShouldNotRaiseCompilationErrorWhenGrandParentClassOfServiceImplementationIsNotPartialButImplementedInterfaceIsNotAServiceContract(string attributeNamespace, string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1881,7 +1869,7 @@ namespace MyProject
         [InlineData(MVCFromServicesAttribute)]
         public async Task ShouldNotRaiseCompilationErrorWhenParentClassImplementAnInterfaceWithoutServiceContractAttribute(string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
@@ -1918,7 +1906,7 @@ namespace MyProject
         [InlineData(MVCFromServicesAttribute)]
         public async Task ShouldNotRaiseCompilationErrorWhenParentClassDoesNotImplementOrInheritAnInterfaceWithtServiceContractAttribute(string attribute)
         {
-            var test = new VerifyCS.Test
+            var test = new VerifyGenerator.Test
             {
                 TestState =
                 {
