@@ -29,7 +29,7 @@ namespace CoreWCF.BuildTools
             title: "[Authorize] attribute is not supported",
             messageFormat: "[Authorize] attribute is not supported on class '{0}'",
             category: nameof(AuthorizationAttributesAnalyzer),
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
         internal static Diagnostic AuthorizeAttributeIsNotSupportedOnClassWarning(string className, Location location) => Diagnostic.Create(AuthorizeAttributeIsNotSupportedOnClass, location, className);

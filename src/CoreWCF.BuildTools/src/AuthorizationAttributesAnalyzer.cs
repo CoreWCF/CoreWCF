@@ -20,12 +20,12 @@ public class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         context.EnableConcurrentExecution();
         context.RegisterSymbolAction(WarnAboutAllowAnonymousUsages, SymbolKind.Method, SymbolKind.NamedType);
-        context.RegisterSymbolAction(WarnAboutAuthorizeUsages, SymbolKind.NamedType);
+        context.RegisterSymbolAction(BreakBuildWhenAuthorizeOnServiceContractImplementation, SymbolKind.NamedType);
     }
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => s_supportedDiagnostics;
 
-    private static void WarnAboutAuthorizeUsages(SymbolAnalysisContext context)
+    private static void BreakBuildWhenAuthorizeOnServiceContractImplementation(SymbolAnalysisContext context)
     {
         var authorizeAttribute = context.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Authorization.AuthorizeAttribute");
         var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
