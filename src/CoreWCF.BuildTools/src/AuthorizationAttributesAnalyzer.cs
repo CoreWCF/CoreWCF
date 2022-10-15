@@ -17,7 +17,8 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     private const string CoreWCFOperationContractAttributeName = "CoreWCF.OperationContractAttribute";
     private const string SSMServiceContractAttributeName = "System.ServiceModel.ServiceContractAttribute";
     private const string SSMOperationContractAttributeName = "System.ServiceModel.OperationContractAttribute";
-
+    private const string CoreWCFInjectedAttributeName = "CoreWCF.InjectedAttribute";
+    private const string MVCFromServicesAttributeName = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
 
     private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics =
         new[] { DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported, DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClass }
@@ -92,10 +93,13 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
             .Where(x => x.Name == methodSymbol.Name)
             .ToImmutableArray();
 
+        var coreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFInjectedAttributeName);
+        var mvcFromServicesAttribute = context.Compilation.GetTypeByMetadataName(MVCFromServicesAttributeName);
+
         bool isOperationContractImplementation = false;
         foreach (IMethodSymbol operationContract in operationContracts)
         {
-            if (implementedMethods.Any(implementedMethod => operationContract.Parameters.All(p1 => implementedMethod.Parameters.Any(p1.IsMatchingParameter))))
+            if (implementedMethods.Any(implementedMethod => implementedMethod.IsMatchingUserProvidedMethod(operationContract, coreWCFInjectedAttribute, mvcFromServicesAttribute)))
             {
                 isOperationContractImplementation = true;
                 break;

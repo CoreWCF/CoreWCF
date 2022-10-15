@@ -22,6 +22,8 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _httpResponseSymbol;
             private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
+            private readonly INamedTypeSymbol? _coreWCFInjectedSymbol;
+            private readonly INamedTypeSymbol? _mvcFromServicesSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext context)
             {
@@ -35,6 +37,8 @@ namespace CoreWCF.BuildTools
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
                 _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
+                _coreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
+                _mvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute");
             }
 
             public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
@@ -60,10 +64,7 @@ namespace CoreWCF.BuildTools
                     from value in methodServiceContractAndOperationContractsValues
                     let missingOperationContract =
                         value.OperationContracts
-                            .SingleOrDefault(x => x.Name == value.Method.Name
-                                                  && x.Parameters.All(p =>
-                                                      value.Method.Parameters.Any(msp =>
-                                                          msp.IsMatchingParameter(p))))
+                            .SingleOrDefault(x => x.IsMatchingUserProvidedMethod(value.Method, _coreWCFInjectedSymbol, _mvcFromServicesSymbol))
                     where missingOperationContract is not null
                     let nonNullMissingOperationContract = missingOperationContract as IMethodSymbol
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,

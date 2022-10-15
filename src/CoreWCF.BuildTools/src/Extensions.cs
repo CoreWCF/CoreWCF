@@ -8,6 +8,40 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CoreWCF.BuildTools
 {
+    internal static class MethodSymbolExtensions
+    {
+        public static bool IsMatchingUserProvidedMethod(this IMethodSymbol methodSymbol, IMethodSymbol userProvidedMethodSymbol, INamedTypeSymbol coreWCFInjectedAttribute, INamedTypeSymbol fromServicesAttribute)
+        {
+            int parameterFound = 0;
+            if (methodSymbol.Name != userProvidedMethodSymbol.Name)
+            {
+                return false;
+            }
+
+            var parameters = methodSymbol.Parameters;
+            foreach (IParameterSymbol parameterSymbol in userProvidedMethodSymbol.Parameters)
+            {
+                if (parameterSymbol.HasOneOfAttributes(coreWCFInjectedAttribute, fromServicesAttribute))
+                {
+                    continue;
+                }
+
+                foreach (IParameterSymbol parameter in methodSymbol.Parameters)
+                {
+                    if (parameter.IsMatchingParameter(parameter))
+                    {
+                        parameterFound++;
+                        break;
+                    }
+
+                    return false;
+                }
+            }
+
+            return parameterFound == parameters.Length;
+        }
+    }
+
     internal static class ParameterSymbolExtensions
     {
         public static bool IsMatchingParameter(this IParameterSymbol symbol, IParameterSymbol parameterSymbol)
