@@ -61,6 +61,59 @@ namespace MyProject
     [Theory]
     [InlineData(SSMNamespace)]
     [InlineData(CoreWCFNamespace)]
+    public async Task AllowAnonymousOnAUserProvidedOperationContractImplementationToBeGeneratedBySourceGenTests(string attributeNamespace)
+    {
+        var test = new VerifyAnalyzer.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public partial class IdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input) => input;
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public string Echo(string input, [CoreWCF.Injected] HttpContext context) => input;
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public string Echo2(string input, [Microsoft.AspNetCore.Mvc.FromServices] HttpContext context) => input;
+    }}
+}}
+"
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                        .WithSpan(22, 23, 22, 27)
+                        .WithDefaultPath("/0/Test0.cs"),
+                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                        .WithSpan(24, 23, 24, 28)
+                        .WithDefaultPath("/0/Test0.cs")
+                }
+            }
+        };
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(SSMNamespace)]
+    [InlineData(CoreWCFNamespace)]
     public async Task AllowAnonymousOnServiceContractImplementationTests(string attributeNamespace)
     {
         var test = new VerifyAnalyzer.Test

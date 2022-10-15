@@ -66,15 +66,32 @@ public class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            var operationContracts = from @interface in methodSymbol.ContainingType.AllInterfaces
+            var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
                 where @interface.HasOneOfAttributes(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
-                from methods in @interface.GetMembers().OfType<IMethodSymbol>()
-                where methods.HasOneOfAttributes(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
-                select methods;
+                select @interface).ToImmutableArray();
 
-            bool isOperationContractImplementation = operationContracts.Any(operationContract =>
-                SymbolEqualityComparer.Default.Equals(
-                    methodSymbol.ContainingType.FindImplementationForInterfaceMember(operationContract), methodSymbol));
+            if (serviceContracts.IsEmpty)
+            {
+                return;
+            }
+
+            var operationContracts = (from serviceContract in serviceContracts
+                from methods in serviceContract.GetMembers().OfType<IMethodSymbol>()
+                where methods.HasOneOfAttributes(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
+                select methods).ToImmutableArray();
+
+            var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>().ToImmutableArray();
+
+            bool isOperationContractImplementation = false;
+            foreach (IMethodSymbol operationContract in operationContracts)
+            {
+                if (implementedMethods.Where(m => operationContract.Name == m.Name).Any(m => operationContract.Parameters.All(p1 =>
+                        m.Parameters.Any(p1.IsMatchingParameter))))
+                {
+                    isOperationContractImplementation = true;
+                    break;
+                }
+            }
 
             if (isOperationContractImplementation)
             {
