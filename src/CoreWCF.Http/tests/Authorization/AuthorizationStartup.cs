@@ -6,6 +6,8 @@ using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Http.Tests.Authorization;
@@ -67,10 +69,18 @@ public interface ISecuredService
 
     [OperationContract]
     Task<string> Write(string text);
+
+    [OperationContract]
+    Task<string> Generated(string text);
+}
+
+public partial class SecuredService
+{
+    public Task<string> Generated(string text) => Task.FromResult(text);
 }
 
 [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-public class SecuredService : ISecuredService
+public partial class SecuredService : ISecuredService
 {
     // No attribute => defaults to the builtin default policy which is RequireAuthenticatedUser
     public string Default(string text) => text;
@@ -80,6 +90,9 @@ public class SecuredService : ISecuredService
 
     [Authorize(Policy = Policies.Write)]
     public Task<string> Write(string text) => Task.FromResult(text);
+
+    [Authorize(Policy = Policies.AdminOnly)]
+    public Task<string> Generated(string text, [Injected] HttpContext httpContext) => Task.FromResult(text);
 }
 
 internal static class Policies

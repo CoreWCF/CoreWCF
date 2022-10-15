@@ -75,9 +75,14 @@ namespace CoreWCF.Http.Tests.Authorization
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
+
             yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
             yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
             yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
         }
 
         [Theory]

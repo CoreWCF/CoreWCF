@@ -1143,7 +1143,33 @@ namespace CoreWCF.Description
         {
             Type serviceType = typeof(TService);
             MethodInfo[] methodInfos = serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var methodInfo in methodInfos)
+
+            // The source generator will produce an method with identical name but with attrributes marked with either CoreWCF.Injected or FromServices attributes.
+            // We need to to fetch AuthorizeAttribute from user provided implementation.
+            Dictionary<string, MethodInfo> methods = new ();
+            foreach (MethodInfo methodInfo in methodInfos)
+            {
+                if (!methods.TryGetValue(methodInfo.Name, out MethodInfo m))
+                {
+                    methods.Add(methodInfo.Name, methodInfo);
+                    continue;
+                }
+
+                var parameterAttributesTypes = from parameter in m.GetParameters()
+                    from attribute in parameter.GetCustomAttributes()
+                    let type = attribute.GetType().FullName
+                    where type == "CoreWCF.InjectedAttribute" ||
+                          type == "Microsoft.AspNetCore.Mvc.FromServicesAttribute"
+                    select type;
+                if (parameterAttributesTypes.Any())
+                {
+                    continue;
+                }
+
+                methods[methodInfo.Name] = methodInfo;
+            }
+
+            foreach (var methodInfo in methods.Values)
             {
                 if (methodInfo.Name == operationDescription.OperationMethod.Name)
                 {
