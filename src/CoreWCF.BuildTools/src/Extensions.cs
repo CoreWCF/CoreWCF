@@ -21,7 +21,7 @@ namespace CoreWCF.BuildTools
             var parameters = methodSymbol.Parameters;
             foreach (IParameterSymbol parameterSymbol in userProvidedMethodSymbol.Parameters)
             {
-                if (parameterSymbol.HasOneOfAttributes(coreWCFInjectedAttribute, fromServicesAttribute))
+                if (parameterSymbol.HasOneAttributeOf(coreWCFInjectedAttribute, fromServicesAttribute))
                 {
                     continue;
                 }
@@ -51,7 +51,7 @@ namespace CoreWCF.BuildTools
 
     internal static class SymbolExtensions
     {
-        public static bool HasOneOfAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
+        public static bool HasOneAttributeOf(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
         {
             if (attributeTypeSymbols.Length == 0)
             {
@@ -65,6 +65,30 @@ namespace CoreWCF.BuildTools
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, namedTypeSymbol))
                     {
                         return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasOneAttributeInheritFrom(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
+        {
+            if (attributeTypeSymbols.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                foreach (var @interface in attribute.AttributeClass?.AllInterfaces)
+                {
+                    foreach (var namedTypeSymbol in attributeTypeSymbols.Where(static s => s is not null))
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(@interface, namedTypeSymbol))
+                        {
+                            return true;
+                        }
                     }
                 }
             }

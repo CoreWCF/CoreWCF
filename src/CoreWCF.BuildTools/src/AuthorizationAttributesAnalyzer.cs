@@ -11,8 +11,8 @@ namespace CoreWCF.BuildTools;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 {
-    private const string AuthorizeAttributeName = "Microsoft.AspNetCore.Authorization.AuthorizeAttribute";
-    private const string AllowAnonymousAttributeName = "Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute";
+    private const string IAuthorizeDataName = "Microsoft.AspNetCore.Authorization.IAuthorizeData";
+    private const string IAllowAnonymousName = "Microsoft.AspNetCore.Authorization.IAllowAnonymous";
     private const string CoreWCFServiceContractAttributeName = "CoreWCF.ServiceContractAttribute";
     private const string CoreWCFOperationContractAttributeName = "CoreWCF.OperationContractAttribute";
     private const string SSMServiceContractAttributeName = "System.ServiceModel.ServiceContractAttribute";
@@ -39,9 +39,9 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     {
         INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-        var authorizeAttribute = context.Compilation.GetTypeByMetadataName(AuthorizeAttributeName);
-        bool hasAuthorizeAttribute = namedTypeSymbol.HasOneOfAttributes(authorizeAttribute);
-        if (!hasAuthorizeAttribute)
+        var authorizeData = context.Compilation.GetTypeByMetadataName(IAuthorizeDataName);
+        bool hasAuthorizeData = namedTypeSymbol.HasOneAttributeInheritFrom(authorizeData);
+        if (!hasAuthorizeData)
         {
             return;
         }
@@ -50,7 +50,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneOfAttributes(ssmServiceContractAttribute, coreWCFServiceContractAttribute)))
+                x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)))
         {
             context.ReportDiagnostic(
                 DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
@@ -61,8 +61,8 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     {
         IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
 
-        var allowAnonymousAttribute = context.Compilation.GetTypeByMetadataName(AllowAnonymousAttributeName);
-        bool hasAllowAnonymous = methodSymbol.HasOneOfAttributes(allowAnonymousAttribute);
+        var allowAnonymous = context.Compilation.GetTypeByMetadataName(IAllowAnonymousName);
+        bool hasAllowAnonymous = methodSymbol.HasOneAttributeInheritFrom(allowAnonymous);
         if (!hasAllowAnonymous)
         {
             return;
@@ -72,7 +72,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
 
         var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
-            where @interface.HasOneOfAttributes(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
+            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
             select @interface).ToImmutableArray();
 
         if (serviceContracts.IsEmpty)
@@ -86,7 +86,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var operationContracts = (from serviceContract in serviceContracts
             from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
             where method.Name == methodSymbol.Name
-            where method.HasOneOfAttributes(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
+            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
             select method).ToImmutableArray();
 
         var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>()
@@ -114,11 +114,10 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 
     private static void WarnWhenAllowAnonymousOnServiceContractImplementation(SymbolAnalysisContext context)
     {
-        var allowAnonymousAttribute = context.Compilation.GetTypeByMetadataName(AllowAnonymousAttributeName);
-
         INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-        bool hasAllowAnonymous = namedTypeSymbol.HasOneOfAttributes(allowAnonymousAttribute);
+        var allowAnonymous = context.Compilation.GetTypeByMetadataName(IAllowAnonymousName);
+        bool hasAllowAnonymous = namedTypeSymbol.HasOneAttributeInheritFrom(allowAnonymous);
         if (!hasAllowAnonymous)
         {
             return;
@@ -128,7 +127,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneOfAttributes(coreWCFServiceContractAttribute, ssmServiceContractAttribute)))
+                x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute)))
         {
             context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(namedTypeSymbol.Locations[0]));
         }

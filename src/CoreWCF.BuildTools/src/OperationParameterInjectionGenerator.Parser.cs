@@ -52,11 +52,11 @@ namespace CoreWCF.BuildTools
 
                 var methodServiceContractAndOperationContractsValues = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
-                    where @interface.HasOneOfAttributes(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol)
+                    where @interface.HasOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol)
                     let methodMembers = (from member in @interface.GetMembers()
                         let methodMember = member as IMethodSymbol
                         where methodMember is not null
-                        where methodMember.HasOneOfAttributes(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
+                        where methodMember.HasOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
                         select methodMember).ToImmutableArray()
                     select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
 
