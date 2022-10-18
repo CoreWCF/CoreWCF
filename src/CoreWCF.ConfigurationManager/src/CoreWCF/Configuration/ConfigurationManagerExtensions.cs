@@ -11,6 +11,11 @@ namespace CoreWCF.Configuration
     {
         public static IServiceCollection AddServiceModelConfigurationManagerFile(this IServiceCollection builder, string path)
         {           
+            if (!File.Exists(path))
+            {
+                throw new ArgumentException($"File {path} Does not Exist");
+            }
+            
             builder.TryAddSingleton<IConfigurationHolder, ConfigurationHolder>();
             builder.TryAddSingleton<IBindingFactory, BindingFactory>();
             builder.AddSingleton<IConfigureOptions<ServiceModelOptions>>(ctx => new ConfigurationManagerServiceModelOptions(ctx, path));          
