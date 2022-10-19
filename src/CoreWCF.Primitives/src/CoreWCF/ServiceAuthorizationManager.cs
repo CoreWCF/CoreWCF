@@ -15,7 +15,7 @@ namespace CoreWCF
 {
     public class ServiceAuthorizationManager
     {
-        private bool _isAsyncImplementation;
+        private readonly bool _isAsyncImplementation;
 
         public ServiceAuthorizationManager()
         {
