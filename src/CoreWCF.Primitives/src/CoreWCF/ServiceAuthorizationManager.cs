@@ -15,26 +15,40 @@ namespace CoreWCF
 {
     public class ServiceAuthorizationManager
     {
-        private bool _isCheckAccessCoreAsyncOverridden;
-        private bool _isCheckAccessAsyncWithSingleParameterOverridden;
+        private bool _isAsyncImplementation;
 
         public ServiceAuthorizationManager()
         {
             Type implementorType = GetType();
             var methods = implementorType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var checkAccessCoreAsyncMethodInfo = methods.Single(static x => x.Name == nameof(CheckAccessCoreAsync));
+            var checkAccessCoreAsyncMethodInfo = (from method in methods
+                where method.Name == nameof(CheckAccessCoreAsync)
+                let parameters = method.GetParameters()
+                where parameters.Length == 1
+                let firstParameter = parameters[0]
+                where firstParameter.ParameterType == typeof(OperationContext)
+                select method).SingleOrDefault();
+
             var baseCheckAccessCoreAsyncMethodInfo = checkAccessCoreAsyncMethodInfo!.GetBaseDefinition();
 
-            _isCheckAccessCoreAsyncOverridden = baseCheckAccessCoreAsyncMethodInfo.DeclaringType != checkAccessCoreAsyncMethodInfo.DeclaringType;
+            bool isCheckAccessCoreAsyncOverridden = baseCheckAccessCoreAsyncMethodInfo.DeclaringType != checkAccessCoreAsyncMethodInfo.DeclaringType;
 
-            var checkAccessAsyncWithSingleParameterMethodInfo = methods.SingleOrDefault(static x =>
-                x.Name == nameof(CheckAccessAsync) && x.GetParameters().Length == 1);
+            var checkAccessAsyncWithSingleParameterMethodInfo = (from method in methods
+                where  method.Name == nameof(CheckAccessAsync)
+                let parameters = method.GetParameters()
+                where  parameters.Length == 1
+                let firstParameter = parameters[0]
+                where firstParameter.ParameterType == typeof(OperationContext)
+                select method).SingleOrDefault();
+
             var baseCheckAccessAsyncWithSingleParameterMethodInfo =
                 checkAccessAsyncWithSingleParameterMethodInfo!.GetBaseDefinition();
 
-            _isCheckAccessAsyncWithSingleParameterOverridden =
+            bool isCheckAccessAsyncWithSingleParameterOverridden =
                 baseCheckAccessAsyncWithSingleParameterMethodInfo.DeclaringType != checkAccessAsyncWithSingleParameterMethodInfo.DeclaringType;
+
+            _isAsyncImplementation = isCheckAccessCoreAsyncOverridden || isCheckAccessAsyncWithSingleParameterOverridden;
         }
 
         // This is the API called by framework to perform CheckAccess.
@@ -49,7 +63,7 @@ namespace CoreWCF
 
         public virtual async ValueTask<(bool isAuthorized, Message message)> CheckAccessAsync(OperationContext operationContext, Message message)
         {
-            if (_isCheckAccessAsyncWithSingleParameterOverridden || _isCheckAccessCoreAsyncOverridden)
+            if (_isAsyncImplementation)
             {
                 var isAuthorized = await CheckAccessAsync(operationContext);
                 return (isAuthorized, message);
