@@ -77,7 +77,7 @@ namespace CoreWCF
             operationContext.IncomingMessageProperties.Security.ServiceSecurityContext =
                 new ServiceSecurityContext(authorizationPolicies ?? EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance);
 
-            // 3) Call the CheckAccessCoreAsync(OperationContext operationContext)
+            // 3) Call the CheckAccessCore(OperationContext operationContext)
             return CheckAccessCore(operationContext);
         }
 
