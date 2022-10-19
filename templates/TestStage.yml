@@ -15,36 +15,43 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: ''
           additionalDotNetCoreSdk: '3.1.x'
+          testRunName: 'Windows .NET Core 3.1 Release'
         Windows_net5.0:
           imageName: 'windows-latest'
           targetFramework: 'net5.0'
           testArgs: ''
           additionalDotNetCoreSdk: '5.0.x'
+          testRunName: 'Windows .NET 5.0 Release'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
           additionalDotNetCoreSdk: ''
+          testRunName: 'Windows .NET 6.0 Release'
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter Category!=NetCoreOnly'
           additionalDotNetCoreSdk: ''
+          testRunName: 'Windows .NET Framework Release'
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '3.1.x'
+          testRunName: 'Linux .NET Core 3.1 Release'
         Linux_net5.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '5.0.x'
+          testRunName: 'Linux .NET 5.0 Release'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: ''
+          testRunName: 'Linux .NET 6.0 Release'
     displayName: Test Release
     pool:
       vmImage: $(imageName)
@@ -90,9 +97,18 @@ stages:
       timeoutInMinutes: 15
       inputs:
         command: 'test'
+        testRunTitle: '$(testRunName)'
         projects: ${{ parameters.testProjects}}
-        publishTestResults: true
+        publishTestResults: false
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+
+    - task: PublishTestResults@2
+      displayName: Publish Tests
+      timeoutInMinutes: 10
+      inputs:
+        testResultsFiles: '**/TEST-*.trx'
+        mergeTestResults: true
+        testRunTitle: '$(testRunName)'
 
   - job: TestDebug
     strategy:
@@ -102,36 +118,43 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: ''       
           additionalDotNetCoreSdk: '3.1.x'
+          testRunName: 'Windows .NET Core 3.1 Debug'
         Windows_net5.0:
           imageName: 'windows-latest'
           targetFramework: 'net5.0'
           testArgs: ''
           additionalDotNetCoreSdk: '5.0.x'
+          testRunName: 'Windows .NET 5.0 Debug'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
           additionalDotNetCoreSdk: ''
+          testRunName: 'Windows .NET 6.0 Debug'
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter Category!=NetCoreOnly'
           additionalDotNetCoreSdk: ''
+          testRunName: 'Windows .NET Framework Debug'
         Linux_netcore3.1:
           imageName: 'ubuntu-latest'
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '3.1.x'
+          testRunName: 'Linux .NET Core 3.1 Debug'
         Linux_net5.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net5.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '5.0.x'
+          testRunName: 'Linux .NET 5.0 Debug'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: ''
+          testRunName: 'Linux .NET 6.0 Debug'
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
@@ -177,6 +200,15 @@ stages:
       timeoutInMinutes: 15
       inputs:
         command: 'test'
+        testRunTitle: '$(testRunName)'
+        publishTestResults: false
         projects: ${{ parameters.testProjects}}
-        publishTestResults: true
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+
+    - task: PublishTestResults@2
+      displayName: Publish Tests
+      timeoutInMinutes: 10
+      inputs:
+        testResultsFiles: '**/TEST-*.trx'
+        mergeTestResults: true
+        testRunTitle: '$(testRunName)'
