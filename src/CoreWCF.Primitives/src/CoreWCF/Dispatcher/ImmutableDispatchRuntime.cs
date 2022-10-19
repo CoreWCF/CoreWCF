@@ -551,10 +551,9 @@ namespace CoreWCF.Dispatcher
                 _authenticationBehavior.Authenticate(ref rpc);
             }
 
-            // TODO: Make authorizationBehavior Async
             if (_authorizationBehavior != null)
             {
-                _authorizationBehavior.Authorize(ref rpc);
+                rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
             }
 
             await InstanceBehavior.EnsureInstanceContextAsync(rpc);

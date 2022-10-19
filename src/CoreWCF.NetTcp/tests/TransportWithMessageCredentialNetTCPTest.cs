@@ -21,6 +21,7 @@ namespace CoreWCF.NetTcp.Tests
     public class TransportWithMessageCredentialNetTCPTest
     {
         private readonly ITestOutputHelper _output;
+        public const string WindowsAuthRelativePath = "/nettcp.svc/windows-auth";
 
         public TransportWithMessageCredentialNetTCPTest(ITestOutputHelper output)
         {
@@ -39,7 +40,7 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath);
+                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + WindowsAuthRelativePath);
                 uriBuilder.Host = "localhost"; // Replace 127.0.0.1 with localhost so Identity has correct value
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                     new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
@@ -89,7 +90,7 @@ namespace CoreWCF.NetTcp.Tests
                 host.Start();
                 System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 binding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + Startup.WindowsAuthRelativePath);
+                UriBuilder uriBuilder = new UriBuilder(host.GetNetTcpAddressInUse() + WindowsAuthRelativePath);
                 uriBuilder.Host = "localhost"; // Replace 127.0.0.1 with localhost so Identity has correct value
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                     new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));

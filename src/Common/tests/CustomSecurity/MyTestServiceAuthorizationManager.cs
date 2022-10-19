@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
-    internal class MyTestServiceAuthorizationManager : ServiceAuthorizationManager
+    internal abstract class MyTestServiceAuthorizationManagerBase : ServiceAuthorizationManager
     {
-        protected override bool CheckAccessCore(OperationContext operationContext)
+        protected Func<OperationContext, bool> Logic = (OperationContext operationContext) =>
         {
             // Extract the action URI from the OperationContext. Match this against the claims
             // in the AuthorizationContext.
@@ -22,7 +21,8 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
                 // Examine only those claim sets issued by System.
                 if (cs.Issuer == ClaimSet.System)
                 {
-                    foreach (Claim c in cs.FindClaims("http://tempuri.org/claims/allowedoperation", Rights.PossessProperty))
+                    foreach (Claim c in cs.FindClaims("http://tempuri.org/claims/allowedoperation",
+                                 Rights.PossessProperty))
                     {
                         // If the Claim resource matches the action URI then return true to allow access.
                         if (action == c.Resource.ToString())
@@ -38,7 +38,18 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
             }
 
             // If this point is reached, return false to deny access.
-            return (isWIndowIdentity || false);
-        }
+            return isWIndowIdentity || false;
+        };
+    }
+
+    internal class MySyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
+    {
+        [Obsolete("Implementers should override CheckAccessCoreAsync.")]
+        protected override bool CheckAccessCore(OperationContext operationContext) => Logic(operationContext);
+    }
+
+    internal class MyAsyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
+    {
+        protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new (Logic(operationContext));
     }
 }
