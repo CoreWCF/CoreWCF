@@ -36,7 +36,7 @@ namespace CoreWCF
             _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
-        public override async ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
+        public override ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
         {
             if ((message != null) &&
                 (message.Properties != null) &&
@@ -53,7 +53,7 @@ namespace CoreWCF
                 authPolicy = authPolicies.AsReadOnly();
             }
 
-            return await _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
+            return _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
         }
     }
 
@@ -76,11 +76,11 @@ namespace CoreWCF
             _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
-        public override async ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
+        public override ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
         {
             if (CanSkipAuthentication(message))
             {
-                return (authPolicy, message);
+                return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((authPolicy, message));
             }
 
             if (_filteredActionUriCollection != null)
@@ -92,12 +92,12 @@ namespace CoreWCF
                         !string.IsNullOrEmpty(message.Headers.Action) &&
                         (message.Headers.Action == _filteredActionUriCollection[i]))
                     {
-                        return (authPolicy, message);
+                        return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((authPolicy, message));
                     }
                 }
             }
 
-            return await _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
+            return _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
         }
 
         //
