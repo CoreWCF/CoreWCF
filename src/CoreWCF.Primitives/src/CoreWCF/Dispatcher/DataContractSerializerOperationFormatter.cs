@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
         protected MessageInfo replyMessageInfo;
         private readonly IList<Type> _knownTypes;
 
-        private XsdDataContractExporterEx _dataContractExporter;
+        private IXsdDataContractExporter _dataContractExporter;
         private readonly DataContractSerializerOperationBehavior _serializerFactory;
 
         public DataContractSerializerOperationFormatter(OperationDescription description, DataContractFormatAttribute dataContractFormatAttribute,
@@ -159,7 +159,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_dataContractExporter == null)
             {
-                _dataContractExporter = new XsdDataContractExporterEx();
+                _dataContractExporter = XsdDataContractExporterFactory.Create();
                 //if (_serializerFactory != null && _serializerFactory.DataContractSurrogate != null)
                 //{
                 //    ExportOptions options = new ExportOptions();
