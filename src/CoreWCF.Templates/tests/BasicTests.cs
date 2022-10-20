@@ -26,7 +26,6 @@ public class BasicTests
         public const string Net7 = "net7.0";
         public const string Net6 = "net6.0";
         public const string NetCore31 = "netcoreapp3.1";
-        public const string Net481 = "net481";
         public const string Net48 = "net48";
         public const string Net472 = "net472";
         public const string Net462 = "net462";
@@ -39,7 +38,7 @@ public class BasicTests
         public static TestVariation New() => new TestVariation();
 
         public bool AssertMetadataEndpoint { get; private set; } = true;
-        
+
         public bool UseHttps { get; private set; } = true;
 
         public TestVariation UseProgramMain()
@@ -111,35 +110,27 @@ public class BasicTests
             yield break;
         }
 
-        yield return TestVariation.New().Framework(Frameworks.Net481);
         yield return TestVariation.New().Framework(Frameworks.Net48);
         yield return TestVariation.New().Framework(Frameworks.Net472);
         yield return TestVariation.New().Framework(Frameworks.Net462);
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net481).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net48).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net472).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net462).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net481).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().NoWsdl().UseProgramMain();
@@ -163,7 +154,7 @@ public class BasicTests
         var project = ProjectFactory.GetOrCreateProject($"corewcf-{Guid.NewGuid()}", targetFramework,  _output);
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
-        
+
         Assert.True(0 == createResult.ExitCode, ErrorMessages.GetFailedProcessMessage("create/restore", project, createResult));
 
         var publishResult = await project.RunDotNetPublishAsync();

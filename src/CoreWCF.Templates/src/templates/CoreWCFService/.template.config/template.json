@@ -110,10 +110,6 @@
           "description": "Target netcoreapp3.1"
         },
         {
-          "choice": "net481",
-          "description": "Target net481"
-        },
-        {
           "choice": "net48",
           "description": "Target net48"
         },
@@ -127,11 +123,11 @@
         }
       ],
       "replaces": "net6.0",
-      "defaultValue": "net6.0"// Keep net6.0 (LTS) as default value
+      "defaultValue": "net6.0"
     },
     "isNetFramework": {
       "type": "computed",
-      "value": "(Framework==\"net481\")||(Framework==\"net48\")||(Framework==\"net472\")||(Framework==\"net462\")"
+      "value": "(Framework==\"net48\")||(Framework==\"net472\")||(Framework==\"net462\")"
     },
     "skipRestore": {
       "type": "parameter",

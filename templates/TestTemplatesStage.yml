@@ -37,13 +37,6 @@ stages:
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: UseDotNet@2
-      displayName: 'Use .NET 5 sdk'
-      inputs:
-        packageType: sdk
-        version: '5.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-
-    - task: UseDotNet@2
       displayName: 'Use .NET 6 sdk'
       inputs:
         packageType: sdk
@@ -57,14 +50,6 @@ stages:
         version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
         includePreviewVersions: true       
-
-    # NGBV project at https://github.com/dotnet/Nerdbank.GitVersioning
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: custom
-        custom: tool
-        arguments: install --tool-path . nbgv
-      displayName: Install NBGV tool
 
     - task: PowerShell@2
       inputs:

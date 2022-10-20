@@ -18,7 +18,8 @@ dotnet nuget add source $ArtifactsPath -n $NugetFeedName
 dotnet pack $SourceDir/src/CoreWCF.Http/src/CoreWCF.Http.csproj -o $ArtifactsPath /p:IncludeSymbols=false
 dotnet pack $SourceDir/src/CoreWCF.Primitives/src/CoreWCF.Primitives.csproj -o $ArtifactsPath /p:IncludeSymbols=false
 # Store current code version in $version
-$version = nbgv get-version -v NugetPackageVersion
+dotnet tool install --tool-path . nbgv
+$version = ./nbgv get-version -v NugetPackageVersion
 # install runtime assemblies in TemplatedProject
 $TemplatedProjectPath = [IO.Path]::Combine($PSScriptRoot, 'src', 'templates', 'CoreWCFService')
 cd $TemplatedProjectPath
