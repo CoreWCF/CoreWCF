@@ -26,6 +26,14 @@ namespace CoreWCF.Dispatcher
         public async ValueTask<MessageRpc> AuthorizeAsync(MessageRpc rpc)
         {
             // TODO: Events
+            ClaimsPrincipal claimsPrincipal = rpc.Request.Properties.Security?.ServiceSecurityContext?.ClaimsPrincipal;
+            AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy;
+            if (claimsPrincipal != null && authorizationPolicy != null)
+            {
+                await AuthorizePolicyAsync(claimsPrincipal, authorizationPolicy);
+                return rpc;
+            }
+
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
             security.ExternalAuthorizationPolicies = _externalAuthorizationPolicies;
 
@@ -55,7 +63,7 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
-        public async ValueTask AuthorizePolicyAsync(ClaimsPrincipal principal, AuthorizationPolicy policy)
+        private async ValueTask AuthorizePolicyAsync(ClaimsPrincipal principal, AuthorizationPolicy policy)
         {
             var result = await _authorizationService.AuthorizeAsync(principal, policy);
             if (!result.Succeeded)

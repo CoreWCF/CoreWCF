@@ -4,12 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
-using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -554,16 +552,7 @@ namespace CoreWCF.Dispatcher
 
             if (_authorizationBehavior != null)
             {
-                ClaimsPrincipal claimsPrincipal = rpc.Request.Properties.Security?.ServiceSecurityContext?.ClaimsPrincipal;
-                AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy;
-                if (claimsPrincipal != null && authorizationPolicy != null)
-                {
-                    await _authorizationBehavior.AuthorizePolicyAsync(claimsPrincipal, authorizationPolicy);
-                }
-                else
-                {
-                    rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
-                }
+                rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
             }
 
             await InstanceBehavior.EnsureInstanceContextAsync(rpc);
