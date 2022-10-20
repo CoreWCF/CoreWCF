@@ -24,7 +24,12 @@ stages:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
-          additionalDotNetCoreSdk: ''
+          additionalDotNetCoreSdk: '6.0.x'
+        Windows_net7.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net7.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''          
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
@@ -44,7 +49,12 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''
+          additionalDotNetCoreSdk: '6.0.x'
+        Linux_net7.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net7.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''          
     displayName: Test Release
     pool:
       vmImage: $(imageName)
@@ -57,11 +67,12 @@ stages:
         path: $(System.DefaultWorkingDirectory)/bin
 
     - task: UseDotNet@2
-      displayName: 'Use .NET Core 6 sdk'
+      displayName: 'Use .NET 7.0 sdk'
       inputs:
         packageType: sdk
-        version: '6.0.x'
+        version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
+        includePreviewVersions: true
 
     - task: UseDotNet@2
       displayName: 'Use additional .NET Core sdk'
@@ -111,7 +122,12 @@ stages:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
           testArgs: ''
-          additionalDotNetCoreSdk: ''
+          additionalDotNetCoreSdk: '6.0.x'
+        Windows_net7.0:
+          imageName: 'windows-latest'
+          targetFramework: 'net7.0'
+          testArgs: ''
+          additionalDotNetCoreSdk: ''          
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
@@ -131,7 +147,12 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''
+          additionalDotNetCoreSdk: '6.0.x'
+        Linux_net7.0:
+          imageName: 'ubuntu-latest'
+          targetFramework: 'net7.0'
+          testArgs: '--filter Category!=WindowsOnly'
+          additionalDotNetCoreSdk: ''          
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
@@ -144,11 +165,12 @@ stages:
         path: $(System.DefaultWorkingDirectory)/bin
 
     - task: UseDotNet@2
-      displayName: 'Use .NET Core 6 sdk'
+      displayName: 'Use .NET 7.0 sdk'
       inputs:
         packageType: sdk
-        version: '6.0.x'
+        version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
+        includePreviewVersions: true
 
     - task: UseDotNet@2
       displayName: 'Use additional .NET Core sdk'
