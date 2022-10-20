@@ -98,16 +98,20 @@
       "datatype": "choice",
       "choices": [
         {
+          "choice": "net7.0",
+          "description": "Target net7.0"
+        },
+        {
           "choice": "net6.0",
           "description": "Target net6.0"
         },
         {
-          "choice": "net5.0",
-          "description": "Target net5.0"
-        },
-        {
           "choice": "netcoreapp3.1",
           "description": "Target netcoreapp3.1"
+        },
+        {
+          "choice": "net481",
+          "description": "Target net481"
         },
         {
           "choice": "net48",
@@ -123,11 +127,11 @@
         }
       ],
       "replaces": "net6.0",
-      "defaultValue": "net6.0"
+      "defaultValue": "net6.0"// Keep net6.0 (LTS) as default value
     },
-    "isNetFramework":{
+    "isNetFramework": {
       "type": "computed",
-      "value": "(Framework==\"net48\")||(Framework==\"net472\")||(Framework==\"net462\")"
+      "value": "(Framework==\"net481\")||(Framework==\"net48\")||(Framework==\"net472\")||(Framework==\"net462\")"
     },
     "skipRestore": {
       "type": "parameter",
@@ -150,11 +154,11 @@
     },
     "implicitUsings": {
       "type": "computed",
-      "value": "(Framework == \"net6.0\")"
+      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")"
     },
     "nullableEnabled": {
       "type": "computed",
-      "value": "(Framework == \"net6.0\")"
+      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")"
     },
     "NoWsdl": {
       "type": "parameter",
@@ -162,9 +166,9 @@
       "defaultValue": "false",
       "description": "Whether to turn off WSDL metadata feature."
     },
-    "minimal":{
+    "minimal": {
       "type": "computed",
-      "value": "((Framework==\"net6.0\")&&(!UseProgramMain))"
+      "value": "(((Framework==\"net6.0\")||(Framework==\"net7.0\"))&&(!UseProgramMain))"
     }
   },
   "primaryOutputs": [
