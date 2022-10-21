@@ -16,13 +16,14 @@
     <Using Include="CoreWCF.Description" />
     <Using Include="System.Runtime.Serialization " />
     <Using Include="CoreWCFService" />
-    <Using Include="Microsoft.Extensions.DependencyInjection.Extensions"/>
+    <Using Include="Microsoft.Extensions.DependencyInjection.Extensions" />
   </ItemGroup>
   <!--#endif-->
   <ItemGroup>
     <!--#if(isNetFramework)-->
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
     <!--#endif-->
+    <PackageReference Include="CoreWCF.Primitives" Version="1.*" />
     <PackageReference Include="CoreWCF.Http" Version="1.*" />
   </ItemGroup>
 </Project>

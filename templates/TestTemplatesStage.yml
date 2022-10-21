@@ -15,7 +15,7 @@ stages:
         Windows:
           imageName: 'windows-latest'
           testArgs: '--filter Category=Templates'
-        Linux_net6.0:
+        Linux:
           imageName: 'ubuntu-latest'
           testArgs: '--filter Category=Templates'
     displayName: Test Templates Release

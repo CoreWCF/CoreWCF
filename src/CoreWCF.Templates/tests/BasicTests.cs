@@ -155,7 +155,11 @@ public class BasicTests
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
 
-        Assert.True(0 == createResult.ExitCode, ErrorMessages.GetFailedProcessMessage("create/restore", project, createResult));
+        Assert.True(0 == createResult.ExitCode, ErrorMessages.GetFailedProcessMessage("create", project, createResult));
+
+        var restoreResult = await project.RunDotNetRestoreAsync();
+
+        Assert.True(0 == restoreResult.ExitCode, ErrorMessages.GetFailedProcessMessage("restore", project, restoreResult));
 
         var publishResult = await project.RunDotNetPublishAsync();
         Assert.True(0 == publishResult.ExitCode, ErrorMessages.GetFailedProcessMessage("publish", project, publishResult));
