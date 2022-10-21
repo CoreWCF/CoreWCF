@@ -545,10 +545,9 @@ namespace CoreWCF.Dispatcher
                 rpc.SuccessfullyIncrementedActivity = true;
             }
 
-            // TODO: Make authenticationBehavior Async
             if (_authenticationBehavior != null)
             {
-                _authenticationBehavior.Authenticate(ref rpc);
+                rpc = await _authenticationBehavior.AuthenticateAsync(rpc);
             }
 
             if (_authorizationBehavior != null)

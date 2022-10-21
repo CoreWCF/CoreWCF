@@ -4,6 +4,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
@@ -19,13 +20,13 @@ namespace CoreWCF.Dispatcher
             _serviceAuthenticationManager = authenticationManager;
         }
 
-        public void Authenticate(ref MessageRpc rpc)
+        public async ValueTask<MessageRpc> AuthenticateAsync(MessageRpc rpc)
         {
             SecurityMessageProperty security = SecurityMessageProperty.GetOrCreate(rpc.Request);
             ReadOnlyCollection<IAuthorizationPolicy> authPolicy = security.ServiceSecurityContext.AuthorizationPolicies;
             try
             {
-                authPolicy = _serviceAuthenticationManager.Authenticate(security.ServiceSecurityContext.AuthorizationPolicies, rpc.Channel.ListenUri, ref rpc.Request);
+                (authPolicy, rpc.Request) = await _serviceAuthenticationManager.AuthenticateAsync(security.ServiceSecurityContext.AuthorizationPolicies, rpc.Channel.ListenUri, rpc.Request);
                 if (authPolicy == null)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.AuthenticationManagerShouldNotReturnNull));
@@ -44,6 +45,8 @@ namespace CoreWCF.Dispatcher
             }
 
             rpc.Request.Properties.Security.ServiceSecurityContext.AuthorizationPolicies = authPolicy;
+
+            return rpc;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
