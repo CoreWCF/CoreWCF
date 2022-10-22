@@ -61,6 +61,86 @@ namespace MyProject
     [Theory]
     [InlineData(SSMNamespace)]
     [InlineData(CoreWCFNamespace)]
+    public async Task AuthorizeDataAuthenticationSchemesPropertySetTests(string attributeNamespace)
+    {
+        var test = new VerifyAnalyzer.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+    }}
+
+    public class IdentityService : IIdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = ""Scheme1,Scheme2"")]
+        public string Echo(string input) => input;
+    }}
+}}
+"
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported)
+                        .WithSpan(14, 23, 14, 27)
+                        .WithDefaultPath("/0/Test0.cs")
+                }
+            }
+        };
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(SSMNamespace)]
+    [InlineData(CoreWCFNamespace)]
+    public async Task AuthorizeDataRolesPropertySetTests(string attributeNamespace)
+    {
+        var test = new VerifyAnalyzer.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+    }}
+
+    public class IdentityService : IIdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = ""Role1,Role2"")]
+        public string Echo(string input) => input;
+    }}
+}}
+"
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupported)
+                        .WithSpan(14, 23, 14, 27)
+                        .WithDefaultPath("/0/Test0.cs")
+                }
+            }
+        };
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(SSMNamespace)]
+    [InlineData(CoreWCFNamespace)]
     public async Task AllowAnonymousOnAUserProvidedOperationContractImplementationToBeGeneratedBySourceGenTests(string attributeNamespace)
     {
         var test = new VerifyAnalyzer.Test

@@ -33,5 +33,23 @@ namespace CoreWCF.BuildTools
             isEnabledByDefault: true);
 
         internal static Diagnostic AuthorizeAttributeIsNotSupportedOnClassWarning(string className, Location location) => Diagnostic.Create(AuthorizeAttributeIsNotSupportedOnClass, location, className);
+
+        internal static readonly DiagnosticDescriptor AuthorizeDataAuthenticationSchemesPropertyIsNotSupported = new DiagnosticDescriptor(id: "COREWCF_0202",
+            title: "Specifying 'AuthenticationSchemes' property of [Authorize] attribute is not supported",
+            messageFormat: "Specifying 'AuthenticationSchemes' property of [Authorize] attribute is not supported",
+            category: nameof(AuthorizationAttributesAnalyzer),
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        internal static Diagnostic AuthorizeDataAuthenticationSchemesPropertyIsNotSupportedWarning(Location location) => Diagnostic.Create(AuthorizeDataAuthenticationSchemesPropertyIsNotSupported, location);
+
+        internal static readonly DiagnosticDescriptor AuthorizeDataRolesPropertyIsNotSupported = new DiagnosticDescriptor(id: "COREWCF_0203",
+            title: "Specifying 'Roles' property of [Authorize] attribute is not supported",
+            messageFormat: "Specifying 'Roles' property of [Authorize] attribute is not supported",
+            category: nameof(AuthorizationAttributesAnalyzer),
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        internal static Diagnostic AuthorizeDataRolesPropertyIsNotSupportedWarning(Location location) => Diagnostic.Create(AuthorizeDataRolesPropertyIsNotSupported, location);
     }
 }
