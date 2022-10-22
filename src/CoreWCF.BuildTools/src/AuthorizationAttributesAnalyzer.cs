@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -21,8 +22,14 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     private const string MVCFromServicesAttributeName = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
 
     private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics =
-        new[] { DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported, DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClass }
-        .ToImmutableArray();
+        new[]
+            {
+                DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported,
+                DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClass,
+                DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported,
+                DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupported
+            }
+            .ToImmutableArray();
 
     public override void Initialize(AnalysisContext context)
     {
@@ -30,6 +37,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnServiceContractImplementation, SymbolKind.NamedType);
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnOperationContractImplementation, SymbolKind.Method);
+        context.RegisterSymbolAction(WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation, SymbolKind.Method);
         context.RegisterSymbolAction(ErrorWhenAuthorizeOnServiceContractImplementation, SymbolKind.NamedType);
     }
 
@@ -54,6 +62,81 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         {
             context.ReportDiagnostic(
                 DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
+        }
+    }
+
+    private static void WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation(SymbolAnalysisContext context)
+    {
+        IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
+
+        var authorizeData = context.Compilation.GetTypeByMetadataName(IAuthorizeDataName);
+        bool hasAuthorizeData = methodSymbol.HasOneAttributeInheritFrom(authorizeData);
+        if (!hasAuthorizeData)
+        {
+            return;
+        }
+
+        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeName);
+        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
+
+        var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
+            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
+            select @interface).ToImmutableArray();
+
+        if (serviceContracts.IsEmpty)
+        {
+            return;
+        }
+
+        var ssmOperationContractAttribute = context.Compilation.GetTypeByMetadataName(SSMOperationContractAttributeName);
+        var coreWCFOperationContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFOperationContractAttributeName);
+
+        var operationContracts = (from serviceContract in serviceContracts
+            from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
+            where method.Name == methodSymbol.Name
+            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
+            select method).ToImmutableArray();
+
+        var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>()
+            .Where(x => x.Name == methodSymbol.Name)
+            .ToImmutableArray();
+
+        var coreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFInjectedAttributeName);
+        var mvcFromServicesAttribute = context.Compilation.GetTypeByMetadataName(MVCFromServicesAttributeName);
+
+        bool isOperationContractImplementation = false;
+        foreach (IMethodSymbol operationContract in operationContracts)
+        {
+            if (implementedMethods.Any(implementedMethod => implementedMethod.IsMatchingUserProvidedMethod(operationContract, coreWCFInjectedAttribute, mvcFromServicesAttribute)))
+            {
+                isOperationContractImplementation = true;
+                break;
+            }
+        }
+
+        if (!isOperationContractImplementation)
+        {
+            return;
+            //context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
+        }
+
+        var arguments = from attribute in methodSymbol.GetAttributes()
+            where attribute.AttributeClass.AllInterfaces.Any(@interface =>
+                @interface.Equals(authorizeData, SymbolEqualityComparer.Default))
+            from args in attribute.NamedArguments
+            select args;
+
+        foreach (var argument in arguments)
+        {
+            if (argument.Key == "AuthenticationSchemes")
+            {
+                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
+                continue;
+            }
+            if (argument.Key == "Roles")
+            {
+                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
+            }
         }
     }
 
