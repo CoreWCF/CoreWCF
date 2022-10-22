@@ -15,11 +15,6 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: ''
           additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
@@ -40,11 +35,6 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
@@ -113,11 +103,6 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: ''       
           additionalDotNetCoreSdk: '3.1.x'
-        Windows_net5.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net5.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: '5.0.x'
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
@@ -138,11 +123,6 @@ stages:
           targetFramework: 'netcoreapp3.1'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '3.1.x'
-        Linux_net5.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net5.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '5.0.x'
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
