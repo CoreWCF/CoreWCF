@@ -13,10 +13,10 @@ namespace CoreWCF.Configuration
     {
         public static IServiceCollection AddServiceModelConfigurationManagerFile(this IServiceCollection builder, string path)
         {           
-            if (!File.Exists(path)) { throw new ArgumentException(SR.Format(SR.FileNotFound, path)); }
+            if (!File.Exists(path)) { throw new FileNotFoundException(SR.Format(SR.FileNotFound, path)); }
             using (var fs = new FileStream(path, FileMode.Open))
             {
-                if (!fs.CanRead) { throw new ArgumentException(SR.Format(SR.CannotAccessFile, path)); }    
+                if (!fs.CanRead) { throw new IOException(SR.Format(SR.CannotAccessFile, path)); }    
             }
             
             builder.TryAddSingleton<IConfigurationHolder, ConfigurationHolder>();
