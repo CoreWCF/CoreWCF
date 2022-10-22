@@ -5583,7 +5583,7 @@
   <data name = "CannotAccessDirectory" xml:space="preserve">
     <value>Cannot access directory {0}.</value>
   </data>
-   <data name = "FileNotFound" xml:space="preserve">
+  <data name = "FileNotFound" xml:space="preserve">
     <value>File {0} not found.</value>
   </data>
   <data name = "CannotAccessFile" xml:space="preserve">
