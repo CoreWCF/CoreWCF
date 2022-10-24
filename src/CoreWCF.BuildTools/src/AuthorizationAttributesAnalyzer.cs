@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,14 +11,16 @@ namespace CoreWCF.BuildTools;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 {
-    private const string IAuthorizeDataName = "Microsoft.AspNetCore.Authorization.IAuthorizeData";
-    private const string IAllowAnonymousName = "Microsoft.AspNetCore.Authorization.IAllowAnonymous";
-    private const string CoreWCFServiceContractAttributeName = "CoreWCF.ServiceContractAttribute";
-    private const string CoreWCFOperationContractAttributeName = "CoreWCF.OperationContractAttribute";
-    private const string SSMServiceContractAttributeName = "System.ServiceModel.ServiceContractAttribute";
-    private const string SSMOperationContractAttributeName = "System.ServiceModel.OperationContractAttribute";
-    private const string CoreWCFInjectedAttributeName = "CoreWCF.InjectedAttribute";
-    private const string MVCFromServicesAttributeName = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
+    private const string AuthenticationSchemesPropertyName = "AuthenticationSchemes";
+    private const string RolesPropertyName = "Roles";
+    private const string AuthorizeDataTypeName = "Microsoft.AspNetCore.Authorization.IAuthorizeData";
+    private const string AllowAnonymousTypeName = "Microsoft.AspNetCore.Authorization.IAllowAnonymous";
+    private const string CoreWCFServiceContractAttributeTypeName = "CoreWCF.ServiceContractAttribute";
+    private const string CoreWCFOperationContractAttributeTypeName = "CoreWCF.OperationContractAttribute";
+    private const string SSMServiceContractAttributeTypeName = "System.ServiceModel.ServiceContractAttribute";
+    private const string SSMOperationContractAttributeTypeName = "System.ServiceModel.OperationContractAttribute";
+    private const string CoreWCFInjectedAttributeTypeName = "CoreWCF.InjectedAttribute";
+    private const string MVCFromServicesAttributeTypeName = "Microsoft.AspNetCore.Mvc.FromServicesAttribute";
 
     private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics =
         new[]
@@ -47,15 +48,15 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     {
         INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-        var authorizeData = context.Compilation.GetTypeByMetadataName(IAuthorizeDataName);
+        var authorizeData = context.Compilation.GetTypeByMetadataName(AuthorizeDataTypeName);
         bool hasAuthorizeData = namedTypeSymbol.HasOneAttributeInheritFrom(authorizeData);
         if (!hasAuthorizeData)
         {
             return;
         }
 
-        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeName);
-        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
+        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeTypeName);
+        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
                 x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)))
@@ -69,55 +70,17 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     {
         IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
 
-        var authorizeData = context.Compilation.GetTypeByMetadataName(IAuthorizeDataName);
+        var authorizeData = context.Compilation.GetTypeByMetadataName(AuthorizeDataTypeName);
         bool hasAuthorizeData = methodSymbol.HasOneAttributeInheritFrom(authorizeData);
         if (!hasAuthorizeData)
         {
             return;
         }
 
-        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeName);
-        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
-
-        var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
-            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
-            select @interface).ToImmutableArray();
-
-        if (serviceContracts.IsEmpty)
-        {
-            return;
-        }
-
-        var ssmOperationContractAttribute = context.Compilation.GetTypeByMetadataName(SSMOperationContractAttributeName);
-        var coreWCFOperationContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFOperationContractAttributeName);
-
-        var operationContracts = (from serviceContract in serviceContracts
-            from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
-            where method.Name == methodSymbol.Name
-            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
-            select method).ToImmutableArray();
-
-        var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>()
-            .Where(x => x.Name == methodSymbol.Name)
-            .ToImmutableArray();
-
-        var coreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFInjectedAttributeName);
-        var mvcFromServicesAttribute = context.Compilation.GetTypeByMetadataName(MVCFromServicesAttributeName);
-
-        bool isOperationContractImplementation = false;
-        foreach (IMethodSymbol operationContract in operationContracts)
-        {
-            if (implementedMethods.Any(implementedMethod => implementedMethod.IsMatchingUserProvidedMethod(operationContract, coreWCFInjectedAttribute, mvcFromServicesAttribute)))
-            {
-                isOperationContractImplementation = true;
-                break;
-            }
-        }
-
+        bool isOperationContractImplementation = IsOperationContractImplementation(context, methodSymbol);
         if (!isOperationContractImplementation)
         {
             return;
-            //context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
         }
 
         var arguments = from attribute in methodSymbol.GetAttributes()
@@ -128,12 +91,12 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 
         foreach (var argument in arguments)
         {
-            if (argument.Key == "AuthenticationSchemes")
+            if (argument.Key == AuthenticationSchemesPropertyName)
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
                 continue;
             }
-            if (argument.Key == "Roles")
+            if (argument.Key == RolesPropertyName)
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
             }
@@ -144,15 +107,26 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     {
         IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
 
-        var allowAnonymous = context.Compilation.GetTypeByMetadataName(IAllowAnonymousName);
+        var allowAnonymous = context.Compilation.GetTypeByMetadataName(AllowAnonymousTypeName);
         bool hasAllowAnonymous = methodSymbol.HasOneAttributeInheritFrom(allowAnonymous);
         if (!hasAllowAnonymous)
         {
             return;
         }
 
-        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeName);
-        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
+        bool isOperationContractImplementation = IsOperationContractImplementation(context, methodSymbol);
+
+        if (isOperationContractImplementation)
+        {
+            context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
+        }
+    }
+
+    private static bool IsOperationContractImplementation(SymbolAnalysisContext context, IMethodSymbol methodSymbol)
+    {
+        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeTypeName);
+        var coreWCFServiceContractAttribute =
+            context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
             where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
@@ -160,11 +134,11 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 
         if (serviceContracts.IsEmpty)
         {
-            return;
+            return false;
         }
 
-        var ssmOperationContractAttribute = context.Compilation.GetTypeByMetadataName(SSMOperationContractAttributeName);
-        var coreWCFOperationContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFOperationContractAttributeName);
+        var ssmOperationContractAttribute = context.Compilation.GetTypeByMetadataName(SSMOperationContractAttributeTypeName);
+        var coreWCFOperationContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFOperationContractAttributeTypeName);
 
         var operationContracts = (from serviceContract in serviceContracts
             from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
@@ -176,38 +150,35 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
             .Where(x => x.Name == methodSymbol.Name)
             .ToImmutableArray();
 
-        var coreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFInjectedAttributeName);
-        var mvcFromServicesAttribute = context.Compilation.GetTypeByMetadataName(MVCFromServicesAttributeName);
+        var coreWCFInjectedAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFInjectedAttributeTypeName);
+        var mvcFromServicesAttribute = context.Compilation.GetTypeByMetadataName(MVCFromServicesAttributeTypeName);
 
-        bool isOperationContractImplementation = false;
         foreach (IMethodSymbol operationContract in operationContracts)
         {
-            if (implementedMethods.Any(implementedMethod => implementedMethod.IsMatchingUserProvidedMethod(operationContract, coreWCFInjectedAttribute, mvcFromServicesAttribute)))
+            if (implementedMethods.Any(implementedMethod =>
+                    implementedMethod.IsMatchingUserProvidedMethod(operationContract, coreWCFInjectedAttribute,
+                        mvcFromServicesAttribute)))
             {
-                isOperationContractImplementation = true;
-                break;
+                return true;
             }
         }
 
-        if (isOperationContractImplementation)
-        {
-            context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
-        }
+        return false;
     }
 
     private static void WarnWhenAllowAnonymousOnServiceContractImplementation(SymbolAnalysisContext context)
     {
         INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-        var allowAnonymous = context.Compilation.GetTypeByMetadataName(IAllowAnonymousName);
+        var allowAnonymous = context.Compilation.GetTypeByMetadataName(AllowAnonymousTypeName);
         bool hasAllowAnonymous = namedTypeSymbol.HasOneAttributeInheritFrom(allowAnonymous);
         if (!hasAllowAnonymous)
         {
             return;
         }
 
-        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeName);
-        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeName);
+        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeTypeName);
+        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
                 x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute)))
