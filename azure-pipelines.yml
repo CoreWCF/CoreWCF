@@ -10,7 +10,7 @@ pr:
     exclude:
     - src/CoreWCF.Templates/
     - src/CoreWCFTemplates.sln
-    - templates/TestTemplates.yml
+    - templates/TestTemplatesStage.yml
 
 variables:
   _solution: src/CoreWCF.sln
