@@ -14,7 +14,7 @@ namespace CoreWCF.Configuration
         public static IServiceCollection AddServiceModelConfigurationManagerFile(this IServiceCollection builder, string path)
         {           
             if (!File.Exists(path)) { throw new FileNotFoundException(SR.Format(SR.FileNotFound, path)); }
-            using (var fs = new FileStream(path, FileMode.Open))
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 if (!fs.CanRead) { throw new IOException(SR.Format(SR.CannotAccessFile, path)); }    
             }
