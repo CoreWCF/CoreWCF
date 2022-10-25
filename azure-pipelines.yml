@@ -9,6 +9,8 @@ pr:
   paths:
     exclude:
     - src/CoreWCF.Templates/
+    - src/CoreWCFTemplates.sln
+    - templates/TestTemplatesStage.yml
 
 variables:
   _solution: src/CoreWCF.sln

@@ -23,8 +23,8 @@ public class BasicTests
 
     public static class Frameworks
     {
+        public const string Net7 = "net7.0";
         public const string Net6 = "net6.0";
-        public const string Net5 = "net5.0";
         public const string NetCore31 = "netcoreapp3.1";
         public const string Net48 = "net48";
         public const string Net472 = "net472";
@@ -38,7 +38,7 @@ public class BasicTests
         public static TestVariation New() => new TestVariation();
 
         public bool AssertMetadataEndpoint { get; private set; } = true;
-        
+
         public bool UseHttps { get; private set; } = true;
 
         public TestVariation UseProgramMain()
@@ -73,36 +73,36 @@ public class BasicTests
     public static IEnumerable<object[]> GetTestVariations()
     {
         yield return TestVariation.New();
+        yield return TestVariation.New().Framework(Frameworks.Net7);
         yield return TestVariation.New().Framework(Frameworks.Net6);
-        yield return TestVariation.New().Framework(Frameworks.Net5);
         yield return TestVariation.New().Framework(Frameworks.NetCore31);
         yield return TestVariation.New().NoHttps();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps();
         yield return TestVariation.New().NoWsdl();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoWsdl();
         yield return TestVariation.New().NoHttps().NoWsdl();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().NoWsdl();
         yield return TestVariation.New().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net7).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net5).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).UseProgramMain();
         yield return TestVariation.New().NoHttps().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().UseProgramMain();
         yield return TestVariation.New().NoWsdl().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoWsdl().UseProgramMain();
         yield return TestVariation.New().NoHttps().NoWsdl().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net5).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().NoWsdl().UseProgramMain();
 
         if (!OperatingSystem.IsWindows())
@@ -154,8 +154,12 @@ public class BasicTests
         var project = ProjectFactory.GetOrCreateProject($"corewcf-{Guid.NewGuid()}", targetFramework,  _output);
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
-        
-        Assert.True(0 == createResult.ExitCode, ErrorMessages.GetFailedProcessMessage("create/restore", project, createResult));
+
+        Assert.True(0 == createResult.ExitCode, ErrorMessages.GetFailedProcessMessage("create", project, createResult));
+
+        var restoreResult = await project.RunDotNetRestoreAsync();
+
+        Assert.True(0 == restoreResult.ExitCode, ErrorMessages.GetFailedProcessMessage("restore", project, restoreResult));
 
         var publishResult = await project.RunDotNetPublishAsync();
         Assert.True(0 == publishResult.ExitCode, ErrorMessages.GetFailedProcessMessage("publish", project, publishResult));

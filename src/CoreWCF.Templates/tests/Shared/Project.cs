@@ -69,6 +69,8 @@ public class Project : IDisposable
             argString += $" --no-https";
         }
 
+        argString += " --no-restore";
+
         if (args != null)
         {
             foreach (var arg in args)
@@ -114,6 +116,15 @@ public class Project : IDisposable
             DotNetNewLock.Release();
             Output.WriteLine("Released DotNetNewLock");
         }
+    }
+
+    internal async Task<ProcessResult> RunDotNetRestoreAsync()
+    {
+        Output.WriteLine("Restoring packages...");
+
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $@"restore -v detailed --force --force-evaluate -s https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json -s https://api.nuget.org/v3/index.json");
+        await result.Exited;
+        return new ProcessResult(result);
     }
 
     internal async Task<ProcessResult> RunDotNetPublishAsync(IDictionary<string, string> packageOptions = null, string additionalArgs = null, bool noRestore = true)
