@@ -550,6 +550,7 @@ namespace CoreWCF.Dispatcher
                 rpc = await _authenticationBehavior.AuthenticateAsync(rpc);
             }
 
+            rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
             if (_authorizationBehavior != null)
             {
                 rpc = await _authorizationBehavior.AuthorizeAsync(rpc);

@@ -26,7 +26,7 @@ namespace CoreWCF.Dispatcher
         public async ValueTask<MessageRpc> AuthorizeAsync(MessageRpc rpc)
         {
             // TODO: Events
-            ClaimsPrincipal claimsPrincipal = rpc.Request.Properties.Security?.ServiceSecurityContext?.ClaimsPrincipal;
+            ClaimsPrincipal claimsPrincipal = rpc.OperationContext.ClaimsPrincipal;
             AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy;
             if (claimsPrincipal != null && authorizationPolicy != null)
             {
