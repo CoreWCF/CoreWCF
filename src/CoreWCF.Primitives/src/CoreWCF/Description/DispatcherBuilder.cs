@@ -224,7 +224,7 @@ namespace CoreWCF.Description
                     ServiceEndpoint endpoint = stuff.Value.Endpoints[i];
 
                     //EndpointFilterProvider provider = new EndpointFilterProvider();
-                    EndpointDispatcher dispatcher = BuildEndpointDispatcher(description, endpoint, services);
+                    EndpointDispatcher dispatcher = BuildEndpointDispatcher(description, endpoint);
 
                     if (!endpointInfosPerEndpointAddress.ContainsKey(endpoint.Address))
                     {
@@ -471,7 +471,7 @@ namespace CoreWCF.Description
         }
 
         internal static EndpointDispatcher BuildEndpointDispatcher(ServiceDescription serviceDescription,
-                                                  ServiceEndpoint endpoint, IServiceProvider services)
+                                                  ServiceEndpoint endpoint)
         {
             if (serviceDescription == null)
             {
@@ -502,7 +502,7 @@ namespace CoreWCF.Description
 
                 if (!operation.IsServerInitiated())
                 {
-                    BuildDispatchOperation(operation, dispatch, provider, services);
+                    BuildDispatchOperation(operation, dispatch, provider, serviceDescription.ServiceProvider);
                 }
                 else
                 {
