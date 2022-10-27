@@ -1158,10 +1158,20 @@ namespace CoreWCF.Description
 
             foreach (var (method, parameters) in methodInfos)
             {
-                if (method.Name == operationDescription.OperationMethod.Name)
+                if (method.Name == operationDescription.OperationMethod.Name
+                    && operationDescriptionParameters.Length == parameters.Length)
                 {
-                    if (operationDescriptionParameters.Length == parameters.Length &&
-                        operationDescriptionParameters.All(x => parameters.Any(y => x.ParameterType == y.ParameterType && x.Name == y.Name)))
+                    bool match = true;
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if (operationDescriptionParameters[i].ParameterType != parameters[i].ParameterType)
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+
+                    if (match)
                     {
                         return method;
                     }
