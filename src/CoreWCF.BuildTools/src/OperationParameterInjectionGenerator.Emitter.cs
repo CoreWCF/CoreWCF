@@ -73,10 +73,10 @@ namespace CoreWCF.BuildTools
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
                 string fileName = GetFileName();
-                var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract.Parameters.Any(p =>
+                var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
-                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol)
+                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract!.ReturnType, _generationSpec.TaskSymbol)
                     || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
 
@@ -210,12 +210,12 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
 
                 string GetFileName()
                 {
-                    string operationContractName = operationContractSpec.MissingOperationContract.Name;
+                    string operationContractName = operationContractSpec.MissingOperationContract!.Name;
                     foreach (var namedArgument in operationContractSpec.OperationContractAttributeData.NamedArguments)
                     {
-                        if (namedArgument.Key == "Name")
+                        if (namedArgument.Key == "Name" && namedArgument.Value.Value is string value)
                         {
-                            operationContractName = namedArgument.Value.Value as string;
+                            operationContractName = value;
                             break;
                         }
                     }

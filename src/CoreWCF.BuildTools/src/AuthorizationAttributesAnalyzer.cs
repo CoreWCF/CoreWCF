@@ -90,7 +90,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         }
 
         var arguments = from attribute in methodSymbol.GetAttributes()
-            where attribute.AttributeClass.AllInterfaces.Any(@interface =>
+            where attribute.AttributeClass!.AllInterfaces.Any(@interface =>
                 @interface.Equals(authorizeData, SymbolEqualityComparer.Default))
             from args in attribute.NamedArguments
             select args;

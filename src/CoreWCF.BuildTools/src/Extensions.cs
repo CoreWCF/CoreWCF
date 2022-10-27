@@ -54,7 +54,7 @@ namespace CoreWCF.BuildTools
 
     internal static class SymbolExtensions
     {
-        public static (bool Value, AttributeData AttributeData)  HasOneAttributeOf(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
+        public static (bool Value, AttributeData? AttributeData)  HasOneAttributeOf(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
         {
             if (attributeTypeSymbols.Length == 0)
             {
@@ -84,7 +84,7 @@ namespace CoreWCF.BuildTools
 
             foreach (var attribute in symbol.GetAttributes())
             {
-                foreach (var @interface in attribute.AttributeClass?.AllInterfaces)
+                foreach (var @interface in attribute.AttributeClass!.AllInterfaces)
                 {
                     foreach (var namedTypeSymbol in attributeTypeSymbols.Where(static s => s is not null))
                     {
