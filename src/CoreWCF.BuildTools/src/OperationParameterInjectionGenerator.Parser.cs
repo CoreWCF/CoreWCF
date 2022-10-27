@@ -81,7 +81,7 @@ namespace CoreWCF.BuildTools
                 {
                     if (!value.Method.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                     {
-                        _context.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, value.Method.Name, parentType.Locations[0]));
+                        _context.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaiseParentClassShouldBePartialError(parentType.Name, value.Method.Name, parentType.Locations[0]));
                         continue;
                     }
 

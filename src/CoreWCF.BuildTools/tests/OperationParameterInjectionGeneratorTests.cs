@@ -1932,7 +1932,7 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                        new DiagnosticResult(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.ParentClassShouldBePartialError)
                             .WithDefaultPath("/0/Test0.cs")
                             .WithSpan(14, 18, 14, 33)
                             .WithArguments("IdentityService", "Echo2")
@@ -1980,7 +1980,7 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                        new DiagnosticResult(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.ParentClassShouldBePartialError)
                             .WithDefaultPath("/0/Test0.cs")
                             .WithSpan(14, 18, 14, 28)
                             .WithArguments("ContainerA", "Echo2")
@@ -2031,7 +2031,7 @@ namespace MyProject
                     GeneratedSources = { },
                     ExpectedDiagnostics =
                     {
-                        new DiagnosticResult(DiagnosticDescriptors.ParentClassShouldBePartialError)
+                        new DiagnosticResult(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.ParentClassShouldBePartialError)
                             .WithSpan(14, 18, 14, 28)
                             .WithArguments("ContainerA", "Echo2")
                             .WithDefaultPath("/0/Test0.cs"),

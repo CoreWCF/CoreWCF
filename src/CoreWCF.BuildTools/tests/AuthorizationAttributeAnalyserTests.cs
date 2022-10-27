@@ -50,7 +50,7 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported)
                         .WithSpan(14, 23, 14, 27)
                         .WithDefaultPath("/0/Test0.cs")
                 }
@@ -90,7 +90,7 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported)
                         .WithSpan(14, 23, 14, 27)
                         .WithDefaultPath("/0/Test0.cs")
                 }
@@ -130,7 +130,7 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataRolesPropertyIsNotSupported)
                         .WithSpan(14, 23, 14, 27)
                         .WithDefaultPath("/0/Test0.cs")
                 }
@@ -248,10 +248,10 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported)
                         .WithSpan(16, 20, 16, 24)
                         .WithDefaultPath("/0/Test0.cs"),
-                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported)
                         .WithSpan(18, 23, 18, 27)
                         .WithDefaultPath("/0/Test0.cs")
                 }
@@ -291,7 +291,7 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported)
                         .WithSpan(12, 18, 12, 33)
                         .WithDefaultPath("/0/Test0.cs")
                 }
@@ -331,7 +331,7 @@ namespace MyProject
                 },
                 ExpectedDiagnostics =
                 {
-                    new DiagnosticResult(DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClass)
+                    new DiagnosticResult(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClass)
                         .WithSpan(12, 18, 12, 33)
                         .WithArguments("IdentityService")
                         .WithDefaultPath("/0/Test0.cs")

@@ -25,10 +25,10 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     private static readonly ImmutableArray<DiagnosticDescriptor> s_supportedDiagnostics =
         new[]
             {
-                DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported,
-                DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClass,
-                DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported,
-                DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupported
+                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported,
+                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClass,
+                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported,
+                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataRolesPropertyIsNotSupported
             }
             .ToImmutableArray();
 
@@ -64,7 +64,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
                 x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute).Value))
         {
             context.ReportDiagnostic(
-                DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
+                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
         }
     }
 
@@ -99,12 +99,12 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         {
             if (argument.Key == AuthenticationSchemesPropertyName)
             {
-                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataAuthenticationSchemesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
+                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataAuthenticationSchemesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
                 continue;
             }
             if (argument.Key == RolesPropertyName)
             {
-                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizeDataRolesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
+                context.ReportDiagnostic(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataRolesPropertyIsNotSupportedWarning(context.Symbol.Locations[0]));
             }
         }
     }
@@ -128,7 +128,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
 
         if (isOperationContractImplementation)
         {
-            context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
+            context.ReportDiagnostic(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupportedWarning(context.Symbol.Locations[0]));
         }
     }
 
@@ -193,7 +193,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         if (namedTypeSymbol.AllInterfaces.Any(x =>
                 x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute).Value))
         {
-            context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(namedTypeSymbol.Locations[0]));
+            context.ReportDiagnostic(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupportedWarning(namedTypeSymbol.Locations[0]));
         }
     }
 }
