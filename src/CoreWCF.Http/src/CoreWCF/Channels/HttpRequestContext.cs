@@ -450,9 +450,8 @@ namespace CoreWCF.Channels
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(genericToken);
                     return new ServiceSecurityContext(authorizationPolicies);
                 }
-                else if (principal.Identity is ClaimsIdentity cid)
+                else if (principal.Identity is ClaimsIdentity)
                 {
-                    Fx.AssertAndThrow(cid.IsAuthenticated, "ClaimsPrincipal should be authenticated");
                     AuthorizationContext authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(null);
                     authorizationContext.Properties.Add("ClaimsPrincipal", principal);
                     return new ServiceSecurityContext(authorizationContext);
