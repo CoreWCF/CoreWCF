@@ -59,7 +59,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)))
+                x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute).Value))
         {
             context.ReportDiagnostic(
                 DiagnosticDescriptors.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
@@ -129,7 +129,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
             context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
-            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute)
+            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute).Value
             select @interface).ToImmutableArray();
 
         if (serviceContracts.IsEmpty)
@@ -143,7 +143,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var operationContracts = (from serviceContract in serviceContracts
             from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
             where method.Name == methodSymbol.Name
-            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute)
+            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute).Value
             select method).ToImmutableArray();
 
         var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>()
@@ -181,7 +181,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute)))
+                x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute).Value))
         {
             context.ReportDiagnostic(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupportedWarning(namedTypeSymbol.Locations[0]));
         }

@@ -52,24 +52,26 @@ namespace CoreWCF.BuildTools
 
                 var methodServiceContractAndOperationContractsValues = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
-                    where @interface.HasOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol)
+                    where @interface.HasOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol).Value
                     let methodMembers = (from member in @interface.GetMembers()
                         let methodMember = member as IMethodSymbol
                         where methodMember is not null
-                        where methodMember.HasOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
-                        select methodMember).ToImmutableArray()
+                        let hasOneOpContractAttributeResult = methodMember.HasOneAttributeOf(_sSMOperationContractSymbol,
+                            _coreWCFOperationContractSymbol)
+                        where hasOneOpContractAttributeResult.Value
+                        select (MethodMember: methodMember, AttributeData: hasOneOpContractAttributeResult.AttributeData)).ToImmutableArray()
                     select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
 
                 var methodMissingOperationServiceContractAndOperationContractsValues =
                     from value in methodServiceContractAndOperationContractsValues
                     let missingOperationContract =
                         value.OperationContracts
-                            .SingleOrDefault(x => x.Name == value.Method.Name
-                                                  && x.Parameters.All(p =>
+                            .SingleOrDefault(x => x.MethodMember.Name == value.Method.Name
+                                                  && x.MethodMember.Parameters.All(p =>
                                                       value.Method.Parameters.Any(msp =>
                                                           msp.IsMatchingParameter(p))))
-                    where missingOperationContract is not null
-                    let nonNullMissingOperationContract = missingOperationContract as IMethodSymbol
+                    where missingOperationContract.MethodMember is not null
+                    let nonNullMissingOperationContract = missingOperationContract
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
                         value.ServiceContract, value.OperationContracts);
 
@@ -84,9 +86,9 @@ namespace CoreWCF.BuildTools
                     }
 
                     builder.Add(new OperationContractSpec(value.ServiceContract,
-                        value.Method.ContainingType, value.MissingOperationContract,
+                        value.Method.ContainingType, value.MissingOperationContract.MethodMember,
                         value.Method,
-                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol));
+                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol, value.MissingOperationContract.AttributeData));
                 }
 
                 ImmutableArray<OperationContractSpec> operationContractSpecs = builder.ToImmutable();

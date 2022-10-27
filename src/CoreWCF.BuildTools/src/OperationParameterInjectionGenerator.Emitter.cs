@@ -72,7 +72,7 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.MissingOperationContract!.Name}.g.cs";
+                string fileName = GetFileName();
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
@@ -208,6 +208,20 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
 
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
+                string GetFileName()
+                {
+                    string operationContractName = operationContractSpec.MissingOperationContract.Name;
+                    foreach (var namedArgument in operationContractSpec.OperationContractAttributeData.NamedArguments)
+                    {
+                        if (namedArgument.Key == "Name")
+                        {
+                            operationContractName = namedArgument.Value.Value as string;
+                            break;
+                        }
+                    }
+                    return $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractName}.g.cs";
+                }
+
                 void AppendResolveDependencies()
                 {
                     for (int i = 0; i < dependencies.Length; i++)
@@ -243,7 +257,7 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                             _builder.Append(", ");
                         }
 
-                        if (parameter.HasOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol))
+                        if (parameter.HasOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol).Value)
                         {
                             _builder.Append(dependencyNames[parameter.Type]);
                         }

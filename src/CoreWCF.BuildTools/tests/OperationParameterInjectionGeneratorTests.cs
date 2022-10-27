@@ -102,6 +102,96 @@ namespace MyProject
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
+        public async Task MethodOverloadsTests(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        int Echo(int input);
+
+        [{attributeNamespace}.OperationContract(Name = ""EchoString"")]
+        string Echo(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public int Echo(int input, [{attribute}] object a) => input;
+        public string Echo(string input, [{attribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        public int Echo(int input)
+        {{
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+            {{
+                using (var scope = serviceProvider.CreateScope())
+                {{
+                    var d0 = scope.ServiceProvider.GetService<object>();
+                    return Echo(input, d0);
+                }}
+            }}
+            var e0 = serviceProvider.GetService<object>();
+            return Echo(input, e0);
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_EchoString.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        public string Echo(string input)
+        {{
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+            {{
+                using (var scope = serviceProvider.CreateScope())
+                {{
+                    var d0 = scope.ServiceProvider.GetService<object>();
+                    return Echo(input, d0);
+                }}
+            }}
+            var e0 = serviceProvider.GetService<object>();
+            return Echo(input, e0);
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256))
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
         public async Task BasicTestsWithAuthorizeAttribute(string attributeNamespace, string attribute)
         {
             var test = new VerifyGenerator.Test
