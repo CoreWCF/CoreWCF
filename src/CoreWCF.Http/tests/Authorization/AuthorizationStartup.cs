@@ -7,7 +7,6 @@ using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Http.Tests.Authorization;
@@ -35,7 +34,7 @@ public class AuthorizationStartup
             {
                 Security = new BasicHttpSecurity
                 {
-                    Mode = BasicHttpSecurityMode.None,
+                    Mode = BasicHttpSecurityMode.TransportCredentialOnly,
                     Transport = new HttpTransportSecurity
                     {
                         ClientCredentialType = HttpClientCredentialType.InheritedFromHost
@@ -53,7 +52,6 @@ public class AuthorizationStartup
                     }
                 }
             }, "/BasicWcfService/basichttp.svc");
-
         });
     }
 }
