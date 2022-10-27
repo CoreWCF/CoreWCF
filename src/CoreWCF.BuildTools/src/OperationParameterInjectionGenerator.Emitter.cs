@@ -138,6 +138,20 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 }
 
                 indentor.Increment();
+                foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
+                {
+                    _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
+                    _builder.Append(string.Join(", ",
+                        attributeData.ConstructorArguments.Select(x =>
+                            x.Kind switch
+                            {
+                                TypedConstantKind.Array => string.Join(", ", x.Values.Select(y => $@"""{y.Value}""")),
+                                _ => $@"""{x.Value}"""
+                            }).Union(
+                        attributeData.NamedArguments.Select(x => $@"{x.Key} = ""{x.Value.Value}"""))));
+                    _builder.Append(")]");
+                    _builder.AppendLine();
+                }
                 _builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 _builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
