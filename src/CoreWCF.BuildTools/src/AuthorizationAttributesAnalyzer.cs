@@ -35,7 +35,9 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+#if !DEBUG
         context.EnableConcurrentExecution();
+#endif
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnServiceContractImplementation, SymbolKind.NamedType);
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnOperationContractImplementation, SymbolKind.Method);
         context.RegisterSymbolAction(WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation, SymbolKind.Method);
@@ -69,6 +71,10 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     private static void WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation(SymbolAnalysisContext context)
     {
         IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
+        if (methodSymbol.IsGeneratedCode() == true)
+        {
+            return;
+        }
 
         var authorizeData = context.Compilation.GetTypeByMetadataName(AuthorizeDataTypeName);
         bool hasAuthorizeData = methodSymbol.HasOneAttributeInheritFrom(authorizeData);
@@ -106,6 +112,10 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
     private static void WarnWhenAllowAnonymousOnOperationContractImplementation(SymbolAnalysisContext context)
     {
         IMethodSymbol methodSymbol = (IMethodSymbol)context.Symbol;
+        if (methodSymbol.IsGeneratedCode() == true)
+        {
+            return;
+        }
 
         var allowAnonymous = context.Compilation.GetTypeByMetadataName(AllowAnonymousTypeName);
         bool hasAllowAnonymous = methodSymbol.HasOneAttributeInheritFrom(allowAnonymous);

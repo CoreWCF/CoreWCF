@@ -10,7 +10,10 @@ namespace CoreWCF.BuildTools
 {
     internal static class MethodSymbolExtensions
     {
-        public static bool IsMatchingUserProvidedMethod(this IMethodSymbol methodSymbol, IMethodSymbol userProvidedMethodSymbol, INamedTypeSymbol coreWCFInjectedAttribute, INamedTypeSymbol fromServicesAttribute)
+        public static bool? IsGeneratedCode(this IMethodSymbol methodSymbol)
+            => methodSymbol.Locations.FirstOrDefault()?.SourceTree?.FilePath.EndsWith(".g.cs");
+
+        public static bool IsMatchingUserProvidedMethod(this IMethodSymbol methodSymbol, IMethodSymbol userProvidedMethodSymbol, INamedTypeSymbol? coreWCFInjectedAttribute, INamedTypeSymbol? fromServicesAttribute)
         {
             int parameterFound = 0;
             if (methodSymbol.Name != userProvidedMethodSymbol.Name)
@@ -26,9 +29,9 @@ namespace CoreWCF.BuildTools
                     continue;
                 }
 
-                foreach (IParameterSymbol parameter in methodSymbol.Parameters)
+                foreach (IParameterSymbol parameter in parameters)
                 {
-                    if (parameter.IsMatchingParameter(parameter))
+                    if (parameterSymbol.IsMatchingParameter(parameter))
                     {
                         parameterFound++;
                         break;

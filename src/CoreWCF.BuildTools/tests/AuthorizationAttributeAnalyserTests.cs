@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using VerifyAnalyzer = CSharpAnalyzerVerifier<CoreWCF.BuildTools.AuthorizationAttributesAnalyzer>;
 
@@ -141,6 +142,62 @@ namespace MyProject
     [Theory]
     [InlineData(SSMNamespace)]
     [InlineData(CoreWCFNamespace)]
+    public async Task AuthorizeOnAUserProvidedOperationContractImplementationToBeGeneratedBySourceGenTests(string attributeNamespace)
+    {
+        var test = new VerifyAnalyzer.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        int Echo(int input);
+        [{attributeNamespace}.OperationContract(Name = ""EchoString"")]
+        string Echo(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public int Echo(int input, [CoreWCF.Injected] HttpContext context) => input;
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public string Echo(string input, [Microsoft.AspNetCore.Mvc.FromServices] HttpContext context) => input;
+    }}
+}}
+", ("MyProject_IIdentityService_Echo.g.cs", @$"
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.AuthorizeAttribute()]
+        public int Echo(int input) => input;
+    }}
+}}
+"), ("MyProject_IIdentityService_EchoString.g.cs", @$"
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.AuthorizeAttribute()]
+        public string Echo(string input) => input;
+    }}
+}}
+")
+                }
+            }
+        };
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(SSMNamespace)]
+    [InlineData(CoreWCFNamespace)]
     public async Task AllowAnonymousOnAUserProvidedOperationContractImplementationToBeGeneratedBySourceGenTests(string attributeNamespace)
     {
         var test = new VerifyAnalyzer.Test
@@ -156,34 +213,46 @@ namespace MyProject
     public interface IIdentityService
     {{
         [{attributeNamespace}.OperationContract]
+        int Echo(int input);
+        [{attributeNamespace}.OperationContract(Name = ""EchoString"")]
         string Echo(string input);
-        [{attributeNamespace}.OperationContract]
-        string Echo2(string input);
-    }}
-
-    public partial class IdentityService
-    {{
-        public string Echo(string input) => input;
-        public string Echo2(string input) => input;
     }}
 
     public partial class IdentityService : IIdentityService
     {{
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-        public string Echo(string input, [CoreWCF.Injected] HttpContext context) => input;
+        public int Echo(int input, [CoreWCF.Injected] HttpContext context) => input;
         [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-        public string Echo2(string input, [Microsoft.AspNetCore.Mvc.FromServices] HttpContext context) => input;
+        public string Echo(string input, [Microsoft.AspNetCore.Mvc.FromServices] HttpContext context) => input;
     }}
 }}
-"
+", ("MyProject_IIdentityService_Echo.g.cs", @$"
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute()]
+        public int Echo(int input) => input;
+    }}
+}}
+"), ("MyProject_IIdentityService_EchoString.g.cs", @$"
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        [Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute()]
+        public string Echo(string input) => input;
+    }}
+}}
+")
                 },
                 ExpectedDiagnostics =
                 {
                     new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
-                        .WithSpan(22, 23, 22, 27)
+                        .WithSpan(16, 20, 16, 24)
                         .WithDefaultPath("/0/Test0.cs"),
                     new DiagnosticResult(DiagnosticDescriptors.AllowAnonymousAttributeIsNotSupported)
-                        .WithSpan(24, 23, 24, 28)
+                        .WithSpan(18, 23, 18, 27)
                         .WithDefaultPath("/0/Test0.cs")
                 }
             }

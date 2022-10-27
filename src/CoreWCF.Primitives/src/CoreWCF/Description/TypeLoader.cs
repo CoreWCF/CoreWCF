@@ -1141,45 +1141,36 @@ namespace CoreWCF.Description
 
         private static MethodInfo FindServiceImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
         {
+            bool IsInjectedParameter(ParameterInfo parameterInfo)
+                => parameterInfo.GetCustomAttributes().Select(static customAttribute => customAttribute.GetType().FullName)
+                    .Any(static customAttributeFullName => customAttributeFullName == "CoreWCF.InjectedAttribute" || customAttributeFullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute");
+
             Type serviceType = typeof(TService);
-            MethodInfo[] methodInfos = serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            // The source generator will produce an method with identical name but with attrributes marked with either CoreWCF.Injected or FromServices attributes.
-            // We need to to fetch AuthorizeAttribute from user provided implementation.
-            Dictionary<string, MethodInfo> methods = new ();
-            foreach (MethodInfo methodInfo in methodInfos)
+            IEnumerable<(MethodInfo Method, ParameterInfo[] Parameters)> query =
+                from method in serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                let parameters = method.GetParameters()
+                where parameters.All(p => !IsInjectedParameter(p))
+                select (Method: method, Parameters: parameters);
+
+            var methodInfos = query.ToArray();
+            var operationDescriptionParameters = operationDescription.OperationMethod.GetParameters();
+
+            foreach (var (method, parameters) in methodInfos)
             {
-                if (!methods.TryGetValue(methodInfo.Name, out MethodInfo m))
+                if (method.Name == operationDescription.OperationMethod.Name)
                 {
-                    methods.Add(methodInfo.Name, methodInfo);
-                    continue;
-                }
-
-                var parameterAttributesTypes = from parameter in m.GetParameters()
-                    from attribute in parameter.GetCustomAttributes()
-                    let type = attribute.GetType().FullName
-                    where type == "CoreWCF.InjectedAttribute" ||
-                          type == "Microsoft.AspNetCore.Mvc.FromServicesAttribute"
-                    select type;
-                if (parameterAttributesTypes.Any())
-                {
-                    continue;
-                }
-
-                methods[methodInfo.Name] = methodInfo;
-            }
-
-            foreach (var methodInfo in methods.Values)
-            {
-                if (methodInfo.Name == operationDescription.OperationMethod.Name)
-                {
-                    return methodInfo;
+                    if (operationDescriptionParameters.Length == parameters.Length &&
+                        operationDescriptionParameters.All(x => parameters.Any(y => x.ParameterType == y.ParameterType && x.Name == y.Name)))
+                    {
+                        return method;
+                    }
                 }
 
                 // handle explicit interface implementations
-                if (methodInfo.Name == $"{contractDescription.ConfigurationName}.{operationDescription.OperationMethod.Name}")
+                if (method.Name == $"{contractDescription.ConfigurationName}.{operationDescription.OperationMethod.Name}")
                 {
-                    return methodInfo;
+                    return method;
                 }
             }
 
