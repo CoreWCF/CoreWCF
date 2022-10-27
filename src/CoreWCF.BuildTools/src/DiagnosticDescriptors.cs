@@ -31,7 +31,7 @@ namespace CoreWCF.BuildTools
             internal static Diagnostic AllowAnonymousAttributeIsNotSupportedWarning(Location location) => Diagnostic.Create(AllowAnonymousAttributeIsNotSupported, location);
 
             internal static readonly DiagnosticDescriptor AuthorizeAttributeIsNotSupportedOnClass = new DiagnosticDescriptor(id: "COREWCF_0201",
-                title: "[Authorize] attribute is not supported",
+                title: "[Authorize] attribute is not supported on class",
                 messageFormat: "[Authorize] attribute is not supported on class '{0}'",
                 category: nameof(AuthorizationAttributesAnalyzer),
                 DiagnosticSeverity.Error,
