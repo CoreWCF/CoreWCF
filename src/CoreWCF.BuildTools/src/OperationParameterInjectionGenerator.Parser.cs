@@ -52,14 +52,14 @@ namespace CoreWCF.BuildTools
 
                 var methodServiceContractAndOperationContractsValues = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
-                    where @interface.HasOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol).Value
+                    where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
                     let methodMembers = (from member in @interface.GetMembers()
                         let methodMember = member as IMethodSymbol
                         where methodMember is not null
-                        let hasOneOpContractAttributeResult = methodMember.HasOneAttributeOf(_sSMOperationContractSymbol,
+                        let operationContractAttribute = methodMember.GetOneAttributeOf(_sSMOperationContractSymbol,
                             _coreWCFOperationContractSymbol)
-                        where hasOneOpContractAttributeResult.Value
-                        select (MethodMember: methodMember, AttributeData: hasOneOpContractAttributeResult.AttributeData)).ToImmutableArray()
+                        where operationContractAttribute is not null
+                        select (MethodMember: methodMember, AttributeData: operationContractAttribute)).ToImmutableArray()
                     select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
 
                 var methodMissingOperationServiceContractAndOperationContractsValues =

@@ -60,8 +60,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeTypeName);
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
-        if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute).Value))
+        if (namedTypeSymbol.AllInterfaces.Any(x => x.GetOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute) is not null))
         {
             context.ReportDiagnostic(
                 DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
@@ -139,7 +138,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
             context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         var serviceContracts = (from @interface in methodSymbol.ContainingType.AllInterfaces
-            where @interface.HasOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute).Value
+            where @interface.GetOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute) is not null
             select @interface).ToImmutableArray();
 
         if (serviceContracts.IsEmpty)
@@ -153,7 +152,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var operationContracts = (from serviceContract in serviceContracts
             from method in serviceContract.GetMembers().OfType<IMethodSymbol>()
             where method.Name == methodSymbol.Name
-            where method.HasOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute).Value
+            where method.GetOneAttributeOf(coreWCFOperationContractAttribute, ssmOperationContractAttribute) is not null
             select method).ToImmutableArray();
 
         var implementedMethods = methodSymbol.ContainingType.GetMembers().OfType<IMethodSymbol>()
@@ -191,7 +190,7 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
 
         if (namedTypeSymbol.AllInterfaces.Any(x =>
-                x.HasOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute).Value))
+                x.GetOneAttributeOf(coreWCFServiceContractAttribute, ssmServiceContractAttribute) is not null))
         {
             context.ReportDiagnostic(DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupportedWarning(namedTypeSymbol.Locations[0]));
         }
