@@ -64,7 +64,10 @@ namespace CoreWCF.BuildTools
                     from value in methodServiceContractAndOperationContractsValues
                     let missingOperationContract =
                         value.OperationContracts
-                            .SingleOrDefault(x => x.IsMatchingUserProvidedMethod(value.Method, _coreWCFInjectedSymbol, _mvcFromServicesSymbol))
+                            .SingleOrDefault(x => x.Name == value.Method.Name
+                                                  && x.Parameters.All(p =>
+                                                      value.Method.Parameters.Any(msp =>
+                                                          msp.IsMatchingParameter(p))))
                     where missingOperationContract is not null
                     let nonNullMissingOperationContract = missingOperationContract as IMethodSymbol
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
