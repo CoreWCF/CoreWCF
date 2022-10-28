@@ -1130,22 +1130,6 @@ namespace CoreWCF.Description
                 }
             }
 
-            // var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
-            // if (serviceImplementationMethodInfo == null)
-            // {
-            //     // we do care only about Authorize attributes that decorate non callback contract
-            //     Fx.AssertAndThrow(direction == MessageDirection.Output,
-            //         $"Unable to find service implementation in contract {contractDescription.Name}");
-            // }
-            // else
-            // {
-            //     methodAttributes = serviceImplementationMethodInfo.GetCustomAttributes(false);
-            //     foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
-            //     {
-            //         operationDescription.AuthorizeData.Add(methodAttribute);
-            //     }
-            // }
-
             return operationDescription;
         }
 
