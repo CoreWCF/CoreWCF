@@ -1120,15 +1120,9 @@ namespace CoreWCF.Description
                 }
             }
 
-            var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
-            if (serviceImplementationMethodInfo == null)
+            if (direction == MessageDirection.Input)
             {
-                // we do care only about Authorize attributes that decorate non callback contract
-                Fx.AssertAndThrow(direction == MessageDirection.Output,
-                    $"Unable to find service implementation in contract {contractDescription.Name}");
-            }
-            else
-            {
+                var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
                 methodAttributes = serviceImplementationMethodInfo.GetCustomAttributes(false);
                 foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
                 {
@@ -1136,55 +1130,38 @@ namespace CoreWCF.Description
                 }
             }
 
+            // var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
+            // if (serviceImplementationMethodInfo == null)
+            // {
+            //     // we do care only about Authorize attributes that decorate non callback contract
+            //     Fx.AssertAndThrow(direction == MessageDirection.Output,
+            //         $"Unable to find service implementation in contract {contractDescription.Name}");
+            // }
+            // else
+            // {
+            //     methodAttributes = serviceImplementationMethodInfo.GetCustomAttributes(false);
+            //     foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
+            //     {
+            //         operationDescription.AuthorizeData.Add(methodAttribute);
+            //     }
+            // }
+
             return operationDescription;
         }
 
         private static MethodInfo FindServiceImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
         {
-            bool IsInjectedParameter(ParameterInfo parameterInfo)
-                => parameterInfo.GetCustomAttributes().Select(static customAttribute => customAttribute.GetType().FullName)
-                    .Any(static customAttributeFullName => customAttributeFullName == "CoreWCF.InjectedAttribute" || customAttributeFullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute");
-
             Type serviceType = typeof(TService);
-
-            IEnumerable<(MethodInfo Method, ParameterInfo[] Parameters)> query =
-                from method in serviceType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                let parameters = method.GetParameters()
-                where parameters.All(p => !IsInjectedParameter(p))
-                select (Method: method, Parameters: parameters);
-
-            var methodInfos = query.ToArray();
-            var operationDescriptionParameters = operationDescription.OperationMethod.GetParameters();
-
-            foreach (var (method, parameters) in methodInfos)
+            if (serviceType.IsInterface)
             {
-                if (method.Name == operationDescription.OperationMethod.Name
-                    && operationDescriptionParameters.Length == parameters.Length)
-                {
-                    bool match = true;
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        if (operationDescriptionParameters[i].ParameterType != parameters[i].ParameterType)
-                        {
-                            match = false;
-                            break;
-                        }
-                    }
-
-                    if (match)
-                    {
-                        return method;
-                    }
-                }
-
-                // handle explicit interface implementations
-                if (method.Name == $"{contractDescription.ConfigurationName}.{operationDescription.OperationMethod.Name}")
-                {
-                    return method;
-                }
+                return operationDescription.OperationMethod;
             }
 
-            return null;
+            InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operationDescription.OperationMethod.DeclaringType);
+            int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operationDescription.OperationMethod);
+            return index < 0
+                ? null
+                : interfaceMapping.TargetMethods[index];
         }
 
         private void CheckDuplicateFaultContract(FaultDescriptionCollection faultDescriptionCollection, FaultDescription fault, string operationName)
