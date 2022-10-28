@@ -216,6 +216,7 @@ namespace CoreWCF.Description
                         if (_isAuthorizationServiceSet)
                         {
                             behavior.AuthorizationService = _authorizationService;
+                            behavior.RequireClaimsPrincipalOnOperationContext = true;
                         }
                     }
                 }
