@@ -453,7 +453,7 @@ namespace CoreWCF.Channels
                 else if (principal.Identity is ClaimsIdentity)
                 {
                     AuthorizationContext authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(null);
-                    authorizationContext.Properties.Add("ClaimsPrincipal", principal);
+                    authorizationContext.Properties.Add(nameof(ClaimsPrincipal), principal);
                     return new ServiceSecurityContext(authorizationContext);
                 }
 
