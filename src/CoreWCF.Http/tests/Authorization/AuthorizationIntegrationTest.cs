@@ -4,6 +4,8 @@
 using System;
 using System.IO;
 using Helpers;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
@@ -17,6 +19,9 @@ public class AuthorizationIntegrationTest<TStartup> : WebApplicationFactory<TSta
 {
     public string DefaultScopeClaimValue { get; set; } = DefinedScopes.Read;
     public bool IsAuthenticated { get; set; } = false;
+
+    public IAuthorizationService AuthorizationService { get; private set; }
+    public IAuthenticationService AuthenticationService { get; private set; }
 
     protected override TestServer CreateServer(IWebHostBuilder builder)
     {
@@ -55,6 +60,20 @@ public class AuthorizationIntegrationTest<TStartup> : WebApplicationFactory<TSta
                         options.IsAuthenticated = IsAuthenticated;
                         options.DefaultScopeClaimValue = DefaultScopeClaimValue;
                     });
+
+            services.AddTransient<DefaultAuthorizationService>();
+            services.AddTransient(provider =>
+            {
+                AuthorizationService = new AuthorizationServiceInterceptor(provider.GetRequiredService<DefaultAuthorizationService>());
+                return AuthorizationService;
+            });
+            services.AddScoped<AuthenticationService>();
+            services.AddScoped(provider =>
+            {
+                AuthenticationService =
+                    new AuthenticationServiceInterceptor(provider.GetRequiredService<AuthenticationService>());
+                return AuthenticationService;
+            });
         });
     }
 

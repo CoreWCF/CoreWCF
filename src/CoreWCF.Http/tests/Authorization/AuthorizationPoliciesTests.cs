@@ -69,6 +69,10 @@ namespace CoreWCF.Http.Tests.Authorization
 
             Assert.False(response.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceInterceptor>(factory.AuthenticationService);
+            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
+            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceInterceptor>(factory.AuthorizationService);
+            Assert.False(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
         }
 
         public static IEnumerable<object[]> Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations()
@@ -123,6 +127,10 @@ namespace CoreWCF.Http.Tests.Authorization
             Assert.False(response.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             Assert.Contains("Access is denied", responseContent);
+            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceInterceptor>(factory.AuthenticationService);
+            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
+            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceInterceptor>(factory.AuthorizationService);
+            Assert.True(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
         }
 
         public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
@@ -186,6 +194,10 @@ namespace CoreWCF.Http.Tests.Authorization
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(expected, responseBody);
+            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceInterceptor>(factory.AuthenticationService);
+            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
+            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceInterceptor>(factory.AuthorizationService);
+            Assert.True(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
         }
     }
 }

@@ -1,9 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -106,4 +109,63 @@ internal static class DefinedScopes
     public const string Admin = nameof(Admin);
     public const string Read = nameof(Read);
     public const string Write = nameof(Write);
+}
+
+public class AuthorizationServiceInterceptor : IAuthorizationService
+{
+    private readonly IAuthorizationService _authorizationService;
+
+    public bool IsAuthorizeAsyncCalled { get; private set; }
+
+    public AuthorizationServiceInterceptor(IAuthorizationService authorizationService)
+    {
+        _authorizationService = authorizationService;
+    }
+
+    public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource,
+        IEnumerable<IAuthorizationRequirement> requirements)
+    {
+        var result = await _authorizationService.AuthorizeAsync(user, resource, requirements);
+        IsAuthorizeAsyncCalled = true;
+        return result;
+    }
+
+    public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource, string policyName)
+    {
+        var result = await _authorizationService.AuthorizeAsync(user, resource, policyName);
+        IsAuthorizeAsyncCalled = true;
+        return result;
+    }
+}
+
+public class AuthenticationServiceInterceptor : IAuthenticationService
+{
+    private readonly IAuthenticationService _authenticationService;
+
+    public bool IsAuthenticateAsyncCalled { get; private set; }
+
+    public AuthenticationServiceInterceptor(IAuthenticationService authenticationService)
+    {
+        _authenticationService = authenticationService;
+    }
+
+    public async Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
+    {
+        var result = await _authenticationService.AuthenticateAsync(context, scheme);
+        IsAuthenticateAsyncCalled = true;
+        return result;
+    }
+
+    public Task ChallengeAsync(HttpContext context, string scheme, AuthenticationProperties properties)
+        => _authenticationService.ChallengeAsync(context, scheme, properties);
+
+    public Task ForbidAsync(HttpContext context, string scheme, AuthenticationProperties properties)
+        => _authenticationService.ForbidAsync(context, scheme, properties);
+
+    public Task SignInAsync(HttpContext context, string scheme, ClaimsPrincipal principal,
+        AuthenticationProperties properties)
+        => _authenticationService.SignInAsync(context, scheme, principal, properties);
+
+    public Task SignOutAsync(HttpContext context, string scheme, AuthenticationProperties properties)
+        => _authenticationService.SignOutAsync(context, scheme, properties);
 }
