@@ -14,6 +14,7 @@ using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -28,6 +29,8 @@ namespace CoreWCF.Description
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };
+
+        internal static IServiceProvider ServiceProvider { get; set; }
 
         static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
 
@@ -1138,7 +1141,9 @@ namespace CoreWCF.Description
             Type serviceType = typeof(TService);
             if (serviceType.IsInterface)
             {
-                return operationDescription.OperationMethod;
+                using var scope = ServiceProvider.CreateScope();
+                object serviceInstance = scope.ServiceProvider.GetService(serviceType);
+                serviceType = serviceInstance.GetType();
             }
 
             InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operationDescription.OperationMethod.DeclaringType);

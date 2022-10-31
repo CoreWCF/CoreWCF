@@ -23,20 +23,25 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return401_WhenUserIsNotAuthenticated_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write) };
-
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly) };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write) };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return401_WhenUserIsNotAuthenticated_TestVariations))]
-        public async Task Return401_WhenUserIsNotAuthenticated(Uri baseUri, string operationContractName)
+        public async Task Return401_WhenUserIsNotAuthenticated(Type webAppFactory, Uri baseUri, string operationContractName)
         {
-            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
+            using var factory = (IAuthorizationWebApplicationFactory)Activator.CreateInstance(webAppFactory);
 
             factory.IsAuthenticated = false;
 
@@ -77,25 +82,34 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Read };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
-
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Read };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopes.Read };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations))]
-        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(Uri baseUri, string operationContractName, bool isAuthenticated,
+        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(Type webAppFactory, Uri baseUri, string operationContractName, bool isAuthenticated,
             string scopeClaimValue)
         {
-            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
+            using var factory = (IAuthorizationWebApplicationFactory)Activator.CreateInstance(webAppFactory);
 
             factory.IsAuthenticated = isAuthenticated;
             factory.DefaultScopeClaimValue = scopeClaimValue;
@@ -135,26 +149,37 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Read };
-
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Write };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Read };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { typeof(DefaultWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, DefinedScopes.Read };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.AdminOnly), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Admin };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Write };
+            yield return new object[] { typeof(InterfaceOnlyWebApplicationFactory), new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, DefinedScopes.Read };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return200_WhenUserMatchPolicy_TestVariations))]
-        public async Task Return200_WhenUserMatchPolicy(Uri baseUri, string operationContractName, bool isAuthenticated, string scopeClaimValue)
+        public async Task Return200_WhenUserMatchPolicy(Type webAppFactory, Uri baseUri, string operationContractName, bool isAuthenticated, string scopeClaimValue)
         {
-            using var factory = new AuthorizationIntegrationTest<AuthorizationStartup>();
+            using var factory = (IAuthorizationWebApplicationFactory)Activator.CreateInstance(webAppFactory);
 
             factory.IsAuthenticated = isAuthenticated;
             factory.DefaultScopeClaimValue = scopeClaimValue;

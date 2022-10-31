@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,7 +15,53 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public class AuthorizationStartup
+public class InterfaceOnlyAuthorizationStartup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(Policies.Write,
+                policy => policy.RequireClaim("scope", new[] { DefinedScopes.Write, DefinedScopes.Admin }));
+            options.AddPolicy(Policies.AdminOnly,
+                policy => policy.RequireClaim("scope", new[] { DefinedScopes.Admin }));
+        });
+        services.AddServiceModelServices();
+        services.AddSingleton<ISecuredService, SecuredService>();
+    }
+
+    public void Configure(IApplicationBuilder app)
+    {
+        app.UseServiceModel(builder =>
+        {
+            builder.AddService<ISecuredService>();
+            builder.AddServiceEndpoint<ISecuredService, ISecuredService>(new BasicHttpBinding
+            {
+                Security = new BasicHttpSecurity
+                {
+                    Mode = BasicHttpSecurityMode.TransportCredentialOnly,
+                    Transport = new HttpTransportSecurity
+                    {
+                        ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                    }
+                }
+            }, "/BasicWcfService/basichttp.svc");
+            builder.AddServiceEndpoint<ISecuredService, ISecuredService>(new BasicHttpBinding
+            {
+                Security = new BasicHttpSecurity
+                {
+                    Mode = BasicHttpSecurityMode.Transport,
+                    Transport = new HttpTransportSecurity
+                    {
+                        ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                    }
+                }
+            }, "/BasicWcfService/basichttp.svc");
+        });
+    }
+}
+
+public class DefaultAuthorizationStartup
 {
     public void ConfigureServices(IServiceCollection services)
     {

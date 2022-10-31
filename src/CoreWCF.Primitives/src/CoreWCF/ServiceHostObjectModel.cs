@@ -96,6 +96,7 @@ namespace CoreWCF
 
             ReflectedContractCollection reflectedContracts = new ReflectedContractCollection();
             List<Type> interfaces = ServiceReflector.GetInterfaces<TService>();
+            TypeLoader<TService>.ServiceProvider = _serviceProvider;
             for (int i = 0; i < interfaces.Count; i++)
             {
                 Type contractType = interfaces[i];
@@ -123,6 +124,7 @@ namespace CoreWCF
                     }
                 }
             }
+            TypeLoader<TService>.ServiceProvider = null;
             ReflectedContracts = reflectedContracts;
 
             implementedContracts = reflectedContracts.ToImplementedContracts();

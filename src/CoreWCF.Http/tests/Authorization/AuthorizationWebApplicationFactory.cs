@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Net.Http;
 using Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +16,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public class AuthorizationIntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
+public class DefaultWebApplicationFactory : AuthorizationWebApplicationFactory<DefaultAuthorizationStartup> { }
+
+public class InterfaceOnlyWebApplicationFactory : AuthorizationWebApplicationFactory<InterfaceOnlyAuthorizationStartup> { }
+
+public interface IAuthorizationWebApplicationFactory : IDisposable
+{
+    string DefaultScopeClaimValue { get; set; }
+    bool IsAuthenticated { get; set; }
+    IAuthorizationService AuthorizationService { get; }
+    IAuthenticationService AuthenticationService { get; }
+    HttpClient CreateClient();
+}
+
+public class AuthorizationWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>, IAuthorizationWebApplicationFactory where TStartup : class
 {
     public string DefaultScopeClaimValue { get; set; } = DefinedScopes.Read;
     public bool IsAuthenticated { get; set; } = false;
@@ -80,7 +94,7 @@ public class AuthorizationIntegrationTest<TStartup> : WebApplicationFactory<TSta
     private static void SetSelfHostedContentRoot()
     {
         var contentRoot = Directory.GetCurrentDirectory();
-        var assemblyName = typeof(AuthorizationIntegrationTest<TStartup>).Assembly.GetName().Name;
+        var assemblyName = typeof(AuthorizationWebApplicationFactory<TStartup>).Assembly.GetName().Name;
         var settingSuffix = assemblyName.ToUpperInvariant().Replace(".", "_");
         var settingName = $"ASPNETCORE_TEST_CONTENTROOT_{settingSuffix}";
         Environment.SetEnvironmentVariable(settingName, contentRoot);
