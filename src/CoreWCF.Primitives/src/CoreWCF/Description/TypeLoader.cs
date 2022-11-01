@@ -1125,12 +1125,17 @@ namespace CoreWCF.Description
 
             if (direction == MessageDirection.Input)
             {
-                var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
-                methodAttributes = serviceImplementationMethodInfo.GetCustomAttributes(false);
-                foreach (var methodAttribute in methodAttributes.OfType<IAuthorizeData>())
+                operationDescription.AuthorizeData = new Lazy<Collection<IAuthorizeData>>(() =>
                 {
-                    operationDescription.AuthorizeData.Add(methodAttribute);
-                }
+                    var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
+                    Collection<IAuthorizeData> authorizeData = new();
+                    foreach (var methodAttribute in serviceImplementationMethodInfo.GetCustomAttributes(false).OfType<IAuthorizeData>())
+                    {
+                        authorizeData.Add(methodAttribute);
+                    }
+
+                    return authorizeData;
+                });
             }
 
             return operationDescription;

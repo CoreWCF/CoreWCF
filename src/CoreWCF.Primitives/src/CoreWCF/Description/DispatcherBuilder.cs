@@ -597,11 +597,14 @@ namespace CoreWCF.Description
             var authorizationPolicyProvider = services.GetService<IAuthorizationPolicyProvider>();
             if (authorizationPolicyProvider != null)
             {
-                // TODO: Make this chain call async
-                Task<AuthorizationPolicy> getPolicyTask = operation.AuthorizeData.Count > 0
-                    ? AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, operation.AuthorizeData)
-                    : authorizationPolicyProvider.GetDefaultPolicyAsync();
-                child.AuthorizationPolicy = getPolicyTask.GetAwaiter().GetResult();
+                child.AuthorizationPolicy = new Lazy<AuthorizationPolicy>(() =>
+                {
+                    // TODO: Make this chain call async
+                    var getPolicyTask = operation.AuthorizeData.Value.Count > 0
+                        ? AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, operation.AuthorizeData.Value)
+                        : authorizationPolicyProvider.GetDefaultPolicyAsync();
+                    return getPolicyTask.GetAwaiter().GetResult();
+                });
             }
         }
 

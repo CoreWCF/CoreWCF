@@ -124,7 +124,7 @@ namespace CoreWCF
                     }
                 }
             }
-            TypeLoader<TService>.ServiceProvider = null;
+
             ReflectedContracts = reflectedContracts;
 
             implementedContracts = reflectedContracts.ToImplementedContracts();

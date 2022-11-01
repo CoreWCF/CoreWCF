@@ -37,7 +37,6 @@ namespace CoreWCF.Description
             Behaviors = new KeyedByTypeCollection<IOperationBehavior>();
             KnownTypes = new Collection<Type>();
             AuthorizeOperation = new KeyedByTypeCollection<IAuthorizeOperation>();
-            AuthorizeData = new Collection<IAuthorizeData>();
         }
 
         internal OperationDescription(string name, ContractDescription declaringContract, bool validateRpcWrapperName) : this(name, declaringContract)
@@ -126,7 +125,7 @@ namespace CoreWCF.Description
 
         internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
 
-        internal Collection<IAuthorizeData> AuthorizeData { get; }
+        internal Lazy<Collection<IAuthorizeData>> AuthorizeData { get; set; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {

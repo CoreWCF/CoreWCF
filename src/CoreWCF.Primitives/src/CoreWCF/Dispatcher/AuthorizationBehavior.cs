@@ -27,7 +27,7 @@ namespace CoreWCF.Dispatcher
         {
             // TODO: Events
             ClaimsPrincipal claimsPrincipal = rpc.OperationContext.ClaimsPrincipal;
-            AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy;
+            AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy?.Value;
             if (claimsPrincipal != null && authorizationPolicy != null)
             {
                 await AuthorizePolicyAsync(claimsPrincipal, authorizationPolicy);

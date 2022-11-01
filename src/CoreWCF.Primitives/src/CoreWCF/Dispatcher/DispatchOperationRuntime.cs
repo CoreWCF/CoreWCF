@@ -110,7 +110,7 @@ namespace CoreWCF.Dispatcher
 
         internal ConcurrentDictionary<string, List<Claim>> AuthorizeClaims { get; }
 
-        internal AuthorizationPolicy AuthorizationPolicy { get; }
+        internal Lazy<AuthorizationPolicy> AuthorizationPolicy { get; }
 
         internal IOperationInvoker Invoker { get; }
 

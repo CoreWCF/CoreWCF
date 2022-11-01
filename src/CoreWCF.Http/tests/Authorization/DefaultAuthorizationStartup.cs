@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
@@ -27,7 +28,8 @@ public class InterfaceOnlyAuthorizationStartup
                 policy => policy.RequireClaim("scope", new[] { DefinedScopes.Admin }));
         });
         services.AddServiceModelServices();
-        services.AddSingleton<ISecuredService, SecuredService>();
+        services.AddHttpContextAccessor();
+        services.AddTransient<ISecuredService, SecuredService>();
     }
 
     public void Configure(IApplicationBuilder app)
@@ -73,6 +75,8 @@ public class DefaultAuthorizationStartup
                 policy => policy.RequireClaim("scope", new[] { DefinedScopes.Admin }));
         });
         services.AddServiceModelServices();
+        services.AddHttpContextAccessor();
+        services.AddTransient<SecuredService>();
     }
 
     public void Configure(IApplicationBuilder app)
@@ -125,6 +129,14 @@ public interface ISecuredService
 [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
 public partial class SecuredService : ISecuredService
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public SecuredService(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+        Assert.NotNull(_httpContextAccessor.HttpContext);
+    }
+
     // No attribute => defaults to the builtin default policy which is RequireAuthenticatedUser
     public string Default(string text) => text;
 
