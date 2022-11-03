@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Common
 {
-    public class QueueProcessMessage
+    internal class QueueProcessMessage
     {
         private readonly QueueMessageDispatcherDelegate _next;
         private readonly IServiceProvider _serviceProvider;

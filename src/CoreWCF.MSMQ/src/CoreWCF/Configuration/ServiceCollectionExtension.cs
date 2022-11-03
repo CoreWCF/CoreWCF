@@ -11,7 +11,6 @@ namespace CoreWCF.Configuration
         public static IServiceCollection AddServiceModelMsmqSupport(this IServiceCollection services)
         {
             services.AddSingleton<IDeadLetterQueueMsmqSender, DeadLetterQueueSender>();
-
             return services;
         }
     }

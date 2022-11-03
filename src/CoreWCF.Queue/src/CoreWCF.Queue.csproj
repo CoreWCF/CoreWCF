@@ -6,7 +6,6 @@
     <PackageId>CoreWCF.Queue</PackageId>
     <RootNamespace />
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <RootNamespace />
   </PropertyGroup>
 
   <ItemGroup>

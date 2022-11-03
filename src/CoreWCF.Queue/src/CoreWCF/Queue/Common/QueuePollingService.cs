@@ -15,20 +15,20 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Queue.Common
 {
-    public class QueuePollingService : IHostedService
+    internal class QueuePollingService : IHostedService
     {
-        private readonly QueueHandShakeMiddleWare _queueHandShakeMiddleWare;
+        private readonly QueueMiddleware _queueMiddleware;
         private readonly IServiceProvider _services;
         private readonly List<QueueTransportContext> _queueTransportContexts;
         private readonly IOptions<QueueOptions> _options;
         private readonly IServiceBuilder _serviceBuilder;
         private bool _isServiceBuilderOpened;
 
-        public QueuePollingService(IServiceProvider services, QueueHandShakeMiddleWare queueHandShakeMiddle,
+        public QueuePollingService(IServiceProvider services, QueueMiddleware queueMiddleware,
             IOptions<QueueOptions> queueOptions)
         {
             _services = services;
-            _queueHandShakeMiddleWare = queueHandShakeMiddle;
+            _queueMiddleware = queueMiddleware;
             _options = queueOptions;
             _serviceBuilder = _services.GetRequiredService<IServiceBuilder>();
             _queueTransportContexts = new List<QueueTransportContext>();
@@ -97,7 +97,7 @@ namespace CoreWCF.Queue.Common
                         ServiceDispatcher = serviceDispatcher,
                         QueueBindingElement = queueTransportBinding,
                         MessageEncoderFactory = msgEncBindingElement.CreateMessageEncoderFactory(),
-                        QueueHandShakeDelegate = _queueHandShakeMiddleWare.Build(),
+                        QueueMessageDispatcher = _queueMiddleware.Build(),
                     });
                 }
             }

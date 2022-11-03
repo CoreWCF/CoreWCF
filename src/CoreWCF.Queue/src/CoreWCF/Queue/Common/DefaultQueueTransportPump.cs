@@ -72,7 +72,7 @@ namespace CoreWCF.Queue.Common
                 cts.CancelAfter(-1);
 
                 queueMessageContext.QueueTransportContext = queueTransportContext;
-                await queueTransportContext.QueueHandShakeDelegate(queueMessageContext);
+                await queueTransportContext.QueueMessageDispatcher(queueMessageContext);
             }
         }
     }

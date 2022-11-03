@@ -92,34 +92,7 @@ namespace CoreWCF.Queue.Common.Configuration
         private static Func<T, QueueMessageContext, IServiceProvider, Task> Compile<T>(MethodInfo methodInfo,
             ParameterInfo[] parameters)
         {
-            // If we call something like
-            //
-            // public class Middleware
-            // {
-            //    public Task Invoke(ConnectionContext context, ILoggerFactory loggerFactory)
-            //    {
-            //
-            //    }
-            // }
-            //
-
-            // We'll end up with something like this:
-            //   Generic version:
-            //
-            //   Task Invoke(Middleware instance, ConnectionContext httpContext, IServiceProvider provider)
-            //   {
-            //      return instance.Invoke(httpContext, (ILoggerFactory)UseMiddlewareConnectionHandshakeExtensions.GetService(provider, typeof(ILoggerFactory));
-            //   }
-
-            //   Non generic version:
-            //
-            //   Task Invoke(object instance, ConnectionContext httpContext, IServiceProvider provider)
-            //   {
-            //      return ((Middleware)instance).Invoke(httpContext, (ILoggerFactory)UseMiddlewareConnectionHandshakeExtensions.GetService(provider, typeof(ILoggerFactory));
-            //   }
-
             Type middleware = typeof(T);
-
             ParameterExpression connectionContextArg =
                 Expression.Parameter(typeof(QueueMessageContext), "connectionContext");
             ParameterExpression providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");

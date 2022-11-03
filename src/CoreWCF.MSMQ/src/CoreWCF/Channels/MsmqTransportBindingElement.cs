@@ -4,7 +4,7 @@
 using System;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
-using Microsoft.Extensions.DependencyInjection;
+using MSMQ.Messaging;
 
 namespace CoreWCF.Channels
 {
@@ -21,7 +21,6 @@ namespace CoreWCF.Channels
             _useActiveDirectory = elementToBeCloned._useActiveDirectory;
             _maxPoolSize = elementToBeCloned._maxPoolSize;
         }
-
 
         public int MaxPoolSize
         {
@@ -71,13 +70,22 @@ namespace CoreWCF.Channels
             var queueOptions = context.BindingParameters.Find<QueueOptions>();
             var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
             var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
-            //TODO : add queue before exists
-            return new MsmqNetcoreTransport(queueOptions, serviceDispatcher, serviceProvider);
+            CreateQueue(serviceDispatcher.BaseAddress);
+            return new MsmqQueueTransport(queueOptions, serviceDispatcher, serviceProvider);
         }
 
         public override BindingElement Clone()
         {
             return new MsmqTransportBindingElement(this);
+        }
+
+        private void CreateQueue(Uri localAddress)
+        {
+            var queueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(localAddress);
+            if (!MessageQueue.Exists(queueName))
+            {
+                MessageQueue.Create(queueName);
+            }
         }
     }
 }

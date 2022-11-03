@@ -5,11 +5,11 @@ using CoreWCF.Queue.Common.Configuration;
 
 namespace CoreWCF.Queue.Common
 {
-    public class QueueHandShakeMiddleWare
+    internal class QueueMiddleware
     {
         private readonly IQueueMiddlewareBuilder _queueMiddlewareBuilder;
 
-        public QueueHandShakeMiddleWare(IQueueMiddlewareBuilder queueBuilder)
+        public QueueMiddleware(IQueueMiddlewareBuilder queueBuilder)
         {
             _queueMiddlewareBuilder = InitQueueMiddleWare(queueBuilder);
         }

@@ -15,22 +15,22 @@ using MSMQM = MSMQ.Messaging;
 
 namespace CoreWCF.Channels
 {
-    public class MsmqNetcoreTransport : IQueueTransport, IDisposable
+    public class MsmqQueueTransport : IQueueTransport, IDisposable
     {
         private readonly Uri _baseAddress;
         private readonly MessageQueue _messageQueue;
         private readonly TimeSpan _queueReceiveTimeOut;
         private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
-        private readonly ILogger<MsmqNetcoreTransport> _logger;
+        private readonly ILogger<MsmqQueueTransport> _logger;
 
-        public MsmqNetcoreTransport(QueueOptions options, IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
+        public MsmqQueueTransport(QueueOptions options, IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
         {
             _deadLetterQueueSender = serviceProvider.GetRequiredService<IDeadLetterQueueMsmqSender>();
             _baseAddress = serviceDispatcher.BaseAddress;
             string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(options.QueueName);
             _messageQueue = new MessageQueue(nativeQueueName);
             _queueReceiveTimeOut = serviceDispatcher.Binding.ReceiveTimeout;
-            _logger = serviceProvider.GetRequiredService<ILogger<MsmqNetcoreTransport>>();
+            _logger = serviceProvider.GetRequiredService<ILogger<MsmqQueueTransport>>();
         }
 
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)

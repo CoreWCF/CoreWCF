@@ -12,12 +12,10 @@ namespace Contracts
     {
         [OperationContract(IsOneWay = true)]
         void Create(string name);
-    }
-   
+    }   
 
     public class TestService : ITestContract
-    {
-        
+    {        
         private readonly Interceptor _interceptor;
 
         public TestService(Interceptor interceptor)
@@ -31,6 +29,6 @@ namespace Contracts
             _interceptor.SetName(name);
             ManualResetEvent.Set();
         }
-       public ManualResetEventSlim ManualResetEvent { get; }
+        public ManualResetEventSlim ManualResetEvent { get; }
     }
 }

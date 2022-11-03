@@ -8,6 +8,6 @@ namespace CoreWCF.Queue.Common
 {
     public interface IQueueTransport 
     {
-        ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken); // give me a message from internal transport msms/sqs
+        ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken);
     }
 }

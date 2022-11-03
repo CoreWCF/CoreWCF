@@ -21,6 +21,7 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
         private ConnectionFactory _factory;
         private IConnection _connection;
         private IModel _channel;
+        private EventingBasicConsumer _consumer;
 
         public RabbitMqTransportPump(ILogger<RabbitMqTransportPump> logger, IOptions<QueueOptions> options)
         {
@@ -40,9 +41,9 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
             // routing key begin with "/", for example: /hello
             _channel.QueueBind(queue, exchange, _queueOptions.Value.QueueName, null);
 
-            var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += (_, ea) => { ConsumeMessage(ea, queueTransportContext); };
-            _channel.BasicConsume(queue, true, consumer);
+            _consumer = new EventingBasicConsumer(_channel);
+            _consumer.Received += (_, ea) => { ConsumeMessage(ea, queueTransportContext); };
+            _channel.BasicConsume(queue, true, _consumer);
 
 
             return Task.CompletedTask;
@@ -50,8 +51,8 @@ namespace CoreWCF.RabbitMQ.CoreWCF.Channels
 
         public override Task StopPumpAsync(CancellationToken token)
         {
-            _channel.Dispose();
-            _connection.Dispose();
+            _channel?.Dispose();
+            _connection?.Dispose();
             return Task.CompletedTask;
         }
 

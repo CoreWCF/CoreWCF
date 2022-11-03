@@ -17,7 +17,7 @@ namespace CoreWCF.Queue.Common.Configuration
                 services.Configure(configureQueues);
             }
 
-            services.AddSingleton<QueueHandShakeMiddleWare>();
+            services.AddSingleton<QueueMiddleware>();
             services.AddHostedService<QueuePollingService>();
             services.AddTransient<QueueInputChannel>();
             return services;

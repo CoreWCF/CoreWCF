@@ -9,10 +9,10 @@ namespace CoreWCF.Queue.Common
 {
     public class QueueTransportContext
     {
-        public IServiceDispatcher ServiceDispatcher { get;  set; }
-        public MessageEncoderFactory MessageEncoderFactory { get; set; }
-        public QueueBaseTransportBindingElement QueueBindingElement { get; set; }
-        public QueueMessageDispatcherDelegate QueueHandShakeDelegate { get; set; }
-        public QueueTransportPump QueuePump { get; internal set; }
+        public IServiceDispatcher ServiceDispatcher { get; set; }
+        internal MessageEncoderFactory MessageEncoderFactory { get; set; }
+        internal QueueBaseTransportBindingElement QueueBindingElement { get; set; }
+        internal QueueMessageDispatcherDelegate QueueMessageDispatcher { get; set; }
+        internal QueueTransportPump QueuePump { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace CoreWCF.Channels
     public class RabbitMqBinding : Binding
     {
         private TextMessageEncodingBindingElement _encoding;
+        private RabbitMqTransportBindingElement _transport;
         private bool _isInitialized;
         public const long DefaultMaxMessageSize = 8192L;
 
@@ -60,9 +61,9 @@ namespace CoreWCF.Channels
         {
             HostName = hostname;
             Port = port;
-            Transport.UsernameConfigKey = username;
-            Transport.PasswordConfigKey = password;
-            Transport.VirtualHost = virtualHost;
+            _transport.UsernameConfigKey = username;
+            _transport.PasswordConfigKey = password;
+            _transport.VirtualHost = virtualHost;
             MaxMessageSize = maxMessageSize;
 
         }
@@ -84,27 +85,24 @@ namespace CoreWCF.Channels
         {
             //Transport.HostName = HostName;
             //Transport.Port = Port;
-            Transport.BrokerProtocol = BrokerProtocol;
+            _transport.BrokerProtocol = BrokerProtocol;
             if (MaxMessageSize != DefaultMaxMessageSize)
             {
-                Transport.MaxReceivedMessageSize = MaxMessageSize;
+                _transport.MaxReceivedMessageSize = MaxMessageSize;
             }
-            BindingElementCollection elements = new BindingElementCollection { _encoding, Transport, };
+            BindingElementCollection elements = new BindingElementCollection { _encoding, _transport, };
 
             return elements;
         }
 
         private void Initialize()
         {
-            lock (this)
+            if (!_isInitialized)
             {
-                if (!_isInitialized)
-                {
-                    Transport = new RabbitMqTransportBindingElement();
-                    _encoding = new TextMessageEncodingBindingElement();
-                    MaxMessageSize = DefaultMaxMessageSize;
-                    _isInitialized = true;
-                }
+                _transport = new RabbitMqTransportBindingElement();
+                _encoding = new TextMessageEncodingBindingElement();
+                MaxMessageSize = DefaultMaxMessageSize;
+                _isInitialized = true;
             }
         }
 
@@ -135,22 +133,5 @@ namespace CoreWCF.Channels
         /// Specifies the version of the AMQP protocol that should be used to communicate with the broker
         /// </summary>
         public IProtocol BrokerProtocol { get; set; }
-
-        /// <summary>
-        /// Gets the AMQP transport binding element
-        /// </summary>
-        public RabbitMqTransportBindingElement Transport { get; private set; }
-
-        /// <summary>
-        /// Determines whether or not the TransactionFlowBindingElement will
-        /// be added to the channel stack
-        /// </summary>
-        public bool TransactionFlow { get; set; }
-
-        /// <summary>
-        /// Specifies whether or not the CompositeDuplex and ReliableSession
-        /// binding elements are added to the channel stack.
-        /// </summary>
-        public bool OneWayOnly { get; set; }
     }
 }

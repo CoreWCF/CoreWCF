@@ -22,22 +22,4 @@ namespace CoreWCF.RabbitMQ.Tests.Fakes
             Name = name;
         }
     }
-    /*
-    internal class TestConnectionHandler : IQueueConnectionHandler
-    {
-        public int CallCount { get; private set; }
-
-        public QueueMessageContext GetContext(PipeReader reader, string queueUrl)
-        {
-            CallCount++;
-            return new QueueMessageContext
-            {
-                QueueTransportContext = new QueueTransportContext
-                {
-                    QueueHandShakeDelegate = _ => Task.CompletedTask,
-                },
-                Properties = new Dictionary<string, object>(),
-            };
-        }
-    }*/
 }

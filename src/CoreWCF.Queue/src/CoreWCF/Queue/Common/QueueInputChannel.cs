@@ -26,7 +26,6 @@ namespace CoreWCF.Queue.Common
             set => throw new NotImplementedException();
         }
 
-
         public EndpointAddress LocalAddress { get; set; }
 
         protected override TimeSpan DefaultCloseTimeout

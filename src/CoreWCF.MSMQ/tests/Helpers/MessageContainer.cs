@@ -10,14 +10,14 @@ namespace CoreWCF.MSMQ.Tests.Helpers
     {
         public static Stream GetTestMessage()
         {
-             string currentDirectory = AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain current directroy is empty");
+             string currentDirectory = Environment.CurrentDirectory ?? throw new Exception("Environment current directroy is empty");
               string path = Path.Combine(currentDirectory, "Resources/msmqTestMessage.bin");
               return File.OpenRead(path);
         }
 
         public static Stream GetEmptyTestMessage()
         {
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain current directroy is empty");
+            string currentDirectory = Environment.CurrentDirectory ?? throw new Exception("Environment current directroy is empty");
             string path = Path.Combine(currentDirectory, "Resources/msmqEmptyTestMessage.bin");
             return File.OpenRead(path);
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CoreWCF.Queue.Common.Configuration
 {
-    public class QueueMiddlewareBuilder : IQueueMiddlewareBuilder
+    internal class QueueMiddlewareBuilder : IQueueMiddlewareBuilder
     {
         private readonly IList<Func<QueueMessageDispatcherDelegate, QueueMessageDispatcherDelegate>> _components = new List<Func<QueueMessageDispatcherDelegate,QueueMessageDispatcherDelegate>>();
 
@@ -27,7 +27,7 @@ namespace CoreWCF.Queue.Common.Configuration
         {
             get
             {
-                return GetProperty<IServiceProvider>("QueueMessage.Services");
+                return GetProperty("QueueMessage.Services") as IServiceProvider;
             }
             set
             {
@@ -60,12 +60,12 @@ namespace CoreWCF.Queue.Common.Configuration
             return app;
         }
 
-        private T GetProperty<T>(string key)
+        private object GetProperty(string key)
         {
-            return Properties.TryGetValue(key, out object value) ? (T)value : default;
+            return Properties.TryGetValue(key, out object value) ? value : default;
         }
 
-        private void SetProperty<T>(string key, T value)
+        private void SetProperty(string key, object value)
         {
             Properties[key] = value;
         }

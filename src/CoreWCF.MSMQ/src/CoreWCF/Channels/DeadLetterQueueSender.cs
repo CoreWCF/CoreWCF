@@ -15,6 +15,10 @@ namespace CoreWCF.Channels
         public async Task Send(PipeReader message, Uri endpoint)
         {
             string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(endpoint);
+            if (!MessageQueue.Exists(nativeQueueName))
+            {
+                MessageQueue.Create(nativeQueueName);
+            }
             MemoryStream memStream = await ConvertToStream(message);
             var queue = new MessageQueue(nativeQueueName);
             var messageForQueue = new MSMQ.Messaging.Message { BodyStream = memStream };

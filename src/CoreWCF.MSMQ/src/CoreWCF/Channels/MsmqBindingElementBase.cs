@@ -33,47 +33,41 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool Durable { get; set; }
-
-        public bool TransactedReceiveEnabled => ExactlyOnce;
-
-
         public bool ExactlyOnce { get; set; }
 
+        // todo: need to be enabled when we add System.Transactions support
+        //public int ReceiveRetryCount
+        //{
+        //    get { return _receiveRetryCount; }
+        //    set
+        //    {
+        //        if (value < 0)
+        //        {
+        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+        //                new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
+        //        }
 
-        public int ReceiveRetryCount
-        {
-            get { return _receiveRetryCount; }
-            set
-            {
-                if (value < 0)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
-                }
+        //        _receiveRetryCount = value;
+        //    }
+        //}
 
-                _receiveRetryCount = value;
-            }
-        }
+        // todo: need to be enabled when we add System.Transactions support
+        //public int MaxRetryCycles
+        //{
+        //    get { return _maxRetryCycles; }
+        //    set
+        //    {
+        //        if (value < 0)
+        //        {
+        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+        //                new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
+        //        }
 
-        public int MaxRetryCycles
-        {
-            get { return _maxRetryCycles; }
-            set
-            {
-                if (value < 0)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
-                }
-
-                _maxRetryCycles = value;
-            }
-        }
-
+        //        _maxRetryCycles = value;
+        //    }
+        //}
 
         public MsmqTransportSecurity MsmqTransportSecurity { get; internal set; }
-
 
         public bool ReceiveContextEnabled { get; set; }
 
@@ -116,31 +110,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public TimeSpan TimeToLive
-        {
-            get { return _timeToLive; }
-            set
-            {
-                if (value < TimeSpan.Zero)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException());
-                }
-
-                if (TimeoutHelper.IsTooLarge(value))
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException());
-                }
-
-                _timeToLive = value;
-            }
-        }
-
-
-        public bool UseMsmqTracing { get; set; }
-
-
         public bool UseSourceJournal { get; set; }
-
 
         //internal virtual string WsdlTransportUri => null;
 
@@ -148,7 +118,6 @@ namespace CoreWCF.Channels
         {
             CustomDeadLetterQueue = null;
             _deadLetterQueue = DeadLetterQueue.System;
-            Durable = true;
             ExactlyOnce = true;
             _maxRetryCycles = 2;
             ReceiveContextEnabled = true;
@@ -157,7 +126,6 @@ namespace CoreWCF.Channels
             _retryCycleDelay = MsmqDefaults.RetryCycleDelay;
             _timeToLive = MsmqDefaults.TimeToLive;
             MsmqTransportSecurity = new MsmqTransportSecurity();
-            UseMsmqTracing = false;
             UseSourceJournal = false;
             //ReceiveContextSettings = new MsmqReceiveContextSettings();
         }
@@ -167,7 +135,6 @@ namespace CoreWCF.Channels
         {
             CustomDeadLetterQueue = elementToBeCloned.CustomDeadLetterQueue;
             _deadLetterQueue = elementToBeCloned._deadLetterQueue;
-            Durable = elementToBeCloned.Durable;
             ExactlyOnce = elementToBeCloned.ExactlyOnce;
             _maxRetryCycles = elementToBeCloned._maxRetryCycles;
             //msmqTransportSecurity = new MsmqTransportSecurity(elementToBeCloned.MsmqTransportSecurity);
@@ -176,7 +143,6 @@ namespace CoreWCF.Channels
             _receiveRetryCount = elementToBeCloned._receiveRetryCount;
             _retryCycleDelay = elementToBeCloned._retryCycleDelay;
             _timeToLive = elementToBeCloned._timeToLive;
-            UseMsmqTracing = elementToBeCloned.UseMsmqTracing;
             UseSourceJournal = elementToBeCloned.UseSourceJournal;
             //ReceiveContextSettings = elementToBeCloned.ReceiveContextSettings;
         }
