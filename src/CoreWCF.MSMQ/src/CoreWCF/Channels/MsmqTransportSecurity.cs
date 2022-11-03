@@ -25,7 +25,7 @@ namespace CoreWCF.Channels
         public MsmqTransportSecurity(MsmqTransportSecurity other)
         {
             if (null == other)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("other");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(other));
             _msmqAuthenticationMode = other.MsmqAuthenticationMode;
             _msmqEncryptionAlgorithm = other.MsmqEncryptionAlgorithm;
             _msmqHashAlgorithm = other.MsmqSecureHashAlgorithm;
@@ -47,7 +47,7 @@ namespace CoreWCF.Channels
             set
             {
                 //if (!MsmqAuthenticationModeHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqAuthenticationMode = value;
             }
         }
@@ -59,7 +59,7 @@ namespace CoreWCF.Channels
             set
             {
                 if (!MsmqEncryptionAlgorithmHelper.IsDefined(value))
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqEncryptionAlgorithm = value;
             }
         }
@@ -71,7 +71,7 @@ namespace CoreWCF.Channels
             set
             {
                 //if (!MsmqSecureHashAlgorithmHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqHashAlgorithm = value;
             }
         }
@@ -83,7 +83,7 @@ namespace CoreWCF.Channels
             set
             {
                 //if (!ProtectionLevelHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqProtectionLevel = value;
             }
         }

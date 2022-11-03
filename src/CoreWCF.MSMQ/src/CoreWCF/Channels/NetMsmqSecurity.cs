@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
             {
                 //if (!NetMsmqSecurityModeHelper.IsDefined(value))
                 //{
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 //}
                 _mode = value;
             }

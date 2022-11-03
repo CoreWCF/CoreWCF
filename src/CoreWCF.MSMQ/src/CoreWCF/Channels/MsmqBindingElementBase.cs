@@ -26,7 +26,7 @@ namespace CoreWCF.Channels
             {
                 if (!DeadLetterQueueHelper.IsDefined(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
 
                 _deadLetterQueue = value;
@@ -44,7 +44,7 @@ namespace CoreWCF.Channels
         //        if (value < 0)
         //        {
         //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //                new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
+        //                new ArgumentOutOfRangeException(nameof(value), value, "MsmqNonNegativeArgumentExpected"));
         //        }
 
         //        _receiveRetryCount = value;
@@ -60,7 +60,7 @@ namespace CoreWCF.Channels
         //        if (value < 0)
         //        {
         //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //                new ArgumentOutOfRangeException("value", value, "MsmqNonNegativeArgumentExpected"));
+        //                new ArgumentOutOfRangeException(nameof(value), value, "MsmqNonNegativeArgumentExpected"));
         //        }
 
         //        _maxRetryCycles = value;
@@ -84,7 +84,7 @@ namespace CoreWCF.Channels
         //    {
         //        if (!ReceiveErrorHandlingHelper.IsDefined(value))
         //        {
-        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("value"));
+        //            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
         //        }
         //        receiveErrorHandling = value;
         //    }
@@ -151,7 +151,7 @@ namespace CoreWCF.Channels
         {
             if (context == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("context");
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
 
             if (typeof(T) == typeof(ISecurityCapabilities))

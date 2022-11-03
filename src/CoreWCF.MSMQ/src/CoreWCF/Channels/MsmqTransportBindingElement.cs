@@ -33,7 +33,7 @@ namespace CoreWCF.Channels
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ArgumentOutOfRangeException("value", value, SR.MsmqNonNegativeArgumentExpected));
+                        new ArgumentOutOfRangeException(nameof(value), value, SR.MsmqNonNegativeArgumentExpected));
                 }
                 _maxPoolSize = value;
             }
