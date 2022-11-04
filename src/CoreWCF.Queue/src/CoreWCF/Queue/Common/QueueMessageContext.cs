@@ -14,9 +14,10 @@ namespace CoreWCF.Queue.Common
     public class QueueMessageContext : RequestContext
     {
         public PipeReader QueueMessageReader { get; set; }
-        public IDictionary<string, object> Properties { get; set; }
+        public virtual IDictionary<string, object> Properties { get { return _properties.Value; } }
         private Message _requestMessage;
         private Exception _requestMessageException;
+        private readonly Lazy<IDictionary<string, object>> _properties = new();
 
         public override Message RequestMessage
         {

@@ -11,8 +11,8 @@ namespace CoreWCF.Queue.Common
     {
         public IServiceDispatcher ServiceDispatcher { get; set; }
         internal MessageEncoderFactory MessageEncoderFactory { get; set; }
-        internal QueueBaseTransportBindingElement QueueBindingElement { get; set; }
-        internal QueueMessageDispatcherDelegate QueueMessageDispatcher { get; set; }
+        public QueueBaseTransportBindingElement QueueBindingElement { get; set; }
+        public QueueMessageDispatcherDelegate QueueMessageDispatcher { get; set; }
         internal QueueTransportPump QueuePump { get; set; }
     }
 }

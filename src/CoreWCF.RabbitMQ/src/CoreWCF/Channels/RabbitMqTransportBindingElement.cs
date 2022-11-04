@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
+using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
 using CoreWCF.Queue.Common.Configuration;
-using CoreWCF.RabbitMQ.CoreWCF.Channels;
-using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
 namespace CoreWCF.Channels
@@ -17,18 +17,14 @@ namespace CoreWCF.Channels
         /// </summary>
         public RabbitMqTransportBindingElement()
         {
-            MaxReceivedMessageSize = RabbitMqBinding.DefaultMaxMessageSize;
         }
 
         private RabbitMqTransportBindingElement(RabbitMqTransportBindingElement other)
         {
             BrokerProtocol = other.BrokerProtocol;
-            UsernameConfigKey = other.UsernameConfigKey;
-            PasswordConfigKey = other.UsernameConfigKey;
+            Credentials = other.Credentials;
             VirtualHost = other.VirtualHost;
-            MaxReceivedMessageSize = other.MaxReceivedMessageSize;
         }
-
 
         public override BindingElement Clone()
         {
@@ -53,8 +49,9 @@ namespace CoreWCF.Channels
 
         public override QueueTransportPump BuildQueueTransportPump(BindingContext context)
         {
-            IServiceProvider serviceProvider = context.BindingParameters.Find<IServiceProvider>();
-            return serviceProvider.GetRequiredService<RabbitMqTransportPump>();
+            var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
+            var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
+            return new RabbitMqTransportPump(serviceProvider, serviceDispatcher);
         }
 
         /// <summary>
@@ -65,21 +62,15 @@ namespace CoreWCF.Channels
             get { return CurrentVersion.Scheme; }
         }
 
-
         /// <summary>
         /// The largest receivable encoded message
         /// </summary>
         public override long MaxReceivedMessageSize { get; set; }
 
         /// <summary>
-        /// The username  to use when authenticating with the broker
+        /// The credentials to use when authenticating with the broker
         /// </summary>
-        internal string UsernameConfigKey { get; set; }
-
-        /// <summary>
-        /// Password to use when authenticating with the broker
-        /// </summary>
-        internal string PasswordConfigKey { get; set; }
+        internal ICredentials Credentials { get; set; }
 
         /// <summary>
         /// Specifies the broker virtual host

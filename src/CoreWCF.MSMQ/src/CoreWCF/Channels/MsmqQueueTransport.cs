@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,11 +22,11 @@ namespace CoreWCF.Channels
         private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
         private readonly ILogger<MsmqQueueTransport> _logger;
 
-        public MsmqQueueTransport(QueueOptions options, IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
+        public MsmqQueueTransport(IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
         {
             _deadLetterQueueSender = serviceProvider.GetRequiredService<IDeadLetterQueueMsmqSender>();
             _baseAddress = serviceDispatcher.BaseAddress;
-            string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(options.QueueName);
+            string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(_baseAddress);
             _messageQueue = new MessageQueue(nativeQueueName);
             _queueReceiveTimeOut = serviceDispatcher.Binding.ReceiveTimeout;
             _logger = serviceProvider.GetRequiredService<ILogger<MsmqQueueTransport>>();
@@ -36,7 +35,8 @@ namespace CoreWCF.Channels
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-           
+
+            _logger.LogInformation("Receiving message from msmq");
             var message = await Task.Factory.FromAsync(MessageQueueBeginReceive,
                 MessageQueueEndReceive, _messageQueue, _queueReceiveTimeOut, null);
 
@@ -78,7 +78,6 @@ namespace CoreWCF.Channels
             {
                 QueueMessageReader = reader,
                 LocalAddress = new EndpointAddress(uri),
-                Properties = new Dictionary<string, object>(),
                 DispatchResultHandler = NotifyError,
             };
             return context;

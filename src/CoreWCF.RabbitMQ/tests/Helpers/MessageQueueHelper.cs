@@ -16,7 +16,8 @@ namespace CoreWCF.RabbitMQ.Tests.Helpers
             var message = MessageContainer.GetTestMessage();
             var memStream = new MemoryStream();
             message.CopyTo(memStream);
-            channel.BasicPublish("amq.direct", IntegrationTests.QueueName, null, memStream.ToArray());
+            // routing key begin with "/", for example: /hello
+            channel.BasicPublish("amq.direct", $"/{IntegrationTests.QueueName}", null, memStream.ToArray());
         }
     }
 }

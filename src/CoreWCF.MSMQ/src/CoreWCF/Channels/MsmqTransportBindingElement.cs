@@ -67,11 +67,10 @@ namespace CoreWCF.Channels
 
         private IQueueTransport CreateMyQueueTransport(BindingContext context)
         {
-            var queueOptions = context.BindingParameters.Find<QueueOptions>();
             var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
             var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
             CreateQueue(serviceDispatcher.BaseAddress);
-            return new MsmqQueueTransport(queueOptions, serviceDispatcher, serviceProvider);
+            return new MsmqQueueTransport(serviceDispatcher, serviceProvider);
         }
 
         public override BindingElement Clone()

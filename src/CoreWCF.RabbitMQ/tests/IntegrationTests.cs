@@ -6,7 +6,6 @@ using Contracts;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common.Configuration;
-using CoreWCF.RabbitMQ.Tests.Fakes;
 using CoreWCF.RabbitMQ.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -53,11 +52,9 @@ namespace CoreWCF.RabbitMQ.Tests
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<Interceptor>();
             services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddQueueTransport(x =>
-                x.QueueName = IntegrationTests.QueueName);
+            services.AddQueueTransport();
             services.AddServiceModelRabbitMqSupport();
         }
 
@@ -67,7 +64,7 @@ namespace CoreWCF.RabbitMQ.Tests
             {
                 services.AddService<TestService>();
                 services.AddServiceEndpoint<TestService, ITestContract>(new RabbitMqBinding(),
-                    $"soap.amqp://{IntegrationTests.QueueName}");
+                    $"soap.amqp://localhost:5672/{IntegrationTests.QueueName}");
             });
         }
     }

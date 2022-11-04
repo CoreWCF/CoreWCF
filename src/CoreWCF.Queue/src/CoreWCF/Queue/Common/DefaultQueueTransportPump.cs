@@ -11,7 +11,7 @@ namespace CoreWCF.Queue.Common
     /// <summary>
     /// DefaultQueueTransportPump model serves the purpose of pull model
     /// </summary>
-    public class DefaultQueueTransportPump : QueueTransportPump
+    internal class DefaultQueueTransportPump : QueueTransportPump
     {
         private readonly IQueueTransport _transport;
         private readonly CancellationTokenSource _cancellationTokenSource = new();

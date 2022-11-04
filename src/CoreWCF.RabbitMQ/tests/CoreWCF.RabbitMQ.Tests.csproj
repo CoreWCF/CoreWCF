@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Fakes\" />
     <Folder Include="Resources\" />
   </ItemGroup>
 

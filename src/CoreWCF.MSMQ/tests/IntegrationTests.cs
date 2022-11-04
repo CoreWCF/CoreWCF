@@ -59,21 +59,6 @@ namespace CoreWCF.MSMQ.Tests
                 Assert.True(result);
             }
         }
-
-        [Fact] //(Skip = "Need msmq")
-        public async Task ReceiveMessage_ServiceCall_Fail_ShouldSendCustomDeadLetter()
-        {
-            MessageQueueHelper.PurgeDeadLetter();
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                MessageQueueHelper.SendEmptyMessageInQueue(QueueName);
-
-                bool result = await MessageQueueHelper.WaitMessageInQueue(QueueNameDeadLetter);
-                Assert.True(result);
-            }
-        }
     }
 
     public class Startup
@@ -82,8 +67,7 @@ namespace CoreWCF.MSMQ.Tests
         {
             services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddQueueTransport(x =>
-            { x.QueueName = IntegrationTests.QueueName; x.ConcurrencyLevel = 1; } );
+            services.AddQueueTransport(x => { x.ConcurrencyLevel = 1; } );
             services.AddServiceModelMsmqSupport();
         }
 
@@ -103,8 +87,7 @@ namespace CoreWCF.MSMQ.Tests
         {
             services.AddScoped<TestService>();
             services.AddServiceModelServices();
-            services.AddQueueTransport(x =>
-             x.QueueName = IntegrationTests.QueueName);
+            services.AddQueueTransport();
             services.AddServiceModelMsmqSupport();
         }
 

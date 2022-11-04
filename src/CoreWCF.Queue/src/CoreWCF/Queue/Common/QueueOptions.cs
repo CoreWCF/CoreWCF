@@ -15,9 +15,7 @@ namespace CoreWCF.Queue.Common
             {
                 if (value < 1) throw new ArgumentOutOfRangeException(nameof(ConcurrencyLevel), SR.ValueMustBeGreaterThanZero);
                 _concurrencyLevel = value;
-
             }
         }
-        public string QueueName { get; set; }
     }
 }

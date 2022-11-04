@@ -14,14 +14,14 @@ namespace CoreWCF.Queue.Tests
         public async Task DefaultQueueTransportPump_WhenStated_Success()
         {
             var transports = new FakeQueueTransport(CallType.Success);
-            var messageReceiver = new DefaultQueueTransportPump(transports);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
 
             var transportContext = new QueueTransportContext
             {
                 QueueBindingElement = new FakeBindingElement(),
                 ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueHandShakeDelegate = _ =>
+                QueueMessageDispatcher = _ =>
                 {
                     handshakeCallCount++;
                     return Task.CompletedTask;
@@ -39,14 +39,14 @@ namespace CoreWCF.Queue.Tests
         public async Task DefaultQueueTransportPump_WhenStatedAndTransportReturnNull_Success()
         {
             var transports = new FakeQueueTransport(CallType.ReturnNull);
-            var messageReceiver = new DefaultQueueTransportPump(transports);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
 
             var transportContext = new QueueTransportContext
             {
                 QueueBindingElement = new FakeBindingElement(),
                 ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueHandShakeDelegate = _ =>
+                QueueMessageDispatcher = _ =>
                 {
                     handshakeCallCount++;
                     return Task.CompletedTask;
@@ -64,14 +64,14 @@ namespace CoreWCF.Queue.Tests
         public async Task DefaultQueueTransportPump_WhenStatedAndTransportThrowException()
         {
             var transports = new FakeQueueTransport(CallType.ThrowException);
-            var messageReceiver = new DefaultQueueTransportPump(transports);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
 
             var transportContext = new QueueTransportContext
             {
                 QueueBindingElement = new FakeBindingElement(),
                 ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueHandShakeDelegate = _ =>
+                QueueMessageDispatcher = _ =>
                 {
                     handshakeCallCount++;
                     return Task.CompletedTask;
@@ -89,14 +89,14 @@ namespace CoreWCF.Queue.Tests
         public async Task DefaultQueueTransportPump_WhenStopped_Success()
         {
             var transports = new FakeQueueTransport(CallType.Success);
-            var messageReceiver = new DefaultQueueTransportPump(transports);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
 
             var transportContext = new QueueTransportContext
             {
                 QueueBindingElement = new FakeBindingElement(),
                 ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueHandShakeDelegate = _ =>
+                QueueMessageDispatcher = _ =>
                 {
                     handshakeCallCount++;
                     return Task.CompletedTask;
