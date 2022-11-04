@@ -51,6 +51,7 @@ namespace CoreWCF.Dispatcher
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
         private bool _isAuthorizationServiceSet;
+        private bool _supportsAuthorizationData;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -316,6 +317,22 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        internal bool SupportsAuthorizationData
+        {
+            get
+            {
+                return _supportsAuthorizationData;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    _supportsAuthorizationData = value;
+                }
+            }
+        }
+
         internal SynchronizedCollection<IInputSessionShutdown> InputSessionShutdownHandlers { get; }
 
         public bool IgnoreTransactionMessageProperty
@@ -473,12 +490,7 @@ namespace CoreWCF.Dispatcher
         internal bool RequiresAuthentication { get; private set; }
 
         internal bool RequiresAuthorization
-        {
-            get
-            {
-                return (_isAuthorizationManagerSet || _isExternalPoliciesSet || _isAuthorizationServiceSet);
-            }
-        }
+            => _isAuthorizationManagerSet || _isExternalPoliciesSet || (_isAuthorizationServiceSet && _supportsAuthorizationData);
 
         internal bool HasMatchAllOperation
         {

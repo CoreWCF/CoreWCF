@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
 using System.Xml;
@@ -222,6 +224,18 @@ namespace CoreWCF.Channels
             {
                 return (T)(object)new HttpTransportServiceBuilder();
             }
+
+            if (typeof(T) == typeof(IAuthorizationCapabilities))
+            {
+                var httpBindingBase = context.BindingParameters.OfType<HttpBindingBase>().SingleOrDefault();
+                if (httpBindingBase != null)
+                {
+                    context.BindingParameters.Remove(httpBindingBase);
+                }
+                return (T)(object)new DefaultAuthorizationCapabilities(httpBindingBase?.BasicHttpSecurity.Transport.ClientCredentialType ==
+                                                                               HttpClientCredentialType.InheritedFromHost);
+            }
+
             //else if (typeof(T) == typeof(ISecurityCapabilities))
             //{
             //    AuthenticationSchemes effectiveAuthenticationSchemes = HttpTransportBindingElement.GetEffectiveAuthenticationSchemes(this.AuthenticationScheme,

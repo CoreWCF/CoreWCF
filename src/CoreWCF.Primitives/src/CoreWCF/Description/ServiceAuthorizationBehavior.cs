@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
 using Microsoft.AspNetCore.Authorization;
@@ -175,8 +176,17 @@ namespace CoreWCF.Description
             _serviceAuthorizationManager = other._serviceAuthorizationManager;
         }
 
-        void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
+        void IServiceBehavior.Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
+            foreach (ServiceEndpoint endpoint in serviceDescription.Endpoints)
+            {
+                TransportBindingElement transportBindingElement = endpoint.Binding.CreateBindingElements().Find<TransportBindingElement>();
+                if (transportBindingElement != null)
+                {
+                    var behaviors = (KeyedByTypeCollection<IEndpointBehavior>)endpoint.EndpointBehaviors;
+                    behaviors.Add(new EndpointAuthorizationBehavior());
+                }
+            }
         }
 
         void IServiceBehavior.AddBindingParameters(ServiceDescription description, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection parameters)
@@ -216,7 +226,6 @@ namespace CoreWCF.Description
                         if (_isAuthorizationServiceSet)
                         {
                             behavior.AuthorizationService = _authorizationService;
-                            behavior.RequireClaimsPrincipalOnOperationContext = true;
                         }
                     }
                 }
