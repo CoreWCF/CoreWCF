@@ -12,8 +12,10 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Http.Tests.Authorization
 {
-    public class FakeJwtBearerAuthenticationHandler : AuthenticationHandler<FakeJwtBearerAuthenticationHandlerOptions>
+    internal class FakeJwtBearerAuthenticationHandler : AuthenticationHandler<FakeJwtBearerAuthenticationHandlerOptions>
     {
+        public const string AuthenticationScheme = "FakeJwtBearer";
+
         private readonly IOptionsMonitor<FakeJwtBearerAuthenticationHandlerOptions> _options;
 
         public FakeJwtBearerAuthenticationHandler(
@@ -34,14 +36,14 @@ namespace CoreWCF.Http.Tests.Authorization
 
             List<Claim> claims = new(new[] { new Claim("sub", Guid.NewGuid().ToString()) });
 
-            if (!string.IsNullOrWhiteSpace(_options.CurrentValue.DefaultScopeClaimValue))
+            foreach (string scopeClaimValue in _options.CurrentValue.ScopeClaimValues)
             {
-                claims.Add(new Claim("scope", _options.CurrentValue.DefaultScopeClaimValue));
+                claims.Add(new Claim("scope", scopeClaimValue));
             }
 
-            var identity = new ClaimsIdentity(claims, "Bearer");
+            var identity = new ClaimsIdentity(claims, AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, "Bearer");
+            var ticket = new AuthenticationTicket(principal, AuthenticationScheme);
 
             var result = AuthenticateResult.Success(ticket);
 
