@@ -1125,27 +1125,13 @@ namespace CoreWCF.Description
 
             if (direction == MessageDirection.Input)
             {
-                operationDescription.AuthorizeData = new Lazy<Collection<IAuthorizeData>>(() =>
-                {
-                    var serviceImplementationMethodInfo = FindServiceTypeAndImplementationMethodInfo(operationDescription, contractDescription);
-                    Collection<IAuthorizeData> authorizeData = new();
-                    foreach (var methodAttribute in serviceImplementationMethodInfo.ServiceType.GetCustomAttributes(false).OfType<IAuthorizeData>())
-                    {
-                        authorizeData.Add(methodAttribute);
-                    }
-                    foreach (var methodAttribute in serviceImplementationMethodInfo.MethodInfo.GetCustomAttributes(false).OfType<IAuthorizeData>())
-                    {
-                        authorizeData.Add(methodAttribute);
-                    }
-
-                    return authorizeData;
-                });
+                operationDescription.AuthorizeData = new Lazy<ReadOnlyCollection<IAuthorizeData>>(() => GetAuthorizeData(operationDescription).ToList().AsReadOnly());
             }
 
             return operationDescription;
         }
 
-        private static (Type ServiceType, MethodInfo MethodInfo) FindServiceTypeAndImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
+        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription)
         {
             Type serviceType = typeof(TService);
             if (serviceType.IsInterface)
@@ -1155,11 +1141,20 @@ namespace CoreWCF.Description
                 serviceType = serviceInstance.GetType();
             }
 
+            foreach (IAuthorizeData authorizeData in serviceType.GetCustomAttributes(false).OfType<IAuthorizeData>())
+            {
+                yield return authorizeData;
+            }
+
             InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operationDescription.OperationMethod.DeclaringType);
             int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operationDescription.OperationMethod);
-            return index < 0
-                ? (serviceType, null)
-                : (serviceType, interfaceMapping.TargetMethods[index]);
+            if (index >= 0)
+            {
+                foreach (IAuthorizeData authorizeData in interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>())
+                {
+                    yield return authorizeData;
+                }
+            }
         }
 
         private void CheckDuplicateFaultContract(FaultDescriptionCollection faultDescriptionCollection, FaultDescription fault, string operationName)

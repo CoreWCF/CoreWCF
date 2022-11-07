@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using CoreWCF.Collections.Generic;
@@ -125,7 +126,7 @@ namespace CoreWCF.Description
 
         internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
 
-        internal Lazy<Collection<IAuthorizeData>> AuthorizeData { get; set; }
+        internal Lazy<ReadOnlyCollection<IAuthorizeData>> AuthorizeData { get; set; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {
