@@ -59,6 +59,21 @@ namespace CoreWCF.MSMQ.Tests
                 Assert.True(result);
             }
         }
+
+        [Fact(Skip = "implement with failed message")]
+        public async Task ReceiveMessage_ServiceCall_Fail_ShouldSendCustomDeadLetter()
+        {
+            MessageQueueHelper.PurgeDeadLetter();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                MessageQueueHelper.SendEmptyMessageInQueue(QueueName);
+
+                bool result = await MessageQueueHelper.WaitMessageInQueue(QueueNameDeadLetter);
+                Assert.True(result);
+            }
+        }
     }
 
     public class Startup
@@ -67,7 +82,7 @@ namespace CoreWCF.MSMQ.Tests
         {
             services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddQueueTransport(x => { x.ConcurrencyLevel = 1; } );
+            services.AddQueueTransport(x => { x.ConcurrencyLevel = 1; });
             services.AddServiceModelMsmqSupport();
         }
 
@@ -81,6 +96,7 @@ namespace CoreWCF.MSMQ.Tests
             });
         }
     }
+
     public class Startup2
     {
         public void ConfigureServices(IServiceCollection services)
@@ -96,10 +112,12 @@ namespace CoreWCF.MSMQ.Tests
             app.UseServiceModel(services =>
             {
                 services.AddService<TestService>();
-                services.AddServiceEndpoint<TestService, ITestContract>(new NetMsmqBinding
+                services.AddServiceEndpoint<TestService, ITestContract>(
+                    new NetMsmqBinding
                     {
                         DeadLetterQueue = DeadLetterQueue.Custom,
-                        CustomDeadLetterQueue = new System.Uri($"net.msmq://localhost/private/{IntegrationTests.QueueNameDeadLetter}")
+                        CustomDeadLetterQueue =
+                            new System.Uri($"net.msmq://localhost/private/{IntegrationTests.QueueNameDeadLetter}")
                     },
                     $"net.msmq://localhost/private/{IntegrationTests.QueueName}");
             });

@@ -46,8 +46,8 @@ namespace CoreWCF.Channels
             get { return _msmqAuthenticationMode; }
             set
             {
-                //if (!MsmqAuthenticationModeHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                if (!MsmqAuthenticationModeHelper.IsDefined(value))
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqAuthenticationMode = value;
             }
         }
@@ -70,8 +70,8 @@ namespace CoreWCF.Channels
             get { return _msmqHashAlgorithm; }
             set
             {
-                //if (!MsmqSecureHashAlgorithmHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                if (!MsmqSecureHashAlgorithmHelper.IsDefined(value))
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqHashAlgorithm = value;
             }
         }
@@ -82,8 +82,8 @@ namespace CoreWCF.Channels
             get { return _msmqProtectionLevel; }
             set
             {
-                //if (!ProtectionLevelHelper.IsDefined(value))
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                if (!ProtectionLevelHelper.IsDefined(value))
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 _msmqProtectionLevel = value;
             }
         }

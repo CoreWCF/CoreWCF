@@ -9,6 +9,5 @@ namespace CoreWCF.Channels
         {
             return algorithm == MsmqEncryptionAlgorithm.RC4Stream || algorithm == MsmqEncryptionAlgorithm.Aes;
         }
-
     }
 }

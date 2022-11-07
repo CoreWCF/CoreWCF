@@ -29,8 +29,6 @@ namespace CoreWCF.Queue.Common
                 await queueMessageContext.QueueTransportContext.ServiceDispatcher.CreateServiceChannelDispatcherAsync(
                     inputChannel);
             await channelDispatcher.DispatchAsync(queueMessageContext);
-            
-            await queueMessageContext.ReplyAsync(queueMessageContext.RequestMessage);
         }
     }
 }

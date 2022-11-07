@@ -67,12 +67,6 @@ namespace CoreWCF.Channels
             set { _transport.MaxBufferPoolSize = value; }
         }
 
-        internal int MaxPoolSize
-        {
-            get { return (_transport as MsmqTransportBindingElement).MaxPoolSize; }
-            set { (_transport as MsmqTransportBindingElement).MaxPoolSize = value; }
-        }
-
         [DefaultValue(MsmqDefaults.UseActiveDirectory)]
         public bool UseActiveDirectory
         {

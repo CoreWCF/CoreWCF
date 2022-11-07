@@ -36,17 +36,13 @@ namespace CoreWCF.Channels
             _factory = new ConnectionFactory { HostName = _baseAddress.Host, Port = _baseAddress.Port };
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();
-
             //Create a queue for messages destined to this service, bind it to the service URI routing key
             string queue = _channel.QueueDeclare();
-          
             // routing key begin with "/", for example: /hello
             _channel.QueueBind(queue, Exchange, _baseAddress.LocalPath, null);
-
             _consumer = new EventingBasicConsumer(_channel);
             _consumer.Received += (_, ea) => { ConsumeMessage(ea, queueTransportContext); };
             _channel.BasicConsume(queue, true, _consumer);
-
             return Task.CompletedTask;
         }
 

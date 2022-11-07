@@ -22,7 +22,7 @@ namespace CoreWCF.Queue.Common
         private readonly List<QueueTransportContext> _queueTransportContexts;
         private readonly IOptions<QueueOptions> _options;
         private readonly IServiceBuilder _serviceBuilder;
-        private bool _isServiceBuilderOpened;
+        private readonly TaskCompletionSource<bool> _tcs;
 
         public QueuePollingService(IServiceProvider services, QueueMiddleware queueMiddleware,
             IOptions<QueueOptions> queueOptions)
@@ -32,7 +32,8 @@ namespace CoreWCF.Queue.Common
             _options = queueOptions;
             _serviceBuilder = _services.GetRequiredService<IServiceBuilder>();
             _queueTransportContexts = new List<QueueTransportContext>();
-            _serviceBuilder.Opened += (_, _) => _isServiceBuilderOpened = true;
+            _tcs = new TaskCompletionSource<bool>();
+            _serviceBuilder.Opened += (_, _) => _tcs.SetResult(true);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -43,10 +44,8 @@ namespace CoreWCF.Queue.Common
 
         private async Task WaitAndStart(CancellationToken cancellationToken)
         {
-            while (!_isServiceBuilderOpened)
-            {
-                await Task.Delay(100, cancellationToken);
-            }
+            if(_serviceBuilder.State != CommunicationState.Opened)
+                await _tcs.Task;
 
             await Init();
             var tasks = _queueTransportContexts.Select(x => StartFetchingMessage(x, cancellationToken));
@@ -91,14 +90,9 @@ namespace CoreWCF.Queue.Common
                     BindingContext bindingContext = new BindingContext(customBinding, parameters);
                     QueueTransportPump queuePump = queueTransportBinding.BuildQueueTransportPump(bindingContext);
 
-                    _queueTransportContexts.Add(new QueueTransportContext
-                    {
-                        QueuePump = queuePump,
-                        ServiceDispatcher = serviceDispatcher,
-                        QueueBindingElement = queueTransportBinding,
-                        MessageEncoderFactory = msgEncBindingElement.CreateMessageEncoderFactory(),
-                        QueueMessageDispatcher = _queueMiddleware.Build(),
-                    });
+                    _queueTransportContexts.Add(new QueueTransportContext(serviceDispatcher,
+                        msgEncBindingElement.CreateMessageEncoderFactory(), queueTransportBinding,
+                        _queueMiddleware.Build(), queuePump));
                 }
             }
 

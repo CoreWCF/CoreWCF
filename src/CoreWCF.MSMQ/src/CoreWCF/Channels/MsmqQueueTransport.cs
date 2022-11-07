@@ -35,7 +35,6 @@ namespace CoreWCF.Channels
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             _logger.LogInformation("Receiving message from msmq");
             var message = await Task.Factory.FromAsync(MessageQueueBeginReceive,
                 MessageQueueEndReceive, _messageQueue, _queueReceiveTimeOut, null);

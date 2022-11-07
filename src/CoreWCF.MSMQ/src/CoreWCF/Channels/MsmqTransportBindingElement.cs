@@ -10,7 +10,6 @@ namespace CoreWCF.Channels
 {
     public sealed class MsmqTransportBindingElement : MsmqBindingElementBase
     {
-        private int _maxPoolSize = MsmqDefaults.MaxPoolSize;
         private bool _useActiveDirectory = MsmqDefaults.UseActiveDirectory;
 
         public MsmqTransportBindingElement() { }
@@ -19,24 +18,6 @@ namespace CoreWCF.Channels
             : base(elementToBeCloned)
         {
             _useActiveDirectory = elementToBeCloned._useActiveDirectory;
-            _maxPoolSize = elementToBeCloned._maxPoolSize;
-        }
-
-        public int MaxPoolSize
-        {
-            get
-            {
-                return _maxPoolSize;
-            }
-            set
-            {
-                if (value < 0)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ArgumentOutOfRangeException(nameof(value), value, SR.MsmqNonNegativeArgumentExpected));
-                }
-                _maxPoolSize = value;
-            }
         }
 
         public override string Scheme
@@ -55,7 +36,7 @@ namespace CoreWCF.Channels
             }
             set
             {
-                _useActiveDirectory = value;
+                throw new NotImplementedException();
             }
         }
 

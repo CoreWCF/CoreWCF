@@ -15,15 +15,9 @@ namespace CoreWCF.Channels
         public static string GetMsmqFormatQueueName(Uri endpoint)
         {
             string uriLocalPath = endpoint.LocalPath;
-            string queueName = uriLocalPath.Substring(
-                uriLocalPath.IndexOf("private", StringComparison.InvariantCultureIgnoreCase) + 8,
-                uriLocalPath.Length - uriLocalPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) - 1);
-
-            return $".\\Private$\\{queueName}";
-        }
-
-        public static string GetMsmqFormatQueueName(string queueName)
-        {
+            int startIndex = uriLocalPath.IndexOf("private", StringComparison.InvariantCultureIgnoreCase) + 8;
+            int length = uriLocalPath.Length - uriLocalPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) - 1;
+            string queueName = uriLocalPath.Substring(startIndex, length);
             return $".\\Private$\\{queueName}";
         }
     }

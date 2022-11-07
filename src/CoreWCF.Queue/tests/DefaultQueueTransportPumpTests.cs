@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using CoreWCF.Queue.Common;
+using CoreWCF.Queue.Common.Configuration;
 using CoreWCF.Queue.Tests.Fakes;
 using Xunit;
 
@@ -16,17 +17,15 @@ namespace CoreWCF.Queue.Tests
             var transports = new FakeQueueTransport(CallType.Success);
             var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
-
-            var transportContext = new QueueTransportContext
+            QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
-                QueueBindingElement = new FakeBindingElement(),
-                ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueMessageDispatcher = _ =>
-                {
-                    handshakeCallCount++;
-                    return Task.CompletedTask;
-                },
+                handshakeCallCount++;
+                return Task.CompletedTask;
             };
+
+            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
+                new FakeBindingElement(), messageDispatcher, messageReceiver);
+
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
@@ -41,17 +40,14 @@ namespace CoreWCF.Queue.Tests
             var transports = new FakeQueueTransport(CallType.ReturnNull);
             var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
-
-            var transportContext = new QueueTransportContext
+            QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
-                QueueBindingElement = new FakeBindingElement(),
-                ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueMessageDispatcher = _ =>
-                {
-                    handshakeCallCount++;
-                    return Task.CompletedTask;
-                },
+                handshakeCallCount++;
+                return Task.CompletedTask;
             };
+
+            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
+                new FakeBindingElement(), messageDispatcher, messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
@@ -66,17 +62,14 @@ namespace CoreWCF.Queue.Tests
             var transports = new FakeQueueTransport(CallType.ThrowException);
             var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
-
-            var transportContext = new QueueTransportContext
+            QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
-                QueueBindingElement = new FakeBindingElement(),
-                ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueMessageDispatcher = _ =>
-                {
-                    handshakeCallCount++;
-                    return Task.CompletedTask;
-                },
+                handshakeCallCount++;
+                return Task.CompletedTask;
             };
+
+            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
+                new FakeBindingElement(), messageDispatcher, messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
@@ -91,17 +84,14 @@ namespace CoreWCF.Queue.Tests
             var transports = new FakeQueueTransport(CallType.Success);
             var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
             int handshakeCallCount = 0;
-
-            var transportContext = new QueueTransportContext
+            QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
-                QueueBindingElement = new FakeBindingElement(),
-                ServiceDispatcher = new FakeServiceDispatcher(),
-                QueueMessageDispatcher = _ =>
-                {
-                    handshakeCallCount++;
-                    return Task.CompletedTask;
-                },
+                handshakeCallCount++;
+                return Task.CompletedTask;
             };
+
+            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
+                new FakeBindingElement(), messageDispatcher, messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);

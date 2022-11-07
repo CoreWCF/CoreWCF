@@ -5,7 +5,7 @@ using System;
 
 namespace CoreWCF.Channels
 {
-    public class MsmqPoisonMessageException : Exception
+    public class MsmqPoisonMessageException : CommunicationException
     {
         public long MessageLookupId { get; }
 

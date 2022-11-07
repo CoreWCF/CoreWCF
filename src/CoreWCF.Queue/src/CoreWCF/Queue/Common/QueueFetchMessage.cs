@@ -24,11 +24,13 @@ namespace CoreWCF.Queue.Common
             var memStream = new MemoryStream(readResult.Buffer.ToArray());
             var encoder = queueMessageContext.QueueTransportContext.MessageEncoderFactory.Encoder;
             var maxReceivedMessageSize = queueMessageContext.QueueTransportContext.QueueBindingElement.MaxReceivedMessageSize;
-            var message = await encoder.ReadMessageAsync(memStream, (int)maxReceivedMessageSize); 
-            message.Headers.To = queueMessageContext.LocalAddress.Uri;
+            var message = await encoder.ReadMessageAsync(memStream, (int)maxReceivedMessageSize);
+            if (message.Headers.To == null)
+            {
+                message.Headers.To = queueMessageContext.LocalAddress.Uri;
+            }
             queueMessageContext.SetRequestMessage(message);
             await _next(queueMessageContext);
         }
     }
 }
-
