@@ -1127,9 +1127,13 @@ namespace CoreWCF.Description
             {
                 operationDescription.AuthorizeData = new Lazy<Collection<IAuthorizeData>>(() =>
                 {
-                    var serviceImplementationMethodInfo = FindServiceImplementationMethodInfo(operationDescription, contractDescription);
+                    var serviceImplementationMethodInfo = FindServiceTypeAndImplementationMethodInfo(operationDescription, contractDescription);
                     Collection<IAuthorizeData> authorizeData = new();
-                    foreach (var methodAttribute in serviceImplementationMethodInfo.GetCustomAttributes(false).OfType<IAuthorizeData>())
+                    foreach (var methodAttribute in serviceImplementationMethodInfo.ServiceType.GetCustomAttributes(false).OfType<IAuthorizeData>())
+                    {
+                        authorizeData.Add(methodAttribute);
+                    }
+                    foreach (var methodAttribute in serviceImplementationMethodInfo.MethodInfo.GetCustomAttributes(false).OfType<IAuthorizeData>())
                     {
                         authorizeData.Add(methodAttribute);
                     }
@@ -1141,7 +1145,7 @@ namespace CoreWCF.Description
             return operationDescription;
         }
 
-        private static MethodInfo FindServiceImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
+        private static (Type ServiceType, MethodInfo MethodInfo) FindServiceTypeAndImplementationMethodInfo(OperationDescription operationDescription, ContractDescription contractDescription)
         {
             Type serviceType = typeof(TService);
             if (serviceType.IsInterface)
@@ -1154,8 +1158,8 @@ namespace CoreWCF.Description
             InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operationDescription.OperationMethod.DeclaringType);
             int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operationDescription.OperationMethod);
             return index < 0
-                ? null
-                : interfaceMapping.TargetMethods[index];
+                ? (serviceType, null)
+                : (serviceType, interfaceMapping.TargetMethods[index]);
         }
 
         private void CheckDuplicateFaultContract(FaultDescriptionCollection faultDescriptionCollection, FaultDescription fault, string operationName)

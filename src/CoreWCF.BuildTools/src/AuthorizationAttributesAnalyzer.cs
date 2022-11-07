@@ -26,7 +26,6 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         new[]
             {
                 DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AllowAnonymousAttributeIsNotSupported,
-                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClass,
                 DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataAuthenticationSchemesPropertyIsNotSupported,
                 DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeDataRolesPropertyIsNotSupported
             }
@@ -41,31 +40,9 @@ public sealed class AuthorizationAttributesAnalyzer : DiagnosticAnalyzer
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnServiceContractImplementation, SymbolKind.NamedType);
         context.RegisterSymbolAction(WarnWhenAllowAnonymousOnOperationContractImplementation, SymbolKind.Method);
         context.RegisterSymbolAction(WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation, SymbolKind.Method);
-        context.RegisterSymbolAction(ErrorWhenAuthorizeOnServiceContractImplementation, SymbolKind.NamedType);
     }
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => s_supportedDiagnostics;
-
-    private static void ErrorWhenAuthorizeOnServiceContractImplementation(SymbolAnalysisContext context)
-    {
-        INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
-
-        var authorizeData = context.Compilation.GetTypeByMetadataName(AuthorizeDataTypeName);
-        bool hasAuthorizeData = namedTypeSymbol.HasOneAttributeInheritFrom(authorizeData);
-        if (!hasAuthorizeData)
-        {
-            return;
-        }
-
-        var ssmServiceContractAttribute = context.Compilation.GetTypeByMetadataName(SSMServiceContractAttributeTypeName);
-        var coreWCFServiceContractAttribute = context.Compilation.GetTypeByMetadataName(CoreWCFServiceContractAttributeTypeName);
-
-        if (namedTypeSymbol.AllInterfaces.Any(x => x.GetOneAttributeOf(ssmServiceContractAttribute, coreWCFServiceContractAttribute) is not null))
-        {
-            context.ReportDiagnostic(
-                DiagnosticDescriptors.AuthorizationAttributesAnalyzer_02XX.AuthorizeAttributeIsNotSupportedOnClassWarning(namedTypeSymbol.Name, context.Symbol.Locations[0]));
-        }
-    }
 
     private static void WarnWhenAuthorizeDataWithAuthenticationSchemesOrRolesPropertySetOnOperationContractImplementation(SymbolAnalysisContext context)
     {
