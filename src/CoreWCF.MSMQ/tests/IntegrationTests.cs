@@ -30,7 +30,7 @@ namespace CoreWCF.MSMQ.Tests
             MessageQueueHelper.Purge(QueueNameDeadLetter);
         }
 
-        [Fact]
+        [Fact(Skip = "Need msmq")]
         public void ReceiveMessage_ServiceCall_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -45,7 +45,7 @@ namespace CoreWCF.MSMQ.Tests
             }
         }
 
-        [Fact] //(Skip = "Need msmq")
+        [Fact(Skip = "Need msmq")]
         public async Task ReceiveMessage_ServiceCall_Fail()
         {
             MessageQueueHelper.PurgeDeadLetter();
