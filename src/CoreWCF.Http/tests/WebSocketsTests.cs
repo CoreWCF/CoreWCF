@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using Helpers;
@@ -47,6 +48,58 @@ namespace NetHttp
                 settings.CreateNotificationOnConnection = true;
                 settings.DisablePayloadMasking = true;
                 settings.MaxPendingConnections = 12345;
+            }
+        }
+
+        [Fact]
+        public async Task NetHttpWebSocketsWorkWithNullSubProtocol()
+        {
+            var serverBinding = new CoreWCF.Channels.CustomBinding()
+            {
+                Elements =
+                {
+                    new CoreWCF.Channels.BinaryMessageEncodingBindingElement(),
+                    new CoreWCF.Channels.HttpTransportBindingElement
+                    {
+                        WebSocketSettings = { SubProtocol = null, TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always }
+                    }
+                }
+            };
+            var path = "/websocket";
+            using var host = ServiceHelper.CreateWebHostBuilder<StartupWithInjectedServicepoint>(_output)
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton(new ServiceEndpoint(serverBinding, path));
+                })
+                .Build();
+
+            await host.StartAsync();
+
+            System.ServiceModel.Channels.Binding clientBinding = new CustomBinding()
+            {
+                Elements =
+                {
+                    new BinaryMessageEncodingBindingElement(),
+                    new HttpTransportBindingElement
+                    {
+                        WebSocketSettings = { SubProtocol = null, TransportUsage = WebSocketTransportUsage.Always}
+                    }
+                }
+            };
+
+            using var channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(
+                clientBinding,
+                new System.ServiceModel.EndpointAddress(new Uri(NetHttpServiceBaseUri + path)));
+            var client = channelFactory.CreateChannel();
+
+            try
+            {
+                client.EchoString("Hello world");
+            }
+            finally
+            {
+                if (client is IDisposable clientChannel)
+                    clientChannel.Dispose();
             }
         }
 
@@ -130,5 +183,25 @@ namespace NetHttp
                 });
             }
         }
+
+        private class StartupWithInjectedServicepoint
+        {
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                var (binding, path) = app.ApplicationServices.GetRequiredService<ServiceEndpoint>();
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.EchoService>();
+                    builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(binding, path);
+                });
+            }
+        }
+
+        private record ServiceEndpoint(CoreWCF.Channels.Binding Binding, string Path);
     }
 }
