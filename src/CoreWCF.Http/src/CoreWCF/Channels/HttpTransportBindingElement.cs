@@ -227,13 +227,22 @@ namespace CoreWCF.Channels
 
             if (typeof(T) == typeof(IAuthorizationCapabilities))
             {
-                var httpBindingBase = context.BindingParameters.OfType<HttpBindingBase>().SingleOrDefault();
-                if (httpBindingBase != null)
+                var binding = context.BindingParameters.OfType<Binding>().FirstOrDefault();
+                if (binding is HttpBindingBase httpBindingBase)
                 {
                     context.BindingParameters.Remove(httpBindingBase);
+                    return (T)(object)new DefaultAuthorizationCapabilities(httpBindingBase?.BasicHttpSecurity.Transport.ClientCredentialType ==
+                                                                           HttpClientCredentialType.InheritedFromHost);
                 }
-                return (T)(object)new DefaultAuthorizationCapabilities(httpBindingBase?.BasicHttpSecurity.Transport.ClientCredentialType ==
-                                                                               HttpClientCredentialType.InheritedFromHost);
+                if (binding?.GetType().FullName == "CoreWCF.WebHttpBinding")
+                {
+                    context.BindingParameters.Remove(binding);
+                    dynamic webHttpBinding = binding;
+                    return (T)(object)new DefaultAuthorizationCapabilities(webHttpBinding.Security.Transport.ClientCredentialType ==
+                                                                           HttpClientCredentialType.InheritedFromHost);
+                }
+
+                return null;
             }
 
             //else if (typeof(T) == typeof(ISecurityCapabilities))
