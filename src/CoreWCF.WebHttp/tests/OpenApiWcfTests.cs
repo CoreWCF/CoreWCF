@@ -20,7 +20,7 @@ using Xunit;
 
 namespace CoreWCF.WebHttp.Tests
 {
-    public class OpenApiWcfTests
+    public partial class OpenApiWcfTests
     {
         [Fact]
         public void SetsOpenApiVersion()
@@ -401,7 +401,7 @@ namespace CoreWCF.WebHttp.Tests
                 {
                     Contract = typeof(IDefaultResponseContentTypeFallthrough),
                     ResponseFormat = WebMessageFormat.Json
-                } 
+                }
             });
 
             JsonElement response2 = json2

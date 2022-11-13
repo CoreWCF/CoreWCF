@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Description;
 using CoreWCF.OpenApi.Attributes;
 using CoreWCF.Web;
 using Microsoft.AspNetCore.WebUtilities;
@@ -174,18 +175,18 @@ namespace CoreWCF.OpenApi
             {
                 return;
             }
-               
+
             if (methodInfo.GetCustomAttribute<OpenApiHiddenAttribute>() != null)
             {
                 return;
             }
-               
+
             foreach (OpenApiTagAttribute tagAttribute in methodInfo.GetCustomAttributes<OpenApiTagAttribute>())
             {
                 if (tagsToHide.Contains(tagAttribute.Tag))
                 {
                     return;
-                }       
+                }
             }
 
             OpenApiOperation operation = new OpenApiOperation();
@@ -218,7 +219,7 @@ namespace CoreWCF.OpenApi
                 if (!document.Paths[uri].Operations.ContainsKey(operationType.Value))
                 {
                     document.Paths[uri].Operations.Add(operationType.Value, operation);
-                }   
+                }
             }
             else if (operationType.HasValue)
             {
@@ -269,7 +270,9 @@ namespace CoreWCF.OpenApi
         /// <returns>An HTTP method and URI.</returns>
         private static OperationInfo GetMethodUriWebGet(MethodInfo methodInfo)
         {
-            WebGetAttribute attribute = methodInfo.GetCustomAttribute<WebGetAttribute>();
+            WebGetAttribute attribute = methodInfo.GetCustomAttribute<WebGetAttribute>()
+                ?? WebHttpServiceModelCompat.GetNativeAttribute<WebGetAttribute>(methodInfo);
+
             if (attribute == null)
             {
                 return new OperationInfo();
@@ -293,7 +296,9 @@ namespace CoreWCF.OpenApi
         /// <returns>An HTTP method and URI.</returns>
         private static OperationInfo GetMethodUriWebInvoke(MethodInfo methodInfo)
         {
-            WebInvokeAttribute attribute = methodInfo.GetCustomAttribute<WebInvokeAttribute>();
+            WebInvokeAttribute attribute = methodInfo.GetCustomAttribute<WebInvokeAttribute>()
+                ?? WebHttpServiceModelCompat.GetNativeAttribute<WebInvokeAttribute>(methodInfo);
+
             if (attribute == null)
             {
                 return new OperationInfo();
@@ -450,16 +455,16 @@ namespace CoreWCF.OpenApi
                 {
                     operation.Parameters = new List<OpenApiParameter>();
                 }
-                
+
                 OpenApiParameterAttribute attribute = parameter.GetCustomAttribute<OpenApiParameterAttribute>();
-                
+
                 bool isHidden = false;
                 foreach (OpenApiTagAttribute tagAttribute in parameter.GetCustomAttributes<OpenApiTagAttribute>())
                 {
                     if (tagsToHide.Contains(tagAttribute.Tag))
                     {
                         isHidden = true;
-                    } 
+                    }
                 }
 
                 OpenApiHiddenAttribute hiddenAttribute = parameter.GetCustomAttribute<OpenApiHiddenAttribute>();
@@ -468,13 +473,13 @@ namespace CoreWCF.OpenApi
                 {
                     continue;
                 }
-                    
+
                 UriTemplate uriTemplate = new UriTemplate(uriTemplateRaw);
                 ParameterLocation? parameterLocation = null;
                 if (uriTemplate.PathSegmentVariableNames.Any(variableName => string.Equals(variableName, parameter.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     parameterLocation = ParameterLocation.Path;
-                }   
+                }
                 else if (uriTemplate.QueryValueVariableNames.Any(variableName => string.Equals(variableName, parameter.Name, StringComparison.OrdinalIgnoreCase)))
                 {
                     parameterLocation = ParameterLocation.Query;
@@ -652,7 +657,7 @@ namespace CoreWCF.OpenApi
                     if (IsContractAndIsNewContract(type, property.PropertyType, seenKeys, false))
                     {
                         queue.Enqueue((type, property.PropertyType, false));
-                    }   
+                    }
                     else if (
                         property.PropertyType.GetInterface("IEnumerable") != null &&
                         property.PropertyType != typeof(string) &&
@@ -744,12 +749,12 @@ namespace CoreWCF.OpenApi
                 .OrderBy(property => property.DataMemberAttribute.Order);
 
             foreach ((PropertyInfo property, DataMemberAttribute dataMemberAttribute) in properties)
-            {                    
+            {
                 OpenApiHiddenAttribute hiddenAttribute = property.GetCustomAttribute<OpenApiHiddenAttribute>();
                 if (hiddenAttribute != null)
                 {
                     continue;
-                } 
+                }
 
                 bool isHidden = false;
                 foreach (OpenApiTagAttribute tagAttribute in property.GetCustomAttributes<OpenApiTagAttribute>())
@@ -764,7 +769,7 @@ namespace CoreWCF.OpenApi
                 {
                     continue;
                 }
-                
+
                 string name = dataMemberAttribute.Name ?? property.Name;
 
                 OpenApiPropertyAttribute memberPropertiesAttribute = property.GetCustomAttribute<OpenApiPropertyAttribute>();
@@ -967,7 +972,7 @@ namespace CoreWCF.OpenApi
             while (enumerator.MoveNext())
             {
                 index++;
-            }   
+            }
             index++;
 
             prefix = $"ns{index}";
