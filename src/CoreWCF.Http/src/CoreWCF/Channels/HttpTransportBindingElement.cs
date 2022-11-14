@@ -227,7 +227,7 @@ namespace CoreWCF.Channels
 
             if (typeof(T) == typeof(IAuthorizationCapabilities))
             {
-                var binding = context.BindingParameters.OfType<Binding>().FirstOrDefault();
+                var binding = context.BindingParameters.Find<Binding>();
                 if (binding is HttpBindingBase httpBindingBase)
                 {
                     context.BindingParameters.Remove(httpBindingBase);
