@@ -98,6 +98,8 @@ namespace CoreWCF.Description
         }
 
         internal KeyedByTypeCollection<IContractBehavior> Behaviors { get; } = new KeyedByTypeCollection<IContractBehavior>();
+        
+        internal IServiceProvider ServiceProvider { get; set; }
 
         public Collection<ContractDescription> GetInheritedContracts()
         {

@@ -8,6 +8,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
@@ -29,8 +30,6 @@ namespace CoreWCF.Description
             typeof(XmlSerializerFormatAttribute),
             typeof(DataContractFormatAttribute)
         };
-
-        internal static IServiceProvider ServiceProvider { get; set; }
 
         static Type[] knownTypesMethodParamType = new Type[] { typeof(ICustomAttributeProvider) };
 
@@ -1125,18 +1124,18 @@ namespace CoreWCF.Description
 
             if (direction == MessageDirection.Input)
             {
-                operationDescription.AuthorizeData = new Lazy<ReadOnlyCollection<IAuthorizeData>>(() => GetAuthorizeData(operationDescription).ToList().AsReadOnly());
+                operationDescription.AuthorizeData = new Lazy<ReadOnlyCollection<IAuthorizeData>>(() => GetAuthorizeData(operationDescription, contractDescription).ToList().AsReadOnly());
             }
 
             return operationDescription;
         }
 
-        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription)
+        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription, ContractDescription contractDescription)
         {
             Type serviceType = typeof(TService);
             if (serviceType.IsInterface)
             {
-                using var scope = ServiceProvider.CreateScope();
+                using var scope = contractDescription.ServiceProvider.CreateScope();
                 object serviceInstance = scope.ServiceProvider.GetService(serviceType);
                 serviceType = serviceInstance.GetType();
             }
