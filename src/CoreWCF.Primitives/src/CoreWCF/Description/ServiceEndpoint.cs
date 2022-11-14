@@ -171,7 +171,7 @@ namespace CoreWCF.Description
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.AChannelServiceEndpointSContractIsNull0));
             }
             Contract.EnsureInvariants();
-            //Binding.EnsureInvariants(Contract.Name);
+            Binding.EnsureInvariants(Contract.Name);
         }
 
         internal void ValidateForClient()

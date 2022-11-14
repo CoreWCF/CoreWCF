@@ -9,6 +9,7 @@ using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
@@ -181,11 +182,9 @@ namespace CoreWCF.Description
             foreach (ServiceEndpoint endpoint in serviceDescription.Endpoints)
             {
                 TransportBindingElement transportBindingElement = endpoint.Binding.CreateBindingElements().Find<TransportBindingElement>();
-                if (transportBindingElement != null)
-                {
-                    var behaviors = (KeyedByTypeCollection<IEndpointBehavior>)endpoint.EndpointBehaviors;
-                    behaviors.Add(new EndpointAuthorizationBehavior());
-                }
+                Fx.Assert(transportBindingElement != null, "TransportBindingElement is null");
+                var behaviors = (KeyedByTypeCollection<IEndpointBehavior>)endpoint.EndpointBehaviors;
+                behaviors.Add(new EndpointAuthorizationBehavior());
             }
         }
 
