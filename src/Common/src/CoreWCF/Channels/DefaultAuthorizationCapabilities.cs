@@ -3,11 +3,11 @@
 
 namespace CoreWCF.Channels;
 
-public class DefaultAuthorizationCapabilities : IAuthorizationCapabilities
+internal class AuthorizationCapabilities : IAuthorizationCapabilities
 {
     public bool SupportsAuthorizationData { get; }
 
-    public DefaultAuthorizationCapabilities(bool supportsAuthorizationData)
+    public AuthorizationCapabilities(bool supportsAuthorizationData)
     {
         SupportsAuthorizationData = supportsAuthorizationData;
     }

@@ -231,14 +231,14 @@ namespace CoreWCF.Channels
                 if (binding is HttpBindingBase httpBindingBase)
                 {
                     context.BindingParameters.Remove(httpBindingBase);
-                    return (T)(object)new DefaultAuthorizationCapabilities(httpBindingBase?.BasicHttpSecurity.Transport.ClientCredentialType ==
+                    return (T)(object)new AuthorizationCapabilities(httpBindingBase?.BasicHttpSecurity.Transport.ClientCredentialType ==
                                                                            HttpClientCredentialType.InheritedFromHost);
                 }
                 if (binding?.GetType().FullName == "CoreWCF.WebHttpBinding")
                 {
                     context.BindingParameters.Remove(binding);
                     dynamic webHttpBinding = binding;
-                    return (T)(object)new DefaultAuthorizationCapabilities(webHttpBinding.Security.Transport.ClientCredentialType ==
+                    return (T)(object)new AuthorizationCapabilities(webHttpBinding.Security.Transport.ClientCredentialType ==
                                                                            HttpClientCredentialType.InheritedFromHost);
                 }
 
