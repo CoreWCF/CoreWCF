@@ -64,7 +64,11 @@ public partial class AuthorizationTests
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public InterfaceOnlySecuredService(IHttpContextAccessor httpContextAccessor) => _httpContextAccessor = httpContextAccessor;
+        public InterfaceOnlySecuredService(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
+            Assert.NotNull(_httpContextAccessor.HttpContext);
+        }
 
         [Authorize(Policy = Policies.Read)]
         public string Echo(string text)
