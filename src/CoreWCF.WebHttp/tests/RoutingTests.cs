@@ -38,7 +38,7 @@ namespace CoreWCF.WebHttp.Tests
         }
 
         [Fact]
-        public async Task NoParamWittEmptyRoot()
+        public async Task NoParamWithEmptyRoot()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithEmptyRoot>(_output).Build();
             using (host)
