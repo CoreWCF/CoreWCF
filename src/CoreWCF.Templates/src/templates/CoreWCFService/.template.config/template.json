@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "https://github.com/CoreWCF",
-  "classifications": [ "Service" ],
+  "classifications": [ "Web", "Service" ],
   "identity": "CoreWCF.Templates.CoreWCFService.1.0",
   "sourceName": "CoreWCFService",
   "preferNameDirectory": true,
@@ -12,7 +12,7 @@
   },
   "name": "CoreWCF Service",
   "defaultName": "CoreWCFService",
-  "description": "A project template for creating a server application which hosts a CoreWCF service.",
+  "description": "A project template for creating an ASP.NET Core Web Application which hosts a CoreWCF service.",
   "sources": [
     {
       "modifiers": [
