@@ -26,6 +26,10 @@ public partial class AuthorizationTests
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            {
+                CertificateValidationMode = X509CertificateValidationMode.None
+            };
             ISecuredService channel = factory.CreateChannel();
             string result = channel.Echo(TestString);
             Assert.Equal(TestString, result);
@@ -42,6 +46,10 @@ public partial class AuthorizationTests
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            {
+                CertificateValidationMode = X509CertificateValidationMode.None
+            };
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
         }
@@ -57,6 +65,10 @@ public partial class AuthorizationTests
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            {
+                CertificateValidationMode = X509CertificateValidationMode.None
+            };
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
         }
