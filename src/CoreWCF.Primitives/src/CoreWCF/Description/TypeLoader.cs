@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
@@ -1124,19 +1125,18 @@ namespace CoreWCF.Description
 
             if (direction == MessageDirection.Input)
             {
-                operationDescription.AuthorizeData = new Lazy<ReadOnlyCollection<IAuthorizeData>>(() => GetAuthorizeData(operationDescription, contractDescription).ToList().AsReadOnly());
+                operationDescription.AuthorizeData = new ConcurrentDictionary<Type, ReadOnlyCollection<IAuthorizeData>>();
             }
 
             return operationDescription;
         }
 
-        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription, ContractDescription contractDescription)
+        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription)
         {
             Type serviceType = typeof(TService);
             if (serviceType.IsInterface)
             {
-                using var scope = contractDescription.ServiceProvider.CreateScope();
-                object serviceInstance = scope.ServiceProvider.GetService(serviceType);
+                object serviceInstance = OperationContext.Current.InstanceContext.GetServiceInstance();
                 serviceType = serviceInstance.GetType();
             }
 

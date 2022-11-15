@@ -555,12 +555,13 @@ namespace CoreWCF.Dispatcher
                 rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
             }
 
+            await InstanceBehavior.EnsureInstanceContextAsync(rpc);
+
             if (_authorizationBehavior != null)
             {
                 rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
             }
 
-            await InstanceBehavior.EnsureInstanceContextAsync(rpc);
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
 

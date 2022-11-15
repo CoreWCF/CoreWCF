@@ -111,8 +111,6 @@ namespace CoreWCF
                         contract = ContractDescription.GetContract<TService>(contractType);
                     }
 
-                    contract.ServiceProvider = _serviceProvider;
-
                     reflectedContracts.Add(contract);
                     Collection<ContractDescription> inheritedContracts = contract.GetInheritedContracts();
                     for (int j = 0; j < inheritedContracts.Count; j++)
