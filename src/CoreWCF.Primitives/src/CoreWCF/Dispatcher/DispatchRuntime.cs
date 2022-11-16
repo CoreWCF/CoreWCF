@@ -490,7 +490,10 @@ namespace CoreWCF.Dispatcher
         internal bool RequiresAuthentication { get; private set; }
 
         internal bool RequiresAuthorization
-            => _isAuthorizationManagerSet || _isExternalPoliciesSet || (_isAuthorizationServiceSet && _supportsAuthorizationData);
+            => _isAuthorizationManagerSet || _isExternalPoliciesSet;
+
+        internal bool RequiresAuthorizationPolicies =>
+            _isAuthorizationServiceSet && _supportsAuthorizationData;
 
         internal bool HasMatchAllOperation
         {
