@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using CoreWCF.Collections.Generic;
+using CoreWCF.Runtime.Collections;
 using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
@@ -127,7 +128,7 @@ namespace CoreWCF.Description
 
         internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
 
-        internal ConcurrentDictionary<Type, ReadOnlyCollection<IAuthorizeData>> AuthorizeData { get; set; }
+        internal GenericHashtable<Type, ReadOnlyCollection<IAuthorizeData>> AuthorizeData { get; set; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {

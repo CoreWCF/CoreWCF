@@ -602,19 +602,9 @@ namespace CoreWCF.Description
                 {
                     object serviceInstance = OperationContext.Current.InstanceContext.GetServiceInstance();
                     Type serviceType = serviceInstance.GetType();
-                    IReadOnlyCollection<IAuthorizeData> authorizeData = operation.AuthorizeData.GetOrAdd(serviceType, x =>
-                    {
-                        List<IAuthorizeData> authorizeData = new();
-                        authorizeData.AddRange(x.GetCustomAttributes(false).OfType<IAuthorizeData>());
-                        InterfaceMapping interfaceMapping = x.GetInterfaceMap(operation.OperationMethod.DeclaringType);
-                        int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operation.OperationMethod);
-                        if (index >= 0)
-                        {
-                            authorizeData.AddRange(interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>());
-                        }
-
-                        return authorizeData.AsReadOnly();
-                    });
+                    ReadOnlyCollection<IAuthorizeData> authorizeData = operation.AuthorizeData.ContainsKey(serviceType)
+                        ? operation.AuthorizeData[serviceType]
+                        : operation.AuthorizeData[serviceType] = BuildAuthorizeData(operation, serviceType);
 
                     // TODO: Make this chain call async
                     var getPolicyTask = authorizeData.Count > 0
@@ -623,6 +613,20 @@ namespace CoreWCF.Description
                     return getPolicyTask.GetAwaiter().GetResult();
                 });
             }
+        }
+
+        private static ReadOnlyCollection<IAuthorizeData> BuildAuthorizeData(OperationDescription operation, Type serviceType)
+        {
+            List<IAuthorizeData> authorizeData = new();
+            authorizeData.AddRange(serviceType.GetCustomAttributes(false).OfType<IAuthorizeData>());
+            InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operation.OperationMethod.DeclaringType);
+            int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operation.OperationMethod);
+            if (index >= 0)
+            {
+                authorizeData.AddRange(interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>());
+            }
+
+            return authorizeData.AsReadOnly();
         }
 
         private static void BindOperations(ContractDescription contract, ClientRuntime proxy, DispatchRuntime dispatch)

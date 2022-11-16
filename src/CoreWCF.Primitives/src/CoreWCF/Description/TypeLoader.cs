@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using CoreWCF.Runtime.Collections;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -1125,35 +1122,10 @@ namespace CoreWCF.Description
 
             if (direction == MessageDirection.Input)
             {
-                operationDescription.AuthorizeData = new ConcurrentDictionary<Type, ReadOnlyCollection<IAuthorizeData>>();
+                operationDescription.AuthorizeData = new GenericHashtable<Type, ReadOnlyCollection<IAuthorizeData>>();
             }
 
             return operationDescription;
-        }
-
-        private static IEnumerable<IAuthorizeData> GetAuthorizeData(OperationDescription operationDescription)
-        {
-            Type serviceType = typeof(TService);
-            if (serviceType.IsInterface)
-            {
-                object serviceInstance = OperationContext.Current.InstanceContext.GetServiceInstance();
-                serviceType = serviceInstance.GetType();
-            }
-
-            foreach (IAuthorizeData authorizeData in serviceType.GetCustomAttributes(false).OfType<IAuthorizeData>())
-            {
-                yield return authorizeData;
-            }
-
-            InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operationDescription.OperationMethod.DeclaringType);
-            int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operationDescription.OperationMethod);
-            if (index >= 0)
-            {
-                foreach (IAuthorizeData authorizeData in interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>())
-                {
-                    yield return authorizeData;
-                }
-            }
         }
 
         private void CheckDuplicateFaultContract(FaultDescriptionCollection faultDescriptionCollection, FaultDescription fault, string operationName)
