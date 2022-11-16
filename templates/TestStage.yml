@@ -72,7 +72,6 @@ stages:
         packageType: sdk
         version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        includePreviewVersions: true
 
     - task: UseDotNet@2
       displayName: 'Use additional .NET Core sdk'
@@ -170,7 +169,6 @@ stages:
         packageType: sdk
         version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        includePreviewVersions: true
 
     - task: UseDotNet@2
       displayName: 'Use additional .NET Core sdk'

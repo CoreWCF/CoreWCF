@@ -22,7 +22,6 @@ stages:
         packageType: sdk
         version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        includePreviewVersions: true
 
     - task: DotNetCoreCLI@2
       displayName: Restore packages
