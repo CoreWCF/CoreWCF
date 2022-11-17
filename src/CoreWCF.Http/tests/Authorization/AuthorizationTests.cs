@@ -111,6 +111,11 @@ public partial class AuthorizationTests
                     policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
                 options.AddPolicy(Policies.Read,
                     policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.DefaultPolicy =
+                    new AuthorizationPolicyBuilder(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
+                        .RequireClaim("scope", DefinedScopeValues.Read)
+                        .Build();
+
             });
             services.AddServiceModelServices();
             services.AddHttpContextAccessor();

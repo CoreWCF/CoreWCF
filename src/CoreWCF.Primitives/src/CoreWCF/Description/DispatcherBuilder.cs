@@ -606,11 +606,14 @@ namespace CoreWCF.Description
                         ? operation.AuthorizeData[serviceType]
                         : operation.AuthorizeData[serviceType] = BuildAuthorizeData(operation, serviceType);
 
-                    // TODO: Make this chain call async
-                    var getPolicyTask = authorizeData.Count > 0
-                        ? AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, authorizeData)
-                        : authorizationPolicyProvider.GetDefaultPolicyAsync();
-                    return getPolicyTask.GetAwaiter().GetResult();
+                    if (authorizeData.Count > 0)
+                    {
+                        // TODO: Make this chain call async
+                        return AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, authorizeData).GetAwaiter()
+                            .GetResult();
+                    }
+
+                    return null;
                 });
             }
         }
