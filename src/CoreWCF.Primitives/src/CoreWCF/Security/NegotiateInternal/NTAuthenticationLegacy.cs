@@ -37,7 +37,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
             s_constructor = s_ntAuthenticationType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
             s_getOutgoingBlob = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("GetOutgoingBlob") && info.GetParameters().Count() == 3).Single();
+                info.Name.Equals("GetOutgoingBlob") && info.ToString().Equals("Byte[] GetOutgoingBlob(Byte[], Boolean, System.Net.SecurityStatusPal ByRef)")).Single();
             s_isCompleted = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("get_IsCompleted")).Single();
             s_protocol = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
