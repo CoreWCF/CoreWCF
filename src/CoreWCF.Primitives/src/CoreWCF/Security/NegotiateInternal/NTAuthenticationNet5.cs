@@ -18,7 +18,7 @@ namespace CoreWCF.Security.NegotiateInternal
          *     [NotNull] ref byte[]? output, 
          *     uint sequenceNumber)
          */
-        private static readonly Lazy<EncryptInvoker> s_encryptInvoker = new Lazy<EncryptInvoker>(() => BuildEncrypt(Expression.Constant(0U)));
+        private static readonly EncryptInvoker s_encryptInvoker = BuildEncrypt(Expression.Constant(0U));
 
         protected static EncryptInvoker BuildEncrypt(params Expression[] otherParameters)
         {
@@ -54,6 +54,6 @@ namespace CoreWCF.Security.NegotiateInternal
             return expression.Compile();
         }
 
-        public override int Encrypt(byte[] input, ref byte[] output) => s_encryptInvoker.Value(Instance, input, ref output);
+        public override int Encrypt(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
     }
 }

@@ -11,7 +11,7 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     internal class NTAuthenticationLegacy : INTAuthenticationFacade
     {
-        protected static readonly Type s_ntAuthenticationType;
+        protected static readonly Type s_ntAuthenticationType = typeof(AuthenticationException).Assembly.GetType("System.Net.NTAuthentication", throwOnError: true);
         protected static readonly ConstructorInfo s_constructor;
         protected static readonly MethodInfo s_getOutgoingBlob;
         protected static readonly MethodInfo s_isCompleted;
@@ -32,9 +32,6 @@ namespace CoreWCF.Security.NegotiateInternal
 
         static NTAuthenticationLegacy()
         {
-            Assembly secAssembly = typeof(AuthenticationException).Assembly;
-            s_ntAuthenticationType = secAssembly.GetType("System.Net.NTAuthentication", throwOnError: true);
-
             s_constructor = s_ntAuthenticationType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
             s_getOutgoingBlob = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("GetOutgoingBlob") && info.ToString().Equals("Byte[] GetOutgoingBlob(Byte[], Boolean, System.Net.SecurityStatusPal ByRef)")).Single();
