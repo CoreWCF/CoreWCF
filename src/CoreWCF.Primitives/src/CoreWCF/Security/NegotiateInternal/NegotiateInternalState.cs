@@ -52,7 +52,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public NegotiateInternalState()
         {
-            _ntAuthentication = new NTAuthentication();
+            _ntAuthentication = NTAuthenticationFacade.Build();
         }
 
         // Copied rather than reflected to remove the IsCompleted -> CloseContext check.
