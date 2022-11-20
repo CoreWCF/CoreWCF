@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
-    internal class NTAuthentication : INTAuthenticationFacade
+    internal class NTAuthenticationLegacy : INTAuthenticationFacade
     {
         protected static readonly Type s_ntAuthenticationType;
         protected static readonly ConstructorInfo s_constructor;
@@ -28,9 +28,9 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public bool IsValidContext => (bool)s_isValidContext.Invoke(Instance, Array.Empty<object>());
 
-        internal NTAuthentication() => Instance = CreateInstance();
+        internal NTAuthenticationLegacy() => Instance = CreateInstance();
 
-        static NTAuthentication()
+        static NTAuthenticationLegacy()
         {
             Assembly secAssembly = typeof(AuthenticationException).Assembly;
             s_ntAuthenticationType = secAssembly.GetType("System.Net.NTAuthentication", throwOnError: true);
