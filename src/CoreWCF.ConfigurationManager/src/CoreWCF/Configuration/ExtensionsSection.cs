@@ -48,6 +48,7 @@ namespace CoreWCF.Configuration
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.WSHttpBindingCollectionElementName, typeof(WSHttpBindingCollectionElement).AssemblyQualifiedName));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.UdpBindingCollectionElementName, ConfigurationStrings.UdpBindingCollectionElementType));
             BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.NetHttpBindingCollectionElementName, typeof(NetHttpBindingCollectionElement).AssemblyQualifiedName));
+            BindingExtensions.Add(new ExtensionElement(ConfigurationStrings.WebHttpBindingCollectionElementName, typeof(WebHttpBindingCollectionElement).AssemblyQualifiedName));
         }
 
         public ExtensionsSection()
