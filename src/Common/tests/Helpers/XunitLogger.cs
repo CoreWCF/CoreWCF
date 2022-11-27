@@ -26,11 +26,15 @@ namespace Helpers
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
-            if (exception != null)
+            try
             {
-                _testOutputHelper.WriteLine(exception.ToString());
+                _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
+                if (exception != null)
+                {
+                    _testOutputHelper.WriteLine(exception.ToString());
+                }
             }
+            catch (InvalidOperationException e) when (e.Message == "There is no currently active test.") { }
         }
 
         private class NoopDisposable : IDisposable
