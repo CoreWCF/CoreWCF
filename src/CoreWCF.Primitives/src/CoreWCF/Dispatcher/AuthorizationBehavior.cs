@@ -91,12 +91,14 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(dispatch)));
             }
 
-            if (dispatch.RequiresAuthorization || dispatch.RequiresAuthorizationPolicies)
+            return dispatch switch
             {
-                return CreateAuthorizationBehavior(dispatch);
-            }
-
-            return null;
+                { RequiresAuthorization: true, RequiresAuthorizationPolicies: true } =>
+                    throw new NotSupportedException(SR.AuthorizationFeaturesAreMutuallyExclusive),
+                { RequiresAuthorization: true } or { RequiresAuthorizationPolicies: true } =>
+                    CreateAuthorizationBehavior(dispatch),
+                _ => null
+            };
         }
 
         internal static Exception CreateAccessDeniedFaultException()

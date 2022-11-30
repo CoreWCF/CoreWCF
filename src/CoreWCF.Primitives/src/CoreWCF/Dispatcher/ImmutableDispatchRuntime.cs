@@ -553,12 +553,7 @@ namespace CoreWCF.Dispatcher
                 rpc = await _authenticationBehavior.AuthenticateAsync(rpc);
             }
 
-            if (RequireClaimsPrincipalOnOperationContext)
-            {
-                rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
-            }
-
-            if (_authorizationBehavior != null)
+            if (_authorizationBehavior != null && !SupportsAuthorizationData)
             {
                 rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
             }
@@ -609,6 +604,11 @@ namespace CoreWCF.Dispatcher
             }
 
             InstanceBehavior.EnsureServiceInstance(rpc);
+
+            if (RequireClaimsPrincipalOnOperationContext)
+            {
+                rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
+            }
 
             if (_authorizationBehavior != null && SupportsAuthorizationData)
             {
