@@ -4,48 +4,41 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using CoreWCF.Runtime;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Security
 {
     public class DataProtectionSecurityStateEncoder : SecurityStateEncoder
     {
+        private readonly Lazy<IDataProtector> _dataProtector;
         private readonly byte[] _entropy;
+        private readonly string _purpose = typeof(DataProtectionSecurityStateEncoder).FullName;
 
         public DataProtectionSecurityStateEncoder() : this(true)
-        {
-            // empty
-        }
+        { }
 
         public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope) : this(useCurrentUserProtectionScope, null)
         { }
 
         public DataProtectionSecurityStateEncoder(bool useCurrentUserProtectionScope, byte[] entropy)
         {
-            UseCurrentUserProtectionScope = useCurrentUserProtectionScope;
-            if (entropy == null)
+            if (entropy != null)
             {
-                _entropy = null;
+                _entropy = entropy;
+                _purpose = Encoding.UTF8.GetString(_entropy);
             }
             else
             {
-                _entropy = Fx.AllocateByteArray(entropy.Length);
-                Buffer.BlockCopy(entropy, 0, _entropy, 0, entropy.Length);
+                _entropy = Encoding.UTF8.GetBytes(_purpose);
             }
+
+            _dataProtector = new Lazy<IDataProtector>(GetDataProtector);
         }
 
-        public bool UseCurrentUserProtectionScope { get; }
+        public bool UseCurrentUserProtectionScope => false;
 
-        public byte[] GetEntropy()
-        {
-            byte[] result = null;
-            if (_entropy != null)
-            {
-                result = Fx.AllocateByteArray(_entropy.Length);
-                Buffer.BlockCopy(_entropy, 0, result, 0, _entropy.Length);
-            }
-            return result;
-        }
+        public byte[] GetEntropy() => _entropy;
 
         public override string ToString()
         {
@@ -56,11 +49,25 @@ namespace CoreWCF.Security
             return result.ToString();
         }
 
+
+        private IDataProtector GetDataProtector()
+        {
+            HttpContext context = null;
+            if (OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue("Microsoft.AspNetCore.Http.HttpContext", out object contextObj))
+            {
+                context = contextObj as HttpContext;
+                return context?.RequestServices.GetDataProtector(_purpose);
+            }
+
+            return null;
+        }
+
+
         protected internal override byte[] DecodeSecurityState(byte[] data)
         {
             try
             {
-                return ProtectedData.Unprotect(data, _entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return _dataProtector.Value.Unprotect(data);
             }
             catch (CryptographicException exception)
             {
@@ -72,7 +79,7 @@ namespace CoreWCF.Security
         {
             try
             {
-                return ProtectedData.Protect(data, _entropy, (UseCurrentUserProtectionScope) ? DataProtectionScope.CurrentUser : DataProtectionScope.LocalMachine);
+                return _dataProtector.Value.Protect(data);
             }
             catch (CryptographicException exception)
             {
