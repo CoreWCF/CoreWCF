@@ -3,6 +3,7 @@
 
 using System;
 using System.Net;
+using System.Runtime.CompilerServices;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore;
@@ -14,14 +15,14 @@ namespace CoreWCF.ConfigurationManager.Tests
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress, int port)
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress, int port, [CallerMemberName] string callerMethodName = "")
             where TStartup : class
         {
             IWebHostBuilder result = WebHost.CreateDefaultBuilder(Array.Empty<string>());
 #if DEBUG
             result = result.ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
