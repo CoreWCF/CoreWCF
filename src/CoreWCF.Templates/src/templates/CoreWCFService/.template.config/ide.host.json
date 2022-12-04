@@ -2,14 +2,9 @@
     "$schema": "http://json.schemastore.org/ide.host",
     "order": 150,
     "icon": "ide/Empty.png",
+    "disableHttpsSymbol": "NoHttps",
+    "supportsDocker": true,
     "symbolInfo": [
-      {
-        "id": "NoHttps",
-        "name": {
-          "text": "Turn off HTTPS feature."
-        },
-        "isVisible": true
-      },
       {
         "id": "NoWsdl",
         "name": {
@@ -20,7 +15,7 @@
       {
         "id": "UseProgramMain",
         "name": {
-          "text": "Turn off minimal ASP.NET Core hosting model. (Only applies to .NET 6 projects)"
+          "text": "Turn off minimal ASP.NET Core hosting model."
         },
         "isVisible": true
       }
