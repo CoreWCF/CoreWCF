@@ -101,7 +101,7 @@ namespace CoreWCF.Dispatcher
 
         public Task DispatchAsync(RequestContext context)
         {
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotImplementedException());
+            return _next.DispatchAsync(context);
         }
 
         public Task DispatchAsync(Message message)
