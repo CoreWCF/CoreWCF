@@ -117,7 +117,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             XmlNamespaceManager manager = new XmlNamespaceManager(navigator.NameTable);
             // Add our own ns prefix soapns to map to the wsdl soap ns so that navigator query can resolve a qualified query
             manager.AddNamespace("soapns", "http://schemas.xmlsoap.org/wsdl/soap/"); // Soap1.1
-            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2 
+            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2
             manager.AddNamespace("wsa10ns", "http://www.w3.org/2005/08/addressing"); // AddressingVersion.WSAddressing10
             bool isSoap12 = false;
             var navs = navigator.Select($"//soapns:address", manager);
@@ -190,7 +190,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             XmlNamespaceManager manager = new XmlNamespaceManager(navigator.NameTable);
             // Add our own ns prefix soapns to map to the wsdl soap ns so that navigator query can resolve a qualified query
             manager.AddNamespace("soapns", "http://schemas.xmlsoap.org/wsdl/soap/"); // Soap1.1
-            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2 
+            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2
             manager.AddNamespace("wsa10ns", "http://www.w3.org/2005/08/addressing"); // AddressingVersion.WSAddressing10
             bool isSoap12 = false;
             var navs = navigator.Select($"//soapns:address", manager);
@@ -229,7 +229,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             XmlNamespaceManager manager = new XmlNamespaceManager(navigator.NameTable);
             // Add our own ns prefix soapns to map to the wsdl soap ns so that navigator query can resolve a qualified query
             manager.AddNamespace("soapns", "http://schemas.xmlsoap.org/wsdl/soap/"); // Soap1.1
-            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2 
+            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2
             manager.AddNamespace("wsa10ns", "http://www.w3.org/2005/08/addressing"); // AddressingVersion.WSAddressing10
             bool isSoap12 = false;
             var navs = navigator.Select($"//soapns:address", manager);
@@ -270,7 +270,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             XmlNamespaceManager manager = new XmlNamespaceManager(navigator.NameTable);
             // Add our own ns prefix soapns to map to the wsdl soap ns so that navigator query can resolve a qualified query
             manager.AddNamespace("soapns", "http://schemas.xmlsoap.org/wsdl/soap/"); // Soap1.1
-            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2 
+            manager.AddNamespace("soap12ns", "http://schemas.xmlsoap.org/wsdl/soap12/"); // Soap 1.2
             manager.AddNamespace("wsa10ns", "http://www.w3.org/2005/08/addressing"); // AddressingVersion.WSAddressing10
             bool isSoap12 = false;
             var navs = navigator.Select($"//soapns:address", manager);

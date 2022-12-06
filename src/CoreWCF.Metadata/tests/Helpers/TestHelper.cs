@@ -21,16 +21,17 @@ namespace CoreWCF.Metadata.Tests.Helpers
         internal static async Task RunSingleWsdlTestAsync<TService, TContract>(Binding binding, ITestOutputHelper output,
             Action<IServiceCollection> configureServices = null,
             Action<HttpClient> configureHttpClient = null,
-            string endpointAddress= null,
+            string endpointAddress = null,
             [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
                  where TService : class
-        { 
+        {
             IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 binding,
                 EndpointRelativePath,
                 configureServices,
-                output)
+                output,
+                callerMethodName)
                 .Build();
             string wsdlAddress = "http://localhost:8080" + EndpointRelativePath;
             if ("https".Equals(binding.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -54,7 +55,8 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 binding1,
                 binding2,
                 EndpointRelativePath,
-                output)
+                output,
+                callerMethodName)
                 .Build();
             string wsdl1Address = "http://localhost:8080/1" + EndpointRelativePath;
             if ("https".Equals(binding1.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -84,7 +86,8 @@ namespace CoreWCF.Metadata.Tests.Helpers
             IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 bindingEndpointMap,
                 baseAddresses,
-                output)
+                output,
+                callerMethodName)
                 .Build();
 
             using (host)
