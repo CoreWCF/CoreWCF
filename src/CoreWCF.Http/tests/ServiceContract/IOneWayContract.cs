@@ -7,7 +7,7 @@ namespace ServiceContract
     public interface IOneWayContract
     {
         // Token: 0x06000864 RID: 2148
-        [OperationContract(IsOneWay = true)]
-        void OneWay(string s);
+        [OperationContract(AsyncPattern = true, IsOneWay = true)]
+        Task OneWay(string s);
     }
 }

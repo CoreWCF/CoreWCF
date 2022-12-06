@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using CoreWCF;
 using ServiceContract;
 using System.Threading.Tasks;
@@ -10,18 +11,16 @@ namespace Services
         InstanceContextMode = InstanceContextMode.PerCall)]
     public class OneWayService : IOneWayContract
     {
-        public static ITestOutputHelper TestOutputHelper { get; set; }
-        public static List<Task> Tasks { get; set; } = new();
-        public static HashSet<string> Inputs { get; set; } = new();
+        private readonly ConcurrentBag<string> _inputs;
 
-        public void OneWay(string s)
+        public OneWayService(ConcurrentBag<string> inputs)
         {
-            var task = new Task(() =>
-            {
-                Inputs.Add(s);
-            });
-            Tasks.Add(task);
-            task.Start();
+            _inputs = inputs;
         }
+
+        public Task OneWay(string s) => Task.Factory.StartNew(() =>
+        {
+            _inputs.Add(s);
+        });
     }
 }
