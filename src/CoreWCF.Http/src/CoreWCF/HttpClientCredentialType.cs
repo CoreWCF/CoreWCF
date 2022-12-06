@@ -37,7 +37,6 @@ namespace CoreWCF
             switch (clientCredentialType)
             {
                 case HttpClientCredentialType.Certificate:
-                // fall through to None case
                 case HttpClientCredentialType.None:
                     result = AuthenticationSchemes.Anonymous;
                     break;

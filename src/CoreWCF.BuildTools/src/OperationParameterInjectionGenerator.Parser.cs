@@ -22,6 +22,8 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _httpResponseSymbol;
             private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
+            private readonly INamedTypeSymbol? _coreWCFInjectedSymbol;
+            private readonly INamedTypeSymbol? _mvcFromServicesSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext context)
             {
@@ -35,6 +37,8 @@ namespace CoreWCF.BuildTools
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
                 _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
+                _coreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
+                _mvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute");
             }
 
             public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
@@ -48,24 +52,26 @@ namespace CoreWCF.BuildTools
 
                 var methodServiceContractAndOperationContractsValues = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
-                    where @interface.HasOneOfAttributes(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol)
+                    where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
                     let methodMembers = (from member in @interface.GetMembers()
                         let methodMember = member as IMethodSymbol
                         where methodMember is not null
-                        where methodMember.HasOneOfAttributes(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
-                        select methodMember).ToImmutableArray()
+                        let operationContractAttribute = methodMember.GetOneAttributeOf(_sSMOperationContractSymbol,
+                            _coreWCFOperationContractSymbol)
+                        where operationContractAttribute is not null
+                        select (MethodMember: methodMember, AttributeData: operationContractAttribute)).ToImmutableArray()
                     select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
 
                 var methodMissingOperationServiceContractAndOperationContractsValues =
                     from value in methodServiceContractAndOperationContractsValues
                     let missingOperationContract =
                         value.OperationContracts
-                            .SingleOrDefault(x => x.Name == value.Method.Name
-                                                  && x.Parameters.All(p =>
+                            .SingleOrDefault(x => x.MethodMember.Name == value.Method.Name
+                                                  && x.MethodMember.Parameters.All(p =>
                                                       value.Method.Parameters.Any(msp =>
                                                           msp.IsMatchingParameter(p))))
-                    where missingOperationContract is not null
-                    let nonNullMissingOperationContract = missingOperationContract as IMethodSymbol
+                    where missingOperationContract.MethodMember is not null
+                    let nonNullMissingOperationContract = missingOperationContract
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
                         value.ServiceContract, value.OperationContracts);
 
@@ -75,14 +81,14 @@ namespace CoreWCF.BuildTools
                 {
                     if (!value.Method.ContainingType.IsPartial(out INamedTypeSymbol parentType))
                     {
-                        _context.ReportDiagnostic(DiagnosticDescriptors.RaiseParentClassShouldBePartialError(parentType.Name, value.Method.Name, parentType.Locations[0]));
+                        _context.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaiseParentClassShouldBePartialError(parentType.Name, value.Method.Name, parentType.Locations[0]));
                         continue;
                     }
 
                     builder.Add(new OperationContractSpec(value.ServiceContract,
-                        value.Method.ContainingType, value.MissingOperationContract,
+                        value.Method.ContainingType, value.MissingOperationContract.MethodMember,
                         value.Method,
-                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol));
+                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol, value.MissingOperationContract.AttributeData));
                 }
 
                 ImmutableArray<OperationContractSpec> operationContractSpecs = builder.ToImmutable();

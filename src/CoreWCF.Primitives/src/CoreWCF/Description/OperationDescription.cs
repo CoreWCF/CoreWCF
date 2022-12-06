@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using CoreWCF.Collections.Generic;
+using CoreWCF.Runtime.Collections;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -123,6 +127,8 @@ namespace CoreWCF.Description
         internal bool IsValidateRpcWrapperName { private set; get; } = true;
 
         internal KeyedByTypeCollection<IAuthorizeOperation> AuthorizeOperation { get; }
+
+        internal GenericHashtable<Type, ReadOnlyCollection<IAuthorizeData>> AuthorizeData { get; set; }
 
         public KeyedCollection<Type, IOperationBehavior> OperationBehaviors
         {

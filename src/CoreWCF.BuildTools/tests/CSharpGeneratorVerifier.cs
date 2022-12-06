@@ -27,6 +27,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
             TestState.AdditionalReferences.Add(typeof(Microsoft.Extensions.DependencyInjection.IServiceScope).Assembly);
             TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Http.HttpContext).Assembly);
             TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Mvc.FromServicesAttribute).Assembly);
+            TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Authorization.IAuthorizeData).Assembly);
         }
 
         protected override CompilationOptions CreateCompilationOptions()

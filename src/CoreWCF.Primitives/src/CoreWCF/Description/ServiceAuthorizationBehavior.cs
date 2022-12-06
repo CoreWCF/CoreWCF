@@ -6,8 +6,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CoreWCF.Channels;
+using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
+using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -20,9 +23,11 @@ namespace CoreWCF.Description
         private readonly bool _impersonateOnSerializingReply;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
+        private IAuthorizationService _authorizationService;
         private PrincipalPermissionMode _principalPermissionMode;
         private bool _isExternalPoliciesSet;
         private bool _isAuthorizationManagerSet;
+        private bool _isAuthorizationServiceSet;
         private bool _isReadOnly;
 
         public ServiceAuthorizationBehavior()
@@ -44,6 +49,13 @@ namespace CoreWCF.Description
             {
                 CopyAuthorizationPoliciesAndManager(other);
             }
+
+            _isAuthorizationServiceSet = other._isAuthorizationServiceSet;
+            if (other._isAuthorizationServiceSet)
+            {
+                _authorizationService = other._authorizationService;
+            }
+
             _isReadOnly = other._isReadOnly;
         }
 
@@ -134,6 +146,17 @@ namespace CoreWCF.Description
             }
         }
 
+        public IAuthorizationService AuthorizationService
+        {
+            get => _authorizationService;
+            set
+            {
+                ThrowIfImmutable();
+                _isAuthorizationServiceSet = true;
+                _authorizationService = value;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ApplyAuthorizationPoliciesAndManager(DispatchRuntime behavior)
         {
@@ -154,8 +177,15 @@ namespace CoreWCF.Description
             _serviceAuthorizationManager = other._serviceAuthorizationManager;
         }
 
-        void IServiceBehavior.Validate(ServiceDescription description, ServiceHostBase serviceHostBase)
+        void IServiceBehavior.Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
+            foreach (ServiceEndpoint endpoint in serviceDescription.Endpoints)
+            {
+                TransportBindingElement transportBindingElement = endpoint.Binding.CreateBindingElements().Find<TransportBindingElement>();
+                Fx.Assert(transportBindingElement != null, "TransportBindingElement is null");
+                var behaviors = (KeyedByTypeCollection<IEndpointBehavior>)endpoint.EndpointBehaviors;
+                behaviors.Add(new EndpointAuthorizationBehavior());
+            }
         }
 
         void IServiceBehavior.AddBindingParameters(ServiceDescription description, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection parameters)
@@ -190,6 +220,11 @@ namespace CoreWCF.Description
                         if (_isAuthorizationManagerSet || _isExternalPoliciesSet)
                         {
                             ApplyAuthorizationPoliciesAndManager(behavior);
+                        }
+
+                        if (_isAuthorizationServiceSet)
+                        {
+                            behavior.AuthorizationService = _authorizationService;
                         }
                     }
                 }

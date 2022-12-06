@@ -72,11 +72,11 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractSpec.MissingOperationContract!.Name}.g.cs";
-                var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract.Parameters.Any(p =>
+                string fileName = GetFileName();
+                var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
-                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract.ReturnType, _generationSpec.TaskSymbol)
+                bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract!.ReturnType, _generationSpec.TaskSymbol)
                     || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
 
@@ -138,6 +138,20 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 }
 
                 indentor.Increment();
+                foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
+                {
+                    _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
+                    _builder.Append(string.Join(", ",
+                        attributeData.ConstructorArguments.Select(x =>
+                            x.Kind switch
+                            {
+                                TypedConstantKind.Array => string.Join(", ", x.Values.Select(y => $@"""{y.Value}""")),
+                                _ => $@"""{x.Value}"""
+                            }).Union(
+                        attributeData.NamedArguments.Select(x => $@"{x.Key} = ""{x.Value.Value}"""))));
+                    _builder.Append(")]");
+                    _builder.AppendLine();
+                }
                 _builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 _builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
@@ -194,6 +208,20 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
 
                 _sourceGenerationContext.AddSource(fileName, SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
+                string GetFileName()
+                {
+                    string operationContractName = operationContractSpec.MissingOperationContract!.Name;
+                    foreach (var namedArgument in operationContractSpec.OperationContractAttributeData.NamedArguments)
+                    {
+                        if (namedArgument.Key == "Name" && namedArgument.Value.Value is string value)
+                        {
+                            operationContractName = value;
+                            break;
+                        }
+                    }
+                    return $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractName}.g.cs";
+                }
+
                 void AppendResolveDependencies()
                 {
                     for (int i = 0; i < dependencies.Length; i++)
@@ -229,7 +257,7 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                             _builder.Append(", ");
                         }
 
-                        if (parameter.HasOneOfAttributes(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol))
+                        if (parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol) is not null)
                         {
                             _builder.Append(dependencyNames[parameter.Type]);
                         }

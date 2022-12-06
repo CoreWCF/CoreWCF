@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />

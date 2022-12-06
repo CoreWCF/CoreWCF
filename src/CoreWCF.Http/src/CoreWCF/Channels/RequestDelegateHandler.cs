@@ -101,8 +101,12 @@ namespace CoreWCF.Channels
         {
             if (IsAuthenticationRequired)
             {
-                string scheme = _httpSettings.AuthenticationScheme.ToString();
-                AuthenticateResult authenticateResult = await context.AuthenticateAsync(scheme);
+                string scheme = _httpSettings.AuthenticationScheme == AuthenticationSchemes.None
+                    ? null
+                    : _httpSettings.AuthenticationScheme.ToString();
+
+                var authenticateResult = await context.AuthenticateAsync(scheme);
+
                 if (authenticateResult.None)
                 {
                     await context.ChallengeAsync(scheme);
@@ -133,8 +137,6 @@ namespace CoreWCF.Channels
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
             }
-
-            return;
         }
 
         private async Task<WebSocketContext> AcceptWebSocketAsync(HttpContext context, CancellationToken token)

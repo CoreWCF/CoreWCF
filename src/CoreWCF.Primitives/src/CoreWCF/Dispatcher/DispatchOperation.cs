@@ -1,10 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreWCF.Collections.Generic;
 using CoreWCF.IdentityModel.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -188,6 +190,8 @@ namespace CoreWCF.Dispatcher
         public ICollection<IParameterInspector> ParameterInspectors { get; }
 
         public DispatchRuntime Parent { get; }
+
+        internal Lazy<AuthorizationPolicy> AuthorizationPolicy { get; set; }
 
         internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode { get; set; }
 

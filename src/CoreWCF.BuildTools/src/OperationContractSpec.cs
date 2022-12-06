@@ -7,7 +7,8 @@ namespace CoreWCF.BuildTools
 {
     internal readonly record struct OperationContractSpec(INamedTypeSymbol? ServiceContract, INamedTypeSymbol? ServiceContractImplementation,
         IMethodSymbol? MissingOperationContract, IMethodSymbol? UserProvidedOperationContractImplementation,
-        INamedTypeSymbol? HttpContextSymbol, INamedTypeSymbol? HttpRequestSymbol, INamedTypeSymbol? HttpResponseSymbol)
+        INamedTypeSymbol? HttpContextSymbol, INamedTypeSymbol? HttpRequestSymbol, INamedTypeSymbol? HttpResponseSymbol,
+        AttributeData OperationContractAttributeData)
     {
         public INamedTypeSymbol? ServiceContract { get; } = ServiceContract;
         public INamedTypeSymbol? ServiceContractImplementation { get; } = ServiceContractImplementation;
@@ -16,5 +17,6 @@ namespace CoreWCF.BuildTools
         public INamedTypeSymbol? HttpContextSymbol { get; } = HttpContextSymbol;
         public INamedTypeSymbol? HttpRequestSymbol { get; } = HttpRequestSymbol;
         public INamedTypeSymbol? HttpResponseSymbol { get; } = HttpResponseSymbol;
+        public AttributeData OperationContractAttributeData { get; } = OperationContractAttributeData;
     }
 }
