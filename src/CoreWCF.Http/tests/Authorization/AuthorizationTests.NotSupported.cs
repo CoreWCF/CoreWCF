@@ -40,10 +40,13 @@ public partial class AuthorizationTests
     [MemberData(nameof(Get_Authorization_Features_Are_Mutually_Exclusive_TestVariations))]
     public void Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
     {
-        using IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
         {
-            host.Start();
+            using (host)
+            {
+                host.Start();
+            }
         });
         Assert.StartsWith("Invalid configuration.", exception.Message);
     }
