@@ -1,24 +1,27 @@
-﻿using CoreWCF;
+﻿using System.Collections.Generic;
+using CoreWCF;
 using ServiceContract;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Services
 {
-    [ServiceBehavior]
-    public class OneWayService : IOneWayContract 
+    [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple,
+        InstanceContextMode = InstanceContextMode.PerCall)]
+    public class OneWayService : IOneWayContract
     {
-        private ITestOutputHelper _output = new TestOutputHelper();
+        public static ITestOutputHelper TestOutputHelper { get; set; }
+        public static List<Task> Tasks { get; set; } = new();
+        public static HashSet<string> Inputs { get; set; } = new();
 
-        public Task OneWay(string s)
+        public void OneWay(string s)
         {
-            Task task = new Task(delegate
+            var task = new Task(() =>
             {
-                _output.WriteLine(string.Format("Inoked oneway operation with {0}.", s));
+                Inputs.Add(s);
             });
+            Tasks.Add(task);
             task.Start();
-            return task;
         }
     }
 }
