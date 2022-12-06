@@ -9727,6 +9727,6 @@
     <value>The set accessor of the '{0}' property is not supported by the stream.</value>
   </data>
   <data name="AuthorizationFeaturesAreMutuallyExclusive" xml:space="preserve">
-    <value>Invalid configuration. The security of the Binding is configured with ClientCredentialType set to 'InheritedFromHost' which imply that only native ASP.NET Core Authorization will be ran. Applying a custom 'ServiceAuthorizationManager' and/or setting the 'ServiceAuthorizationBehavior.ExternalAuthorizationPolicies' property is not supported. Please see https://learn.microsoft.com/en-us/aspnet/core/security/authorization to configure ASP.NET Core Authorization.</value>
+    <value>Invalid configuration. The security of the Binding is configured with ClientCredentialType set to 'InheritedFromHost' which implies that only native ASP.NET Core Authorization will be ran. Applying a custom 'ServiceAuthorizationManager' and/or setting the 'ServiceAuthorizationBehavior.ExternalAuthorizationPolicies' property is not supported. Please see https://learn.microsoft.com/en-us/aspnet/core/security/authorization to configure ASP.NET Core Authorization.</value>
   </data>
 </root>
