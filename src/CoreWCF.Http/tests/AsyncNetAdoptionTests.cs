@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,27 +33,36 @@ namespace BasicHttp
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
                 var channel = factory.CreateChannel();
                 await channel.OneWay("Hello");
+                CountdownEvent countdownEvent = host.Services.GetService<CountdownEvent>();
+                countdownEvent.Wait(TimeSpan.FromSeconds(30));
                 Assert.Contains("Hello", host.Services.GetService<ConcurrentBag<string>>());
             }
         }
 
-        [Fact]
-        public async Task OneWayPatternTest_Parallel()
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(1000)]
+        public async Task OneWayPatternTest_Parallel(int callCount)
         {
-            var inputs = Enumerable.Range(0, 100).Select(x => x.ToString()).ToArray();
+            var inputs = Enumerable.Range(0, callCount).Select(x => x.ToString()).ToArray();
             var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();
+                CountdownEvent countdownEvent = host.Services.GetService<CountdownEvent>();
+                countdownEvent.AddCount(inputs.Length - 1);
                 var httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
                 var channel = factory.CreateChannel();
                 var tasks = inputs.AsParallel().Select(x => channel.OneWay(x)).ToList();
                 await Task.WhenAll(tasks);
+                countdownEvent.Wait(TimeSpan.FromSeconds(30));
+                var bag = host.Services.GetService<ConcurrentBag<string>>();
                 foreach (string input in inputs)
                 {
-                    Assert.Contains(input, host.Services.GetService<ConcurrentBag<string>>());
+                    Assert.Contains(input, bag);
                 }
             }
         }
@@ -62,6 +72,7 @@ namespace BasicHttp
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddSingleton<ConcurrentBag<string>>();
+                services.AddSingleton(_ => new CountdownEvent(1));
                 services.AddTransient<Services.OneWayService>();
                 services.AddServiceModelServices();
             }
