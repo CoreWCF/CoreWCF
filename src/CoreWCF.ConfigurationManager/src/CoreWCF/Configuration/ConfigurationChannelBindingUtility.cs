@@ -196,7 +196,7 @@ namespace CoreWCF.Configuration
                 if (source.Size <= 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException("source.Size", source.Size,
-                        SR.Format(SR.ValueMustBePositive)));
+                        SR.Format(SRCommon.ValueMustBePositive)));
                 }
 
                 //Instantiate the SafeHandle before trying to allocate the native memory

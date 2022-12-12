@@ -63,7 +63,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             if (offset < 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), SR.ValueMustBeNonNegative));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), SRCommon.ValueMustBeNonNegative));
             }
             return SecurityUtils.MatchesBuffer(_identificationData, 0, data, offset);
         }

@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal enum SecurityKeyUsage
+    public enum SecurityKeyUsage
     {
         Exchange,
         Signature

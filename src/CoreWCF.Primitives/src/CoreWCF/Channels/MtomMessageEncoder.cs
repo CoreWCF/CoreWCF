@@ -460,7 +460,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
             if (maxMessageSize < 0)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
             if (messageOffset < 0 || messageOffset > maxMessageSize)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageOffset), messageOffset,
                                                     SR.Format(SR.ValueMustBeInRange, 0, maxMessageSize)));

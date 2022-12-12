@@ -91,7 +91,7 @@ namespace CoreWCF.Runtime
 
             _overlapped = new ScheduledOverlapped();
         }
-        
+
         public static TaskScheduler IOTaskScheduler
         {
             get

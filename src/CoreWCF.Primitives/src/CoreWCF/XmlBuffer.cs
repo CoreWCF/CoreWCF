@@ -47,7 +47,7 @@ namespace CoreWCF
             if (maxBufferSize < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize), maxBufferSize,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
             }
 
             int initialBufferSize = Math.Min(512, maxBufferSize);

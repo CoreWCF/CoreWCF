@@ -17,13 +17,13 @@ namespace CoreWCF.Channels
             if (maxBufferPoolSize < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferPoolSize),
-                    maxBufferPoolSize, SR.ValueMustBeNonNegative));
+                    maxBufferPoolSize, SRCommon.ValueMustBeNonNegative));
             }
 
             if (maxBufferSize < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize),
-                    maxBufferSize, SR.ValueMustBeNonNegative));
+                    maxBufferSize, SRCommon.ValueMustBeNonNegative));
             }
 
             return new WrappingBufferManager(InternalBufferManager.Create(maxBufferPoolSize, maxBufferSize));
@@ -55,7 +55,7 @@ namespace CoreWCF.Channels
                 if (bufferSize < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize,
-                        SR.ValueMustBeNonNegative));
+                        SRCommon.ValueMustBeNonNegative));
                 }
 
                 return InternalBufferManager.TakeBuffer(bufferSize);

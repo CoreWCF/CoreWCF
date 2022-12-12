@@ -170,8 +170,6 @@ namespace CoreWCF.Channels
 
     internal static class ConnectionOrientedTransportDefaults
     {
-        internal const bool AllowNtlm = SspiSecurityTokenProvider.DefaultAllowNtlm;
         internal const int ConnectionBufferSize = 8192;
-        internal const ProtectionLevel ProtectionLevel = System.Net.Security.ProtectionLevel.EncryptAndSign;
     }
 }

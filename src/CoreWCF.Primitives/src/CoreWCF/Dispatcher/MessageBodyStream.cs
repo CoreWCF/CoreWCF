@@ -40,13 +40,13 @@ namespace CoreWCF.Dispatcher
             if (offset < 0)
             {
                 throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), offset,
-                                                SR.ValueMustBeNonNegative), _message);
+                                                SRCommon.ValueMustBeNonNegative), _message);
             }
 
             if (count < 0)
             {
                 throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), count,
-                                                SR.ValueMustBeNonNegative), _message);
+                                                SRCommon.ValueMustBeNonNegative), _message);
             }
 
             if (buffer.Length - offset < count)

@@ -555,12 +555,6 @@
   <data name="UTVarNamesMustBeUnique" xml:space="preserve">
     <value>The UriTemplate '{0}' is not valid; the UriTemplate variable named '{1}' appears multiple times in the template. Note that UriTemplate variable names are case-insensitive. See the documentation for UriTemplate for more details.</value>
   </data>
-  <data name="ValueMustBeNonNegative" xml:space="preserve">
-    <value>The value of this argument must be non-negative.</value>
-  </data>
-  <data name="ValueMustBePositive" xml:space="preserve">
-    <value>The value of this argument must be positive.</value>
-  </data>
   <data name="WCFBindingCannotBeUsedWithUriOperationSelectorBehaviorBadMessageVersion" xml:space="preserve">
     <value>The endpoint at '{0}' does not have a Binding with the None MessageVersion.  '{1}' is only intended for use with WebHttpBinding or similar bindings.</value>
   </data>

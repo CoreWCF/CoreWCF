@@ -64,7 +64,7 @@ namespace CoreWCF.IdentityModel
             {
                 if (derivedKeySize < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(derivedKeySize), SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(derivedKeySize), SRCommon.ValueMustBeNonNegative));
                 }
                 if (_position > position)
                 {

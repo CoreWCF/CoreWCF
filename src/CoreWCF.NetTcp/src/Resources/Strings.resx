@@ -486,9 +486,6 @@
   <data name = "BadContextTokenFaultReason" xml:space="preserve">
     <value>The security context token is expired or is not valid. The message was not processed.</value>
   </data>
-  <data name = "NegotiationFailedIO" xml:space="preserve">
-    <value>Transport security negotiation failed due to an underlying IO error: {0}.</value>
-  </data>
   <data name = "SecurityNegotiationCannotProtectConfidentialEndpointHeader" xml:space="preserve">
     <value>The security negotiation with '{0}' cannot be initiated because the confidential endpoint address header ('{1}', '{2}') cannot be encrypted during the course of the negotiation.</value>
   </data>
@@ -848,9 +845,6 @@
   </data>
   <data name = "MoreThanOneSecurityBindingElementInTheBinding" xml:space="preserve">
     <value>More than one SecurityBindingElement found in the binding ('{0}', '{1}) for contract ('{2}', '{3}'). Only one SecurityBindingElement is allowed. </value>
-  </data>
-  <data name = "ClientCredentialsUnableToCreateLocalTokenProvider" xml:space="preserve">
-    <value>ClientCredentials cannot create a local token provider for token requirement {0}.</value>
   </data>
   <data name = "SecurityBindingElementCannotBeExpressedInConfig" xml:space="preserve">
     <value>A security policy was imported for the endpoint. The security policy contains requirements that cannot be represented in a Windows Communication Foundation configuration. Look for a comment about the SecurityBindingElement parameters that are required in the configuration file that was generated. Create the correct binding element with code. The binding configuration that is in the configuration file is not secure.</value>
@@ -1230,17 +1224,11 @@
   <data name = "AsyncCallbackException" xml:space="preserve">
     <value>An AsyncCallback threw an exception.</value>
   </data>
-  <data name = "SendCannotBeCalledAfterCloseOutputSession" xml:space="preserve">
-    <value>You cannot Send messages on a channel after CloseOutputSession has been called.</value>
-  </data>
   <data name = "CommunicationObjectCannotBeModifiedInState" xml:space="preserve">
     <value>The communication object, {0}, cannot be modified while it is in the {1} state.</value>
   </data>
   <data name = "CommunicationObjectCannotBeModified" xml:space="preserve">
     <value>The communication object, {0}, cannot be modified unless it is in the Created state.</value>
-  </data>
-  <data name = "CommunicationObjectCannotBeUsed" xml:space="preserve">
-    <value>The communication object, {0}, is in the {1} state.  Communication objects cannot be used for communication unless they are in the Opened state.</value>
   </data>
   <data name = "CommunicationObjectFaulted1" xml:space="preserve">
     <value>The communication object, {0}, cannot be used for communication because it is in the Faulted state.</value>
@@ -1286,9 +1274,6 @@
   </data>
   <data name = "InvalidEnumValue" xml:space="preserve">
     <value>Unexpected internal enum value: {0}.</value>
-  </data>
-  <data name = "InvalidDecoderStateMachine" xml:space="preserve">
-    <value>Invalid decoder state machine.</value>
   </data>
   <data name = "OperationPropertyIsRequiredForAttributeGeneration" xml:space="preserve">
     <value>Operation property of OperationAttributeGenerationContext is required to generate an attribute based on settings. </value>
@@ -1409,12 +1394,6 @@
   </data>
   <data name = "MtomEncoderBadMessageVersion" xml:space="preserve">
     <value>MessageVersion '{0}' not supported by MTOM encoder.</value>
-  </data>
-  <data name = "ReadNotSupported" xml:space="preserve">
-    <value>Read is not supported on this stream.</value>
-  </data>
-  <data name = "SeekNotSupported" xml:space="preserve">
-    <value>Seek is not supported on this stream.</value>
   </data>
   <data name = "WriterAsyncWritePending" xml:space="preserve">
     <value>An asynchronous write is pending on the stream. Ensure that there are no uncompleted asynchronous writes before attempting the next write. </value>
@@ -1548,45 +1527,6 @@
   <data name = "OperationInvalidBeforeSecurityNegotiation" xml:space="preserve">
     <value>This operation is not valid until security negotiation is complete.</value>
   </data>
-  <data name = "FramingError" xml:space="preserve">
-    <value>Error while reading message framing format at position {0} of stream (state: {1})</value>
-  </data>
-  <data name = "FramingPrematureEOF" xml:space="preserve">
-    <value>More data was expected, but EOF was reached.</value>
-  </data>
-  <data name = "FramingRecordTypeMismatch" xml:space="preserve">
-    <value>Expected record type '{0}', found '{1}'.</value>
-  </data>
-  <data name = "FramingVersionNotSupported" xml:space="preserve">
-    <value>Framing major version {0} is not supported.</value>
-  </data>
-  <data name = "FramingModeNotSupported" xml:space="preserve">
-    <value>Framing mode {0} is not supported.</value>
-  </data>
-  <data name = "FramingSizeTooLarge" xml:space="preserve">
-    <value>Specified size is too large for this implementation.</value>
-  </data>
-  <data name = "FramingViaTooLong" xml:space="preserve">
-    <value>The framing via size ({0}) exceeds the quota.</value>
-  </data>
-  <data name = "FramingViaNotUri" xml:space="preserve">
-    <value>The framing via ({0}) is not a valid URI.</value>
-  </data>
-  <data name = "FramingFaultTooLong" xml:space="preserve">
-    <value>The framing fault size ({0}) exceeds the quota.</value>
-  </data>
-  <data name = "FramingContentTypeTooLong" xml:space="preserve">
-    <value>The framing content type size ({0}) exceeds the quota.</value>
-  </data>
-  <data name = "FramingValueNotAvailable" xml:space="preserve">
-    <value>The value cannot be accessed because it has not yet been fully decoded.</value>
-  </data>
-  <data name = "FramingAtEnd" xml:space="preserve">
-    <value>An attempt was made to decode a value after the framing stream was ended.</value>
-  </data>
-  <data name = "RemoteSecurityNotNegotiatedOnStreamUpgrade" xml:space="preserve">
-    <value>Stream Security is required at {0}, but no security context was negotiated. This is likely caused by the remote endpoint missing a StreamSecurityBindingElement from its binding.</value>
-  </data>
   <data name = "BinaryEncoderSessionTooLarge" xml:space="preserve">
     <value>The binary encoder session information exceeded the maximum size quota ({0}). To increase this quota, use the MaxSessionSize property on the BinaryMessageEncodingBindingElement.</value>
   </data>
@@ -1596,15 +1536,6 @@
   <data name = "BinaryEncoderSessionMalformed" xml:space="preserve">
     <value>The binary encoder session information is not properly formed.</value>
   </data>
-  <data name = "ReceiveShutdownReturnedFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
-  </data>
-  <data name = "ReceiveShutdownReturnedLargeFault" xml:space="preserve">
-    <value>The channel received an unexpected fault input message with Action = '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
-  <data name = "ReceiveShutdownReturnedMessage" xml:space="preserve">
-    <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
   <data name = "MaxReceivedMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
   </data>
@@ -1613,9 +1544,6 @@
   </data>
   <data name = "FramingMaxMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages has been exceeded for the remote channel. See the server logs for more details.</value>
-  </data>
-  <data name = "StreamDoesNotSupportTimeout" xml:space="preserve">
-    <value>TimeoutStream requires an inner Stream that supports timeouts; its CanTimeout property must be true.</value>
   </data>
   <data name = "FilterExists" xml:space="preserve">
     <value>The filter already exists in the filter table.</value>
@@ -1809,26 +1737,11 @@
   <data name = "OneWayHeaderNotFound" xml:space="preserve">
     <value>A one-way header was expected on this message and none was found. It is possible that your bindings are mismatched.</value>
   </data>
-  <data name = "ReceiveTimedOut" xml:space="preserve">
-    <value>Receive on local address {0} timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name = "ReceiveTimedOut2" xml:space="preserve">
-    <value>Receive timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name = "WaitForMessageTimedOut" xml:space="preserve">
-    <value>WaitForMessage timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
   <data name = "ReceiveTimedOutNoLocalAddress" xml:space="preserve">
     <value>Receive timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "ReceiveRequestTimedOutNoLocalAddress" xml:space="preserve">
-    <value>Receive request timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
   <data name = "ReceiveRequestTimedOut" xml:space="preserve">
     <value>Receive request on local address {0} timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name = "SendToViaTimedOut" xml:space="preserve">
-    <value>Sending to via {0} timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name = "CloseTimedOut" xml:space="preserve">
     <value>Close timed out after {0}.  Increase the timeout value passed to the call to Close or increase the CloseTimeout value on the Binding. The time allotted to this operation may have been a portion of a longer timeout.</value>
@@ -2490,9 +2403,6 @@
   <data name = "HttpAddressingNoneHeaderOnWire" xml:space="preserve">
     <value>The incoming message contains a SOAP header representing the WS-Addressing '{0}', yet the HTTP transport is configured with AddressingVersion.None.  As a result, the message is being dropped.  If this is not desired, then update your HTTP binding to support a different AddressingVersion.</value>
   </data>
-  <data name = "MessageXmlProtocolError" xml:space="preserve">
-    <value>There is a problem with the XML that was received from the network. See inner exception for more details.</value>
-  </data>
   <data name = "TcpV4AddressInvalid" xml:space="preserve">
     <value>An IPv4 address was specified ({0}), but IPv4 is not enabled on this machine. </value>
   </data>
@@ -2562,41 +2472,11 @@
   <data name = "HttpContentTypeHeaderRequired" xml:space="preserve">
     <value>An HTTP Content-Type header is required for SOAP messaging and none was found.</value>
   </data>
-  <data name = "ContentTypeMismatch" xml:space="preserve">
-    <value>Content Type {0} was sent to a service expecting {1}.  The client and service bindings may be mismatched.</value>
-  </data>
-  <data name = "ResponseContentTypeMismatch" xml:space="preserve">
-    <value>The content type {0} of the response message does not match the content type of the binding ({1}). If using a custom encoder, be sure that the IsContentTypeSupported method is implemented properly. The first {2} bytes of the response were: '{3}'.</value>
-  </data>
-  <data name = "ResponseContentTypeNotSupported" xml:space="preserve">
-    <value>The content type {0} of the message is not supported by the encoder.</value>
-  </data>
   <data name = "HttpToMustEqualVia" xml:space="preserve">
     <value>The binding specified requires that the to and via URIs must match because the Addressing Version is set to None. The to URI specified was '{0}'. The via URI specified was '{1}'.</value>
   </data>
   <data name = "NullReferenceOnHttpResponse" xml:space="preserve">
     <value>The server challenged this request and streamed requests cannot be resubmitted. To enable HTTP server challenges, set your TransferMode to Buffered or StreamedResponse.</value>
-  </data>
-  <data name = "FramingContentTypeMismatch" xml:space="preserve">
-    <value>Content Type {0} was not supported by service {1}.  The client and service bindings may be mismatched.</value>
-  </data>
-  <data name = "FramingFaultUnrecognized" xml:space="preserve">
-    <value>Server faulted with code '{0}'.</value>
-  </data>
-  <data name = "FramingContentTypeTooLongFault" xml:space="preserve">
-    <value>Content type '{0}' is too long to be processed by the remote host. See the server logs for more details.</value>
-  </data>
-  <data name = "FramingViaTooLongFault" xml:space="preserve">
-    <value>Via '{0}' is too long to be processed by the remote host. See the server logs for more details.</value>
-  </data>
-  <data name = "FramingModeNotSupportedFault" xml:space="preserve">
-    <value>The .Net Framing mode being used is not supported by '{0}'. See the server logs for more details.</value>
-  </data>
-  <data name = "FramingVersionNotSupportedFault" xml:space="preserve">
-    <value>The .Net Framing version being used is not supported by '{0}'. See the server logs for more details.</value>
-  </data>
-  <data name = "FramingUpgradeInvalid" xml:space="preserve">
-    <value>The requested upgrade is not supported by '{0}'. This could be due to mismatched bindings (for example security enabled on the client and not on the server).</value>
   </data>
   <data name = "SecurityServerTooBusy" xml:space="preserve">
     <value>Server '{0}' sent back a fault indicating it is too busy to process the request. Please retry later. Please see the inner exception for fault details.</value>
@@ -2607,26 +2487,8 @@
   <data name = "ServerTooBusy" xml:space="preserve">
     <value>Server '{0}' is too busy to process this request. Try again later.</value>
   </data>
-  <data name = "UpgradeProtocolNotSupported" xml:space="preserve">
-    <value>Protocol Type {0} was sent to a service that does not support that type of upgrade.</value>
-  </data>
-  <data name = "UpgradeRequestToNonupgradableService" xml:space="preserve">
-    <value>.Net Framing upgrade request for {0} was sent to a service that is not setup to receive upgrades.</value>
-  </data>
-  <data name = "PreambleAckIncorrect" xml:space="preserve">
-    <value>You have tried to create a channel to a service that does not support .Net Framing. </value>
-  </data>
-  <data name = "PreambleAckIncorrectMaybeHttp" xml:space="preserve">
-    <value>You have tried to create a channel to a service that does not support .Net Framing. It is possible that you are encountering an HTTP endpoint.</value>
-  </data>
   <data name = "StreamError" xml:space="preserve">
     <value>An error occurred while transmitting data.</value>
-  </data>
-  <data name = "ServerRejectedUpgradeRequest" xml:space="preserve">
-    <value>The server rejected the upgrade request.</value>
-  </data>
-  <data name = "ServerRejectedSessionPreamble" xml:space="preserve">
-    <value>The server at {0} rejected the session-establishment request.</value>
   </data>
   <data name = "UnableToResolveHost" xml:space="preserve">
     <value>Cannot resolve the host name of URI \"{0}\" using DNS.</value>
@@ -2736,17 +2598,8 @@
   <data name = "TimeoutServiceChannelConcurrentOpen2" xml:space="preserve">
     <value>Opening the {0} channel timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
-    <value>TimeSpan must be greater than TimeSpan.Zero.</value>
-  </data>
   <data name = "TimeSpanCannotBeLessThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan cannot be less than TimeSpan.Zero.</value>
-  </data>
-  <data name = "ValueMustBeNonNegative" xml:space="preserve">
-    <value>The value of this argument must be non-negative.</value>
-  </data>
-  <data name = "ValueMustBePositive" xml:space="preserve">
-    <value>The value of this argument must be positive.</value>
   </data>
   <data name = "ValueMustBeGreaterThanZero" xml:space="preserve">
     <value>The value of this argument must be greater than 0.</value>
@@ -2762,9 +2615,6 @@
   </data>
   <data name = "SizeExceedsRemainingBufferSpace" xml:space="preserve">
     <value>The specified size exceeds the remaining buffer space ({0} bytes).</value>
-  </data>
-  <data name = "SpaceNeededExceedsMessageFrameOffset" xml:space="preserve">
-    <value>The space needed for encoding ({0} bytes) exceeds the message frame offset.</value>
   </data>
   <data name = "FaultConverterDidNotCreateFaultMessage" xml:space="preserve">
     <value>{0} returned true from OnTryCreateFaultMessage, but did not return a fault message.</value>
@@ -2828,15 +2678,6 @@
   </data>
   <data name = "MessageValidityExpired" xml:space="preserve">
     <value>Validity of message with id {0} has expired.</value>
-  </data>
-  <data name = "UnsupportedUpgradeInitiator" xml:space="preserve">
-    <value>The StreamUpgradeInitiator specified ({0}) is not supported by this IStreamUpgradeChannelBindingProvider  implementation.  The most likely cause of this is passing a StreamUpgradeInitiator that was not created by the StreamUpgradeProvider associated with the current IStreamUpgradeChannelBindingProvider  implementation.</value>
-  </data>
-  <data name = "UnsupportedUpgradeAcceptor" xml:space="preserve">
-    <value>The StreamUpgradeAcceptor specified ({0}) is not supported by this IStreamUpgradeChannelBindingProvider  implementation.  The most likely cause of this is passing a StreamUpgradeAcceptor that was not created by the StreamUpgradeProvider associated with this IStreamUpgradeChannelBindingProvider  implementation.</value>
-  </data>
-  <data name = "StreamUpgradeUnsupportedChannelBindingKind" xml:space="preserve">
-    <value>The StreamUpgradeProvider {0} does not support the specified ChannelBindingKind ({1}). </value>
   </data>
   <data name = "ExtendedProtectionNotSupported" xml:space="preserve">
     <value>Extended protection is not supported on this platform.  Please install the appropriate patch or change the ExtendedProtectionPolicy on the Binding or BindingElement to a value with a PolicyEnforcement value of "Never" or "WhenSupported".</value>
@@ -4149,12 +3990,6 @@
   <data name = "SFxTimeoutInvalidStringFormat" xml:space="preserve">
     <value>The timeout value provided was not of a recognized format.  Please see InnerException for more details.</value>
   </data>
-  <data name = "SFxTimeoutOutOfRange0" xml:space="preserve">
-    <value>Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.</value>
-  </data>
-  <data name = "SFxTimeoutOutOfRangeTooBig" xml:space="preserve">
-    <value>Timeouts larger than Int32.MaxValue TotalMilliseconds (approximately 24 days) cannot be honored. To disable timeout, specify TimeSpan.MaxValue.</value>
-  </data>
   <data name = "SFxTooManyPartsWithSameName" xml:space="preserve">
     <value>Cannot create a unique part name for {0}.</value>
   </data>
@@ -5025,9 +4860,6 @@
   <data name = "MultipleMebesInParameters" xml:space="preserve">
     <value>More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext.  This usually is caused by having multiple MessageEncodingBindingElements in a CustomBinding. Remove all but one of these elements.</value>
   </data>
-  <data name = "MultipleStreamUpgradeProvidersInParameters" xml:space="preserve">
-    <value>More than one IStreamUpgradeProviderElement was found in the BindingParameters of the BindingContext.  This usually is caused by having multiple IStreamUpgradeProviderElements in a CustomBinding. Remove all but one of these elements.</value>
-  </data>
   <data name = "MultiplePeerResolverBindingElementsinParameters" xml:space="preserve">
     <value>More than one PeerResolverBindingElement was found in the BindingParameters of the BindingContext.  This usually is caused by having multiple PeerResolverBindingElements in a CustomBinding. Remove all but one of these elements.</value>
   </data>
@@ -5246,12 +5078,6 @@
   </data>
   <data name = "ConfigSectionNotFound" xml:space="preserve">
     <value>The '{0}' configuration section cannot be created. The machine.config file is missing information. Verify that this configuration section is properly registered and that you have correctly spelled the section name. For Windows Communication Foundation sections, run ServiceModelReg.exe -i to fix this error.</value>
-  </data>
-  <data name = "ConfigStreamUpgradeElementAlreadyInBinding" xml:space="preserve">
-    <value>Cannot add stream upgrade element '{0}'. Another stream upgrade element already exists in the binding '{1}'. There can only be one stream update element per binding.</value>
-  </data>
-  <data name = "ConfigTransportAlreadyInBinding" xml:space="preserve">
-    <value>Cannot add the transport element '{0}'. Another transport element already exists in the binding '{1}'. There can only be one transport element for each binding.</value>
   </data>
   <data name = "ConfigXmlElementMustBeSet" xml:space="preserve">
     <value>The XmlElement must contain XML content.</value>

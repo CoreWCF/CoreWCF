@@ -59,7 +59,7 @@ namespace CoreWCF.Channels
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 _replayCacheSize = value;
             }
@@ -76,13 +76,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _replayWindow = value;
@@ -100,13 +100,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _maxClockSkew = value;
@@ -126,13 +126,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _issuedCookieLifetime = value;
@@ -150,7 +150,7 @@ namespace CoreWCF.Channels
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 _maxStatefulNegotiations = value;
             }
@@ -167,13 +167,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _negotiationTimeout = value;
@@ -191,7 +191,7 @@ namespace CoreWCF.Channels
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 _maxPendingSessions = value;
             }
@@ -208,13 +208,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _inactivityTimeout = value;
@@ -232,13 +232,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _sessionKeyRenewalInterval = value;
@@ -256,13 +256,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _sessionKeyRolloverInterval = value;
@@ -282,13 +282,13 @@ namespace CoreWCF.Channels
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _timestampValidityDuration = value;
@@ -306,7 +306,7 @@ namespace CoreWCF.Channels
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 _maxCachedCookies = value;
             }

@@ -156,4 +156,22 @@
   <data name="LockTimeoutExceptionMessage" xml:space="preserve">
     <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
+  <data name="ValueMustBePositive" xml:space="preserve">
+    <value>The value of this argument must be positive.</value>
+  </data>
+  <data name = "ValueMustBeNonNegative" xml:space="preserve">
+    <value>The value of this argument must be non-negative.</value>
+  </data>
+  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
+    <value>TimeSpan must be greater than TimeSpan.Zero.</value>
+  </data>
+  <data name = "SFxTimeoutOutOfRangeTooBig" xml:space="preserve">
+    <value>Timeouts larger than Int32.MaxValue TotalMilliseconds (approximately 24 days) cannot be honored. To disable timeout, specify TimeSpan.MaxValue.</value>
+  </data>
+  <data name = "SFxTimeoutOutOfRange0" xml:space="preserve">
+    <value>Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.</value>
+  </data>
+  <data name="CommunicationObjectCannotBeUsed" xml:space="preserve">
+    <value>The communication object, {0}, is in the {1} state.  Communication objects cannot be used for communication unless they are in the Opened state.</value>
+  </data>
 </root>

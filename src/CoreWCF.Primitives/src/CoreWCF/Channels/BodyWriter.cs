@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
             if (maxBufferSize < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize), maxBufferSize,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
             }
 
             if (IsBuffered)

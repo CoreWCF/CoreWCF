@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -11,15 +10,56 @@ using CoreWCF.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace Helpers
 {
     public static class ServiceHelper
     {
+		#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+        public static IWebHostBuilder CreateNonKestrelWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "") where TStartup : class
+        {
+            if (ipAddress == null)
+            {
+                //using .Any breaks the getaddress method
+                ipAddress = IPAddress.Loopback;
+            }
+            var builder = new WebHostBuilder();
+            builder.ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.AddEnvironmentVariables();
+            })
+            .ConfigureLogging((hostingContext, loggingBuilder) =>
+            {
+                loggingBuilder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                loggingBuilder.AddConsole();
+                loggingBuilder.AddDebug();
+            }).
+            UseDefaultServiceProvider((context, options) =>
+            {
+                options.ValidateScopes = true;
+            });
+            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseHttpSys()
+            .UseNetTcp(ipAddress, port)
+            .UseStartup<TStartup>();
+        }
+		
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "")
         {
             if (ipAddress == null)
@@ -61,10 +101,11 @@ namespace Helpers
             .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
         }
+		
         public static string GetNetTcpAddressInUse(this IWebHost host)
         {
-            System.Collections.Generic.ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
-            var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
+            IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(addr => new Uri(addr, UriKind.Absolute));
+            var addressInUse = addresses.Single(uri => uri.Port != 5000 && uri.Port != 5001);
             return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
         }
 

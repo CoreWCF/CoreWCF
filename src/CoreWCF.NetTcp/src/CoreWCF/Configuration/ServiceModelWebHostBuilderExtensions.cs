@@ -4,12 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using CoreWCF.Channels;
 using CoreWCF.Channels.Framing;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -37,10 +41,12 @@ namespace CoreWCF.Configuration
         {
             webHostBuilder.ConfigureServices(services =>
             {
-                services.TryAddEnumerable(ServiceDescriptor.Singleton<ITransportServiceBuilder, NetTcpTransportServiceBuilder>());
-                services.AddSingleton(NetMessageFramingConnectionHandler.BuildAddressTable);
+                services.AddNetFramingServices();
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, NetTcpHostedService>());
+                services.TryAddSingleton<NetTcpFramingOptionsSetup>();
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<KestrelServerOptions>, NetTcpFramingOptionsSetup>(provider => provider.GetRequiredService<NetTcpFramingOptionsSetup>()));
+                services.TryAddSingleton<SocketTransportFactory>();
                 services.AddNetTcpServices(new IPEndPoint(ipAddress, port));
-                services.AddTransient<IFramingConnectionHandshakeBuilder, FramingConnectionHandshakeBuilder>();
             });
 
             return webHostBuilder;
@@ -48,8 +54,6 @@ namespace CoreWCF.Configuration
 
         private static IServiceCollection AddNetTcpServices(this IServiceCollection services, IPEndPoint endPoint)
         {
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<KestrelServerOptions>, NetTcpFramingOptionsSetup>());
-            services.TryAddSingleton<NetMessageFramingConnectionHandler>();
             services.Configure<NetTcpFramingOptions>(o =>
             {
                 o.EndPoints.Add(endPoint);
@@ -68,26 +72,34 @@ namespace CoreWCF.Configuration
     internal class NetTcpFramingOptionsSetup : IConfigureOptions<KestrelServerOptions>
     {
         private readonly ILogger<NetTcpFramingOptions> _logger;
+        private readonly ILogger<FramingConnection> _framingConnectionLogger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly NetTcpFramingOptions _options;
         private readonly IServiceBuilder _serviceBuilder;
 
-        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, IServiceBuilder serviceBuilder, ILogger<NetTcpFramingOptions> logger)
+        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, IServiceBuilder serviceBuilder, ILogger<NetTcpFramingOptions> logger, ILogger<FramingConnection> framingConnectionLogger, IServiceProvider serviceProvider)
         {
             _options = options.Value ?? new NetTcpFramingOptions();
             _serviceBuilder = serviceBuilder;
             _logger = logger;
+            _framingConnectionLogger = framingConnectionLogger;
+            _serviceProvider = serviceProvider;
         }
 
         public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
 
+        public bool ConfigureCalled { get; set; }
+
         public void Configure(KestrelServerOptions options)
         {
+            ConfigureCalled = true;
+            options.ApplicationServices = _serviceProvider;
             foreach (IPEndPoint endpoint in _options.EndPoints)
             {
                 options.Listen(endpoint, builder =>
                 {
+                    builder.Use(ConvertExceptionsAndAddLogging);
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
-                    NetMessageFramingConnectionHandler handler = builder.ApplicationServices.GetRequiredService<NetMessageFramingConnectionHandler>();
                     // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
                     ListenOptions.Add(builder);
                 });
@@ -96,7 +108,29 @@ namespace CoreWCF.Configuration
             _serviceBuilder.Opening += OnServiceBuilderOpening;
         }
 
+        private ConnectionDelegate ConvertExceptionsAndAddLogging(ConnectionDelegate next)
+        {
+            return (ConnectionContext context) =>
+            {
+                var logger = new ConnectionIdWrappingLogger(_framingConnectionLogger, context.ConnectionId);
+                context.Features.Set<ILogger>(logger);
+
+                //TODO: Add a public api mechanism to enable connection logging in RELEASE build
+#if DEBUG
+                context.Transport = new NetTcpExceptionConvertingDuplexPipe(new LoggingDuplexPipe(context.Transport, logger) { LoggingEnabled = true });
+#else
+                context.Transport = new NetTcpExceptionConvertingDuplexPipe(context.Transport);
+#endif
+                return next(context);
+            };
+        }
+
         private void OnServiceBuilderOpening(object sender, EventArgs e)
+        {
+            UpdateServiceBuilderBaseAddresses();
+        }
+
+        internal void UpdateServiceBuilderBaseAddresses()
         {
             foreach (ListenOptions listenOptions in ListenOptions)
             {
@@ -108,6 +142,8 @@ namespace CoreWCF.Configuration
                 _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
                 _serviceBuilder.BaseAddresses.Add(baseAddress);
             }
+
+            ListenOptions.Clear();
         }
     }
 }

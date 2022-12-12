@@ -234,7 +234,7 @@ namespace CoreWCF.Channels
                 if (maxMessageSize < 0)
                 {
                     throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
-                        SR.Format(SR.ValueMustBeNonNegative)), message);
+                        SR.Format(SRCommon.ValueMustBeNonNegative)), message);
                 }
 
                 if (messageOffset < 0 || messageOffset > maxMessageSize)

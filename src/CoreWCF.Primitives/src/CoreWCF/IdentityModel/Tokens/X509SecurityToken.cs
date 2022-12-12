@@ -29,7 +29,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
         }
 
-        internal X509SecurityToken(X509Certificate2 certificate, bool clone)
+        public X509SecurityToken(X509Certificate2 certificate, bool clone)
             : this(certificate, SecurityUniqueId.Create().Value, clone)
         {
         }
