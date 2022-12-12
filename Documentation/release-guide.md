@@ -66,6 +66,23 @@ Security issues should be reported via email to security@corewcf.net as describe
 Here are the steps to release a new version:
 
 1. Update to the latest patch version of nuget dependencies
+
+   ```dos
+       dotnet tool install --global dotnet-outdated-tool
+       dotnet outdated -u -vl Minor -inc Microsoft.AspNetCore CoreWCF.sln
+       dotnet outdated -u -vl Minor -inc Microsoft.CodeAnalysis CoreWCF.sln
+       dotnet outdated -u -inc Microsoft.NET CoreWCF.sln
+       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning CoreWCF.sln
+   ```
+
+   Check and manually update the version of `Nerdbank.GitVersioning` if needed. The version is specified in [Directory.Build.props](/Directory.Build.props).
+
+   ```dos
+       dotnet outdated -inc Nerdbank.GitVersioning CoreWCF.sln
+   ```
+
+   Check the pending changes to make sure the package version updated have been applied correctly.
+
 2. Update the CoreWCF.BuildTools AnalyzerReleases markdown documents if new analyzer rules have been created. Instructions for what changes may need to be made are located [here](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md).
 3. If any changes were made in steps 1 & 2, create a branch, commit the changes, push to your fork, create a PR and merge the changes. Update your local main branch after the PR has been merged.
 4. Install Nerdbank.GitVersioning
@@ -86,5 +103,11 @@ Here are the steps to release a new version:
 7. Stabilization occurs in the release branch.
 8. Commits should be made in the main branch and are cherry-picked into release/vX.Y if needed.
 9. Build release packages and tag vX.Y.Z from the release/vX.Y branch.
+
+   ```dos
+       git tag -a -m "CoreWCF vX.Y.Z" vX.Y.Z
+       git push upstream tag vX.Y.Z
+   ```
+
 10. Push package and symbol package to NuGet.
 11. Delete the release/vX.Y branch.
