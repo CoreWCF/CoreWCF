@@ -36,7 +36,7 @@ namespace CoreWCF
                 if (value.Ticks < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value.Ticks,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 s_spnLookupTime = value;
             }

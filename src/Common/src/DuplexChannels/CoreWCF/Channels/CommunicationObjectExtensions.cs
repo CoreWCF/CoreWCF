@@ -40,7 +40,7 @@ namespace CoreWCF.Channels
 
         private static Exception CreateNotOpenException(CommunicationObject communicationObject)
         {
-            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, communicationObject.GetType().ToString(), communicationObject.State.ToString()));
+            return new InvalidOperationException(SR.Format(SRCommon.CommunicationObjectCannotBeUsed, communicationObject.GetType().ToString(), communicationObject.State.ToString()));
         }
     }
 }

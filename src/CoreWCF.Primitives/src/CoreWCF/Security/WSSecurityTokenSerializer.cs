@@ -71,11 +71,11 @@ namespace CoreWCF.Security
         {
             if (maximumKeyDerivationOffset < 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maximumKeyDerivationOffset), SR.ValueMustBeNonNegative));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maximumKeyDerivationOffset), SRCommon.ValueMustBeNonNegative));
             }
             if (maximumKeyDerivationLabelLength < 0)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maximumKeyDerivationLabelLength), SR.ValueMustBeNonNegative));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maximumKeyDerivationLabelLength), SRCommon.ValueMustBeNonNegative));
             }
             if (maximumKeyDerivationNonceLength <= 0)
             {

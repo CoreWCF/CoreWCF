@@ -1239,9 +1239,6 @@
   <data name = "CommunicationObjectCannotBeModified" xml:space="preserve">
     <value>The communication object, {0}, cannot be modified unless it is in the Created state.</value>
   </data>
-  <data name = "CommunicationObjectCannotBeUsed" xml:space="preserve">
-    <value>The communication object, {0}, is in the {1} state.  Communication objects cannot be used for communication unless they are in the Opened state.</value>
-  </data>
   <data name = "CommunicationObjectFaulted1" xml:space="preserve">
     <value>The communication object, {0}, cannot be used for communication because it is in the Faulted state.</value>
   </data>
@@ -2736,17 +2733,8 @@
   <data name = "TimeoutServiceChannelConcurrentOpen2" xml:space="preserve">
     <value>Opening the {0} channel timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "TimeSpanMustBeGreaterThanTimeSpanZero" xml:space="preserve">
-    <value>TimeSpan must be greater than TimeSpan.Zero.</value>
-  </data>
   <data name = "TimeSpanCannotBeLessThanTimeSpanZero" xml:space="preserve">
     <value>TimeSpan cannot be less than TimeSpan.Zero.</value>
-  </data>
-  <data name = "ValueMustBeNonNegative" xml:space="preserve">
-    <value>The value of this argument must be non-negative.</value>
-  </data>
-  <data name = "ValueMustBePositive" xml:space="preserve">
-    <value>The value of this argument must be positive.</value>
   </data>
   <data name = "ValueMustBeGreaterThanZero" xml:space="preserve">
     <value>The value of this argument must be greater than 0.</value>
@@ -4148,12 +4136,6 @@
   </data>
   <data name = "SFxTimeoutInvalidStringFormat" xml:space="preserve">
     <value>The timeout value provided was not of a recognized format.  Please see InnerException for more details.</value>
-  </data>
-  <data name = "SFxTimeoutOutOfRange0" xml:space="preserve">
-    <value>Timeout must be greater than or equal to TimeSpan.Zero. To disable timeout, specify TimeSpan.MaxValue.</value>
-  </data>
-  <data name = "SFxTimeoutOutOfRangeTooBig" xml:space="preserve">
-    <value>Timeouts larger than Int32.MaxValue TotalMilliseconds (approximately 24 days) cannot be honored. To disable timeout, specify TimeSpan.MaxValue.</value>
   </data>
   <data name = "SFxTooManyPartsWithSameName" xml:space="preserve">
     <value>Cannot create a unique part name for {0}.</value>

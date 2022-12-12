@@ -62,7 +62,7 @@ namespace CoreWCF.Xml
             if (encoding == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(encoding));
             if (maxSizeInBytes < 0)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxSizeInBytes), SR.ValueMustBeNonNegative));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxSizeInBytes), SRCommon.ValueMustBeNonNegative));
             _maxSizeInBytes = maxSizeInBytes;
             _encoding = encoding;
             _isUTF8 = IsUTF8Encoding(encoding);
@@ -299,10 +299,10 @@ namespace CoreWCF.Xml
 
                 // Not checking upper bound because it will be caught by "count".  This is what XmlTextWriter does.
                 if (index < 0)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(index), SRCommon.ValueMustBeNonNegative));
 
                 if (count < 0)
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SRCommon.ValueMustBeNonNegative));
                 if (count > buffer.Length - index)
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), SR.Format(SR.SizeExceedsRemainingBufferSpace, buffer.Length - index)));
 

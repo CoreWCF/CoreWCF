@@ -7,7 +7,7 @@ using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
-    public partial class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
+    public class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
         private int _listenBacklog;
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
                 if (value <= 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value),
-                        SR.ValueMustBePositive));
+                        SRCommon.ValueMustBePositive));
                 }
 
                 _listenBacklog = value;
@@ -75,7 +75,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal override string WsdlTransportUri => TransportPolicyConstants.TcpTransportUri;
+        protected override string WsdlTransportUri => "http://schemas.microsoft.com/soap/tcp";
 
         public override BindingElement Clone()
         {
@@ -93,7 +93,7 @@ namespace CoreWCF.Channels
             //{
             //    return (T)(object)new BindingDeliveryCapabilitiesHelper();
             //}
-            else if (typeof(T) == typeof(ExtendedProtectionPolicy))
+            if (typeof(T) == typeof(ExtendedProtectionPolicy))
             {
                 return (T)(object)ExtendedProtectionPolicy;
             }
@@ -101,9 +101,9 @@ namespace CoreWCF.Channels
             {
                 return (T)(object)new TransportCompressionSupportHelper();
             }
-            else if (typeof(T) == typeof(IConnectionReuseHandler))
+            else if (typeof(T) == typeof(ConnectionPoolSettings))
             {
-                return (T)(object)new ConnectionReuseHandler(new TcpTransportBindingElement(this));
+                return (T)(object)ConnectionPoolSettings;
             }
             else
             {

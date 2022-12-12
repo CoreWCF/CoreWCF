@@ -3,7 +3,7 @@
 
 namespace CoreWCF.Security.Tokens
 {
-    internal static class ServiceModelSecurityTokenTypes
+    public static class ServiceModelSecurityTokenTypes
     {
         private const string Namespace = "http://schemas.microsoft.com/ws/2006/05/servicemodel/tokens";
         private const string spnego = Namespace + "/Spnego";

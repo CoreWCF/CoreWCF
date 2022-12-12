@@ -954,8 +954,9 @@ namespace CoreWCF.Channels
 
                         if (be.GetType().FullName.Equals("CoreWCF.Channels.TcpTransportBindingElement"))
                         {
-                            transportTokenAssertionProvider = new SslStreamSecurityBindingElement();
-                            break;
+                            throw new Exception("Resolve this");
+                            //transportTokenAssertionProvider = new SslStreamSecurityBindingElement();
+                            //break;
                         }
                     }
                 }

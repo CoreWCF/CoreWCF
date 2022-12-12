@@ -89,28 +89,6 @@ namespace CoreWCF.Security
         }
     }
 
-    internal static class SslProtocolsHelper
-    {
-        internal static bool IsDefined(SslProtocols value)
-        {
-            SslProtocols allValues = SslProtocols.None;
-            foreach (object protocol in Enum.GetValues(typeof(SslProtocols)))
-            {
-                allValues |= (SslProtocols)protocol;
-            }
-            return (value & allValues) == value;
-        }
-
-        internal static void Validate(SslProtocols value)
-        {
-            if (!IsDefined(value))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidEnumArgumentException(nameof(value), (int)value,
-                    typeof(SslProtocols)));
-            }
-        }
-    }
-
     internal class ServiceModelDictionaryManager
     {
         private static DictionaryManager s_dictionaryManager;
@@ -243,27 +221,6 @@ namespace CoreWCF.Security
         internal static EndpointIdentity CreateWindowsIdentity()
         {
             return CreateWindowsIdentity(false);
-        }
-
-        internal static EndpointIdentity CreateWindowsIdentity(NetworkCredential serverCredential)
-        {
-            if (serverCredential != null && !NetworkCredentialHelper.IsDefault(serverCredential))
-            {
-                string upn;
-                if (serverCredential.Domain != null && serverCredential.Domain.Length > 0)
-                {
-                    upn = serverCredential.UserName + "@" + serverCredential.Domain;
-                }
-                else
-                {
-                    upn = serverCredential.UserName;
-                }
-                return EndpointIdentity.CreateUpnIdentity(upn);
-            }
-            else
-            {
-                return CreateWindowsIdentity();
-            }
         }
 
         internal static string GetSpnFromIdentity(EndpointIdentity identity, EndpointAddress target)
@@ -979,47 +936,6 @@ namespace CoreWCF.Security
             certificate.Reset();
         }
 
-        private static bool TryCreateIdentity(ClaimSet claimSet, string claimType, out EndpointIdentity identity)
-        {
-            identity = null;
-            foreach (Claim claim in claimSet.FindClaims(claimType, null))
-            {
-                identity = EndpointIdentity.CreateIdentity(claim);
-                return true;
-            }
-            return false;
-        }
-
-        internal static void FixNetworkCredential(ref NetworkCredential credential)
-        {
-            if (credential == null)
-            {
-                return;
-            }
-            string username = NetworkCredentialHelper.UnsafeGetUsername(credential);
-            string domain = NetworkCredentialHelper.UnsafeGetDomain(credential);
-            if (!string.IsNullOrEmpty(username) && string.IsNullOrEmpty(domain))
-            {
-                // do the splitting only if there is exactly 1 \ or exactly 1 @
-                string[] partsWithSlashDelimiter = username.Split('\\');
-                string[] partsWithAtDelimiter = username.Split('@');
-                if (partsWithSlashDelimiter.Length == 2 && partsWithAtDelimiter.Length == 1)
-                {
-                    if (!string.IsNullOrEmpty(partsWithSlashDelimiter[0]) && !string.IsNullOrEmpty(partsWithSlashDelimiter[1]))
-                    {
-                        credential = new NetworkCredential(partsWithSlashDelimiter[1], NetworkCredentialHelper.UnsafeGetPassword(credential), partsWithSlashDelimiter[0]);
-                    }
-                }
-                else if (partsWithSlashDelimiter.Length == 1 && partsWithAtDelimiter.Length == 2)
-                {
-                    if (!string.IsNullOrEmpty(partsWithAtDelimiter[0]) && !string.IsNullOrEmpty(partsWithAtDelimiter[1]))
-                    {
-                        credential = new NetworkCredential(partsWithAtDelimiter[0], NetworkCredentialHelper.UnsafeGetPassword(credential), partsWithAtDelimiter[1]);
-                    }
-                }
-            }
-        }
-
         internal static Task OpenTokenAuthenticatorIfRequiredAsync(SecurityTokenAuthenticator tokenAuthenticator, CancellationToken token)
         {
             return OpenCommunicationObjectAsync(tokenAuthenticator as ICommunicationObject, token);
@@ -1095,18 +1011,6 @@ namespace CoreWCF.Security
             }
 
             return Task.CompletedTask;
-        }
-
-        internal static EndpointIdentity GetServiceCertificateIdentity(X509Certificate2 certificate)
-        {
-            using (X509CertificateClaimSet claimSet = new X509CertificateClaimSet(certificate))
-            {
-                if (!TryCreateIdentity(claimSet, ClaimTypes.Dns, out EndpointIdentity identity))
-                {
-                    TryCreateIdentity(claimSet, ClaimTypes.Rsa, out identity);
-                }
-                return identity;
-            }
         }
 
         public static void ValidateAnonymityConstraint(WindowsIdentity identity, bool allowUnauthenticatedCallers)

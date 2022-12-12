@@ -95,7 +95,7 @@ namespace CoreWCF.Channels
             if (maxBufferSize < 0)
             {
                 throw TraceUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxBufferSize), maxBufferSize,
-                                                    SR.ValueMustBeNonNegative), this);
+                                                    SRCommon.ValueMustBeNonNegative), this);
             }
 
             switch (State)

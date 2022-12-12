@@ -57,7 +57,7 @@ namespace CoreWCF.Channels
                 if (value <= 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.ValueMustBePositive)));
+                        SR.Format(SRCommon.ValueMustBePositive)));
                 }
 
                 _maxReadPoolSize = value;
@@ -75,7 +75,7 @@ namespace CoreWCF.Channels
                 if (value <= 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.ValueMustBePositive)));
+                        SR.Format(SRCommon.ValueMustBePositive)));
                 }
 
                 _maxWritePoolSize = value;

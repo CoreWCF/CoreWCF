@@ -74,7 +74,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(
                                 nameof(value),
                                 value,
-                                SR.SFxTimeoutOutOfRange0));
+                                SRCommon.SFxTimeoutOutOfRange0));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
@@ -82,7 +82,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(
                                             nameof(value),
                                             value,
-                                            SR.SFxTimeoutOutOfRangeTooBig));
+                                            SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _keepAliveInterval = value;
@@ -136,7 +136,7 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(
                         nameof(value),
                         value,
-                        SR.ValueMustBePositive));
+                        SRCommon.ValueMustBePositive));
                 }
 
                 _maxPendingConnections = value;

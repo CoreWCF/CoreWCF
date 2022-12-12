@@ -25,13 +25,13 @@ namespace CoreWCF.Security
                 if (value < TimeSpan.Zero)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRange0)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRange0)));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 _cachingTime = value;
@@ -52,7 +52,7 @@ namespace CoreWCF.Security
                 if (value < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
                 }
                 _maxCachedNonces = value;
             }

@@ -86,13 +86,13 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRangeTooBig)));
                 }
                 _serviceTokenLifetime = value;
             }
@@ -106,7 +106,7 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SRCommon.ValueMustBeNonNegative)));
                 }
                 _maximumCachedNegotiationState = value;
             }
@@ -120,7 +120,7 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SR.ValueMustBeNonNegative)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.Format(SRCommon.ValueMustBeNonNegative)));
                 }
                 _maximumConcurrentNegotiations = value;
             }
@@ -134,13 +134,13 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.Format(SR.SFxTimeoutOutOfRangeTooBig)));
+                        SR.Format(SRCommon.SFxTimeoutOutOfRangeTooBig)));
                 }
                 _negotiationTimeout = value;
             }
