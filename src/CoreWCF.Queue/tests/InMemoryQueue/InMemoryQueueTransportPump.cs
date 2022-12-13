@@ -70,7 +70,7 @@ public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
     {
         _cts.Cancel();
         _cts.Dispose();
-        _mres.Wait(token);
+        _mres.Wait(CancellationToken.None);
         _mres.Dispose();
         return Task.CompletedTask;
     }

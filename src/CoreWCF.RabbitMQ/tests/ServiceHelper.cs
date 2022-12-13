@@ -13,7 +13,7 @@ namespace CoreWCF.RabbitMQ.Tests
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, [CallerMemberName] string callerMethodName="")
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, [CallerMemberName] string callerMethodName = "")
             where TStartup : class
         {
             return WebHost.CreateDefaultBuilder(Array.Empty<string>())
