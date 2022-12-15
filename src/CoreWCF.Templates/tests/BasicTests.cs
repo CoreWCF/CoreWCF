@@ -25,7 +25,6 @@ public class BasicTests
     {
         public const string Net7 = "net7.0";
         public const string Net6 = "net6.0";
-        public const string NetCore31 = "netcoreapp3.1";
         public const string Net48 = "net48";
         public const string Net472 = "net472";
         public const string Net462 = "net462";
@@ -75,35 +74,27 @@ public class BasicTests
         yield return TestVariation.New();
         yield return TestVariation.New().Framework(Frameworks.Net7);
         yield return TestVariation.New().Framework(Frameworks.Net6);
-        yield return TestVariation.New().Framework(Frameworks.NetCore31);
         yield return TestVariation.New().NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps();
         yield return TestVariation.New().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoWsdl();
         yield return TestVariation.New().NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().NoWsdl();
         yield return TestVariation.New().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).UseProgramMain();
         yield return TestVariation.New().NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().UseProgramMain();
         yield return TestVariation.New().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoWsdl().UseProgramMain();
         yield return TestVariation.New().NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.NetCore31).NoHttps().NoWsdl().UseProgramMain();
 
         if (!OperatingSystem.IsWindows())
         {
