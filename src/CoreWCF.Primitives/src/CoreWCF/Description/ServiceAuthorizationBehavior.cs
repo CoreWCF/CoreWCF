@@ -11,6 +11,7 @@ using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
@@ -23,11 +24,10 @@ namespace CoreWCF.Description
         private readonly bool _impersonateOnSerializingReply;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
-        private IAuthorizationService _authorizationService;
+        private IServiceScopeFactory _serviceScopeFactory;
         private PrincipalPermissionMode _principalPermissionMode;
         private bool _isExternalPoliciesSet;
         private bool _isAuthorizationManagerSet;
-        private bool _isAuthorizationServiceSet;
         private bool _isReadOnly;
 
         public ServiceAuthorizationBehavior()
@@ -50,12 +50,7 @@ namespace CoreWCF.Description
                 CopyAuthorizationPoliciesAndManager(other);
             }
 
-            _isAuthorizationServiceSet = other._isAuthorizationServiceSet;
-            if (other._isAuthorizationServiceSet)
-            {
-                _authorizationService = other._authorizationService;
-            }
-
+            _serviceScopeFactory = other._serviceScopeFactory;
             _isReadOnly = other._isReadOnly;
         }
 
@@ -146,14 +141,13 @@ namespace CoreWCF.Description
             }
         }
 
-        public IAuthorizationService AuthorizationService
+        public IServiceScopeFactory ServiceScopeFactory
         {
-            get => _authorizationService;
+            get => _serviceScopeFactory;
             set
             {
                 ThrowIfImmutable();
-                _isAuthorizationServiceSet = true;
-                _authorizationService = value;
+                _serviceScopeFactory = value;
             }
         }
 
@@ -222,10 +216,7 @@ namespace CoreWCF.Description
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
 
-                        if (_isAuthorizationServiceSet)
-                        {
-                            behavior.AuthorizationService = _authorizationService;
-                        }
+                        behavior.ServiceScopeFactory = _serviceScopeFactory;
                     }
                 }
             }

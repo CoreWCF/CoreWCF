@@ -11,6 +11,7 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Dispatcher
 {
@@ -19,7 +20,7 @@ namespace CoreWCF.Dispatcher
         private static readonly ServiceAuthorizationManager s_defaultServiceAuthorizationManager = new();
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
-        private IAuthorizationService _authorizationService;
+        private IServiceScopeFactory _serviceScopeFactory;
 
         private AuthorizationBehavior() { }
 
@@ -57,11 +58,14 @@ namespace CoreWCF.Dispatcher
 
         internal async ValueTask<MessageRpc> AuthorizePolicyAsync(MessageRpc rpc)
         {
+            using var scope = _serviceScopeFactory.CreateScope();
+            IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
+
             ClaimsPrincipal principal = rpc.OperationContext.ClaimsPrincipal;
             AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy?.Value;
             if (principal != null && authorizationPolicy != null)
             {
-                var result = await _authorizationService.AuthorizeAsync(principal, authorizationPolicy);
+                var result = await authorizationService.AuthorizeAsync(principal, authorizationPolicy);
                 if (!result.Succeeded)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateAccessDeniedFaultException());
@@ -74,11 +78,11 @@ namespace CoreWCF.Dispatcher
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
-            AuthorizationBehavior behavior = new AuthorizationBehavior
+            AuthorizationBehavior behavior = new()
             {
                 _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
                 _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager,
-                _authorizationService = dispatch.AuthorizationService,
+                _serviceScopeFactory = dispatch.ServiceScopeFactory,
             };
 
             return behavior;
@@ -91,11 +95,16 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(dispatch)));
             }
 
+            if (dispatch.SupportsAuthorizationData && !dispatch.IsAuthorizationInfrastructureRegistered())
+            {
+                throw new NotSupportedException(SR.AuthorizationFeaturesAuthorizationServiceIsNotRegistered);
+            }
+
             return dispatch switch
             {
-                { RequiresAuthorization: true, RequiresAuthorizationPolicies: true } =>
+                { RequiresAuthorization: true, SupportsAuthorizationData: true } =>
                     throw new NotSupportedException(SR.AuthorizationFeaturesAreMutuallyExclusive),
-                { RequiresAuthorization: true } or { RequiresAuthorizationPolicies: true } =>
+                { RequiresAuthorization: true } or { SupportsAuthorizationData: true } =>
                     CreateAuthorizationBehavior(dispatch),
                 _ => null
             };

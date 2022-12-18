@@ -12,6 +12,7 @@ using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Dispatcher
 {
@@ -20,7 +21,7 @@ namespace CoreWCF.Dispatcher
         private ServiceAuthenticationManager _serviceAuthenticationManager;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
-        private IAuthorizationService _authorizationService;
+        private IServiceScopeFactory _serviceScopeFactory;
 
         //AuditLogLocation securityAuditLogLocation;
         private ConcurrencyMode _concurrencyMode;
@@ -50,7 +51,6 @@ namespace CoreWCF.Dispatcher
         private bool _impersonateOnSerializingReply;
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
-        private bool _isAuthorizationServiceSet;
         private bool _supportsAuthorizationData;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
@@ -213,19 +213,15 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public IAuthorizationService AuthorizationService
+        public IServiceScopeFactory ServiceScopeFactory
         {
-            get
-            {
-                return _authorizationService;
-            }
+            get => _serviceScopeFactory;
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    _authorizationService = value;
-                    _isAuthorizationServiceSet = true;
+                    _serviceScopeFactory = value;
                 }
             }
         }
@@ -492,9 +488,6 @@ namespace CoreWCF.Dispatcher
         internal bool RequiresAuthorization
             => _isAuthorizationManagerSet || _isExternalPoliciesSet;
 
-        internal bool RequiresAuthorizationPolicies =>
-            _isAuthorizationServiceSet && _supportsAuthorizationData;
-
         internal bool HasMatchAllOperation
         {
             get
@@ -622,6 +615,12 @@ namespace CoreWCF.Dispatcher
 
                 return _runtime;
             }
+        }
+
+        internal bool IsAuthorizationInfrastructureRegistered()
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            return scope.ServiceProvider.GetService<IAuthorizationService>() != null;
         }
 
         internal void InvalidateRuntime()
