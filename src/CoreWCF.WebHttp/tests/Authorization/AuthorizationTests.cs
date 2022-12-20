@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -27,10 +28,12 @@ public class AuthorizationTests
         _output = output;
     }
 
-    [Fact]
-    public async Task SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    [Theory]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup))]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndCustomWebHttpBindingStartup))]
+    public async Task SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();
@@ -40,10 +43,12 @@ public class AuthorizationTests
         }
     }
 
-    [Fact]
-    public async Task SinglePolicy_UnauthenticatedUser_Test()
+    [Theory]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithUnauthenticatedUserStartup))]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithUnauthenticatedUserAndCustomWebHttpBindingStartup))]
+    public async Task SinglePolicy_UnauthenticatedUser_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();
@@ -52,10 +57,12 @@ public class AuthorizationTests
         }
     }
 
-    [Fact]
-    public async Task SinglePolicy_AuthenticatedUser_MissingScopeValues_Test()
+    [Theory]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesStartup))]
+    [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesAndCustomWebHttpBindingStartup))]
+    public async Task SinglePolicy_AuthenticatedUser_MissingScopeValues_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();
@@ -77,7 +84,7 @@ public class AuthorizationTests
         public const string Write = nameof(Write);
     }
 
-    private abstract class Startup<TSecuredService> where TSecuredService : class, ISecuredService
+    private class Startup<TSecuredService> where TSecuredService : class, ISecuredService
     {
         public bool IsAuthenticated { get; set; }
         public List<string> ScopeClaimValues { get; set; } = new();
@@ -117,7 +124,7 @@ public class AuthorizationTests
             }
         }
 
-        public void Configure(IApplicationBuilder app)
+        public virtual void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(builder =>
             {
@@ -138,6 +145,34 @@ public class AuthorizationTests
         }
     }
 
+    private class StartupCustomWebHttpBinding<TSecuredService> : Startup<TSecuredService>
+        where TSecuredService : class, ISecuredService
+    {
+        private class MyWebHttpBinding : WebHttpBinding
+        {
+
+        }
+
+        public override void Configure(IApplicationBuilder app)
+        {
+            app.UseServiceModel(builder =>
+            {
+                builder.AddService<TSecuredService>();
+                builder.AddServiceWebEndpoint<TSecuredService, ISecuredService>(
+                    new MyWebHttpBinding
+                    {
+                        Security = new WebHttpSecurity
+                        {
+                            Mode = WebHttpSecurityMode.TransportCredentialOnly,
+                            Transport = new HttpTransportSecurity
+                            {
+                                ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                            }
+                        }
+                    }, "api");
+            });
+        }
+    }
 
     [ServiceContract]
     internal interface ISecuredService
@@ -174,6 +209,33 @@ public class AuthorizationTests
     private class SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesStartup : Startup<SinglePolicyOnOperationContractSecuredService>
     {
         public SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesStartup()
+        {
+            IsAuthenticated = true;
+            ScopeClaimValues.Clear();
+        }
+    }
+
+    private class SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndCustomWebHttpBindingStartup : StartupCustomWebHttpBinding<SinglePolicyOnOperationContractSecuredService>
+    {
+        public SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndCustomWebHttpBindingStartup()
+        {
+            IsAuthenticated = true;
+            ScopeClaimValues.Add(DefinedScopeValues.Read);
+        }
+    }
+
+    private class SinglePolicyOnOperationContractWithUnauthenticatedUserAndCustomWebHttpBindingStartup : StartupCustomWebHttpBinding<SinglePolicyOnOperationContractSecuredService>
+    {
+        public SinglePolicyOnOperationContractWithUnauthenticatedUserAndCustomWebHttpBindingStartup()
+        {
+            IsAuthenticated = false;
+            ScopeClaimValues.Clear();
+        }
+    }
+
+    private class SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesAndCustomWebHttpBindingStartup : StartupCustomWebHttpBinding<SinglePolicyOnOperationContractSecuredService>
+    {
+        public SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesAndCustomWebHttpBindingStartup()
         {
             IsAuthenticated = true;
             ScopeClaimValues.Clear();
