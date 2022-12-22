@@ -22,7 +22,6 @@ public partial class AuthorizationIntegrationTests
                     policy => policy.RequireClaim("scope", DefinedScopeValues.Read));
             });
             services.AddServiceModelServices();
-            services.AddTransient<SecuredService>();
         }
 
         public void Configure(IApplicationBuilder app)
