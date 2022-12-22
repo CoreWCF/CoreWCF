@@ -25,6 +25,7 @@ public partial class AuthorizationIntegrationTests
 
         public IAuthorizationService AuthorizationService { get; private set; }
         public IAuthenticationService AuthenticationService { get; private set; }
+        public SecuredServiceHolder SecuredServiceHolder { get; private set; } = new();
 
         protected override TestServer CreateServer(IWebHostBuilder builder)
         {
@@ -50,6 +51,7 @@ public partial class AuthorizationIntegrationTests
         {
             builder.ConfigureTestServices(services =>
             {
+
                 services.Configure<FakeJwtBearerAuthenticationHandlerOptions>(options =>
                 {
                     options.IsAuthenticated = IsAuthenticated;
@@ -63,7 +65,8 @@ public partial class AuthorizationIntegrationTests
                             options.IsAuthenticated = IsAuthenticated;
                             options.ScopeClaimValues = ScopeClaimValues;
                         });
-
+                services.AddSingleton(_ => SecuredServiceHolder);
+                services.AddTransient<SecuredService>();
                 services.AddTransient<DefaultAuthorizationService>();
                 services.AddTransient(provider =>
                 {
