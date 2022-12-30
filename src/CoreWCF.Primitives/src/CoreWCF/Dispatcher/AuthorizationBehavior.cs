@@ -11,7 +11,6 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Dispatcher
 {
@@ -20,7 +19,7 @@ namespace CoreWCF.Dispatcher
         private static readonly ServiceAuthorizationManager s_defaultServiceAuthorizationManager = new();
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
-        private IServiceScopeFactory _serviceScopeFactory;
+        private IAuthorizationService _authorizationService;
 
         private AuthorizationBehavior() { }
 
@@ -58,14 +57,11 @@ namespace CoreWCF.Dispatcher
 
         internal async ValueTask<MessageRpc> AuthorizePolicyAsync(MessageRpc rpc)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
-
             ClaimsPrincipal principal = rpc.OperationContext.ClaimsPrincipal;
             AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy?.Value;
             if (principal != null && authorizationPolicy != null)
             {
-                var result = await authorizationService.AuthorizeAsync(principal, authorizationPolicy);
+                var result = await _authorizationService.AuthorizeAsync(principal, authorizationPolicy);
                 if (!result.Succeeded)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateAccessDeniedFaultException());
@@ -82,7 +78,7 @@ namespace CoreWCF.Dispatcher
             {
                 _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
                 _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager,
-                _serviceScopeFactory = dispatch.ServiceScopeFactory,
+                _authorizationService = dispatch.AuthorizationService
             };
 
             return behavior;

@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
-    public sealed class ServiceAuthorizationBehavior : IServiceBehavior
+    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable
     {
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
@@ -25,6 +25,7 @@ namespace CoreWCF.Description
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private IServiceScopeFactory _serviceScopeFactory;
+        private IServiceScope _scope;
         private PrincipalPermissionMode _principalPermissionMode;
         private bool _isExternalPoliciesSet;
         private bool _isAuthorizationManagerSet;
@@ -141,9 +142,20 @@ namespace CoreWCF.Description
             }
         }
 
-        public IServiceScopeFactory ServiceScopeFactory
+        [Obsolete("ServiceAuthorizationBehavior.AuthorizationService will be made internal in next major release.")]
+        public IAuthorizationService AuthorizationService
         {
-            get => _serviceScopeFactory;
+            get
+            {
+                IServiceScope scope = _scope ??= _serviceScopeFactory.CreateScope();
+                IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
+                return authorizationService;
+            }
+            set => throw new NotImplementedException();
+        }
+
+        internal IServiceScopeFactory ServiceScopeFactory
+        {
             set
             {
                 ThrowIfImmutable();
@@ -216,7 +228,7 @@ namespace CoreWCF.Description
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
 
-                        behavior.ServiceScopeFactory = _serviceScopeFactory;
+                        behavior.AuthorizationService = AuthorizationService;
                     }
                 }
             }
@@ -238,6 +250,11 @@ namespace CoreWCF.Description
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
+        }
+
+        public void Dispose()
+        {
+            _scope?.Dispose();
         }
     }
 }

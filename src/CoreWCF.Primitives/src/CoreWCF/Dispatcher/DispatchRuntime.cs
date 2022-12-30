@@ -21,7 +21,7 @@ namespace CoreWCF.Dispatcher
         private ServiceAuthenticationManager _serviceAuthenticationManager;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
-        private IServiceScopeFactory _serviceScopeFactory;
+        private IAuthorizationService _authorizationService;
 
         //AuditLogLocation securityAuditLogLocation;
         private ConcurrencyMode _concurrencyMode;
@@ -213,15 +213,16 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public IServiceScopeFactory ServiceScopeFactory
+        [Obsolete("DispatchRuntime.AuthorizationService will be made internal in next major release.")]
+        public IAuthorizationService AuthorizationService
         {
-            get => _serviceScopeFactory;
+            get { return _authorizationService; }
             set
             {
                 lock (ThisLock)
                 {
                     InvalidateRuntime();
-                    _serviceScopeFactory = value;
+                    _authorizationService = value;
                 }
             }
         }
@@ -617,11 +618,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        internal bool IsAuthorizationInfrastructureRegistered()
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            return scope.ServiceProvider.GetService<IAuthorizationService>() != null;
-        }
+        internal bool IsAuthorizationInfrastructureRegistered() => _authorizationService != null;
 
         internal void InvalidateRuntime()
         {

@@ -8,21 +8,27 @@ using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
+
+internal class AuthenticationServiceHolder
+{
+    public bool IsAuthenticateAsyncCalled { get; set; }
+}
+
 internal class AuthenticationServiceInterceptor : IAuthenticationService
 {
     private readonly IAuthenticationService _authenticationService;
+    private readonly AuthenticationServiceHolder _holder;
 
-    public bool IsAuthenticateAsyncCalled { get; private set; }
-
-    public AuthenticationServiceInterceptor(IAuthenticationService authenticationService)
+    public AuthenticationServiceInterceptor(AuthenticationService authenticationService, AuthenticationServiceHolder holder)
     {
         _authenticationService = authenticationService;
+        _holder = holder;
     }
 
     public async Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
     {
         var result = await _authenticationService.AuthenticateAsync(context, scheme);
-        IsAuthenticateAsyncCalled = true;
+        _holder.IsAuthenticateAsyncCalled = true;
         return result;
     }
 
