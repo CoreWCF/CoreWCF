@@ -1797,8 +1797,6 @@ namespace MyProject
             await test.RunAsync();
         }
 
-// TODO: make the in-memory assembly compilation works on .NET Framework
-#if !NETFRAMEWORK
         [Theory]
         [MemberData(nameof(GetTestVariations))]
         public async Task ServiceContractFromOtherAssemblyTests(string attributeNamespace, string attribute)
@@ -1892,7 +1890,6 @@ namespace MyProject
                 return MetadataReference.CreateFromStream(memoryStream1);
             }
         }
-#endif
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
