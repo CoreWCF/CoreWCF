@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1850,21 +1851,12 @@ namespace MyProject
                 },
             };
 
-            test.TestState.AdditionalReferences.Add(BuildInMemoryAssembly());
+            test.TestState.AdditionalReferences.Add(await BuildInMemoryAssembly());
 
             await test.RunAsync();
 
-            MetadataReference BuildInMemoryAssembly()
+            async Task<MetadataReference> BuildInMemoryAssembly()
             {
-                List<MetadataReference> references = new List<MetadataReference>
-                {
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("netstandard")).Location),
-                    MetadataReference.CreateFromFile(Assembly.Load(new AssemblyName("System.Runtime")).Location),
-                    MetadataReference.CreateFromFile(typeof(System.ServiceModel.ServiceContractAttribute).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(CoreWCF.ServiceContractAttribute).Assembly.Location)
-                };
-
                 string code = @$"
 namespace MyProject
 {{
@@ -1879,17 +1871,21 @@ namespace MyProject
 }}
 ";
 
+                var references =
+                    await ReferenceAssembliesHelper.Default.Value.ResolveAsync(LanguageNames.CSharp,
+                        CancellationToken.None);
+
                 CSharpCompilation compilation = CSharpCompilation.Create(
                     "MyProject",
                     new[]
                     {
                         CSharpSyntaxTree.ParseText(code)
                     },
-                    references.ToArray(),
+                    references.Union(new [] { MetadataReference.CreateFromFile(typeof(CoreWCF.ServiceContractAttribute).Assembly.Location) }),
                     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 );
 
-                using MemoryStream memoryStream1 = new MemoryStream();
+                using MemoryStream memoryStream1 = new();
                 EmitResult emitResult1 = compilation.Emit(memoryStream1);
                 memoryStream1.Position = 0;
 
