@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using CoreWCF.BuildTools.Tests;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -16,13 +17,8 @@ public static class CSharpAnalyzerVerifier<TAnalyzer> where TAnalyzer : Diagnost
     {
         public Test()
         {
-            ReferenceAssemblies = ReferenceAssemblies.Default;
-            TestState.AdditionalReferences.Add(typeof(System.ServiceModel.ServiceContractAttribute).Assembly);
+            ReferenceAssemblies = ReferenceAssembliesHelper.Default.Value;
             TestState.AdditionalReferences.Add(typeof(CoreWCF.ServiceContractAttribute).Assembly);
-            TestState.AdditionalReferences.Add(typeof(Microsoft.Extensions.DependencyInjection.IServiceScope).Assembly);
-            TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Http.HttpContext).Assembly);
-            TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Mvc.FromServicesAttribute).Assembly);
-            TestState.AdditionalReferences.Add(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly);
         }
 
         protected override CompilationOptions CreateCompilationOptions()
