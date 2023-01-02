@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Net.Http.Headers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -72,6 +74,9 @@ namespace CoreWCF.Http.Tests.Authorization
 
             Assert.False(response.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Contains(response.Headers,
+                x => x.Key == HeaderNames.WWWAuthenticate && x.Value.FirstOrDefault() ==
+                    FakeJwtBearerAuthenticationHandler.AuthenticationScheme);
             var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
             Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
             var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);

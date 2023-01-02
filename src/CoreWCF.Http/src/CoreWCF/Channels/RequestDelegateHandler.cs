@@ -107,7 +107,7 @@ namespace CoreWCF.Channels
 
                 var authenticateResult = await context.AuthenticateAsync(scheme);
 
-                if (authenticateResult.None)
+                if (authenticateResult.None || !authenticateResult.Succeeded)
                 {
                     await context.ChallengeAsync(scheme);
                     return;
