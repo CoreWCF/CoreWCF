@@ -38,6 +38,29 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
+        public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, [CallerMemberName] string callerMethodName = "") =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+                .ConfigureLogging((ILoggingBuilder logging) =>
+                {
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                    logging.AddFilter("Default", LogLevel.Debug);
+                    logging.AddFilter("Microsoft", LogLevel.Debug);
+                    logging.SetMinimumLevel(LogLevel.Debug);
+                })
+#endif // DEBUG
+                .UseKestrel(options =>
+                {
+                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    {
+                        if (Debugger.IsAttached)
+                        {
+                            listenOptions.UseConnectionLogging();
+                        }
+                    });
+                })
+                .UseStartup(startupType);
+
         public static IWebHostBuilder CreateWebHostBuilderWithSsl<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
     WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
