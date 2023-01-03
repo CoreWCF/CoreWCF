@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools
@@ -141,14 +142,7 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
                 {
                     _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
-                    _builder.Append(string.Join(", ",
-                        attributeData.ConstructorArguments.Select(x =>
-                            x.Kind switch
-                            {
-                                TypedConstantKind.Array => string.Join(", ", x.Values.Select(y => $@"""{y.Value}""")),
-                                _ => $@"""{x.Value}"""
-                            }).Union(
-                        attributeData.NamedArguments.Select(x => $@"{x.Key} = ""{x.Value.Value}"""))));
+                    _builder.Append(string.Join(", ", attributeData.ConstructorArguments.Select(x => x.ToCSharpString()).Union(attributeData.NamedArguments.Select(x => $@"{x.Key} = {x.Value.ToCSharpString()}") )));
                     _builder.Append(")]");
                     _builder.AppendLine();
                 }
