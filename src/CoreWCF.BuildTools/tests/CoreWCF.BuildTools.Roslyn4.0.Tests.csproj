@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.WebHttp\src\CoreWCF.WebHttp.csproj" />
     <ProjectReference Include="..\src\CoreWCF.BuildTools.Roslyn4.0.csproj" />
   </ItemGroup>
 </Project>

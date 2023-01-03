@@ -24,6 +24,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         {
             ReferenceAssemblies = ReferenceAssembliesHelper.Default.Value;
             TestState.AdditionalReferences.Add(typeof(CoreWCF.ServiceContractAttribute).Assembly);
+            TestState.AdditionalReferences.Add(typeof(CoreWCF.OpenApi.Attributes.OpenApiResponseAttribute).Assembly);
         }
 
         protected override CompilationOptions CreateCompilationOptions()
@@ -50,3 +51,4 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics) => false;
     }
 }
+
