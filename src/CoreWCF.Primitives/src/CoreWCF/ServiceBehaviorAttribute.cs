@@ -45,7 +45,7 @@ namespace CoreWCF
         private readonly bool _automaticSessionShutdown = true;
         private IInstanceProvider _instanceProvider = null;
         private IServiceProvider _serviceProvider = null;
-        private readonly bool _useSynchronizationContext = true;
+        private bool _useSynchronizationContext = true;
         private AddressFilterMode _addressFilterMode = AddressFilterMode.Exact;
 
         [DefaultValue(null)]
@@ -126,6 +126,13 @@ namespace CoreWCF
 
                 _instanceMode = value;
             }
+        }
+
+        [DefaultValue(true)]
+        public bool UseSynchronizationContext
+        {
+            get => _useSynchronizationContext;
+            set => _useSynchronizationContext = value;
         }
 
         internal IServiceProvider ServicePovider
