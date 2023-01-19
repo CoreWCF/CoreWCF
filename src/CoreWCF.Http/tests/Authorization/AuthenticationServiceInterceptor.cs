@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -17,6 +18,9 @@ internal class AuthenticationServiceInterceptor : IAuthenticationService
     public AuthenticationServiceInterceptor(IAuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
+
+        HttpClient a;
+        
     }
 
     public async Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
