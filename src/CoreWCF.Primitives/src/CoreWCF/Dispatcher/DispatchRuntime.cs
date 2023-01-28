@@ -12,7 +12,6 @@ using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Dispatcher
 {
@@ -216,14 +215,19 @@ namespace CoreWCF.Dispatcher
         [Obsolete("DispatchRuntime.AuthorizationService will be made internal in next major release.")]
         public IAuthorizationService AuthorizationService
         {
-            get { return _authorizationService; }
-            set
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        // TODO: Make AuthorizationService property internal and replace get/set implementations with the 2 methods below.
+        internal IAuthorizationService GetAuthorizationService() => _authorizationService;
+
+        internal void SetAuthorizationService(IAuthorizationService authorizationService)
+        {
+            lock (ThisLock)
             {
-                lock (ThisLock)
-                {
-                    InvalidateRuntime();
-                    _authorizationService = value;
-                }
+                InvalidateRuntime();
+                _authorizationService = authorizationService;
             }
         }
 

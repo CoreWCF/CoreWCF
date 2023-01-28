@@ -78,7 +78,7 @@ namespace CoreWCF.Dispatcher
             {
                 _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
                 _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager,
-                _authorizationService = dispatch.AuthorizationService
+                _authorizationService = dispatch.GetAuthorizationService()
             };
 
             return behavior;
