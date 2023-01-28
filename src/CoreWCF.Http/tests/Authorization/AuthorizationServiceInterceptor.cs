@@ -27,15 +27,15 @@ internal class AuthorizationServiceInterceptor : IAuthorizationService
     public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource,
         IEnumerable<IAuthorizationRequirement> requirements)
     {
-        var result = await _authorizationService.AuthorizeAsync(user, resource, requirements);
         _holder.IsAuthorizeAsyncCalled = true;
+        var result = await _authorizationService.AuthorizeAsync(user, resource, requirements);
         return result;
     }
 
     public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource, string policyName)
     {
-        var result = await _authorizationService.AuthorizeAsync(user, resource, policyName);
         _holder.IsAuthorizeAsyncCalled = true;
+        var result = await _authorizationService.AuthorizeAsync(user, resource, policyName);
         return result;
     }
 }

@@ -27,8 +27,8 @@ internal class AuthenticationServiceInterceptor : IAuthenticationService
 
     public async Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
     {
-        var result = await _authenticationService.AuthenticateAsync(context, scheme);
         _holder.IsAuthenticateAsyncCalled = true;
+        var result = await _authenticationService.AuthenticateAsync(context, scheme);
         return result;
     }
 
