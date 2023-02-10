@@ -18,7 +18,7 @@ namespace CoreWCF.Channels
         public RabbitMqTransportBindingElement()
         {
         }
-        
+
         private RabbitMqTransportBindingElement(RabbitMqTransportBindingElement other)
             : base(other)
         {

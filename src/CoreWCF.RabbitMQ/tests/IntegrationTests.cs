@@ -26,7 +26,7 @@ namespace CoreWCF.RabbitMQ.Tests
         {
             _output = output;
         }
-        
+
         [Fact(Skip = "Requires RabbitMQ host with SSL")]
         public void ClassicQueueWithTls_ReceiveMessage_Success()
         {
@@ -93,7 +93,7 @@ namespace CoreWCF.RabbitMQ.Tests
             }
         }
     }
-    
+
     public class ClassicQueueWithTLSStartup
     {
         public static Uri Uri = new("net.amqps://HOST:PORT/amq.direct/QUEUE_NAME#ROUTING_KEY");
@@ -186,8 +186,8 @@ namespace CoreWCF.RabbitMQ.Tests
                     Uri);
             });
         }
-    }
-    
+        }
+
     public class DefaultQueueStartup
     {
         public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
