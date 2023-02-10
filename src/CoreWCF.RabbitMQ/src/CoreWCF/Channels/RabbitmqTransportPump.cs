@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using CoreWCF.Channels.Configuration;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
-using CoreWCF.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;

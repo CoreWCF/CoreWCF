@@ -36,8 +36,5 @@ namespace CoreWCF.Channels
         {
             // Do nothing
         }
-
-        protected override void OnAbandon(TimeSpan timeout) => throw new NotImplementedException();
-        protected override void OnComplete(TimeSpan timeout) => throw new NotImplementedException();
     }
 }

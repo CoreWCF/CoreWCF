@@ -7950,4 +7950,7 @@
   <data name="UnsupportedQuorumQueuePropertyValue" xml:space="preserve">
     <value>The property {0} cannot be set to {1} because it is not supported by quorum queues in RabbitMQ.</value>
   </data>
+  <data name="InvalidMaxReceivedMessageSizeValue" xml:space="preserve">
+    <value>The the MaxReceivedMessageSize must be between {0} and {1} (inclusive).</value>
+  </data>
 </root>

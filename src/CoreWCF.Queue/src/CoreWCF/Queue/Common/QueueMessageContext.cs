@@ -14,10 +14,10 @@ namespace CoreWCF.Queue.Common
     public class QueueMessageContext : RequestContext
     {
         public PipeReader QueueMessageReader { get; set; }
-        public ReceiveContext ReceiveContext { get; set; }
         public virtual IDictionary<string, object> Properties { get { return _properties.Value; } }
         private Message _requestMessage;
         private Exception _requestMessageException;
+        private ReceiveContext _receiveContext;
         private readonly Lazy<IDictionary<string, object>> _properties = new();
 
         public override Message RequestMessage
@@ -33,9 +33,32 @@ namespace CoreWCF.Queue.Common
             }
         }
 
+        public virtual ReceiveContext ReceiveContext
+        {
+            get
+            {
+                return _receiveContext;
+            }
+            set
+            {
+                _receiveContext = value;
+                if (_requestMessage != null)
+                {
+                    // Attach _receiveContext to the message
+                    SetRequestMessage(_requestMessage);
+                }
+            }
+        }
+
         internal void SetRequestMessage(Message requestMessage)
         {
             Fx.Assert(_requestMessageException == null, "Cannot have both a requestMessage and a requestException.");
+            
+            if (_receiveContext != null)
+            {
+                requestMessage.Properties[ReceiveContext.Name] = _receiveContext;
+            }
+
             _requestMessage = requestMessage;
         }
 
@@ -55,15 +78,15 @@ namespace CoreWCF.Queue.Common
 
         public override async Task ReplyAsync(Message message)
         {
-            if (ReceiveContext != null)
+            if (message != null && message.Properties.TryGetValue(ReceiveContext.Name, out ReceiveContext receiveContext))
             {
-                if (message != null && message.IsFault)
+                if (message.IsFault)
                 {
-                    await ReceiveContext.AbandonAsync(CancellationToken.None);
+                    await receiveContext.AbandonAsync(CancellationToken.None);
                 }
                 else
                 {
-                    await ReceiveContext.CompleteAsync(CancellationToken.None);
+                    await receiveContext.CompleteAsync(CancellationToken.None);
                 }
             }
         }

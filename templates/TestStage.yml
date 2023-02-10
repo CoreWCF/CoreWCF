@@ -15,31 +15,26 @@ stages:
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
-          platformOs: windows
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: ''
-          platformOs: windows
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
-          platformOs: windows
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '6.0.x'
-          platformOs: linux
         Linux_net7.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: ''
-          platformOs: linux
     displayName: Test Release
     pool:
       vmImage: $(imageName)
@@ -49,7 +44,7 @@ stages:
         docker-compose up -d
       name: DockerComposeLinuxServices
       displayName: Start services hosted by linux containers
-      condition: eq(variables.platformOs, 'linux')
+      condition: eq(variables.imageName, 'ubuntu-latest')
       timeoutInMinutes: 5
       retryCountOnTaskFailure: 2
 
@@ -97,6 +92,15 @@ stages:
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+      
+    - bash: |
+        echo 'Cleaning up docker services...'
+        docker-compose down --rmi all
+      name: DockerComposeDownLinuxServices
+      displayName: Clean up containers used to host services
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
 
   - job: TestDebug
     strategy:
@@ -106,31 +110,26 @@ stages:
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
-          platformOs: windows
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: ''
-          platformOs: windows
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
           testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
-          platformOs: windows
         Linux_net6.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net6.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: '6.0.x'
-          platformOs: linux
         Linux_net7.0:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
           additionalDotNetCoreSdk: ''
-          platformOs: linux
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
@@ -140,7 +139,7 @@ stages:
         docker-compose up -d
       name: DockerComposeLinuxServices
       displayName: Start services hosted by linux containers
-      condition: eq(variables.platformOs, 'linux')
+      condition: eq(variables.imageName, 'ubuntu-latest')
       timeoutInMinutes: 5
       retryCountOnTaskFailure: 2
 
@@ -188,3 +187,12 @@ stages:
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+      
+    - bash: |
+        echo 'Cleaning up docker services...'
+        docker-compose down --rmi all
+      name: DockerComposeDownLinuxServices
+      displayName: Clean up containers used to host services
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2

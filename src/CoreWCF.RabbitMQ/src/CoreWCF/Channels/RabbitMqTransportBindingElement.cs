@@ -13,7 +13,9 @@ namespace CoreWCF.Channels
 {
     public sealed class RabbitMqTransportBindingElement : QueueBaseTransportBindingElement
     {
-        private const long DefaultMaxMessageSize = 512 * 2 ^ 20;  // 512 MB, max message size as of RabbitMQ v3.8
+        private const int MaxRabbitMqMessageSize = 536870912; // 512 * (2^20) = 512 MB, max message size as of RabbitMQ v3.8
+        private const int DefaultMaxMessageSize = 65535;  // 64K
+        private long _maxReceivedMessageSize = DefaultMaxMessageSize;
 
         public RabbitMqTransportBindingElement()
         {
@@ -68,7 +70,23 @@ namespace CoreWCF.Channels
         /// <summary>
         /// The largest receivable encoded message
         /// </summary>
-        public override long MaxReceivedMessageSize { get; set; } = DefaultMaxMessageSize;
+        public override long MaxReceivedMessageSize
+        {
+            get
+            {
+                return _maxReceivedMessageSize;
+            }
+
+            set
+            {
+                if (value <= 0 || value > MaxRabbitMqMessageSize)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, SR.Format(SR.InvalidMaxReceivedMessageSizeValue, 1, MaxRabbitMqMessageSize));
+                }
+
+                _maxReceivedMessageSize = value;
+            }
+        }
 
         /// <summary>
         /// Specifies the version of the AMQP protocol that should be used to

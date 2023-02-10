@@ -11,7 +11,6 @@ using CoreWCF.Configuration;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Queue.Common
 {
@@ -21,7 +20,7 @@ namespace CoreWCF.Queue.Common
         private readonly IServiceProvider _services;
         private readonly List<QueueTransportContext> _queueTransportContexts;
         private readonly IServiceBuilder _serviceBuilder;
-
+        public QueuePollingService(IServiceProvider services, QueueMiddleware queueMiddleware)
         {
             _services = services;
             _queueMiddleware = queueMiddleware;

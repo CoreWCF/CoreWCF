@@ -79,3 +79,11 @@ stages:
       inputs:
         pollingTimeoutSec: '300'
       condition: not(eq(variables['build.reason'], 'PullRequest'))
+      
+    - bash: |
+        echo 'Cleaning up docker services...'
+        docker-compose down --rmi all
+      name: DockerComposeDownLinuxServices
+      displayName: Clean up containers used to host services
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
