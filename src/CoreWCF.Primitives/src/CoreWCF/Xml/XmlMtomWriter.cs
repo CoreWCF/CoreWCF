@@ -271,6 +271,25 @@ namespace CoreWCF.Xml
                 Writer.WriteValue(value);
         }
 
+        public override Task WriteValueAsync(IStreamProvider value)
+        {
+            if (value == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
+
+            if (Writer.WriteState == WriteState.Element)
+            {
+                if (_binaryDataChunks == null)
+                {
+                    _binaryDataChunks = new List<MtomBinaryData>();
+                    _contentID = GenerateUriForMimePart((_mimeParts == null) ? 1 : _mimeParts.Count + 1);
+                }
+                _binaryDataChunks.Add(new MtomBinaryData(value));
+                return Task.CompletedTask;
+            }
+            else
+                return Task.FromResult(Writer.WriteValueAsync(value));
+        }
+
         public override void WriteBase64(byte[] buffer, int index, int count)
         {
             if (Writer.WriteState == WriteState.Element)
@@ -470,9 +489,7 @@ namespace CoreWCF.Xml
                 {
                     WriteMimeHeaders(part.contentID, part.contentType, part.contentTransferEncoding);
                     Stream s = _mimeWriter.GetContentStream();
-                    int blockSize = 256;
-                    int bytesRead = 0;
-                    byte[] block = new byte[blockSize];
+                    int bufferSize = 65536;
                     Stream stream = null;
                     foreach (MtomBinaryData data in part.binaryData)
                     {
@@ -481,19 +498,8 @@ namespace CoreWCF.Xml
                             stream = data.provider.GetStream();
                             if (stream == null)
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.XmlInvalidStream));
-                            while (true)
-                            {
-                                bytesRead = stream.Read(block, 0, blockSize);
-                                if (bytesRead > 0)
-                                    s.Write(block, 0, bytesRead);
-                                else
-                                    break;
-                                if (blockSize < 65536 && bytesRead == blockSize)
-                                {
-                                    blockSize = blockSize * 16;
-                                    block = new byte[blockSize];
-                                }
-                            }
+
+                            stream.CopyTo(s, bufferSize);
 
                             data.provider.ReleaseStream(stream);
                         }
@@ -522,9 +528,7 @@ namespace CoreWCF.Xml
                 {
                     await WriteMimeHeadersAsync(part.contentID, part.contentType, part.contentTransferEncoding);
                     Stream s = await _mimeWriter.GetContentStreamAsync();
-                    int blockSize = 256;
-                    int bytesRead = 0;
-                    byte[] block = new byte[blockSize];
+                    int bufferSize = 65536;
                     Stream stream = null;
                     foreach (MtomBinaryData data in part.binaryData)
                     {
@@ -533,25 +537,14 @@ namespace CoreWCF.Xml
                             stream = data.provider.GetStream();
                             if (stream == null)
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.XmlInvalidStream));
-                            while (true)
-                            {
-                                bytesRead = stream.Read(block, 0, blockSize);
-                                if (bytesRead > 0)
-                                    s.Write(block, 0, bytesRead);
-                                else
-                                    break;
-                                if (blockSize < 65536 && bytesRead == blockSize)
-                                {
-                                    blockSize = blockSize * 16;
-                                    block = new byte[blockSize];
-                                }
-                            }
+
+                            await stream.CopyToAsync(s, bufferSize);
 
                             data.provider.ReleaseStream(stream);
                         }
                         else
                         {
-                            s.Write(data.chunk, 0, data.chunk.Length);
+                            await s.WriteAsync(data.chunk, 0, data.chunk.Length);
                         }
                     }
                 }
