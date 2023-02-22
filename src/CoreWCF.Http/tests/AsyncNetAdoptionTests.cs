@@ -45,6 +45,9 @@ namespace BasicHttp
         [InlineData(1000)]
         public async Task OneWayPatternTest_Parallel(int callCount)
         {
+            // Does nothing on .NET [Core], but enables .NET Framework to have sufficient concurrency
+            // to make all the requests
+            System.Net.ServicePointManager.DefaultConnectionLimit = callCount;
             var inputs = Enumerable.Range(0, callCount).Select(x => x.ToString()).ToArray();
             var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
             using (host)
