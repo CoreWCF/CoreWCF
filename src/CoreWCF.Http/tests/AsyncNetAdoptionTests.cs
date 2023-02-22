@@ -45,25 +45,36 @@ namespace BasicHttp
         [InlineData(1000)]
         public async Task OneWayPatternTest_Parallel(int callCount)
         {
-            var inputs = Enumerable.Range(0, callCount).Select(x => x.ToString()).ToArray();
-            var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
-            using (host)
+            // Does nothing on .NET [Core], but enables .NET Framework to have sufficient concurrency
+            // to make all the requests
+            int previousConnectionLimit = System.Net.ServicePointManager.DefaultConnectionLimit;
+            System.Net.ServicePointManager.DefaultConnectionLimit = callCount;
+            try
             {
-                host.Start();
-                CountdownEvent countdownEvent = host.Services.GetService<CountdownEvent>();
-                countdownEvent.AddCount(inputs.Length - 1);
-                var httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContract>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
-                var channel = factory.CreateChannel();
-                var tasks = inputs.AsParallel().Select(x => channel.OneWay(x)).ToList();
-                await Task.WhenAll(tasks);
-                countdownEvent.Wait(TimeSpan.FromSeconds(30));
-                var bag = host.Services.GetService<ConcurrentBag<string>>();
-                foreach (string input in inputs)
+                var inputs = Enumerable.Range(0, callCount).Select(x => x.ToString()).ToArray();
+                var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
+                using (host)
                 {
-                    Assert.Contains(input, bag);
+                    host.Start();
+                    CountdownEvent countdownEvent = host.Services.GetService<CountdownEvent>();
+                    countdownEvent.AddCount(inputs.Length - 1);
+                    var httpBinding = ClientHelper.GetBufferedModeBinding();
+                    var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContract>(httpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
+                    var channel = factory.CreateChannel();
+                    var tasks = inputs.AsParallel().Select(x => channel.OneWay(x)).ToList();
+                    await Task.WhenAll(tasks);
+                    countdownEvent.Wait(TimeSpan.FromSeconds(30));
+                    var bag = host.Services.GetService<ConcurrentBag<string>>();
+                    foreach (string input in inputs)
+                    {
+                        Assert.Contains(input, bag);
+                    }
                 }
+            }
+            finally
+            {
+                System.Net.ServicePointManager.DefaultConnectionLimit = previousConnectionLimit;
             }
         }
 
