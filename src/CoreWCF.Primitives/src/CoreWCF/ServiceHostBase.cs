@@ -278,8 +278,12 @@ namespace CoreWCF
 
             if (a == null)
             {
-                a = new ServiceAuthorizationBehavior();
-                description.Behaviors.Add(a);
+                // In ServiceHostBaseTests ServiceProvider is null..
+                a = description.ServiceProvider?.GetService(typeof(ServiceAuthorizationBehavior)) as ServiceAuthorizationBehavior;
+                if (a != null)
+                {
+                    description.Behaviors.Add(a);
+                }
             }
 
             return a;

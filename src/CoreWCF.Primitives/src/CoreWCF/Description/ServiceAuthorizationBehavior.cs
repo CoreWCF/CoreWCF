@@ -11,10 +11,11 @@ using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
-    public sealed class ServiceAuthorizationBehavior : IServiceBehavior
+    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable
     {
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
@@ -23,11 +24,11 @@ namespace CoreWCF.Description
         private readonly bool _impersonateOnSerializingReply;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
-        private IAuthorizationService _authorizationService;
+        private IServiceScopeFactory _serviceScopeFactory;
+        private IServiceScope _scope;
         private PrincipalPermissionMode _principalPermissionMode;
         private bool _isExternalPoliciesSet;
         private bool _isAuthorizationManagerSet;
-        private bool _isAuthorizationServiceSet;
         private bool _isReadOnly;
 
         public ServiceAuthorizationBehavior()
@@ -35,28 +36,6 @@ namespace CoreWCF.Description
             _impersonateCallerForAllOperations = DefaultImpersonateCallerForAllOperations;
             _impersonateOnSerializingReply = DefaultImpersonateOnSerializingReply;
             _principalPermissionMode = DefaultPrincipalPermissionMode;
-        }
-
-        private ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
-        {
-            _impersonateCallerForAllOperations = other._impersonateCallerForAllOperations;
-            _impersonateOnSerializingReply = other._impersonateOnSerializingReply;
-            _principalPermissionMode = other._principalPermissionMode;
-            _isExternalPoliciesSet = other._isExternalPoliciesSet;
-            _isAuthorizationManagerSet = other._isAuthorizationManagerSet;
-
-            if (other._isExternalPoliciesSet || other._isAuthorizationManagerSet)
-            {
-                CopyAuthorizationPoliciesAndManager(other);
-            }
-
-            _isAuthorizationServiceSet = other._isAuthorizationServiceSet;
-            if (other._isAuthorizationServiceSet)
-            {
-                _authorizationService = other._authorizationService;
-            }
-
-            _isReadOnly = other._isReadOnly;
         }
 
         public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
@@ -146,14 +125,26 @@ namespace CoreWCF.Description
             }
         }
 
+        [Obsolete("ServiceAuthorizationBehavior.AuthorizationService will be made internal in next major release.")]
         public IAuthorizationService AuthorizationService
         {
-            get => _authorizationService;
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        private IAuthorizationService GetAuthorizationService()
+        {
+            IServiceScope scope = _scope ??= _serviceScopeFactory.CreateScope();
+            IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
+            return authorizationService;
+        }
+
+        internal IServiceScopeFactory ServiceScopeFactory
+        {
             set
             {
                 ThrowIfImmutable();
-                _isAuthorizationServiceSet = true;
-                _authorizationService = value;
+                _serviceScopeFactory = value;
             }
         }
 
@@ -222,18 +213,10 @@ namespace CoreWCF.Description
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
 
-                        if (_isAuthorizationServiceSet)
-                        {
-                            behavior.AuthorizationService = _authorizationService;
-                        }
+                        behavior.SetAuthorizationService(GetAuthorizationService());
                     }
                 }
             }
-        }
-
-        internal ServiceAuthorizationBehavior Clone()
-        {
-            return new ServiceAuthorizationBehavior(this);
         }
 
         internal void MakeReadOnly()
@@ -247,6 +230,11 @@ namespace CoreWCF.Description
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.ObjectIsReadOnly));
             }
+        }
+
+        public void Dispose()
+        {
+            _scope?.Dispose();
         }
     }
 }
