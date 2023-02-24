@@ -74,11 +74,11 @@ namespace CoreWCF.Dispatcher
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static AuthorizationBehavior CreateAuthorizationBehavior(DispatchRuntime dispatch)
         {
-            AuthorizationBehavior behavior = new AuthorizationBehavior
+            AuthorizationBehavior behavior = new()
             {
                 _externalAuthorizationPolicies = dispatch.ExternalAuthorizationPolicies,
                 _serviceAuthorizationManager = dispatch.ServiceAuthorizationManager,
-                _authorizationService = dispatch.AuthorizationService,
+                _authorizationService = dispatch.GetAuthorizationService()
             };
 
             return behavior;
@@ -91,11 +91,16 @@ namespace CoreWCF.Dispatcher
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(dispatch)));
             }
 
+            if (dispatch.SupportsAuthorizationData && !dispatch.IsAuthorizationInfrastructureRegistered())
+            {
+                throw new NotSupportedException(SR.AuthorizationFeaturesAuthorizationServiceIsNotRegistered);
+            }
+
             return dispatch switch
             {
-                { RequiresAuthorization: true, RequiresAuthorizationPolicies: true } =>
+                { RequiresAuthorization: true, SupportsAuthorizationData: true } =>
                     throw new NotSupportedException(SR.AuthorizationFeaturesAreMutuallyExclusive),
-                { RequiresAuthorization: true } or { RequiresAuthorizationPolicies: true } =>
+                { RequiresAuthorization: true } or { SupportsAuthorizationData: true } =>
                     CreateAuthorizationBehavior(dispatch),
                 _ => null
             };

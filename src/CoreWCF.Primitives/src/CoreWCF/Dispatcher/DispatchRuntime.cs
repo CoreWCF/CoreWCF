@@ -50,7 +50,6 @@ namespace CoreWCF.Dispatcher
         private bool _impersonateOnSerializingReply;
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
-        private bool _isAuthorizationServiceSet;
         private bool _supportsAuthorizationData;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
@@ -213,20 +212,22 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        [Obsolete("DispatchRuntime.AuthorizationService will be made internal in next major release.")]
         public IAuthorizationService AuthorizationService
         {
-            get
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        // TODO: Make AuthorizationService property internal and replace get/set implementations with the 2 methods below.
+        internal IAuthorizationService GetAuthorizationService() => _authorizationService;
+
+        internal void SetAuthorizationService(IAuthorizationService authorizationService)
+        {
+            lock (ThisLock)
             {
-                return _authorizationService;
-            }
-            set
-            {
-                lock (ThisLock)
-                {
-                    InvalidateRuntime();
-                    _authorizationService = value;
-                    _isAuthorizationServiceSet = true;
-                }
+                InvalidateRuntime();
+                _authorizationService = authorizationService;
             }
         }
 
@@ -492,9 +493,6 @@ namespace CoreWCF.Dispatcher
         internal bool RequiresAuthorization
             => _isAuthorizationManagerSet || _isExternalPoliciesSet;
 
-        internal bool RequiresAuthorizationPolicies =>
-            _isAuthorizationServiceSet && _supportsAuthorizationData;
-
         internal bool HasMatchAllOperation
         {
             get
@@ -623,6 +621,8 @@ namespace CoreWCF.Dispatcher
                 return _runtime;
             }
         }
+
+        internal bool IsAuthorizationInfrastructureRegistered() => _authorizationService != null;
 
         internal void InvalidateRuntime()
         {

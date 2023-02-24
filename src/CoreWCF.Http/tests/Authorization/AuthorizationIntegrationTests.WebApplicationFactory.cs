@@ -23,8 +23,8 @@ public partial class AuthorizationIntegrationTests
         public List<string> ScopeClaimValues { get; set; } = new();
         public bool IsAuthenticated { get; set; } = false;
 
-        public IAuthorizationService AuthorizationService { get; private set; }
-        public IAuthenticationService AuthenticationService { get; private set; }
+        public AuthorizationServiceHolder AuthorizationServiceHolder { get; private set; } = new();
+        public AuthenticationServiceHolder AuthenticationServiceHolder { get; private set; } = new();
         public SecuredServiceHolder SecuredServiceHolder { get; private set; } = new();
 
         protected override TestServer CreateServer(IWebHostBuilder builder)
@@ -67,20 +67,14 @@ public partial class AuthorizationIntegrationTests
                         });
                 services.AddSingleton(_ => SecuredServiceHolder);
                 services.AddTransient<SecuredService>();
+
+                services.AddSingleton(_ => AuthorizationServiceHolder);
                 services.AddTransient<DefaultAuthorizationService>();
-                services.AddTransient(provider =>
-                {
-                    AuthorizationService =
-                        new AuthorizationServiceInterceptor(provider.GetRequiredService<DefaultAuthorizationService>());
-                    return AuthorizationService;
-                });
+                services.AddTransient<IAuthorizationService, AuthorizationServiceInterceptor>();
+
+                services.AddSingleton(_ => AuthenticationServiceHolder);
                 services.AddScoped<AuthenticationService>();
-                services.AddScoped(provider =>
-                {
-                    AuthenticationService =
-                        new AuthenticationServiceInterceptor(provider.GetRequiredService<AuthenticationService>());
-                    return AuthenticationService;
-                });
+                services.AddScoped<IAuthenticationService, AuthenticationServiceInterceptor>();
             });
         }
 
