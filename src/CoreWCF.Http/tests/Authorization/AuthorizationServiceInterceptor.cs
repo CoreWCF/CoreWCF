@@ -8,29 +8,34 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
+internal class AuthorizationServiceHolder
+{
+    public bool IsAuthorizeAsyncCalled { get; set; }
+}
+
 internal class AuthorizationServiceInterceptor : IAuthorizationService
 {
     private readonly IAuthorizationService _authorizationService;
+    private readonly AuthorizationServiceHolder _holder;
 
-    public bool IsAuthorizeAsyncCalled { get; private set; }
-
-    public AuthorizationServiceInterceptor(IAuthorizationService authorizationService)
+    public AuthorizationServiceInterceptor(DefaultAuthorizationService authorizationService, AuthorizationServiceHolder holder)
     {
         _authorizationService = authorizationService;
+        _holder = holder;
     }
 
     public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource,
         IEnumerable<IAuthorizationRequirement> requirements)
     {
+        _holder.IsAuthorizeAsyncCalled = true;
         var result = await _authorizationService.AuthorizeAsync(user, resource, requirements);
-        IsAuthorizeAsyncCalled = true;
         return result;
     }
 
     public async Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object resource, string policyName)
     {
+        _holder.IsAuthorizeAsyncCalled = true;
         var result = await _authorizationService.AuthorizeAsync(user, resource, policyName);
-        IsAuthorizeAsyncCalled = true;
         return result;
     }
 }

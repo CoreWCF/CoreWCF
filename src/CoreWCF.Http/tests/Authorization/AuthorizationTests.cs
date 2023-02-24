@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -30,6 +31,30 @@ public partial class AuthorizationTests
     public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        using (host)
+        {
+            host.Start();
+            System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
+            var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
+                new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            ISecuredService channel = factory.CreateChannel();
+            string result = channel.Echo(TestString);
+            Assert.Equal(TestString, result);
+        }
+    }
+
+    [Fact]
+    public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_ScopedAuthorizationHandler_Test()
+    {
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup>(_output)
+            .UseDefaultServiceProvider(options =>
+            {
+                options.ValidateScopes = true;
+#if !NETFRAMEWORK
+                options.ValidateOnBuild = true;
+#endif
+            })
+            .Build();
         using (host)
         {
             host.Start();
@@ -127,6 +152,8 @@ public partial class AuthorizationTests
             {
                 services.AddTransient<TSecuredService>();
             }
+
+            ConfigureAdditionalServices(services);
         }
 
         public void Configure(IApplicationBuilder app)
@@ -148,6 +175,8 @@ public partial class AuthorizationTests
                     }, "/BasicWcfService/basichttp.svc");
             });
         }
+
+        protected virtual IServiceCollection ConfigureAdditionalServices(IServiceCollection services) => services;
     }
 
     [System.ServiceModel.ServiceContract]
@@ -171,6 +200,28 @@ public partial class AuthorizationTests
             IsAuthenticated = true;
             ScopeClaimValues.Add(DefinedScopeValues.Read);
         }
+    }
+
+    private class SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup : SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup
+    {
+        class NoOpRequirement : IAuthorizationRequirement
+        {
+
+        }
+
+        class NoOpAuthorizationHandler : AuthorizationHandler<NoOpRequirement>
+        {
+            protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, NoOpRequirement requirement) => Task.CompletedTask;
+        }
+
+        public SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup()
+        {
+            IsAuthenticated = true;
+            ScopeClaimValues.Add(DefinedScopeValues.Read);
+        }
+
+        protected override IServiceCollection ConfigureAdditionalServices(IServiceCollection services)
+            => services.AddScoped<IAuthorizationHandler, NoOpAuthorizationHandler>();
     }
 
     private class SinglePolicyOnOperationContractWithUnauthenticatedUserStartup : Startup<SinglePolicyOnOperationContractSecuredService>

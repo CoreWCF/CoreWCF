@@ -82,11 +82,8 @@ namespace CoreWCF.Configuration
                     behavior.ServiceAuthorizationManager = manager;
                 }
 
-                IAuthorizationService authorizationService = provider.GetService<IAuthorizationService>();
-                if (authorizationService != null)
-                {
-                    behavior.AuthorizationService = authorizationService;
-                }
+                IServiceScopeFactory serviceScopeFactory = provider.GetService<IServiceScopeFactory>();
+                behavior.ServiceScopeFactory = serviceScopeFactory;
 
                 return behavior;
             });

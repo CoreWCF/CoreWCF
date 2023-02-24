@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.ServiceModel.Security;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
@@ -41,6 +42,20 @@ public partial class AuthorizationTests
     public void Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        var exception = Assert.Throws<NotSupportedException>(() =>
+        {
+            using (host)
+            {
+                host.Start();
+            }
+        });
+        Assert.StartsWith("Invalid configuration.", exception.Message);
+    }
+
+    [Fact]
+    public void Authorization_Features_Missing_AuthorizationService_Test()
+    {
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<SinglePolicyOnOperationContractSecuredService>>(_output).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
         {
             using (host)
@@ -180,6 +195,76 @@ public partial class AuthorizationTests
             authBehavior.ExternalAuthorizationPolicies =
                 new ReadOnlyCollection<IAuthorizationPolicy>(
                     new List<IAuthorizationPolicy>() { new NoOpAuthorizationPolicy() });
+            app.UseServiceModel(builder =>
+            {
+                builder.AddService<TSecuredService>();
+                builder.AddServiceEndpoint<TSecuredService, ISecuredService>(
+                    new BasicHttpBinding
+                    {
+                        Security = new BasicHttpSecurity
+                        {
+                            Mode = BasicHttpSecurityMode.TransportCredentialOnly,
+                            Transport = new HttpTransportSecurity
+                            {
+                                ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                            }
+                        }
+                    }, "/BasicWcfService/basichttp.svc");
+            });
+        }
+    }
+
+    private class ThrowingStartupMissingAuthorizationService<TSecuredService> where TSecuredService : class, ISecuredService
+    {
+        public bool IsAuthenticated { get; set; }
+        public List<string> ScopeClaimValues { get; set; } = new();
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.Configure<FakeJwtBearerAuthenticationHandlerOptions>(options =>
+            {
+                options.IsAuthenticated = IsAuthenticated;
+                options.ScopeClaimValues = ScopeClaimValues;
+            });
+
+            services.AddAuthentication(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
+                .AddScheme<FakeJwtBearerAuthenticationHandlerOptions, FakeJwtBearerAuthenticationHandler>(
+                    FakeJwtBearerAuthenticationHandler.AuthenticationScheme,
+                    options =>
+                    {
+                        options.IsAuthenticated = IsAuthenticated;
+                        options.ScopeClaimValues = ScopeClaimValues;
+                    });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.Write,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
+                options.AddPolicy(Policies.Read,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.DefaultPolicy =
+                    new AuthorizationPolicyBuilder(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
+                        .RequireClaim("scope", DefinedScopeValues.Read)
+                        .Build();
+
+            });
+            services.AddServiceModelServices();
+            services.AddHttpContextAccessor();
+            if (typeof(TSecuredService).IsInterface)
+            {
+                services.AddTransient<ISecuredService, TSecuredService>();
+            }
+            else
+            {
+                services.AddTransient<TSecuredService>();
+            }
+
+            var descriptor = services.Single(x => x.ServiceType == typeof(IAuthorizationService));
+            services.Remove(descriptor);
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
             app.UseServiceModel(builder =>
             {
                 builder.AddService<TSecuredService>();
