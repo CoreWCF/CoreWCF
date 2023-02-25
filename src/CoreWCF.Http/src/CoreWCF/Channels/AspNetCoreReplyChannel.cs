@@ -4,9 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using CoreWCF.Configuration;
-using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,7 +26,7 @@ namespace CoreWCF.Channels
 
         // TODO: Might want to do something a bit smarter with the state and actually have a concept of opening and closing to enable event handlers to be
         // connected and fire them when the service is shutting down.
-        public CommunicationState State => CommunicationState.Created;
+        public CommunicationState State { get; private set; } = CommunicationState.Created;
 
         public IServiceChannelDispatcher ChannelDispatcher { get; set; }
 
@@ -42,15 +40,21 @@ namespace CoreWCF.Channels
 
         public void Abort()
         {
+            // Can skip Closing state as there's nothing to do during the Abort call
+            State = CommunicationState.Closed;
         }
 
         public Task CloseAsync()
         {
+            // Can skip Closing state as there's nothing to do during the Close call
+            State = CommunicationState.Closed;
             return Task.CompletedTask;
         }
 
         public Task CloseAsync(CancellationToken token)
         {
+            // Can skip Closing state as there's nothing to do during the Close call
+            State = CommunicationState.Closed;
             return Task.CompletedTask;
         }
 
@@ -61,11 +65,15 @@ namespace CoreWCF.Channels
 
         public Task OpenAsync()
         {
+            // Can skip Opening state as there's nothing to do during the Open call
+            State = CommunicationState.Opened;
             return Task.CompletedTask;
         }
 
         public Task OpenAsync(CancellationToken token)
         {
+            // Can skip Opening state as there's nothing to do during the Open call
+            State = CommunicationState.Opened;
             return Task.CompletedTask;
         }
 
