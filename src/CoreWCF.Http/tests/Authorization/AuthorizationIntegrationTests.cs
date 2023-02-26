@@ -77,10 +77,11 @@ namespace CoreWCF.Http.Tests.Authorization
             Assert.Contains(response.Headers,
                 x => x.Key == HeaderNames.WWWAuthenticate && x.Value.FirstOrDefault() ==
                     FakeJwtBearerAuthenticationHandler.AuthenticationScheme);
-            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
-            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
-            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
-            Assert.False(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
+            var authenticationServiceHolder = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
+            Assert.True(authenticationServiceHolder.IsAuthenticateAsyncCalled);
+            Assert.True(authenticationServiceHolder.IsChallengeAsyncCalled);
+            var authorizationServiceHolder = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
+            Assert.False(authorizationServiceHolder.IsAuthorizeAsyncCalled);
             Assert.False(predicate.Invoke(factory.SecuredServiceHolder));
         }
 
@@ -141,10 +142,10 @@ namespace CoreWCF.Http.Tests.Authorization
             Assert.False(response.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             Assert.Contains("Access is denied", responseContent);
-            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
-            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
-            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
-            Assert.True(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
+            var authenticationServiceHolder = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
+            Assert.True(authenticationServiceHolder.IsAuthenticateAsyncCalled);
+            var authorizationServiceHolder = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
+            Assert.True(authorizationServiceHolder.IsAuthorizeAsyncCalled);
             Assert.False(predicate.Invoke(factory.SecuredServiceHolder));
         }
 
@@ -207,10 +208,10 @@ namespace CoreWCF.Http.Tests.Authorization
 
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(expected, responseBody);
-            var authenticationServiceInterceptor = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
-            Assert.True(authenticationServiceInterceptor.IsAuthenticateAsyncCalled);
-            var authorizationServiceInterceptor = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
-            Assert.True(authorizationServiceInterceptor.IsAuthorizeAsyncCalled);
+            var authenticationServiceHolder = Assert.IsType<AuthenticationServiceHolder>(factory.AuthenticationServiceHolder);
+            Assert.True(authenticationServiceHolder.IsAuthenticateAsyncCalled);
+            var authorizationServiceHolder = Assert.IsType<AuthorizationServiceHolder>(factory.AuthorizationServiceHolder);
+            Assert.True(authorizationServiceHolder.IsAuthorizeAsyncCalled);
             Assert.True(predicate.Invoke(factory.SecuredServiceHolder));
         }
     }
