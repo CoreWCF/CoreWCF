@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -75,6 +76,7 @@ namespace CoreWCF.Primitives.Tests
             protected override ServiceDescription CreateDescription(out IDictionary<string, ContractDescription> implementedContracts)
             {
                 var description = ServiceDescription.GetService(_serviceInstance);
+                description.Behaviors.Add(new ServiceAuthorizationBehavior());
                 var cd = ContractDescription.GetContract<SimpleService>(typeof(ISimpleService));
                 implementedContracts = new Dictionary<string, ContractDescription>
                 {
