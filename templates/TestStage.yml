@@ -2,6 +2,12 @@ parameters:
 - name: testProjects
   default: ''
 
+- name: testProjectsTargetingNetFramework
+  default: |
+    **/*Tests.csproj
+    !**/*Templates.Tests.csproj
+    !**/*RabbitMQ.Tests.csproj
+
 stages:
 - stage: Test
   displayName: Run Tests
@@ -79,17 +85,37 @@ stages:
 
     - task: DotNetCoreCLI@2
       displayName: Build test projects
+      condition: not(eq(variables.targetFramework, 'net472'))
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Release --framework $(targetFramework)'
 
     - task: DotNetCoreCLI@2
+      displayName: Build test projects targeting .NET Framework
+      condition: eq(variables.targetFramework, 'net472')
+      inputs:
+        command: 'build'
+        projects: ${{ parameters.testProjectsTargetingNetFramework}}
+        arguments: '--configuration Release --framework $(targetFramework)'
+
+    - task: DotNetCoreCLI@2
       displayName: Run Tests
+      condition: not(eq(variables.targetFramework, 'net472'))
       timeoutInMinutes: 15
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
+        publishTestResults: true
+        arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Tests with .NET Framework
+      condition: eq(variables.targetFramework, 'net472')
+      timeoutInMinutes: 15
+      inputs:
+        command: 'test'
+        projects: ${{ parameters.testProjectsTargetingNetFramework}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
       
@@ -171,20 +197,40 @@ stages:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Debug /t:restore'
-        
+
     - task: DotNetCoreCLI@2
       displayName: Build test projects
+      condition: not(eq(variables.targetFramework, 'net472'))
       inputs:
         command: 'build'
         projects: ${{ parameters.testProjects}}
         arguments: '--configuration Debug --framework $(targetFramework)'
 
     - task: DotNetCoreCLI@2
+      displayName: Build test projects targeting .NET Framework
+      condition: eq(variables.targetFramework, 'net472')
+      inputs:
+        command: 'build'
+        projects: ${{ parameters.testProjectsTargetingNetFramework}}
+        arguments: '--configuration Debug --framework $(targetFramework)'
+
+    - task: DotNetCoreCLI@2
       displayName: Run Tests
+      condition: not(eq(variables.targetFramework, 'net472'))
       timeoutInMinutes: 15
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
+        publishTestResults: true
+        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+
+    - task: DotNetCoreCLI@2
+      displayName: Run Tests with .NET Framework
+      condition: eq(variables.targetFramework, 'net472')
+      timeoutInMinutes: 15
+      inputs:
+        command: 'test'
+        projects: ${{ parameters.testProjectsTargetingNetFramework}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
       

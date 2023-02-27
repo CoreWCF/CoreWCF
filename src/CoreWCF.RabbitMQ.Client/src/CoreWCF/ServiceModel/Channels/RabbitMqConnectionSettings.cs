@@ -3,10 +3,9 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using RabbitMQ.Client;
 
-namespace CoreWCF.Channels
+namespace CoreWCF.ServiceModel.Channels
 {
     public class RabbitMqConnectionSettings
     {
@@ -22,14 +21,15 @@ namespace CoreWCF.Channels
         public string QueueName { get; set; }
         public string VirtualHost { get; set; } = DefaultVirtualHost;
         public virtual string RoutingKey { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
+        public string UserName { get; set; } = ConnectionFactory.DefaultUser;
+        public string Password { get; set; } = ConnectionFactory.DefaultPass;
         public SslOption SslOption { get; set; }
         public bool AutomaticRecoveryEnabled => true;
 
         public static RabbitMqConnectionSettings FromUri(
             Uri uri,
-            ICredentials credentials = null,
+            string userName,
+            string password,
             SslOption sslOption = null,
             string virtualHost = DefaultVirtualHost)
         {
@@ -42,8 +42,6 @@ namespace CoreWCF.Channels
             var queueName = GetQueueNameFromUri(uri);
             var exchange = GetExchangeFromUri(uri);
             var routingKey = GetRoutingKeyFromUri(uri, queueName);
-            var userName = SetUserName(uri, credentials);
-            var password = SetPassword(uri, credentials);
 
             return new RabbitMqConnectionSettings
             {
@@ -60,15 +58,15 @@ namespace CoreWCF.Channels
             };
         }
 
-        public ConnectionFactory GetConnectionFactory()
+        public ConnectionFactory GetConnectionFactory(string userName = null, string password = null)
         {
             return new ConnectionFactory
             {
                 HostName = Host,
                 Port = Port,
                 VirtualHost = VirtualHost,
-                UserName = UserName,
-                Password = Password,
+                UserName = userName ?? UserName,
+                Password = password ?? Password,
                 Ssl = SslOption,
                 AutomaticRecoveryEnabled = AutomaticRecoveryEnabled
             };
@@ -119,15 +117,6 @@ namespace CoreWCF.Channels
             return uri.Fragment.Replace("#", string.Empty);
         }
 
-        private static string SetUserName(Uri uri, ICredentials credentials)
-        {
-            return credentials?.GetCredential(uri, string.Empty).UserName ?? ConnectionFactory.DefaultUser;
-        }
-
-        private static string SetPassword(Uri uri, ICredentials credentials)
-        {
-            return credentials?.GetCredential(uri, string.Empty).Password ?? ConnectionFactory.DefaultPass;
-        }
 
         private static SslOption ConfigureSslOption(SslOption sslOption, Uri uri)
         {
