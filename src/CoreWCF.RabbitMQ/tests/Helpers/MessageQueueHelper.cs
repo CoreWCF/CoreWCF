@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using CoreWCF.Channels;
 using RabbitMQ.Client;
 
 namespace CoreWCF.RabbitMQ.Tests.Helpers
 {
     internal class MessageQueueHelper
     {
-        public static void SendMessageInQueue()
+        public static void SendMessageToQueue(RabbitMqConnectionSettings connectionSettings)
         {
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var factory = connectionSettings.GetConnectionFactory();
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
+
             var message = MessageContainer.GetTestMessage();
             var memStream = new MemoryStream();
             message.CopyTo(memStream);
-            // routing key begin with "/", for example: /hello
-            channel.BasicPublish("amq.direct", $"/{IntegrationTests.QueueName}", null, memStream.ToArray());
+            channel.BasicPublish(connectionSettings.Exchange, connectionSettings.RoutingKey, null, memStream.ToArray());
         }
     }
 }

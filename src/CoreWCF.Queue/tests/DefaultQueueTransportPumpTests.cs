@@ -12,10 +12,10 @@ namespace CoreWCF.Queue.Tests
     public class DefaultQueueTransportPumpTests
     {
         [Fact]
-        public async Task DefaultQueueTransportPump_WhenStated_Success()
+        public async Task DefaultQueueTransportPump_WhenStartedAndStopped_TransportReturnsSuccess()
         {
-            var transports = new FakeQueueTransport(CallType.Success);
-            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
+            var transport = new FakeQueueTransport(CallType.Success);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transport);
             int handshakeCallCount = 0;
             QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
@@ -23,22 +23,25 @@ namespace CoreWCF.Queue.Tests
                 return Task.CompletedTask;
             };
 
-            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
-                new FakeBindingElement(), messageDispatcher, messageReceiver);
-
+            var transportContext = new QueueTransportContext(
+                new FakeServiceDispatcher(),
+                null,
+                new FakeBindingElement(),
+                messageDispatcher,
+                messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
 
-            Assert.True(transports.CallCount > 1);
+            Assert.True(transport.CallCount > 1);
             Assert.True(handshakeCallCount > 1);
         }
 
         [Fact]
-        public async Task DefaultQueueTransportPump_WhenStatedAndTransportReturnNull_Success()
+        public async Task DefaultQueueTransportPump_WhenStarted_TransportDoesNotReturnNull()
         {
-            var transports = new FakeQueueTransport(CallType.ReturnNull);
-            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
+            var transport = new FakeQueueTransport(CallType.ReturnNull);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transport);
             int handshakeCallCount = 0;
             QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
@@ -46,21 +49,25 @@ namespace CoreWCF.Queue.Tests
                 return Task.CompletedTask;
             };
 
-            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
-                new FakeBindingElement(), messageDispatcher, messageReceiver);
+            var transportContext = new QueueTransportContext(
+                new FakeServiceDispatcher(),
+                null,
+                new FakeBindingElement(),
+                messageDispatcher,
+                messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
 
-            Assert.True(transports.CallCount > 1);
+            Assert.True(transport.CallCount > 1);
             Assert.True(handshakeCallCount == 0);
         }
 
         [Fact]
-        public async Task DefaultQueueTransportPump_WhenStatedAndTransportThrowException()
+        public async Task DefaultQueueTransportPump_WhenStarted_TransportDoesNotThrowException()
         {
-            var transports = new FakeQueueTransport(CallType.ThrowException);
-            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
+            var transport = new FakeQueueTransport(CallType.ThrowException);
+            var messageReceiver = QueueTransportPump.CreateDefaultPump(transport);
             int handshakeCallCount = 0;
             QueueMessageDispatcherDelegate messageDispatcher = _ =>
             {
@@ -68,36 +75,18 @@ namespace CoreWCF.Queue.Tests
                 return Task.CompletedTask;
             };
 
-            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
-                new FakeBindingElement(), messageDispatcher, messageReceiver);
+            var transportContext = new QueueTransportContext(
+                new FakeServiceDispatcher(),
+                null,
+                new FakeBindingElement(),
+                messageDispatcher,
+                messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
 
-            Assert.True(transports.CallCount > 1);
+            Assert.True(transport.CallCount > 1);
             Assert.True(handshakeCallCount == 0);
-        }
-
-        [Fact]
-        public async Task DefaultQueueTransportPump_WhenStopped_Success()
-        {
-            var transports = new FakeQueueTransport(CallType.Success);
-            var messageReceiver = QueueTransportPump.CreateDefaultPump(transports);
-            int handshakeCallCount = 0;
-            QueueMessageDispatcherDelegate messageDispatcher = _ =>
-            {
-                handshakeCallCount++;
-                return Task.CompletedTask;
-            };
-
-            var transportContext = new QueueTransportContext(new FakeServiceDispatcher(), null,
-                new FakeBindingElement(), messageDispatcher, messageReceiver);
-            await messageReceiver.StartPumpAsync(transportContext, default);
-            await Task.Delay(100);
-            await messageReceiver.StopPumpAsync(default);
-
-            Assert.True(transports.CallCount > 1);
-            Assert.True(handshakeCallCount > 1);
         }
     }
 }

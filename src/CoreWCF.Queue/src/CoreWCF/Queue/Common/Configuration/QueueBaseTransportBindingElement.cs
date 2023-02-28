@@ -17,7 +17,7 @@ namespace CoreWCF.Queue.Common.Configuration
         {
         }
 
-        public virtual int MaxPendingReceives
+        public virtual int ConcurrencyLevel
         {
             get { return 1; }
         }

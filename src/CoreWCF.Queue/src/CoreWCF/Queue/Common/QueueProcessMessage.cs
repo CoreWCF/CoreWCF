@@ -24,7 +24,6 @@ namespace CoreWCF.Queue.Common
             QueueInputChannel inputChannel = _serviceProvider.GetRequiredService<QueueInputChannel>();
             inputChannel.LocalAddress =
                 new EndpointAddress(queueMessageContext.QueueTransportContext.ServiceDispatcher.BaseAddress);
-            //await inputChannel.OpenAsync();
             var channelDispatcher =
                 await queueMessageContext.QueueTransportContext.ServiceDispatcher.CreateServiceChannelDispatcherAsync(
                     inputChannel);
