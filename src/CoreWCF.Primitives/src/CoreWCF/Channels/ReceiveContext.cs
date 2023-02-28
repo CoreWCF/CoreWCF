@@ -8,7 +8,7 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class ReceiveContext
+    public abstract class ReceiveContext
     {
         public static readonly string Name = "ReceiveContext";
         private readonly SemaphoreSlim _stateLock; // protects state that may be reverted
@@ -63,66 +63,6 @@ namespace CoreWCF.Channels
                 return true;
             }
             return false;
-        }
-
-        public virtual void Abandon(TimeSpan timeout)
-        {
-            Abandon(null, timeout);
-        }
-
-        public virtual void Abandon(Exception exception, TimeSpan timeout)
-        {
-            EnsureValidTimeout(timeout);
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            WaitForStateLock(timeoutHelper.RemainingTime());
-
-            try
-            {
-                if (PreAbandon())
-                {
-                    return;
-                }
-            }
-            finally
-            {
-                // Abandon can never be reverted, release the state lock.
-                ReleaseStateLock();
-            }
-
-            bool success = false;
-            try
-            {
-                if (exception == null)
-                {
-                    OnAbandon(timeoutHelper.RemainingTime());
-                }
-                else
-                {
-                    //if (TD.ReceiveContextAbandonWithExceptionIsEnabled())
-                    //{
-                    //    TD.ReceiveContextAbandonWithException(this.eventTraceActivity, this.GetType().ToString(), exception.GetType().ToString());
-                    //}
-                    OnAbandon(exception, timeoutHelper.RemainingTime());
-                }
-                lock (ThisLock)
-                {
-                    ThrowIfFaulted();
-                    ThrowIfNotAbandoning();
-                    State = ReceiveContextState.Abandoned;
-                }
-                success = true;
-            }
-            finally
-            {
-                if (!success)
-                {
-                    //if (TD.ReceiveContextAbandonFailedIsEnabled())
-                    //{
-                    //    TD.ReceiveContextAbandonFailed(this.eventTraceActivity, this.GetType().ToString());
-                    //}
-                    Fault();
-                }
-            }
         }
 
         public virtual Task AbandonAsync(CancellationToken token)
@@ -229,69 +169,6 @@ namespace CoreWCF.Channels
             }
         }
 
-        public virtual void Complete(TimeSpan timeout)
-        {
-            EnsureValidTimeout(timeout);
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            WaitForStateLock(timeoutHelper.RemainingTime());
-            bool success = false;
-
-            try
-            {
-                PreComplete();
-                success = true;
-            }
-            finally
-            {
-                // Case 1: State validation fails, release the lock.
-                // Case 2: No transaction, the state can never be reverted, release the lock.
-                // Case 3: Transaction, keep the lock until we know the transaction outcome (OnTransactionStatusNotification).
-                if (!success /*|| Transaction.Current == null*/)
-                {
-                    ReleaseStateLock();
-                }
-            }
-
-            success = false;
-            try
-            {
-                OnComplete(timeoutHelper.RemainingTime());
-                lock (ThisLock)
-                {
-                    ThrowIfFaulted();
-                    ThrowIfNotCompleting();
-                    State = ReceiveContextState.Completed;
-                }
-                success = true;
-            }
-            finally
-            {
-                if (!success)
-                {
-                    //if (TD.ReceiveContextCompleteFailedIsEnabled())
-                    //{
-                    //    TD.ReceiveContextCompleteFailed(this.eventTraceActivity, this.GetType().ToString());
-                    //}
-                    Fault();
-                }
-            }
-        }
-
-        private void EnsureValidTimeout(TimeSpan timeout)
-        {
-            if (timeout < TimeSpan.Zero)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    new ArgumentOutOfRangeException(nameof(timeout), SR.SFxTimeoutOutOfRange0));
-            }
-
-            if (TimeoutHelper.IsTooLarge(timeout))
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRangeTooBig));
-            }
-        }
-
         protected internal virtual void Fault()
         {
             lock (ThisLock)
@@ -305,13 +182,6 @@ namespace CoreWCF.Channels
             OnFaulted();
         }
 
-        protected abstract void OnAbandon(TimeSpan timeout);
-        protected virtual void OnAbandon(Exception exception, TimeSpan timeout)
-        {
-            // default implementation: delegate to non-exception overload, ignoring reason
-            OnAbandon(timeout);
-        }
-
         protected abstract Task OnAbandonAsync(CancellationToken token);
 
         protected virtual Task OnAbandonAsync(Exception exception, CancellationToken token)
@@ -321,7 +191,6 @@ namespace CoreWCF.Channels
         }
 
         protected abstract Task OnCompleteAsync(CancellationToken token);
-        protected abstract void OnComplete(TimeSpan timeout);
 
         protected virtual void OnFaulted()
         {
@@ -463,19 +332,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(WrapStateException(exception));
             }
         }
-
-        private void WaitForStateLock(TimeSpan timeout)
-        {
-            try
-            {
-                _stateLock.Wait(timeout);
-            }
-            catch (TimeoutException exception)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(WrapStateException(exception));
-            }
-        }
-
+        
         private Exception WrapStateException(Exception exception)
         {
             return new InvalidOperationException(SR.Format(SR.ReceiveContextInInvalidState, GetType().ToString(), State.ToString()), exception);

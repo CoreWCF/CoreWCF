@@ -8,6 +8,7 @@ namespace CoreWCF.Queue.Common
 {
     public interface IQueueTransport 
     {
+        public int ConcurrencyLevel { get; }
         ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken);
     }
 }

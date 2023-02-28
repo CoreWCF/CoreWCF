@@ -8,7 +8,7 @@ using CoreWCF.Queue.Common.Configuration;
 
 namespace CoreWCF.Queue.Common
 {
-    public class QueueFetchMessage
+    internal class QueueFetchMessage
     {
         private readonly QueueMessageDispatcherDelegate _next;
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Net;
+using CoreWCF.Channels.Configuration;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
 using CoreWCF.Queue.Common.Configuration;
@@ -10,27 +11,31 @@ using RabbitMQ.Client;
 
 namespace CoreWCF.Channels
 {
-    public class RabbitMqTransportBindingElement : QueueBaseTransportBindingElement
+    public sealed class RabbitMqTransportBindingElement : QueueBaseTransportBindingElement
     {
-        /// <summary>
-        /// Creates a new instance of the RabbitMQTransportBindingElement Class using the default protocol.
-        /// </summary>
+        private const int MaxRabbitMqMessageSize = 536870912; // 512 * (2^20) = 512 MB, max message size as of RabbitMQ v3.8
+        private const int DefaultMaxMessageSize = 65535;  // 64K
+        private long _maxReceivedMessageSize = DefaultMaxMessageSize;
+
         public RabbitMqTransportBindingElement()
         {
         }
 
         private RabbitMqTransportBindingElement(RabbitMqTransportBindingElement other)
+            : base(other)
         {
+            MaxReceivedMessageSize = other.MaxReceivedMessageSize;
             BrokerProtocol = other.BrokerProtocol;
-            Credentials = other.Credentials;
+            SslOption = other.SslOption;
             VirtualHost = other.VirtualHost;
+            Credentials = other.Credentials;
+            QueueConfiguration = other.QueueConfiguration;
         }
 
         public override BindingElement Clone()
         {
             return new RabbitMqTransportBindingElement(this);
         }
-
 
         public override T GetProperty<T>(BindingContext context)
         {
@@ -51,7 +56,7 @@ namespace CoreWCF.Channels
         {
             var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
             var serviceDispatcher = context.BindingParameters.Find<IServiceDispatcher>();
-            return new RabbitMqTransportPump(serviceProvider, serviceDispatcher);
+            return new RabbitMqTransportPump(serviceProvider, serviceDispatcher, SslOption, QueueConfiguration, Credentials, VirtualHost);
         }
 
         /// <summary>
@@ -65,23 +70,48 @@ namespace CoreWCF.Channels
         /// <summary>
         /// The largest receivable encoded message
         /// </summary>
-        public override long MaxReceivedMessageSize { get; set; }
+        public override long MaxReceivedMessageSize
+        {
+            get
+            {
+                return _maxReceivedMessageSize;
+            }
 
-        /// <summary>
-        /// The credentials to use when authenticating with the broker
-        /// </summary>
-        internal ICredentials Credentials { get; set; }
+            set
+            {
+                if (value <= 0 || value > MaxRabbitMqMessageSize)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, SR.Format(SR.InvalidMaxReceivedMessageSizeValue, 1, MaxRabbitMqMessageSize));
+                }
 
-        /// <summary>
-        /// Specifies the broker virtual host
-        /// </summary>
-        internal string VirtualHost { get; set; }
+                _maxReceivedMessageSize = value;
+            }
+        }
 
         /// <summary>
         /// Specifies the version of the AMQP protocol that should be used to
         /// communicate with the broker
         /// </summary>
-        public IProtocol BrokerProtocol { get; set; }
+        public IProtocol BrokerProtocol { get; set; } = Protocols.DefaultProtocol;
 
+        /// <summary>
+        /// SSL configuration for the RabbitMQ queue
+        /// </summary>
+        public SslOption SslOption { get; set; }
+
+        /// <summary>
+        /// Virtual host for the RabbitMQ queue
+        /// </summary>
+        public string VirtualHost { get; set; }
+
+        /// <summary>
+        /// Credentials used for accessing the RabbitMQ host
+        /// </summary>
+        public ICredentials Credentials { get; set; }
+
+        /// <summary>
+        /// Configuration used for declaring a queue
+        /// </summary>
+        public QueueDeclareConfiguration QueueConfiguration { get; set; }
     }
 }

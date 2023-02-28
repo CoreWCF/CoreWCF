@@ -17,6 +17,7 @@ namespace CoreWCF.Queue.Common
         public virtual IDictionary<string, object> Properties { get { return _properties.Value; } }
         private Message _requestMessage;
         private Exception _requestMessageException;
+        private ReceiveContext _receiveContext;
         private readonly Lazy<IDictionary<string, object>> _properties = new();
 
         public override Message RequestMessage
@@ -32,9 +33,32 @@ namespace CoreWCF.Queue.Common
             }
         }
 
+        public virtual ReceiveContext ReceiveContext
+        {
+            get
+            {
+                return _receiveContext;
+            }
+            set
+            {
+                _receiveContext = value;
+                if (_requestMessage != null)
+                {
+                    // Attach _receiveContext to the message
+                    SetRequestMessage(_requestMessage);
+                }
+            }
+        }
+
         internal void SetRequestMessage(Message requestMessage)
         {
             Fx.Assert(_requestMessageException == null, "Cannot have both a requestMessage and a requestException.");
+            
+            if (_receiveContext != null)
+            {
+                requestMessage.Properties[ReceiveContext.Name] = _receiveContext;
+            }
+
             _requestMessage = requestMessage;
         }
 
@@ -54,15 +78,15 @@ namespace CoreWCF.Queue.Common
 
         public override async Task ReplyAsync(Message message)
         {
-            if (DispatchResultHandler != null)
+            if (message != null && message.Properties.TryGetValue(ReceiveContext.Name, out ReceiveContext receiveContext))
             {
-                if (message != null && message.IsFault)
+                if (message.IsFault)
                 {
-                    await DispatchResultHandler(QueueDispatchResult.Failed, this);
+                    await receiveContext.AbandonAsync(CancellationToken.None);
                 }
                 else
                 {
-                    await DispatchResultHandler(QueueDispatchResult.Processed, this);
+                    await receiveContext.CompleteAsync(CancellationToken.None);
                 }
             }
         }
@@ -81,14 +105,5 @@ namespace CoreWCF.Queue.Common
         {
             return Task.CompletedTask;
         }
-
-        public Func<QueueDispatchResult, QueueMessageContext, Task> DispatchResultHandler { get; set; }
-    }
-
-    public enum QueueDispatchResult
-    {
-        Processed,
-        Failed,
-        Aborted
     }
 }
