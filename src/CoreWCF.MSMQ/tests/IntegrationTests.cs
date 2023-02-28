@@ -82,7 +82,7 @@ namespace CoreWCF.MSMQ.Tests
         {
             services.AddSingleton<TestService>();
             services.AddServiceModelServices();
-            services.AddQueueTransport(x => { x.ConcurrencyLevel = 1; });
+            services.AddQueueTransport();
             services.AddServiceModelMsmqSupport();
         }
 

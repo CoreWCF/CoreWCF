@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Common
 {
-    public class QueueInputChannel : CommunicationObject, IInputChannel
+    internal class QueueInputChannel : CommunicationObject, IInputChannel
     {
         private readonly IServiceProvider _serviceProvider;
 

@@ -26,6 +26,7 @@ To keep up to date on what's going on with CoreWCF, you can subscribe to the [an
 
 * Install the Nuget packages listed above, either via the Package Manager Console or the UI.
 * See [Walkthrough](Documentation/Walkthrough.md) for a step by step guide to creating a service and referencing it from a client project.
+* See [Testing](Documentation/Testing.md) for running unit and integration tests in your development environment.
 * The [Samples](https://github.com/CoreWCF/samples) repo has examples for multiple scenarios.
 * The [Blog](https://corewcf.github.io/) has details on the design philosophy and a deep dive into the features are included in each new release.
 

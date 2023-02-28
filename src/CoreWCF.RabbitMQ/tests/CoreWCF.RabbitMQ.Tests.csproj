@@ -27,13 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Fakes\" />
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\rabbitmqTestMessage.bin">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="MessageFiles\rabbitmqTestMessage.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

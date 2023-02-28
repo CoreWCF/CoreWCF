@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.CompilerServices;
 using Helpers;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -12,14 +13,14 @@ namespace CoreWCF.RabbitMQ.Tests
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper)
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, [CallerMemberName] string callerMethodName="")
             where TStartup : class
         {
             return WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
                 .ConfigureLogging((ILoggingBuilder logging) =>
                 {
-                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                     logging.AddFilter("Default", LogLevel.Debug);
                     logging.AddFilter("Microsoft", LogLevel.Debug);
                     logging.SetMinimumLevel(LogLevel.Debug);

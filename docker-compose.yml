@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  # The awaiter service uses a tiny image (~3MB) to await the health status 
+  # of apps in other service containers.
+  awaiter:
+    image: alpine:latest
+    container_name: 'awaiter'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    healthcheck:
+        test: rabbitmqctl await_startup || exit 1
+        interval: 5s
+        timeout: 5s
+        retries: 12
+        start_period: 15s
+    networks:
+        - rabbitmq_network
+
+networks:
+  rabbitmq_network:
+    driver: bridge

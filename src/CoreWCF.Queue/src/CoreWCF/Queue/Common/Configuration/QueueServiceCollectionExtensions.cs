@@ -8,15 +8,9 @@ namespace CoreWCF.Queue.Common.Configuration
 {
     public static class QueueServiceCollectionExtension
     {
-        public static IServiceCollection AddQueueTransport(this IServiceCollection services,
-            Action<QueueOptions> configureQueues = null)
+        public static IServiceCollection AddQueueTransport(this IServiceCollection services)
         {
             services.AddTransient<IQueueMiddlewareBuilder, QueueMiddlewareBuilder>();
-            if (configureQueues != null)
-            {
-                services.Configure(configureQueues);
-            }
-
             services.AddSingleton<QueueMiddleware>();
             services.AddHostedService<QueuePollingService>();
             services.AddTransient<QueueInputChannel>();
