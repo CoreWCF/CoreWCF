@@ -361,7 +361,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private void PrepareReply(MessageRpc rpc)
+        private async ValueTask PrepareReplyAsync(MessageRpc rpc)
         {
             RequestContext context = rpc.OperationContext.RequestContext;
             Exception exception = null;
@@ -443,7 +443,7 @@ namespace CoreWCF.Dispatcher
             }
             else if ((exception != null) && thereIsAnUnhandledException)
             {
-                rpc.Abort();
+                await rpc.AbortAsync();
             }
         }
 
@@ -478,8 +478,17 @@ namespace CoreWCF.Dispatcher
             return _demuxer.GetOperation(ref message);
         }
 
+        private void ReceiveContextRPCFacet_CreatIfRequired_Shim(MessageRpc rpc)
+        {
+            rpc.ReceiveContext = ReceiveContext.TryGet(rpc.Request, out ReceiveContext receiveContext)
+                ? receiveContext
+                : null;
+        }
+
         internal async Task<MessageRpc> ProcessMessageAsync(MessageRpc rpc)
         {
+            ReceiveContextRPCFacet_CreatIfRequired_Shim(rpc);
+
             if (rpc.Operation.IsOneWay)
             {
                 await rpc.RequestContext.ReplyAsync(null);
@@ -667,7 +676,7 @@ namespace CoreWCF.Dispatcher
                 ErrorBehavior.HandleError(e);
             }
 
-            PrepareReply(rpc);
+            await PrepareReplyAsync(rpc);
 
             if (rpc.CanSendReply)
             {
@@ -757,7 +766,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (!replyWasSent)
                     {
-                        rpc.AbortRequestContext();
+                        await rpc.AbortRequestContextAsync();
                         rpc.AbortChannel();
                     }
                     else
@@ -771,7 +780,7 @@ namespace CoreWCF.Dispatcher
                 {
                     if (rpc.RequestContextThrewOnReply)
                     {
-                        rpc.AbortRequestContext();
+                        await rpc.AbortRequestContextAsync();
                     }
                     else
                     {
@@ -897,7 +906,7 @@ namespace CoreWCF.Dispatcher
             ErrorBehavior.HandleError(rpc);
         }
 
-        private Task ProcessMessageNonCleanupError(MessageRpc rpc)
+        private async Task ProcessMessageNonCleanupError(MessageRpc rpc)
         {
             try
             {
@@ -913,8 +922,7 @@ namespace CoreWCF.Dispatcher
                 ErrorBehavior.HandleError(e);
             }
 
-            PrepareReply(rpc);
-            return Task.CompletedTask;
+            await PrepareReplyAsync(rpc);
         }
 
         private Task ProcessMessageCleanupError(MessageRpc rpc)
