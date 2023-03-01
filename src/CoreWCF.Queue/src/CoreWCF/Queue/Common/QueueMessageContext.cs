@@ -53,7 +53,7 @@ namespace CoreWCF.Queue.Common
         internal void SetRequestMessage(Message requestMessage)
         {
             Fx.Assert(_requestMessageException == null, "Cannot have both a requestMessage and a requestException.");
-            
+
             if (_receiveContext != null)
             {
                 requestMessage.Properties[ReceiveContext.Name] = _receiveContext;
@@ -76,19 +76,16 @@ namespace CoreWCF.Queue.Common
             _requestMessage.Close();
         }
 
-        public override async Task ReplyAsync(Message message)
+        public override Task ReplyAsync(Message message)
         {
-            if (message != null && message.Properties.TryGetValue(ReceiveContext.Name, out ReceiveContext receiveContext))
+            if (message != null)
             {
-                if (message.IsFault)
-                {
-                    await receiveContext.AbandonAsync(CancellationToken.None);
-                }
-                else
-                {
-                    await receiveContext.CompleteAsync(CancellationToken.None);
-                }
+                return message.IsFault
+                    ? ReceiveContext.AbandonAsync(default)
+                    : ReceiveContext.CompleteAsync(default);
             }
+
+            return Task.CompletedTask;
         }
 
         public override Task ReplyAsync(Message message, CancellationToken token)
