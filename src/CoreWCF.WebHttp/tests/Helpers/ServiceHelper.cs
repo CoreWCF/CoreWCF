@@ -28,7 +28,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {
@@ -51,7 +51,7 @@ namespace Helpers
 #endif // DEBUG
                 .UseKestrel(options =>
                 {
-                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                     {
                         if (Debugger.IsAttached)
                         {
@@ -75,14 +75,14 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
                     }
                 });
-                options.Listen(IPAddress.Loopback, 8081, listenOptions =>
+                options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     listenOptions.UseHttps();
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -13,12 +14,17 @@ using Xunit;
 
 namespace DispatchBuilder
 {
-    public static class DispatchBuilderTests
+    public class DispatchBuilderTests
     {
-        [Fact]
-        public static void BuildDispatcherWithConfiguration()
+        private string GetAvailableServiceAddress()
         {
-            string serviceAddress = "http://localhost/dummy";
+            return $"http://localhost:{TcpPortHelper.GetFreeTcpPort()}/dummy";
+        }
+
+        [Fact]
+        public async Task BuildDispatcherWithConfiguration()
+        {
+            string serviceAddress = GetAvailableServiceAddress();
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
@@ -33,7 +39,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleService, ISimpleService>(binding, serviceAddress);
-            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            await serviceBuilder.OpenAsync();
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
             Assert.Single(dispatchers);
@@ -43,15 +49,15 @@ namespace DispatchBuilder
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
             IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext).Wait();
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
+            await dispatcher.DispatchAsync(requestContext);
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
         [Fact]
-        public static void BuildDispatcherWithConfiguration_Singleton_Not_WellKnown()
+        public async Task BuildDispatcherWithConfiguration_Singleton_Not_WellKnown()
         {
-            string serviceAddress = "http://localhost/dummy";
+            string serviceAddress = GetAvailableServiceAddress();
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
@@ -66,7 +72,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            await serviceBuilder.OpenAsync();
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -76,15 +82,15 @@ namespace DispatchBuilder
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
             IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext).Wait();
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
+            await dispatcher.DispatchAsync(requestContext);
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
         [Fact]
-        public static void BuildDispatcherWithConfiguration_Singleton_WellKnown()
+        public async Task BuildDispatcherWithConfiguration_Singleton_WellKnown()
         {
-            string serviceAddress = "http://localhost/dummy";
+            string serviceAddress = GetAvailableServiceAddress();
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddServiceModelServices();
@@ -100,7 +106,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            await serviceBuilder.OpenAsync();
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -110,15 +116,15 @@ namespace DispatchBuilder
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
             IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext).Wait();
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
+            await dispatcher.DispatchAsync(requestContext);
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
         [Fact]
-        public static void BuildDispatcherWithConfiguration_XmlSerializer()
+        public async Task BuildDispatcherWithConfiguration_XmlSerializer()
         {
-            string serviceAddress = "http://localhost/dummy";
+            string serviceAddress = GetAvailableServiceAddress();
 
             var services = new ServiceCollection();
             services.AddLogging();
@@ -137,7 +143,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleXmlSerializerService, ISimpleXmlSerializerService>(binding, serviceAddress);
-            serviceBuilder.OpenAsync().GetAwaiter().GetResult();
+            await serviceBuilder.OpenAsync();
 
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));
@@ -150,8 +156,8 @@ namespace DispatchBuilder
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
             IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
             var requestContext = XmlSerializerTestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext).Wait();
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
+            await dispatcher.DispatchAsync(requestContext);
+            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
     }

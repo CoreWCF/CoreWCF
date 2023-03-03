@@ -31,7 +31,7 @@ namespace CoreWCF.WebHttp.Tests
             {
                 host.Start();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/errorpage");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/errorpage");
 
                 Assert.Equal(HttpStatusCode.BadRequest, statusCode);
                 Assert.False(string.IsNullOrEmpty(content));

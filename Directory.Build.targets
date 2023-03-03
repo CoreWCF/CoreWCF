@@ -12,7 +12,13 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeCommonTestCode)' == 'true'">
-    <Compile Include="$(CommonTestPath)/**/*.cs">
+    <Compile Include="$(CommonTestPath)/**/*.cs" Exclude="$(CommonTestPath)/XunitTestAssemblyAttribute.cs">
+      <Visible>true</Visible>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Condition="'$(IncludeCommonTestCode)' == 'true' AND '$(IsParallelTestEnabled)' == 'false'">
+    <Compile Include="$(CommonTestPath)/XunitTestAssemblyAttribute.cs">
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>

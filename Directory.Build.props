@@ -18,6 +18,7 @@
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
     <IsBuildToolsProject>$(MSBuildProjectName.Contains(`BuildTools`))</IsBuildToolsProject>
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
+    <IsParallelTestEnabled>$(MSBuildProjectName.Contains(`WebHttp`)) OR $(MSBuildProjectName.Contains(`Primitives`))</IsParallelTestEnabled>
 	  <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject))">true</IncludeCommonCode>
     <IncludeCommonTestCode Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)))">true</IncludeCommonTestCode>
   </PropertyGroup>

@@ -34,7 +34,7 @@ namespace CoreWCF.WebHttp.Tests
                 host.Start();
 
                 ServiceContract.SerializationData requestData = GetRequestData();
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/json", requestData);
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(),"api/json", requestData);
                 ServiceContract.SerializationData responseData = SerializationHelpers.DeserializeJson<ServiceContract.SerializationData>(content);
 
                 VerifyResponseData(statusCode, responseData);
@@ -50,7 +50,7 @@ namespace CoreWCF.WebHttp.Tests
                 host.Start();
 
                 ServiceContract.SerializationData requestData = GetRequestData();
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostXmlAsync("api/xml", requestData);
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostXmlAsync(host.GetHttpBaseAddressUri(),"api/xml", requestData);
                 ServiceContract.SerializationData responseData = SerializationHelpers.DeserializeXml<ServiceContract.SerializationData>(content);
 
                 VerifyResponseData(statusCode, responseData);
@@ -68,7 +68,7 @@ namespace CoreWCF.WebHttp.Tests
                 byte[] order = new byte[100];
                 Random rndGen = new();
                 rndGen.NextBytes(order);
-                (HttpStatusCode statusCode, byte[] content) = await HttpHelpers.PostRawAsync("api/raw", order);
+                (HttpStatusCode statusCode, byte[] content) = await HttpHelpers.PostRawAsync(host.GetHttpBaseAddressUri(),"api/raw", order);
 
                 Assert.Equal(order, content);
                 Assert.Equal(HttpStatusCode.OK, statusCode);
