@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -22,7 +23,7 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void NullAction()
+        public async Task NullAction()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
@@ -30,7 +31,7 @@ namespace CoreWCF.Http.Tests
                 InvalidOperationException exception = null;
                 try
                 {
-                    host.Start();
+                    await host.StartAsync();
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -44,7 +45,7 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void NullReplyAction()
+        public async Task NullReplyAction()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
@@ -52,7 +53,7 @@ namespace CoreWCF.Http.Tests
                 InvalidOperationException exception = null;
                 try
                 {
-                    host.Start();
+                    await host.StartAsync();
                 }
                 catch (InvalidOperationException ex)
                 {

@@ -52,12 +52,12 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void EchoByteArray(Type startupType, System.ServiceModel.Channels.Binding binding, int bytesCount, System.ServiceModel.Description.IEndpointBehavior endpointBehavior = null)
+        public async Task EchoByteArray(Type startupType, System.ServiceModel.Channels.Binding binding, int bytesCount, System.ServiceModel.Description.IEndpointBehavior endpointBehavior = null)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(binding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/MessageEncodingService/IMessageEncodingService.svc")));
                 if (endpointBehavior != null)
@@ -227,7 +227,7 @@ namespace CoreWCF.Http.Tests
 
             public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
             {
-                
+
             }
 
             public void ApplyDispatchBehavior(ServiceEndpoint endpoint, EndpointDispatcher endpointDispatcher)

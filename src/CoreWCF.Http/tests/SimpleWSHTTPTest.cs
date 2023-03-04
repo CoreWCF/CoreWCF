@@ -36,13 +36,13 @@ namespace WSHttp
         }
 
         [Fact, Description("no-security-with-an-anonymous-client")]
-        public void WSHttpRequestReplyEchoString()
+        public async Task WSHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/WSHttpWcfService/basichttp.svc")));
@@ -55,13 +55,13 @@ namespace WSHttp
 #if NETCOREAPP3_1_OR_GREATER // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
         [Fact, Description("transport-security-with-an-anonymous-client")]
         [Trait("Category", "WindowsOnly")]
-        public void WSHttpRequestReplyEchoStringTransportSecurity()
+        public async Task WSHttpRequestReplyEchoStringTransportSecurity()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.None;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -81,13 +81,13 @@ namespace WSHttp
 #endif
 
         [Fact , Description("Demuxer-failure")]
-        public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
+        public async Task WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -115,13 +115,13 @@ namespace WSHttp
         }
 
         [Fact , Description("user-validation-failure")]
-        public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
+        public async Task WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -147,13 +147,13 @@ namespace WSHttp
         }
 
         [Fact, Description("transport-security-with-basic-authentication")]
-        public void WSHttpRequestReplyWithTransportMessageEchoString()
+        public async Task WSHttpRequestReplyWithTransportMessageEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -176,14 +176,14 @@ namespace WSHttp
             }
         }
 
-         [Fact, Description("transport-security-with-certificate-authentication")]
-        internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
+        [Fact, Description("transport-security-with-certificate-authentication")]
+        internal async Task WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.Certificate;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
@@ -206,13 +206,13 @@ namespace WSHttp
 #if NETCOREAPP3_1_OR_GREATER // Windows Auth on Kestrel not supported on NetFx
         [Fact, Description("transport-security-with-windows-authentication-kestrel")]
         [Trait("Category", "WindowsOnly")]
-        internal void WSHttpRequestImpersonateWithKestrel()
+        internal async Task WSHttpRequestImpersonateWithKestrel()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/WSHttpWcfService/basichttp.svc")));
@@ -236,13 +236,13 @@ namespace WSHttp
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        internal void WSHttpRequestImpersonateWithHttpSys()
+        internal async Task WSHttpRequestImpersonateWithHttpSys()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:44300/WSHttpWcfService/basichttp.svc")));
@@ -261,13 +261,13 @@ namespace WSHttp
 
         [Fact, Description("no-security-with-an-anonymous-client-using-impersonation")]
         [Trait("Category", "WindowsOnly")]
-        public void WSHttpRequestImpersonateFailsWithoutAuthentication()
+        public async Task WSHttpRequestImpersonateFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/WSHttpWcfService/basichttp.svc")));
@@ -290,13 +290,13 @@ namespace WSHttp
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
+        public async Task WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8085/WSHttpWcfService/basichttp.svc")));
@@ -482,7 +482,7 @@ namespace WSHttp
                 return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
 #else
                 return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-                    .AddNegotiate(); 
+                    .AddNegotiate();
 #endif
             }
 
@@ -495,7 +495,7 @@ namespace WSHttp
             {
                 return wsBInding;
             }
-           
+
             public void Configure(IApplicationBuilder app)
             {
                 CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);

@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -13,12 +14,12 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationTests
 {
     [Fact]
-    public void MultiplePolicies_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    public async Task MultiplePolicies_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -29,12 +30,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void MultiplePolicies_UnauthenticatedUser_Test()
+    public async Task MultiplePolicies_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -46,12 +47,12 @@ public partial class AuthorizationTests
     [Theory]
     [InlineData(typeof(MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingWriteScopeValueStartup))]
     [InlineData(typeof(MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingReadScopeValueStartup))]
-    public void MultiplePolicies_AuthenticatedUser_ButMissingScopeValues_Test(Type startupType)
+    public async Task MultiplePolicies_AuthenticatedUser_ButMissingScopeValues_Test(Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));

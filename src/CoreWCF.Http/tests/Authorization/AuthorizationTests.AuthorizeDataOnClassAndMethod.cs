@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -13,12 +14,12 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationTests
 {
     [Fact]
-    public void AuthorizeDataOnClassAndMethod_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    public async Task AuthorizeDataOnClassAndMethod_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<AuthorizeDataOnClassAndMethodWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -29,12 +30,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void AuthorizeDataOnClassAndMethod_UnauthenticatedUser_Test()
+    public async Task AuthorizeDataOnClassAndMethod_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<AuthorizeDataOnClassAndMethodWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -46,12 +47,12 @@ public partial class AuthorizationTests
     [Theory]
     [InlineData(typeof(AuthorizeDataOnClassAndMethodWithAuthenticatedUserButMissingReadScopeValueStartup))]
     [InlineData(typeof(AuthorizeDataOnClassAndMethodWithAuthenticatedUserButMissingWriteScopeValueStartup))]
-    public void AuthorizeDataOnClassAndMethod_AuthenticatedUser_MissingScopeValues_Test(Type startupType)
+    public async Task AuthorizeDataOnClassAndMethod_AuthenticatedUser_MissingScopeValues_Test(Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));

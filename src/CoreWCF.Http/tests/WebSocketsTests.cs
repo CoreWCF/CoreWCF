@@ -75,7 +75,7 @@ namespace NetHttp
 
             await host.StartAsync();
 
-            System.ServiceModel.Channels.Binding clientBinding = new CustomBinding()
+            Binding clientBinding = new CustomBinding()
             {
                 Elements =
                 {
@@ -104,7 +104,7 @@ namespace NetHttp
         }
 
         [Fact]
-        public void NetHttpWebSocketsBufferedTransferMode()
+        public async Task NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -112,7 +112,7 @@ namespace NetHttp
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
                 ClientContract.IEchoService channel = null;
-                host.Start();
+                await host.StartAsync();
                 try
                 {
                     System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();

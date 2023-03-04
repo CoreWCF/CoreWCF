@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -17,12 +18,12 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationTests
 {
     [Fact]
-    public void WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    public async Task WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
@@ -37,12 +38,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void WSHttpBinding_UnauthenticatedUser_Test()
+    public async Task WSHttpBinding_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
@@ -56,12 +57,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void WSHttpBinding_AuthenticatedUser_MissingScopeValues_Test()
+    public async Task WSHttpBinding_AuthenticatedUser_MissingScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,12 +28,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_DataContractEvents_OnSerialized")]
         [InlineData("Variation_DataContractEvents_OnDeserialized")]
         [InlineData("Variation_DataContractEvents_OnDeserializing")]
-        public void DataContractEventsComplexSerialization(string variation)
+        public async Task DataContractEventsComplexSerialization(string variation)
         {
             var host = ServiceHelper.CreateWebHostBuilder<StartupDataContractEvents>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IDataContractEventsService proxy = ClientHelper.GetProxy<ClientContract.IDataContractEventsService>();
                 switch (variation)
                 {
@@ -74,12 +75,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_TypeWithDCInheritingFromSer")]
         [InlineData("Variation_TypeWithSerInheritingFromDC")]
         [InlineData("Variation_BaseDC")]
-        public void DataContractInheritanceComplexSerialization(string variation)
+        public async Task DataContractInheritanceComplexSerialization(string variation)
         {
             var host = ServiceHelper.CreateWebHostBuilder<StartupDataContractInheritance>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IDataContractInheritanceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractInheritanceService>();
 
                 switch (variation)
@@ -118,12 +119,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_TypeWithLongNamespace")]
         [InlineData("Variation_TypeWithUnicodeInNamespace")]
         [InlineData("Variation_TypeWithKeywordsInNamespace")]
-        public void DataContractNameSpaceComplexSerialization(string variation)
+        public async Task DataContractNameSpaceComplexSerialization(string variation)
         {
             var host = ServiceHelper.CreateWebHostBuilder<StartupDataContractNameSpace>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IDataContractNamespaceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractNamespaceService>();
 
                 switch (variation)
@@ -180,12 +181,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_MyISerClassFromClass")]
         [InlineData("Variation_MyISerClassFromSerializable")]
         [InlineData("Variation_BoxedStructHolder")]
-        public void ISerializableComplexSerialization(string variation)
+        public async Task ISerializableComplexSerialization(string variation)
         {
             var host = ServiceHelper.CreateWebHostBuilder<StartupISerializable>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IISerializableService proxy = ClientHelper.GetProxy<ClientContract.IISerializableService>();
 
                 switch (variation)
@@ -230,12 +231,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_IReadWriteXmlWriteAttributesFromReader")]
         [InlineData("Variation_IReadWriteXmlWriteStartAttribute")]
         [InlineData("Variation_IReadWriteXmlWriteName")]
-        public void IXMLSerializableComplexSerialization(string variation)
+        public async Task IXMLSerializableComplexSerialization(string variation)
         {
             var host = ServiceHelper.CreateWebHostBuilder<StartupIXMLSerializable>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IIXMLSerializableService proxy = ClientHelper.GetProxy<ClientContract.IIXMLSerializableService>();
 
                 switch (variation)
@@ -279,13 +280,13 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_ClientOldServerOld", "Versioning_789896_Service_New")]
         [InlineData("Variation_ClientOldServerOld", "Versioning_789896_Service_Old")]
         [InlineData("Variation_ClientOldServerNew", "Versioning_789896_Service_Old")]
-        public void VersionComplexSerialization(string variation, string serviceMethod)
+        public async Task VersionComplexSerialization(string variation, string serviceMethod)
         {
             StartupVersioning._method = serviceMethod;
             var host = ServiceHelper.CreateWebHostBuilder<StartupVersioning>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 if (serviceMethod == "Versioning_789896_Service_New")
                 {
                     ClientContract.IVersioningClientOld proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientOld>();
@@ -559,7 +560,7 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithDCInheritingFromSer();
             output = null;
             clientProxy.Method_TypeWithDCInheritingFromSer_out(input, out output);
-            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null "); 
+            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithDCInheritingFromSer] Method_TypeWithDCInheritingFromSer_ref ");
             input = new ServiceContract.TypeWithDCInheritingFromSer();
@@ -785,7 +786,7 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.MyISerClass();
             output = null;
             output = clientProxy.Method_MyISerClass_ref(ref input);
-            Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");
         }
 
         private void Variation_MyISerStruct(ClientContract.IISerializableService clientProxy)
@@ -825,7 +826,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_MyISerClassFromClass_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromClass_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");
         }
 
         private void Variation_BoxedStructHolder(ClientContract.IISerializableService clientProxy)
@@ -847,7 +848,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_BoxedStructHolder_ref(ref input);
             _output.WriteLine("Method_BoxedStructHolder_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");          
+            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");
         }
 
         private void Variation_MyISerClassFromSerializable(ClientContract.IISerializableService clientProxy)
@@ -869,7 +870,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_MyISerClassFromSerializable_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromSerializable_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");                   
+            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");
         }
 
         private void Variation_IReadWriteXmlLotsOfData(ClientContract.IIXMLSerializableService clientProxy)

@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Channels;
+using System.Threading.Tasks;
 using ClientContract;
 //using CoreWCF.Channels;
 using CoreWCF.Configuration;
@@ -36,12 +37,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("urireplyaction")]
         [InlineData("emptyreplyaction")]
         [InlineData("untypedreplyaction")]
-        public void OperationContractActionReplyActionBehaviorTests(string variation)
+        public async Task OperationContractActionReplyActionBehaviorTests(string variation)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOpActionReplyActionBehavior>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/OpActionReplyActionBehaviorService.svc")));
@@ -85,7 +86,6 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        #region Test Variations
         private void CallCheckDefaultAction(IOpActionReplyActionBehavior client)
         {
             int id = 1;
@@ -168,8 +168,6 @@ namespace CoreWCF.Http.Tests
             string contents = System.IO.File.ReadAllText("resultAction.txt");
             return contents.Equals(expected);
         }
-
-        #endregion Test Variations
 
         internal class Startup
         {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Configuration;
@@ -35,7 +36,7 @@ namespace WSFed
         [InlineData(SamlConstants.OasisWssSamlTokenProfile11, true, true)]
         [InlineData(SamlConstants.OasisWssSamlTokenProfile11, false, false)]
         [InlineData(SamlConstants.OasisWssSamlTokenProfile11, true, false)]
-        public void WSFedHttpRequestReplyEchoString(string tokenType, bool isToEstablishSecurityContext, bool isUserIdentity)
+        public async Task WSFedHttpRequestReplyEchoString(string tokenType, bool isToEstablishSecurityContext, bool isUserIdentity)
         {
             string testString = new string('a', 3000);
             IWebHost host;
@@ -51,7 +52,7 @@ namespace WSFed
             }
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 var issuerAddress = new System.ServiceModel.EndpointAddress("https://youradserver/adfs/services/trust/13/usernamemixed");
                 var issuerBinding = new System.ServiceModel.WSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 issuerBinding.Security.Message.EstablishSecurityContext = false;

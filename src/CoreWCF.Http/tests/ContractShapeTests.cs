@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -22,12 +23,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void TwowayUsingParamsKeyword()
+        public async Task TwowayUsingParamsKeyword()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeParamsServiceStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Params>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeParamsService.svc")));
@@ -49,12 +50,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void MuptiOverloadedMethod()
+        public async Task MuptiOverloadedMethod()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeOverloadsServiceStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Overloads>(httpBinding,
                           new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeOverloadsService.svc")));

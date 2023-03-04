@@ -39,7 +39,7 @@ public partial class AuthorizationTests
 
     [Theory]
     [MemberData(nameof(Get_Authorization_Features_Are_Mutually_Exclusive_TestVariations))]
-    public void Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
+    public async Task Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
@@ -53,7 +53,7 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void Authorization_Features_Missing_AuthorizationService_Test()
+    public async Task Authorization_Features_Missing_AuthorizationService_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<SinglePolicyOnOperationContractSecuredService>>(_output).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>

@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
@@ -35,13 +36,13 @@ namespace CoreWCF.Http.Tests
 #if NET472
         [InlineData("ByHand_UsingHiddenProperty")]
 #endif
-        public void Variations(string method)
+        public async Task Variations(string method)
         {
             Startup._method = method;
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 switch (method)
                 {
                     case "ByHand":
@@ -72,12 +73,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void TwoAttributesSameType_Test()
+        public async Task TwoAttributesSameType_Test()
         {
             Startup._method = "TwoAttributesSameType";
             using (IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
             {
-                Assert.Throws<ArgumentException>(() => host.Start());
+                await Assert.ThrowsAsync<ArgumentException>(async () => await host.StartAsync());
             }
         }
 
@@ -85,9 +86,9 @@ namespace CoreWCF.Http.Tests
         //1.GetEndpointAddress for the service
         //2.CreateChannelFactory
         //2.1:Add the custom behavior - Optional
-        //3.Get the BehaviorAttribute instance in the ChannelDescription 
+        //3.Get the BehaviorAttribute instance in the ChannelDescription
         //4.Open the ChannelFactory
-        //5.Check the Behavior static flags 
+        //5.Check the Behavior static flags
         //6.Check the Behavior instance flags
         //7.Send a message to the server
         public static ChannelFactory<T> GetChannelFactory<T>()

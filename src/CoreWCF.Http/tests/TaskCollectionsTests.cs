@@ -28,14 +28,14 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void VariousCollections()
+        public async Task VariousCollections()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 ClientContract.ITaskCollectionsTest collectionsTest = null;
                 System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest> channelFactory = null;
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TaskCollectionsTest.svc")));
@@ -48,7 +48,7 @@ namespace CoreWCF.Http.Tests
                 array[2] = collectionsTest.GetSet();
                 array[3] = collectionsTest.GetQueue();
                 array[4] = collectionsTest.GetStack();
-                Task.WaitAll(array, TimeSpan.FromSeconds(30));
+                await Task.WhenAll(array);
 
                 bool flag = true;
                 Task<Dictionary<string, int>> task = array[0] as Task<Dictionary<string, int>>;
@@ -122,7 +122,6 @@ namespace CoreWCF.Http.Tests
                 {
                     throw new Exception("Test Failed");
                 }
-
             }
         }
 

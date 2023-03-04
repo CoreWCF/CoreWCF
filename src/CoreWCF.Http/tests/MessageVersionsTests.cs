@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -25,7 +26,7 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void EchoStringTest(Channels.MessageVersion messageVersion, System.ServiceModel.Channels.MessageVersion clientMessageVersion)
+        public async Task EchoStringTest(Channels.MessageVersion messageVersion, System.ServiceModel.Channels.MessageVersion clientMessageVersion)
         {
             string testString = new string('a', 10);
             var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
@@ -41,7 +42,7 @@ namespace CoreWCF.Http.Tests
             var host = webHostBuilder.Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(Startup.GetClientBinding(clientMessageVersion),
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/MessageVersionTest.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel.Policy;
@@ -34,13 +35,13 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void BasicHttpRequestReplyEchoWithServiceBehavior(Type type)
+        public async Task BasicHttpRequestReplyEchoWithServiceBehavior(Type type)
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -52,13 +53,13 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void AccessDeniedForBasicHttpRequestReplyEcho(Type type)
+        public async Task AccessDeniedForBasicHttpRequestReplyEcho(Type type)
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));

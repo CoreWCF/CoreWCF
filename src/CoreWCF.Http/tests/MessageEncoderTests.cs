@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -25,13 +26,13 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void BinaryMessageEncoderCompressionFormat_EchoString(Type startupType, System.ServiceModel.Channels.Binding clientBinding)
+        public async Task BinaryMessageEncoderCompressionFormat_EchoString(Type startupType, System.ServiceModel.Channels.Binding clientBinding)
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(clientBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();

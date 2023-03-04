@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -29,7 +30,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("Http1Binding")]
         //[InlineData("Http2Binding")] //Fail
         //[InlineData("Http3Binding")]
-        public void RequestReplyStreaming(string binding)
+        public async Task RequestReplyStreaming(string binding)
         {
             Startup.binding = binding;
             var hostBuilder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
@@ -44,7 +45,7 @@ namespace CoreWCF.Http.Tests
             IWebHost host = hostBuilder.Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.ChannelFactory<ClientContract.IStream> channelFactory = null;
                 switch (binding)
                 {

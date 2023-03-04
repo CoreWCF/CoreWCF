@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -23,13 +24,13 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void BasicHttpsRequestReplyEchoString()
+        public async Task BasicHttpsRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpsBinding httpsBinding = ClientHelper.GetBufferedModeHttpsBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpsBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/basichttp.svc")));

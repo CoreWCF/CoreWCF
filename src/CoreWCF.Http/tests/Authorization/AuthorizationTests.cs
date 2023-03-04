@@ -28,12 +28,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    public async Task SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -44,7 +44,7 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_ScopedAuthorizationHandler_Test()
+    public async Task SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_ScopedAuthorizationHandler_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup>(_output)
             .UseDefaultServiceProvider(options =>
@@ -57,7 +57,7 @@ public partial class AuthorizationTests
             .Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -68,12 +68,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void SinglePolicy_UnauthenticatedUser_Test()
+    public async Task SinglePolicy_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -83,12 +83,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void SinglePolicy_AuthenticatedUser_MissingScopeValues_Test()
+    public async Task SinglePolicy_AuthenticatedUser_MissingScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));

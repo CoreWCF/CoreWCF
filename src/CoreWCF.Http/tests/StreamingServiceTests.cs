@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -40,13 +41,13 @@ namespace CoreWCF.Http.Tests
         [InlineData("ReturnFileStreamService")]
         [InlineData("MessageContractStreamInOutService")]
         [InlineData("MessageContractStreamMutipleOperationsService")]
-        public void StreamingInputOutputTest(string method)
+        public async Task StreamingInputOutputTest(string method)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             Startup._method = method;
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 switch (method)
                 {
                     case "VoidStreamService":

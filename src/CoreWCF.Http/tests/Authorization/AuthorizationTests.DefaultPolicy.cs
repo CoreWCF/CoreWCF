@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Security;
+using System.Threading.Tasks;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -13,12 +14,12 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationTests
 {
     [Fact]
-    public void DefaultPolicy_AuthenticatedUser_Test()
+    public async Task DefaultPolicy_AuthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -29,12 +30,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void DefaultPolicy_UnauthenticatedUser_Test()
+    public async Task DefaultPolicy_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -44,12 +45,12 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void DefaultPolicy_AuthenticatedUser_MissingScopeValues_Test()
+    public async Task DefaultPolicy_AuthenticatedUser_MissingScopeValues_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup>(_output).Build();
         using (host)
         {
-            host.Start();
+            await host.StartAsync();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));

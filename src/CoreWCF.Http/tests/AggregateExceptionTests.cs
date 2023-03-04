@@ -30,12 +30,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("ServiceOpWithMultipleTasks_WithTask")]
         [InlineData("SimpleOperationThrowingFault")]
         [InlineData("SimpleOperationThrowingFault_WithTask")]
-        public void ServiceOp_ThrowsFaultException(string serviceOpType)
+        public async Task ServiceOp_ThrowsFaultException(string serviceOpType)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>();
                 try
                 {

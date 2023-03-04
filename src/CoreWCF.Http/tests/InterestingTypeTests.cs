@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -25,12 +26,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void TypedContractCollectionTest()
+        public async Task TypedContractCollectionTest()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<TypedContractCollectionServiceStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ITypedContract_Collection>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TypedContract_CollectionService.svc")));

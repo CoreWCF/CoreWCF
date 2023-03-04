@@ -27,13 +27,13 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void CanFetchHttpHeadersSync()
+        public async Task CanFetchHttpHeadersSync()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.ChannelFactory<IHttpHeadersService> factory = null;
                 IHttpHeadersService channel = null;
                 try
@@ -67,7 +67,7 @@ namespace BasicHttp
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.ChannelFactory<IHttpHeadersService> factory = null;
                 IHttpHeadersService channel = null;
                 try

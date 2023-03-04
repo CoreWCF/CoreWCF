@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -24,12 +25,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void BasicScenario()
+        public async Task BasicScenario()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ICalculatorService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
@@ -58,7 +59,7 @@ namespace CoreWCF.Http.Tests
                     builder.ConfigureServiceHostBase<Services.OperationFaultContractInfoAwareCalculatorService>(service =>
                     {
                         var behavior = app.ApplicationServices.GetService<Services.OperationFaultContractInfoAwareServiceBehavior>();
-                        service.Description.Behaviors.Add(behavior);                        
+                        service.Description.Behaviors.Add(behavior);
                     });
                     builder.AddService<Services.OperationFaultContractInfoAwareCalculatorService>();
                     builder.AddServiceEndpoint<Services.OperationFaultContractInfoAwareCalculatorService, ServiceContract.ICalculatorService>(new BasicHttpBinding(), "/BasicWcfService/Service.svc");

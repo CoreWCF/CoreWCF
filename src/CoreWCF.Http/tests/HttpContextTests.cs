@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using Helpers;
@@ -34,7 +35,7 @@ namespace DependencyInjection
             {
                 HttpContext httpContext = (OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue("Microsoft.AspNetCore.Http.HttpContext", out var @object)
                     && @object is HttpContext context)
-                    ? context 
+                    ? context
                     : null;
                 IHttpContextAccessor httpContextAccessor = OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>().GetService<IHttpContextAccessor>();
                 Assert.Same(httpContext, httpContextAccessor.HttpContext);
@@ -82,12 +83,12 @@ namespace DependencyInjection
         }
 
         [Fact]
-        public void PerCall()
+        public async Task PerCall()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerCallSimpleService>>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ISimpleService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
@@ -97,12 +98,12 @@ namespace DependencyInjection
         }
 
         [Fact]
-        public void PerSession()
+        public async Task PerSession()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerSessionSimpleService>>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ISimpleService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
@@ -112,12 +113,12 @@ namespace DependencyInjection
         }
 
         [Fact]
-        public void Single()
+        public async Task Single()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<SingleSimpleService>>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ISimpleService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));

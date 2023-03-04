@@ -40,12 +40,12 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicScenarioServiceWithSSMFaultContract()
+        public async Task BasicScenarioServiceWithSSMFaultContract()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithSSMFaultContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));

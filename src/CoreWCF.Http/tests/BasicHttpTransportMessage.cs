@@ -34,20 +34,20 @@ namespace BasicHttp
 
         public static IEnumerable<object[]> GetTestsVariations()
         {
-            yield return new[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomTestValidator>) };
-            yield return new[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomAsynchronousTestValidator>) };
+            yield return new object[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomTestValidator>) };
+            yield return new object[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomAsynchronousTestValidator>) };
         }
 
         [Theory, Description("transport-security-with-basic-authentication")]
         [MemberData(nameof(GetTestsVariations))]
-        public void BasicHttpRequestReplyWithTransportMessageEchoString(Type startupType)
+        public async Task BasicHttpRequestReplyWithTransportMessageEchoString(Type startupType)
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
                 BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
@@ -74,14 +74,14 @@ namespace BasicHttp
         [InlineData(false)]
         [InlineData(true)]
         [UseCulture("en-US")]
-        public void BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
+        public async Task BasicHttpsCustomBindingRequestReplyEchoString(bool useHttps)
         {
             string testString = new string('a', 4000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
                 string serviceUrl = (useHttps ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri(serviceUrl)));
@@ -106,14 +106,14 @@ namespace BasicHttp
 
         // [Fact, Description("transport-security-with-certificate-authentication")]
         // TODO set up in container, tested locally and this works
-        internal void BasicHttpRequestReplyWithTransportMessageCertificateEchoString()
+        internal async Task BasicHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
                 BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.Certificate;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,

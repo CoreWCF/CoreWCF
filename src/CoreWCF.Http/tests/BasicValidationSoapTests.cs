@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -23,12 +24,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void BasicRequestReplySoap()
+        public async Task BasicRequestReplySoap()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<BasicValidationSoapTestsStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IRequestReplyService client = ClientHelper.GetProxy<ClientContract.IRequestReplyService>();
                 _output.WriteLine("Invoking service operation DownloadData");
                 _output.WriteLine("Response = {0}", client.DownloadData());

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF;
 using CoreWCF.Configuration;
@@ -28,12 +29,12 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicScenarioServiceMessageBody()
+        public async Task BasicScenarioServiceMessageBody()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithMessageBodyAndHeader>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));

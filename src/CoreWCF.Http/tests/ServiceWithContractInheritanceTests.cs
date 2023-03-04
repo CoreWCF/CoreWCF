@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.ServiceModel.Description;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -28,17 +29,17 @@ namespace CoreWCF.Http.Tests
         [InlineData(typeof(Services.ServiceWithSCExtendingFromServiceWithSC), typeof(Services.ServiceWithSC))]
         [InlineData(typeof(Services.ServiceWithSCDerivingFromNonSCExtendingSC), typeof(ServiceContract.SCInterface_1138907))]
         [InlineData(typeof(Services.ServiceWithSCDerivingFromSC), typeof(ServiceContract.SCInterface_1138907))]
-        public void ServiceWithContractNegative(Type service, Type interf)
+        public async Task ServiceWithContractNegative(Type service, Type interf)
         {
             string expectResults = string.Format("The service class of type {0} both defines a ServiceContract and inherits a ServiceContract from type {1}. Contract inheritance can only be used among interface types.  If a class is marked with ServiceContractAttribute, it must be the only type in the hierarchy with ServiceContractAttribute.  Consider moving the ServiceContractAttribute on type {1} to a separate interface that type {1} implements.", service, interf);
             Startup._service = service;
             Startup._interface = interf;
-            InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() =>
+            InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
                 using (host)
                 {
-                    host.Start();
+                    await host.StartAsync();
                 }
             });
             Assert.Equal(expectResults, ex.Message);
@@ -49,7 +50,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("BClient", "ABService")]
         [InlineData("ABClient", "ABService")]
         [InlineData("ABClient", "BService")]
-        public void EndpointsWithContractInheritance(string clientType, string serviceType)
+        public async Task EndpointsWithContractInheritance(string clientType, string serviceType)
         {
             StartupEndpoints.ServiceType = serviceType;
             StartupEndpoints.ClientType = clientType;
@@ -57,7 +58,7 @@ namespace CoreWCF.Http.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupEndpoints>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 switch (clientType.ToLower())
                 {
@@ -101,7 +102,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("DerivedCallingBaseTwoWayMethod", "Call Two way voids on Base")]
         //[InlineData("DerivedCallingBaseDataContractMethod", "Send Data Contract on Base")]
         [InlineData("DerivedCallingBaseReNameMethod", "Method conflicts with Derived implementation")]
-        public void SanityAParentB_857419_Service_Both(string method, string clientString)
+        public async Task SanityAParentB_857419_Service_Both(string method, string clientString)
         {
             _output.WriteLine("Entered SanityAParentB_857419_Client.Run");
             StartupSanityAParentB._method = method;
@@ -109,7 +110,7 @@ namespace CoreWCF.Http.Tests
 
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 // Client type: OneWay and TwoWay
                 string result;
                 switch (method)
@@ -185,8 +186,6 @@ namespace CoreWCF.Http.Tests
             return proxy;
         }
 
-        #region Variation       
-
         private string Variation_Service_DerivedOneWay(string clientString)
         {
             // Create the proxy
@@ -213,7 +212,7 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_DerivedReNameMethod()
         {
-            // Create the proxy          
+            // Create the proxy
             ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedReNameMethod]");
@@ -289,7 +288,7 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_DerivedCallingBaseDataContractMethod(string clientString)
         {
-            // Create the proxy           
+            // Create the proxy
             ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
 
             // Send the two way message
@@ -319,8 +318,6 @@ namespace CoreWCF.Http.Tests
             _output.WriteLine($"Testing [Variation_Service_DerivedReNameMethod] returned <{response}>");
             return response;
         }
-
-        #endregion
 
         internal class Startup
         {

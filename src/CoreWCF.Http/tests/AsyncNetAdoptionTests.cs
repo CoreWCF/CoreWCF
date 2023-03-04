@@ -27,7 +27,7 @@ namespace BasicHttp
             var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 var httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOneWayContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/OneWayPatternTest/basichttp.svc")));
@@ -55,7 +55,7 @@ namespace BasicHttp
                 var host = ServiceHelper.CreateWebHostBuilder<AsyncNetAdoptionOneWayServiceStartup>(_output).Build();
                 using (host)
                 {
-                    host.Start();
+                    await host.StartAsync();
                     CountdownEvent countdownEvent = host.Services.GetService<CountdownEvent>();
                     countdownEvent.AddCount(inputs.Length - 1);
                     var httpBinding = ClientHelper.GetBufferedModeBinding();

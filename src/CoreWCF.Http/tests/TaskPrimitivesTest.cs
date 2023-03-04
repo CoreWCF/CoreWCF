@@ -28,12 +28,12 @@ namespace BasicHttp
         // Unstable on NET472
 #else
         [Fact]
-        public void InvokeTaskBaseAsycn()
+        public async Task InvokeTaskBaseAsync()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestPrimitives>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/TaskPrimitives/basichttp.svc")));
@@ -62,7 +62,7 @@ namespace BasicHttp
                 tasks[19] = channel.GetTimeSpan();
                 tasks[20] = channel.GetGuid();
                 tasks[21] = channel.GetEnum();
-                Task.WaitAll(tasks);
+                await Task.WhenAll(tasks);
 
                 Assert.Equal(12600, ((Task<int>)tasks[0]).Result);
                 Assert.Equal(124, ((Task<byte>)tasks[1]).Result);

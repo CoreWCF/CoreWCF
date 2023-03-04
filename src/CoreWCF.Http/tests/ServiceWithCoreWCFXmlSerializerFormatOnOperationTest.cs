@@ -31,12 +31,12 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicScenarioServiceMessageParameter()
+        public async Task BasicScenarioServiceMessageParameter()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithCoreWCFXmlSerializerFormatOnOperation>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));

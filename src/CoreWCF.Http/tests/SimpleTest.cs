@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -22,13 +23,13 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpRequestReplyEchoString()
+        public async Task BasicHttpRequestReplyEchoString()
         {
             string testString = new('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -39,13 +40,13 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpConfigureServiceHostBaseEchoString()
+        public async Task BasicHttpConfigureServiceHostBaseEchoString()
         {
             string testString = new('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithConfiguration>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -57,13 +58,13 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpNonGenericConfigureServiceHostBaseEchoString()
+        public async Task BasicHttpNonGenericConfigureServiceHostBaseEchoString()
         {
             string testString = new('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfiguration>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
@@ -75,7 +76,7 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpConfigureAllServiceHostBaseEchoString()
+        public async Task BasicHttpConfigureAllServiceHostBaseEchoString()
         {
             string testString = new('a', 3000);
 
@@ -91,7 +92,7 @@ namespace BasicHttp
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithAllConfiguration>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
 
                 Act(httpBinding, new Uri("http://localhost:8080/EchoService/basichttp.svc"));
@@ -105,13 +106,12 @@ namespace BasicHttp
         }
 
         [Fact]
-        public void BasicHttpNonGenericConfigureServiceHostBaseNotAClassThrows()
+        public async Task BasicHttpNonGenericConfigureServiceHostBaseNotAClassThrows()
         {
-            string testString = new('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfigurationWithInterface>(_output).Build();
             using (host)
             {
-                var exception = Assert.Throws<ArgumentException>(() => host.Start());
+                var exception = await Assert.ThrowsAsync<ArgumentException>(() => host.StartAsync());
                 Assert.Equal("serviceType", exception.ParamName);
             }
         }
