@@ -31,7 +31,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 ServiceContract.SerializationData requestData = GetRequestData();
                 (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(),"api/json", requestData);
@@ -47,7 +47,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 ServiceContract.SerializationData requestData = GetRequestData();
                 (HttpStatusCode statusCode, string content) = await HttpHelpers.PostXmlAsync(host.GetHttpBaseAddressUri(),"api/xml", requestData);
@@ -63,7 +63,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 byte[] order = new byte[100];
                 Random rndGen = new();

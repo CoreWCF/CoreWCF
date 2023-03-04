@@ -28,7 +28,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilderWithSsl<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/hello");
                 Assert.Equal(HttpStatusCode.OK, statusCode);

@@ -1,30 +1,10 @@
 using System;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-
-namespace Helpers
-{
-    public static class TcpPortHelper
-    {
-        public static int GetFreeTcpPort()
-        {
-            TcpListener listener = new (IPAddress.Loopback, 0);
-            listener.Start();
-            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
-        }
-    }
-}
 
 namespace Microsoft.AspNetCore.Hosting
 {
     public static class WebHostExtensions
     {
-
         public static int GetHttpPort(this IWebHost webHost)
         {
             foreach (var serverFeature in webHost.ServerFeatures)

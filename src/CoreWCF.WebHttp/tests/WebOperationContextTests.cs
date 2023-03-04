@@ -30,7 +30,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/statuscode");
 
@@ -44,7 +44,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 using HttpClient httpClient = new HttpClient();
 
@@ -61,7 +61,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 using HttpClient httpClient = new HttpClient();
 
@@ -77,7 +77,7 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 (HttpStatusCode _, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(), "api/match");
 
