@@ -4,6 +4,7 @@ using System.Threading;
 using CoreWCF;
 using ServiceContract;
 using System.Threading.Tasks;
+using Helpers;
 using Xunit.Abstractions;
 
 namespace Services
@@ -13,9 +14,9 @@ namespace Services
     public class OneWayService : IOneWayContract
     {
         private readonly ConcurrentBag<string> _inputs;
-        private readonly CountdownEvent _countdownEvent;
+        private readonly AsyncCountdownEvent _countdownEvent;
 
-        public OneWayService(ConcurrentBag<string> inputs, CountdownEvent countdownEvent)
+        public OneWayService(ConcurrentBag<string> inputs, AsyncCountdownEvent countdownEvent)
         {
             _inputs = inputs;
             _countdownEvent = countdownEvent;

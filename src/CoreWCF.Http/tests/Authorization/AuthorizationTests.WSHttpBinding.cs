@@ -26,7 +26,7 @@ public partial class AuthorizationTests
             await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
             factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
             {
                 CertificateValidationMode = X509CertificateValidationMode.None
@@ -46,7 +46,7 @@ public partial class AuthorizationTests
             await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
             factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
             {
                 CertificateValidationMode = X509CertificateValidationMode.None
@@ -65,7 +65,7 @@ public partial class AuthorizationTests
             await host.StartAsync();
             System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/wshttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
             factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
             {
                 CertificateValidationMode = X509CertificateValidationMode.None

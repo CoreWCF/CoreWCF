@@ -63,7 +63,7 @@ namespace CoreWCF.Http.Tests
                 switch (clientType.ToLower())
                 {
                     case "abclient":
-                        ClientContract.SCInterfaceAB_1144850 abProxy = GetProxy<ClientContract.SCInterfaceAB_1144850>();
+                        ClientContract.SCInterfaceAB_1144850 abProxy = GetProxy<ClientContract.SCInterfaceAB_1144850>(host);
                         if (serviceType.ToLower().Equals("aservice"))
                         {
                             Assert.Equal("Hello", abProxy.StringMethodA("Hello"));
@@ -79,11 +79,11 @@ namespace CoreWCF.Http.Tests
 
                         break;
                     case "aclient":
-                        ClientContract.SCInterfaceA_1144850 aProxy = GetProxy<ClientContract.SCInterfaceA_1144850>();
+                        ClientContract.SCInterfaceA_1144850 aProxy = GetProxy<ClientContract.SCInterfaceA_1144850>(host);
                         Assert.Equal("Hello", aProxy.StringMethodA("Hello"));
                         break;
                     case "bclient":
-                        ClientContract.SCInterfaceB_1144850 bProxy = GetProxy<ClientContract.SCInterfaceB_1144850>();
+                        ClientContract.SCInterfaceB_1144850 bProxy = GetProxy<ClientContract.SCInterfaceB_1144850>(host);
                         Assert.Equal("Hello", bProxy.StringMethodB("Hello"));
                         break;
                     default:
@@ -117,55 +117,55 @@ namespace CoreWCF.Http.Tests
                 {
                     case "DerivedOneWay":
                         {
-                            result = Variation_Service_DerivedOneWay(clientString);
+                            result = Variation_Service_DerivedOneWay(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "DerivedStringMethod":
                         {
-                            result = Variation_Service_DerivedStringMethod(clientString);
+                            result = Variation_Service_DerivedStringMethod(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "DerivedReNameMethod":
                         {
-                            result = Variation_Service_DerivedReNameMethod();
+                            result = Variation_Service_DerivedReNameMethod(host);
                             Assert.Equal("derived", result);
                         }
                         break;
                     case "BaseTwoWayMethod":
                         {
-                            result = Variation_Service_BaseTwoWayMethod(clientString);
+                            result = Variation_Service_BaseTwoWayMethod(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "BaseDataContractMethod":
                         {
-                            result = Variation_Service_BaseDataContractMethod(clientString);
+                            result = Variation_Service_BaseDataContractMethod(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "BaseReNameMethod":
                         {
-                            result = Variation_Service_BaseReNameMethod();
+                            result = Variation_Service_BaseReNameMethod(host);
                             Assert.Equal("base", result);
                         }
                         break;
                     case "DerivedCallingBaseTwoWayMethod":
                         {
-                            result = Variation_Service_DerivedCallingBaseTwoWayMethod(clientString);
+                            result = Variation_Service_DerivedCallingBaseTwoWayMethod(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "DerivedCallingBaseDataContractMethod":
                         {
-                            result = Variation_Service_DerivedCallingBaseDataContractMethod(clientString);
+                            result = Variation_Service_DerivedCallingBaseDataContractMethod(host, clientString);
                             Assert.Equal(clientString, result);
                         }
                         break;
                     case "DerivedCallingBaseReNameMethod":
                         {
-                            result = Variation_Service_DerivedCallingBaseReNameMethod();
+                            result = Variation_Service_DerivedCallingBaseReNameMethod(host);
                             Assert.Equal("Derived", result);
                         }
                         break;
@@ -177,19 +177,19 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private T GetProxy<T>()
+        private T GetProxy<T>(IWebHost host)
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<T> channelFactory = new System.ServiceModel.ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<T> channelFactory = new System.ServiceModel.ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }
 
-        private string Variation_Service_DerivedOneWay(string clientString)
+        private string Variation_Service_DerivedOneWay(IWebHost host, string clientString)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedOneWay]");
             clientProxy.OneWayMethod(clientString);
@@ -198,10 +198,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_DerivedStringMethod(string clientString)
+        private string Variation_Service_DerivedStringMethod(IWebHost host, string clientString)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedStringMethod]");
 
@@ -210,10 +210,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_DerivedReNameMethod()
+        private string Variation_Service_DerivedReNameMethod(IWebHost host)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedReNameMethod]");
             string response = clientProxy.Method("derived");
@@ -221,10 +221,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_BaseTwoWayMethod(string clientString)
+        private string Variation_Service_BaseTwoWayMethod(IWebHost host, string clientString)
         {
             //// Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractBase clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>();
+            ClientContract.ISanityAParentB_857419_ContractBase clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_BaseTwoWayMethod]");
             string response = clientProxy.TwoWayMethod(clientString);
@@ -232,11 +232,11 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_BaseDataContractMethod(string clientString)
+        private string Variation_Service_BaseDataContractMethod(IWebHost host, string clientString)
         {
             // Create the proxy
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
 
             // var clientProxy = this.GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>();
@@ -263,10 +263,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_BaseReNameMethod()
+        private string Variation_Service_BaseReNameMethod(IWebHost host)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractBase clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>();
+            ClientContract.ISanityAParentB_857419_ContractBase clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_BaseReNameMethod]");
             string response = clientProxy.Method("base");
@@ -274,10 +274,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_DerivedCallingBaseTwoWayMethod(string clientString)
+        private string Variation_Service_DerivedCallingBaseTwoWayMethod(IWebHost host, string clientString)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedTwoWayMethod]");
             clientProxy.TwoWayMethod(clientString);
@@ -286,10 +286,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_DerivedCallingBaseDataContractMethod(string clientString)
+        private string Variation_Service_DerivedCallingBaseDataContractMethod(IWebHost host, string clientString)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
 
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedTwoWayMethod]");
@@ -307,10 +307,10 @@ namespace CoreWCF.Http.Tests
             return response;
         }
 
-        private string Variation_Service_DerivedCallingBaseReNameMethod()
+        private string Variation_Service_DerivedCallingBaseReNameMethod(IWebHost host)
         {
             // Create the proxy
-            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
+            ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>(host);
 
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedReNameMethod]");

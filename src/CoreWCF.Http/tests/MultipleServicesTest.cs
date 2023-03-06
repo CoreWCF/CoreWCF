@@ -32,11 +32,11 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var echoServiceFactory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/IEchoService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/IEchoService.svc")));
                 ClientContract.IEchoService echoServiceChannel = echoServiceFactory.CreateChannel();
 
                 var messageEncodingServiceFactory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/IMessageEncodingServiceFactory.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/IMessageEncodingServiceFactory.svc")));
                 ClientContract.IMessageEncodingService messageEncodingServiceChannel = messageEncodingServiceFactory.CreateChannel();
 
                 // Verify the EchoService echoes the input string

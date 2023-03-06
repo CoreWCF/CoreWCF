@@ -59,7 +59,7 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/MessageEncodingService/IMessageEncodingService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/MessageEncodingService/IMessageEncodingService.svc")));
                 if (endpointBehavior != null)
                 {
                     factory.Endpoint.EndpointBehaviors.Add(endpointBehavior);

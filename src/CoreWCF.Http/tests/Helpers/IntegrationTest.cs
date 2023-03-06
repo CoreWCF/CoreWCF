@@ -14,19 +14,23 @@ namespace CoreWCF.Http.Tests.Helpers
     /// Enables in-memory integration testing for CoreWCF (outside-in testing via <see cref="HttpClient"/>).
     ///
     /// Use these tests to exercise the entire HTTP stack, rather than create in-process ServiceModel channels.
-    /// 
+    ///
     /// <see href="https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-3.1"/>
     /// <seealso href="https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.1"/>
     /// </summary>
     /// <typeparam name="TStartup"></typeparam>
     public class IntegrationTest<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
+        private readonly int _httpPort = TcpPortHelper.GetFreeTcpPort();
+
+        public int GetHttpPort() => _httpPort;
+
         protected override TestServer CreateServer(IWebHostBuilder builder)
         {
             var addresses = new ServerAddressesFeature();
-            addresses.Addresses.Add("http://localhost/");
+            addresses.Addresses.Add($"http://localhost:{_httpPort}/");
             var features = new FeatureCollection();
-            features.Set<IServerAddressesFeature>(addresses); 
+            features.Set<IServerAddressesFeature>(addresses);
 
             var server = new TestServer(builder, features);
             return server;

@@ -17,13 +17,13 @@ namespace NetHttp
 {
     public class WebSocketsTests
     {
-        private const string NetHttpServiceBaseUri = "http://localhost:8080";
-        private const string NetHttpBufferedServiceUri = NetHttpServiceBaseUri + Startup.BufferedPath;
+        private readonly int _httpPort;
         private readonly ITestOutputHelper _output;
 
         public WebSocketsTests(ITestOutputHelper output)
         {
             _output = output;
+            _httpPort = TcpPortHelper.GetFreeTcpPort();
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace NetHttp
 
             using var channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(
                 clientBinding,
-                new System.ServiceModel.EndpointAddress(new Uri(NetHttpServiceBaseUri + path)));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}" + path)));
             var client = channelFactory.CreateChannel();
 
             try
@@ -117,7 +117,7 @@ namespace NetHttp
                 {
                     System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetHttpBufferedServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}{Startup.BufferedPath}")));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);

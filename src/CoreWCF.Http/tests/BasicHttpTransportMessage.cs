@@ -51,7 +51,7 @@ namespace BasicHttp
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
                 BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicHttpWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
                 {
                     CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
@@ -80,8 +80,10 @@ namespace BasicHttp
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
-                string serviceUrl = (useHttps ? "https" : "http") + "://localhost:8443/BasicHttpWcfService/basichttp.svc";
                 await host.StartAsync();
+                string serviceUrl = useHttps
+                    ? $"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc"
+                    : $"http://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc";
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.Transport);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri(serviceUrl)));
@@ -117,7 +119,7 @@ namespace BasicHttp
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
                 BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.Certificate;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicHttpWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
                 ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
                 clientCredentials.ClientCertificate.SetCertificate(
                 StoreLocation.CurrentUser,

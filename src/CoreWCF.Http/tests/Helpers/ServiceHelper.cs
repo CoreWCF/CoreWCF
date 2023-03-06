@@ -120,7 +120,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                     {
                         if (Debugger.IsAttached)
                         {
@@ -143,7 +143,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {
@@ -167,7 +167,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
@@ -180,7 +180,7 @@ namespace Helpers
                         listenOptions.UseConnectionLogging();
                     }
                 });
-                options.Listen(address: IPAddress.Any, 8443, listenOptions =>
+                options.Listen(address: IPAddress.Any, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
@@ -261,7 +261,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
@@ -274,7 +274,7 @@ namespace Helpers
                         listenOptions.UseConnectionLogging();
                     }
                 });
-                options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, TcpPortHelper.GetFreeTcpPort(), listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {

@@ -33,7 +33,7 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpsBinding httpsBinding = ClientHelper.GetBufferedModeHttpsBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpsBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:8443/BasicWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/basichttp.svc")));
                 factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
                 {
                     CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None

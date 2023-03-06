@@ -35,11 +35,11 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenarios>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc")));
                 ClientContract.ITestBasicScenarios channel = factory.CreateChannel();
 
                 var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenariosClientService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc")));
                 ClientContract.ITestBasicScenariosClientService channel2 = factory2.CreateChannel();
 
                 //Variation string TestMethodDefaults
@@ -75,7 +75,7 @@ namespace CoreWCF.Http.Tests
                 //Variation_sting TestMethodasync
                 ID = 1;
                 name = "Async";
-                result = channel2.TestMethodAsync(ID, name).GetAwaiter().GetResult();
+                result = await channel2.TestMethodAsync(ID, name);
                 Assert.NotNull(result);
                 Assert.Equal(result, name);
             }
@@ -90,7 +90,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc");
+                    var response = await httpClient.GetAsync($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc");
                     Assert.False(response.IsSuccessStatusCode);
                     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                     Assert.Equal(0, response.Content.Headers.ContentLength);

@@ -39,7 +39,7 @@ namespace BasicHttp
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithCoreWCFMessageParameter>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/Service.svc")));
                 IServiceWithCoreWCFMessageParameter channel = factory.CreateChannel();
 
 
@@ -55,7 +55,7 @@ namespace BasicHttp
             var client = _factory.CreateClient();
             const string action = "http://tempuri.org/IServiceWithCoreWCFMessageParameter/Identity";
 
-            var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost:8080/BasicWcfService/Service.svc", UriKind.Absolute));
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"http://localhost:{_factory.GetHttpPort()}/BasicWcfService/Service.svc", UriKind.Absolute));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
             const string requestBody = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:tem=""http://tempuri.org/"">

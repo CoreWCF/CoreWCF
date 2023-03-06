@@ -25,22 +25,24 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return401_WhenUserIsNotAuthenticated_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Read), new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { false, nameof(SecuredService.Default), new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
+            yield return new object[] { false, nameof(SecuredService.Read), new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { false, nameof(SecuredService.Write), new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { false, nameof(SecuredService.Generated), new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { true, nameof(SecuredService.Default), new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
+            yield return new object[] { true, nameof(SecuredService.Read), new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { true, nameof(SecuredService.Write), new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { true, nameof(SecuredService.Generated), new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return401_WhenUserIsNotAuthenticated_TestVariations))]
-        public async Task Return401_WhenUserIsNotAuthenticated(Uri baseUri, string operationContractName, Predicate<SecuredServiceHolder> predicate)
+        public async Task Return401_WhenUserIsNotAuthenticated(bool isHttps, string operationContractName, Predicate<SecuredServiceHolder> predicate)
         {
             using var factory = new AuthorizationWebApplicationFactory<Startup>();
-
+            Uri baseUri = isHttps
+                ? new Uri($"https://localhost:{factory.GetHttpsPort()}/")
+                : new Uri($"http://localhost:{factory.GetHttpPort()}/");
             factory.IsAuthenticated = false;
 
             var client = factory.CreateClient();
@@ -81,27 +83,29 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), true, null, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, null, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, null, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Read), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Read), true, null, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, null, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, null, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { false, nameof(SecuredService.Read), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { false, nameof(SecuredService.Read), true, null, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { false, nameof(SecuredService.Write), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { false, nameof(SecuredService.Write), true, null, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { false, nameof(SecuredService.Generated), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { false, nameof(SecuredService.Generated), true, null, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { true, nameof(SecuredService.Read), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { true, nameof(SecuredService.Read), true, null, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { true, nameof(SecuredService.Write), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { true, nameof(SecuredService.Write), true, null, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { true, nameof(SecuredService.Generated), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { true, nameof(SecuredService.Generated), true, null, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized_TestVariations))]
-        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(Uri baseUri, string operationContractName, bool isAuthenticated,
+        public async Task Return500WithAccessIdDeniedFault_WhenUserIsNotAuthorized(bool isHttps, string operationContractName, bool isAuthenticated,
             string scopeClaimValue, Predicate<SecuredServiceHolder> predicate)
         {
             using var factory = new AuthorizationWebApplicationFactory<Startup>();
-
+            Uri baseUri = isHttps
+                ? new Uri($"https://localhost:{factory.GetHttpsPort()}/")
+                : new Uri($"http://localhost:{factory.GetHttpPort()}/");
             factory.IsAuthenticated = isAuthenticated;
             if (scopeClaimValue != null)
             {
@@ -145,22 +149,24 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled)  };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, null, new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Generated), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Write), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
-            yield return new object[] { new Uri("https://localhost:8443"), nameof(SecuredService.Default), true, null, new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
+            yield return new object[] { false, nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled)  };
+            yield return new object[] { false, nameof(SecuredService.Generated), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { false, nameof(SecuredService.Write), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { false, nameof(SecuredService.Default), true, null, new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
+            yield return new object[] { true, nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
+            yield return new object[] { true, nameof(SecuredService.Generated), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
+            yield return new object[] { true, nameof(SecuredService.Write), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
+            yield return new object[] { true, nameof(SecuredService.Default), true, null, new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };
         }
 
         [Theory]
         [MemberData(nameof(Get_Return200_WhenUserMatchPolicy_TestVariations))]
-        public async Task Return200_WhenUserMatchPolicy(Uri baseUri, string operationContractName, bool isAuthenticated, string scopeClaimValue, Predicate<SecuredServiceHolder> predicate)
+        public async Task Return200_WhenUserMatchPolicy(bool isHttps, string operationContractName, bool isAuthenticated, string scopeClaimValue, Predicate<SecuredServiceHolder> predicate)
         {
             using var factory = new AuthorizationWebApplicationFactory<Startup>();
-
+            Uri baseUri = isHttps
+                ? new Uri($"https://localhost:{factory.GetHttpsPort()}/")
+                : new Uri($"http://localhost:{factory.GetHttpPort()}/");
             factory.IsAuthenticated = isAuthenticated;
             if (scopeClaimValue != null)
             {

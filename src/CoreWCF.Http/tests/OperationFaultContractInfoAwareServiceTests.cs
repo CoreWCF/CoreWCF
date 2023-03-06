@@ -33,7 +33,7 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ICalculatorService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/Service.svc")));
                 ICalculatorService channel = factory.CreateChannel();
 
                 var result = channel.Divide(2, 1);

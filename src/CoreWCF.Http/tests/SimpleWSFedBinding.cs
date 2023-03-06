@@ -71,7 +71,7 @@ namespace WSFed
                        }); ;
 
                 federationBinding.Security.Message.EstablishSecurityContext = isToEstablishSecurityContext;
-                var endpoint = "https://corewcfserver:8443/wsFedHttp";
+                var endpoint = $"https://corewcfserver:{host.GetHttpsPort()}/wsFedHttp";
                 var factory = new System.ServiceModel.ChannelFactory<Contract.IEchoService>(federationBinding, new System.ServiceModel.EndpointAddress(endpoint));
                 factory.Credentials.UserName.UserName = "yourusername";
                 factory.Credentials.UserName.Password = "yourpassword";

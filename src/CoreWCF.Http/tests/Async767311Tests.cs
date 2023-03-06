@@ -36,7 +36,7 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_EndMethod]");
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, null, null);
@@ -54,7 +54,7 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_WaitMethod]");
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
@@ -74,7 +74,7 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_PollingMethod]");
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
@@ -104,13 +104,13 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_CallbackMethod]");
-                AsyncCallback callback = new AsyncCallback(CallbackResults);
+                AsyncCallback callback = new(CallbackResults);
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, callback, null);
                 _output.WriteLine("Message sent via Async, waiting for callback");
-                autoEvent.WaitOne();
+                await autoEvent.WaitAsync();
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
                 _output.WriteLine(text);
@@ -118,7 +118,7 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        public AutoResetEvent autoEvent = new AutoResetEvent(false);
+        public AsyncAutoResetEvent autoEvent = new();
 
         internal class Startup
         {

@@ -30,7 +30,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IRequestReplyService client = ClientHelper.GetProxy<ClientContract.IRequestReplyService>();
+                ClientContract.IRequestReplyService client = ClientHelper.GetProxy<ClientContract.IRequestReplyService>(host);
                 _output.WriteLine("Invoking service operation DownloadData");
                 _output.WriteLine("Response = {0}", client.DownloadData());
 

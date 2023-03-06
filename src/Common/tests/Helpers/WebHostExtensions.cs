@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Hosting
                                 return 80;
                             }
 
-                            return Int32.TryParse(address.Substring(index + 1, address.Length - (index + 1)), out int port)
+                            return Int32.TryParse(address.Substring(index + 1, address.Length - (index + 1)).TrimEnd('/'), out int port)
                                 ? port
                                 : throw new NotSupportedException();
                         }
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Hosting
                                 return 443;
                             }
 
-                            return Int32.TryParse(address.Substring(index + 1, address.Length - (index + 1)), out int port)
+                            return Int32.TryParse(address.Substring(index + 1, address.Length - (index + 1)).TrimEnd('/'), out int port)
                                 ? port
                                 : throw new NotSupportedException();
                         }

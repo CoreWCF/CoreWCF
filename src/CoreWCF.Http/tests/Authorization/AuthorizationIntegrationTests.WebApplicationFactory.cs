@@ -20,6 +20,11 @@ public partial class AuthorizationIntegrationTests
 {
     private class AuthorizationWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
+        private readonly int _httpPort = TcpPortHelper.GetFreeTcpPort();
+        private readonly int _httpsPort = TcpPortHelper.GetFreeTcpPort();
+        public int GetHttpPort() => _httpPort;
+        public int GetHttpsPort() => _httpsPort;
+
         public List<string> ScopeClaimValues { get; set; } = new();
         public bool IsAuthenticated { get; set; } = false;
 

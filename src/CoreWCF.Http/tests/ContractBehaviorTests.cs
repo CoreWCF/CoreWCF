@@ -46,25 +46,25 @@ namespace CoreWCF.Http.Tests
                 switch (method)
                 {
                     case "ByHand":
-                        Variation_ByHand(false);
+                        Variation_ByHand(host, false);
                         break;
                     case "ByHand_UsingHiddenProperty":
-                        Variation_ByHand(true);
+                        Variation_ByHand(host, true);
                         break;
                     case "CustomAttribute":
-                        Variation_CustomAttribute();
+                        Variation_CustomAttribute(host);
                         break;
                     case "TwoAttributesDifferentTypes":
-                        Variation_TwoAttributesDifferentTypes();
+                        Variation_TwoAttributesDifferentTypes(host);
                         break;
                     case "MisplacedAttributes":
-                        Variation_MisplacedAttributes();
+                        Variation_MisplacedAttributes(host);
                         break;
                     case "CustomAttributesImplementsOther":
-                        Variation_CustomAttributesImplementsOther();
+                        Variation_CustomAttributesImplementsOther(host);
                         break;
                     case "ByHandImplementsOther":
-                        Variation_ByHandImplementsOther();
+                        Variation_ByHandImplementsOther(host);
                         break;
                     default:
                         throw new ApplicationException("Unsupported ID specified!");
@@ -91,15 +91,15 @@ namespace CoreWCF.Http.Tests
         //5.Check the Behavior static flags
         //6.Check the Behavior instance flags
         //7.Send a message to the server
-        public static ChannelFactory<T> GetChannelFactory<T>()
+        public static ChannelFactory<T> GetChannelFactory<T>(IWebHost host)
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
+            return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ContractBehaviorService.svc")));
         }
 
-        private void Variation_ByHand(bool useHiddenProperty)
+        private void Variation_ByHand(IWebHost host, bool useHiddenProperty)
         {
-            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
+            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>(host);
             try
             {
                 string HelloStr = "ByHand";
@@ -136,9 +136,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_CustomAttribute()
+        private void Variation_CustomAttribute(IWebHost host)
         {
-            ChannelFactory<IContractBehaviorBasic_CustomAttribute> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttribute>();
+            ChannelFactory<IContractBehaviorBasic_CustomAttribute> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttribute>(host);
             try
             {
                 cf.Open();
@@ -162,9 +162,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_TwoAttributesDifferentTypes()
+        private void Variation_TwoAttributesDifferentTypes(IWebHost host)
         {
-            ChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes> cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes>();
+            ChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes> cf = GetChannelFactory<IContractBehaviorBasic_TwoAttributesDifferentTypes>(host);
             try
             {
                 cf.Open();
@@ -188,9 +188,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_MisplacedAttributes()
+        private void Variation_MisplacedAttributes(IWebHost host)
         {
-            ChannelFactory<IContractBehaviorBasic_MisplacedAttributes> cf = GetChannelFactory<IContractBehaviorBasic_MisplacedAttributes>();
+            ChannelFactory<IContractBehaviorBasic_MisplacedAttributes> cf = GetChannelFactory<IContractBehaviorBasic_MisplacedAttributes>(host);
             try
             {
                 IContractBehaviorBasic_MisplacedAttributes clientProxy = cf.CreateChannel();
@@ -212,9 +212,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_CustomAttributesImplementsOther()
+        private void Variation_CustomAttributesImplementsOther(IWebHost host)
         {
-            ChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther>();
+            ChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther> cf = GetChannelFactory<IContractBehaviorBasic_CustomAttributesImplementsOther>(host);
             try
             {
                 cf.Open();
@@ -238,9 +238,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void Variation_ByHandImplementsOther()
+        private void Variation_ByHandImplementsOther(IWebHost host)
         {
-            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
+            ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>(host);
             try
             {
                 var theBehavior = new MyMultiFacetedBehaviorAttribute();

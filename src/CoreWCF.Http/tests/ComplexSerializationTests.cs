@@ -30,11 +30,11 @@ namespace CoreWCF.Http.Tests
         [InlineData("Variation_DataContractEvents_OnDeserializing")]
         public async Task DataContractEventsComplexSerialization(string variation)
         {
-            var host = ServiceHelper.CreateWebHostBuilder<StartupDataContractEvents>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupDataContractEvents>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IDataContractEventsService proxy = ClientHelper.GetProxy<ClientContract.IDataContractEventsService>();
+                ClientContract.IDataContractEventsService proxy = ClientHelper.GetProxy<ClientContract.IDataContractEventsService>(host);
                 switch (variation)
                 {
                     case "Variation_DataContractEvents_All":
@@ -81,7 +81,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IDataContractInheritanceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractInheritanceService>();
+                ClientContract.IDataContractInheritanceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractInheritanceService>(host);
 
                 switch (variation)
                 {
@@ -125,7 +125,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IDataContractNamespaceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractNamespaceService>();
+                ClientContract.IDataContractNamespaceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractNamespaceService>(host);
 
                 switch (variation)
                 {
@@ -187,7 +187,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IISerializableService proxy = ClientHelper.GetProxy<ClientContract.IISerializableService>();
+                ClientContract.IISerializableService proxy = ClientHelper.GetProxy<ClientContract.IISerializableService>(host);
 
                 switch (variation)
                 {
@@ -237,7 +237,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IIXMLSerializableService proxy = ClientHelper.GetProxy<ClientContract.IIXMLSerializableService>();
+                ClientContract.IIXMLSerializableService proxy = ClientHelper.GetProxy<ClientContract.IIXMLSerializableService>(host);
 
                 switch (variation)
                 {
@@ -283,13 +283,13 @@ namespace CoreWCF.Http.Tests
         public async Task VersionComplexSerialization(string variation, string serviceMethod)
         {
             StartupVersioning._method = serviceMethod;
-            var host = ServiceHelper.CreateWebHostBuilder<StartupVersioning>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupVersioning>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
                 if (serviceMethod == "Versioning_789896_Service_New")
                 {
-                    ClientContract.IVersioningClientOld proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientOld>();
+                    ClientContract.IVersioningClientOld proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientOld>(host);
 
                     switch (variation)
                     {
@@ -313,7 +313,7 @@ namespace CoreWCF.Http.Tests
 
                 if (serviceMethod == "Versioning_789896_Service_Old")
                 {
-                    ClientContract.IVersioningClientNew proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientNew>();
+                    ClientContract.IVersioningClientNew proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientNew>(host);
                     switch (variation)
                     {
                         case "Variation_ClientNewServerOld":

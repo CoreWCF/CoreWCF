@@ -42,11 +42,11 @@ public partial class AuthorizationTests
     public async Task Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
-        var exception = Assert.Throws<NotSupportedException>(() =>
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
         {
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
             }
         });
         Assert.StartsWith("Invalid configuration.", exception.Message);
@@ -56,11 +56,11 @@ public partial class AuthorizationTests
     public async Task Authorization_Features_Missing_AuthorizationService_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<SinglePolicyOnOperationContractSecuredService>>(_output).Build();
-        var exception = Assert.Throws<NotSupportedException>(() =>
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
         {
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
             }
         });
         Assert.StartsWith("Invalid configuration.", exception.Message);

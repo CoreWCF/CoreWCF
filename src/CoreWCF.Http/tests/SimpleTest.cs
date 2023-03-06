@@ -32,7 +32,7 @@ namespace BasicHttp
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
@@ -49,7 +49,7 @@ namespace BasicHttp
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
@@ -67,7 +67,7 @@ namespace BasicHttp
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
@@ -95,11 +95,11 @@ namespace BasicHttp
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
 
-                Act(httpBinding, new Uri("http://localhost:8080/EchoService/basichttp.svc"));
+                Act(httpBinding, new Uri($"http://localhost:{host.GetHttpPort()}/EchoService/basichttp.svc"));
 
                 Assert.True(StartupWithAllConfiguration.ConfigureServiceHostValid);
 
-                Act(httpBinding, new Uri("http://localhost:8080/EchoService2/basichttp.svc"));
+                Act(httpBinding, new Uri($"http://localhost:{host.GetHttpPort()}/EchoService2/basichttp.svc"));
 
                 Assert.True(StartupWithAllConfiguration.ConfigureServiceHostValid2);
             }

@@ -36,7 +36,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 await host.StartAsync();
-                ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>();
+                ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>(host);
                 try
                 {
                     switch (serviceOpType)
@@ -46,8 +46,7 @@ namespace CoreWCF.Http.Tests
                             break;
                         case "SimpleOperationThrowingFault_WithTask":
                             {
-                                Task task = sampleServiceClient.SimpleOperationThrowingFaultAsync();
-                                task.Wait();
+                                await sampleServiceClient.SimpleOperationThrowingFaultAsync();
                                 break;
                             }
                         case "ServiceOpWithMultipleTasks":
@@ -55,8 +54,7 @@ namespace CoreWCF.Http.Tests
                             break;
                         case "ServiceOpWithMultipleTasks_WithTask":
                             {
-                                Task task2 = sampleServiceClient.ServiceOpWithMultipleTasksAsync();
-                                task2.Wait();
+                                await sampleServiceClient.ServiceOpWithMultipleTasksAsync();
                                 break;
                             }
                         case "ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTask":
@@ -64,8 +62,7 @@ namespace CoreWCF.Http.Tests
                             break;
                         case "ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTask_WithTask":
                             {
-                                Task task3 = sampleServiceClient.ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTaskAsync();
-                                task3.Wait();
+                                await sampleServiceClient.ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTaskAsync();
                                 break;
                             }
                     }

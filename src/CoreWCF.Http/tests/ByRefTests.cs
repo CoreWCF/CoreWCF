@@ -35,7 +35,7 @@ namespace CoreWCF.Http.Tests
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IByRefService>(
                     httpBinding,
                     new System.ServiceModel.EndpointAddress(
-                        new Uri("http://localhost:8080/BasicWcfService/IByRefService.svc")));
+                        new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/IByRefService.svc")));
 
                 ClientContract.IByRefService channel = factory.CreateChannel();
 

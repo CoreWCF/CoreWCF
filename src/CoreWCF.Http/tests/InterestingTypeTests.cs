@@ -34,7 +34,7 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ITypedContract_Collection>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TypedContract_CollectionService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/TypedContract_CollectionService.svc")));
                 ITypedContract_Collection channel = factory.CreateChannel();
 
                 foreach (int numItems in new int[] { 1, 5, 15, 50 })

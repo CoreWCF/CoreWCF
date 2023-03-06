@@ -31,7 +31,7 @@ namespace CoreWCF.Http.Tests
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultContractName1>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TestFaultContractName1.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/TestFaultContractName1.svc")));
                 ClientContract.ITestFaultContractName1 channel = factory.CreateChannel();
 
                 string faultToThrow = "Test fault thrown from a service";

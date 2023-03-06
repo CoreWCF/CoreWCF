@@ -51,28 +51,28 @@ namespace CoreWCF.Http.Tests
                 switch (method)
                 {
                     case "VoidStreamService":
-                        VoidStreamService();
+                        VoidStreamService(host);
                         break;
                     case "StreamStreamAsyncService":
-                        StreamStreamAsyncService();
+                        StreamStreamAsyncService(host);
                         break;
                     case "RefStreamService":
-                        RefStreamService();
+                        RefStreamService(host);
                         break;
                     case "StreamInOutService":
-                        StreamInOutService();
+                        StreamInOutService(host);
                         break;
                     case "InFileStreamService":
-                        InFileStreamService();
+                        InFileStreamService(host);
                         break;
                     case "ReturnFileStreamService":
-                        ReturnFileStreamService();
+                        ReturnFileStreamService(host);
                         break;
                     case "MessageContractStreamInOutService":
-                        MessageContractStreamInOutService();
+                        MessageContractStreamInOutService(host);
                         break;
                     case "MessageContractStreamMutipleOperationsService":
-                        MessageContractStreamMutipleOperationsService();
+                        MessageContractStreamMutipleOperationsService(host);
                         break;
                     default:
                         break;
@@ -80,26 +80,26 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private T GetProxy<T>()
+        private T GetProxy<T>(IWebHost host)
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/StreamingInputOutputService.svc")));
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/StreamingInputOutputService.svc")));
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }
 
-        private void StreamStreamAsyncService()
+        private void StreamStreamAsyncService(IWebHost host)
         {
-            IStreamStreamAsyncService clientProxy = GetProxy<IStreamStreamAsyncService>();
+            IStreamStreamAsyncService clientProxy = GetProxy<IStreamStreamAsyncService>(host);
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             string response = ClientHelper.GetStringFrom(clientProxy.TwoWayMethodAsync(input).GetAwaiter().GetResult());
             Assert.Equal(TestString, response);
         }
 
-        private void RefStreamService()
+        private void RefStreamService(IWebHost host)
         {
-            IRefStreamService clientProxy = GetProxy<IRefStreamService>();
+            IRefStreamService clientProxy = GetProxy<IRefStreamService>(host);
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             clientProxy.Operation(ref input);
@@ -107,9 +107,9 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(TestString + "/" + TestString, response);
         }
 
-        private void StreamInOutService()
+        private void StreamInOutService(IWebHost host)
         {
-            IStreamInOutService clientProxy = GetProxy<IStreamInOutService>();
+            IStreamInOutService clientProxy = GetProxy<IStreamInOutService>(host);
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             clientProxy.Operation(input, out input);
@@ -117,9 +117,9 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(TestString + "/" + TestString, response);
         }
 
-        private void InFileStreamService()
+        private void InFileStreamService(IWebHost host)
         {
-            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>(host);
             if (!File.Exists(FileToSend))
             {
                 throw new FileNotFoundException("Could not find file " + FileToSend);
@@ -141,9 +141,9 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void ReturnFileStreamService()
+        private void ReturnFileStreamService(IWebHost host)
         {
-            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>(host);
             MessageContractStreamNoHeader message = new MessageContractStreamNoHeader
             {
                 stream = ClientHelper.GetStreamWithStringBytes(TestString)
@@ -165,18 +165,18 @@ namespace CoreWCF.Http.Tests
             }
         }
 
-        private void MessageContractStreamInOutService()
+        private void MessageContractStreamInOutService(IWebHost host)
         {
-            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>();
+            IMessageContractStreamInReturnService clientProxy = GetProxy<IMessageContractStreamInReturnService>(host);
             MessageContractStreamNoHeader input = ClientHelper.GetMessageContractStreamNoHeader(TestString);
             MessageContractStreamOneIntHeader output = clientProxy.Operation(input);
             string response = ClientHelper.GetStringFrom(output.input);
             Assert.Equal(TestString, response);
         }
 
-        private void MessageContractStreamMutipleOperationsService()
+        private void MessageContractStreamMutipleOperationsService(IWebHost host)
         {
-            IMessageContractStreamMutipleOperationsService clientProxy = GetProxy<IMessageContractStreamMutipleOperationsService>();
+            IMessageContractStreamMutipleOperationsService clientProxy = GetProxy<IMessageContractStreamMutipleOperationsService>(host);
             Stream input = ClientHelper.GetStreamWithStringBytes(TestString);
             MessageContractStreamOneIntHeader message = new MessageContractStreamOneIntHeader
             {
@@ -196,9 +196,9 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(TestString, response2);
         }
 
-        private void VoidStreamService()
+        private void VoidStreamService(IWebHost host)
         {
-            IVoidStreamService clientProxy = GetProxy<IVoidStreamService>();
+            IVoidStreamService clientProxy = GetProxy<IVoidStreamService>(host);
             Stream input = ClientHelper.GetStreamWithStringBytes(TestString);
             clientProxy.Operation(input);
         }

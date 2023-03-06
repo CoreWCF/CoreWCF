@@ -35,8 +35,8 @@ namespace CoreWCF.Http.Tests
 
             var client = _factory.CreateClient();
             const string action = "http://tempuri.org/IEchoService/Echo";
-            
-            var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
+
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"http://localhost:{_factory.GetHttpPort()}/BasicWcfService/basichttp.svc", UriKind.Absolute));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
             const string requestBody = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:tem=""http://tempuri.org/"">
@@ -47,7 +47,7 @@ namespace CoreWCF.Http.Tests
       </tem:Echo>
    </s:Body>
 </s:Envelope>";
-            
+
             request.Content = new StringContent(requestBody, Encoding.UTF8, "text/xml");
 
             // FIXME: Commenting out this line will induce a chunked response, which will break the pre-read message parser

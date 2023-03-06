@@ -30,7 +30,7 @@ namespace CoreWCF.Http.Tests
             {
                 await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultContractName>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TestFaultContractNameService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultContractName>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/TestFaultContractNameService.svc")));
                 ClientContract.ITestFaultContractName channel = factory.CreateChannel();
 
                 //test variations count
