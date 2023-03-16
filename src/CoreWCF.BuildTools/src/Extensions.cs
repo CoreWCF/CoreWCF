@@ -22,22 +22,19 @@ namespace CoreWCF.BuildTools
             }
 
             var parameters = methodSymbol.Parameters;
-            foreach (IParameterSymbol parameterSymbol in userProvidedMethodSymbol.Parameters)
+
+            for (int i = 0,j = 0; i < userProvidedMethodSymbol.Parameters.Length; i++)
             {
+                IParameterSymbol parameterSymbol = userProvidedMethodSymbol.Parameters[i];
                 if (parameterSymbol.GetOneAttributeOf(coreWCFInjectedAttribute, fromServicesAttribute) is not null)
                 {
                     continue;
                 }
 
-                foreach (IParameterSymbol parameter in parameters)
+                if (parameterSymbol.IsMatchingParameter(parameters[j]))
                 {
-                    if (parameterSymbol.IsMatchingParameter(parameter))
-                    {
-                        parameterFound++;
-                        break;
-                    }
-
-                    return false;
+                    j++;
+                    parameterFound++;
                 }
             }
 
