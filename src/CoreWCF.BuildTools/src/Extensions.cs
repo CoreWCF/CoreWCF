@@ -45,8 +45,7 @@ namespace CoreWCF.BuildTools
     internal static class ParameterSymbolExtensions
     {
         public static bool IsMatchingParameter(this IParameterSymbol symbol, IParameterSymbol parameterSymbol)
-            => SymbolEqualityComparer.Default.Equals(symbol.Type, parameterSymbol.Type)
-                && symbol.Name == parameterSymbol.Name;
+            => SymbolEqualityComparer.Default.Equals(symbol.Type, parameterSymbol.Type);
     }
 
     internal static class SymbolExtensions
