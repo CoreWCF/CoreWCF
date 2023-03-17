@@ -34,7 +34,7 @@ namespace CoreWCF.NetTcp.Tests
             System.ServiceModel.TransferMode clientTransferMode)
         {
             string testString = new string('a', 8000);
-            var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Tests.Startup>(_output);
+            var webHostBuilder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
             webHostBuilder.ConfigureServices(services => services.AddServiceModelServices());
             webHostBuilder.Configure(app =>
             {

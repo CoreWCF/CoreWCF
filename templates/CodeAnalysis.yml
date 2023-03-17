@@ -17,10 +17,10 @@ stages:
     steps:
 
     - task: UseDotNet@2
-      displayName: 'Use .NET Core 6 sdk'
+      displayName: 'Use .NET Core 7 sdk'
       inputs:
         packageType: sdk
-        version: '6.0.x'
+        version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
@@ -55,7 +55,7 @@ stages:
       inputs:
         command: test
         projects: ${{ parameters.testProjects}}
-        arguments: '--no-restore --no-build -c Release -f net6.0 --filter Category!=WindowsOnly --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
+        arguments: '--no-restore --no-build -c Release -f net7.0 --filter Category!=WindowsOnly --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
 
     - task: PublishCodeCoverageResults@1
       displayName: Publish Code Coverage report

@@ -116,9 +116,9 @@ namespace CoreWCF.Channels.Framing
             MessageEncodingBindingElement mebe = be.Find<MessageEncodingBindingElement>();
             MessageEncoderFactory mefact = mebe.CreateMessageEncoderFactory();
             ConnectionOrientedTransportBindingElement tbe = be.Find<ConnectionOrientedTransportBindingElement>();
-            int maxReceivedMessageSize = (int)Math.Min(tbe.MaxReceivedMessageSize, int.MaxValue);
+            long maxReceivedMessageSize = tbe.MaxReceivedMessageSize;
             int maxBufferSize = tbe.MaxBufferSize;
-            var bufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, maxReceivedMessageSize);
+            var bufferManager = BufferManager.CreateBufferManager(tbe.MaxBufferPoolSize, maxBufferSize);
             int connectionBufferSize = tbe.ConnectionBufferSize;
             TransferMode transferMode = tbe.TransferMode;
             var upgradeBindingElements = (from element in be where element is StreamUpgradeBindingElement select element).Cast<StreamUpgradeBindingElement>().ToList();

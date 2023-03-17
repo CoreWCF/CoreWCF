@@ -11,6 +11,7 @@ using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Dispatcher
 {
@@ -19,6 +20,7 @@ namespace CoreWCF.Dispatcher
         private ServiceAuthenticationManager _serviceAuthenticationManager;
         private ServiceAuthorizationManager _serviceAuthorizationManager;
         private ReadOnlyCollection<IAuthorizationPolicy> _externalAuthorizationPolicies;
+        private IAuthorizationService _authorizationService;
 
         //AuditLogLocation securityAuditLogLocation;
         private ConcurrencyMode _concurrencyMode;
@@ -48,6 +50,7 @@ namespace CoreWCF.Dispatcher
         private bool _impersonateOnSerializingReply;
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
+        private bool _supportsAuthorizationData;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -209,6 +212,25 @@ namespace CoreWCF.Dispatcher
             }
         }
 
+        [Obsolete("DispatchRuntime.AuthorizationService will be made internal in next major release.")]
+        public IAuthorizationService AuthorizationService
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        // TODO: Make AuthorizationService property internal and replace get/set implementations with the 2 methods below.
+        internal IAuthorizationService GetAuthorizationService() => _authorizationService;
+
+        internal void SetAuthorizationService(IAuthorizationService authorizationService)
+        {
+            lock (ThisLock)
+            {
+                InvalidateRuntime();
+                _authorizationService = authorizationService;
+            }
+        }
+
         public bool AutomaticInputSessionShutdown
         {
             get { return _automaticInputSessionShutdown; }
@@ -292,6 +314,22 @@ namespace CoreWCF.Dispatcher
                 {
                     InvalidateRuntime();
                     _requireClaimsPrincipalOnOperationContext = value;
+                }
+            }
+        }
+
+        internal bool SupportsAuthorizationData
+        {
+            get
+            {
+                return _supportsAuthorizationData;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    _supportsAuthorizationData = value;
                 }
             }
         }
@@ -453,12 +491,7 @@ namespace CoreWCF.Dispatcher
         internal bool RequiresAuthentication { get; private set; }
 
         internal bool RequiresAuthorization
-        {
-            get
-            {
-                return (_isAuthorizationManagerSet || _isExternalPoliciesSet);
-            }
-        }
+            => _isAuthorizationManagerSet || _isExternalPoliciesSet;
 
         internal bool HasMatchAllOperation
         {
@@ -588,6 +621,8 @@ namespace CoreWCF.Dispatcher
                 return _runtime;
             }
         }
+
+        internal bool IsAuthorizationInfrastructureRegistered() => _authorizationService != null;
 
         internal void InvalidateRuntime()
         {

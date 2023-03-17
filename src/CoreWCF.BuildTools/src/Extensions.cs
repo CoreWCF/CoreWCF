@@ -8,6 +8,43 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CoreWCF.BuildTools
 {
+    internal static class MethodSymbolExtensions
+    {
+        public static bool? IsGeneratedCode(this IMethodSymbol methodSymbol)
+            => methodSymbol.Locations.FirstOrDefault()?.SourceTree?.FilePath.EndsWith(".g.cs");
+
+        public static bool IsMatchingUserProvidedMethod(this IMethodSymbol methodSymbol, IMethodSymbol userProvidedMethodSymbol, INamedTypeSymbol? coreWCFInjectedAttribute, INamedTypeSymbol? fromServicesAttribute)
+        {
+            int parameterFound = 0;
+            if (methodSymbol.Name != userProvidedMethodSymbol.Name)
+            {
+                return false;
+            }
+
+            var parameters = methodSymbol.Parameters;
+            foreach (IParameterSymbol parameterSymbol in userProvidedMethodSymbol.Parameters)
+            {
+                if (parameterSymbol.GetOneAttributeOf(coreWCFInjectedAttribute, fromServicesAttribute) is not null)
+                {
+                    continue;
+                }
+
+                foreach (IParameterSymbol parameter in parameters)
+                {
+                    if (parameterSymbol.IsMatchingParameter(parameter))
+                    {
+                        parameterFound++;
+                        break;
+                    }
+
+                    return false;
+                }
+            }
+
+            return parameterFound == parameters.Length;
+        }
+    }
+
     internal static class ParameterSymbolExtensions
     {
         public static bool IsMatchingParameter(this IParameterSymbol symbol, IParameterSymbol parameterSymbol)
@@ -17,11 +54,11 @@ namespace CoreWCF.BuildTools
 
     internal static class SymbolExtensions
     {
-        public static bool HasOneOfAttributes(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
+        public static AttributeData? GetOneAttributeOf(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
         {
-            if(attributeTypeSymbols.Length == 0)
+            if (attributeTypeSymbols.Length == 0)
             {
-                return false;
+                return null;
             }
 
             foreach (var attribute in symbol.GetAttributes())
@@ -30,7 +67,31 @@ namespace CoreWCF.BuildTools
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, namedTypeSymbol))
                     {
-                        return true;
+                        return attribute;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static bool HasOneAttributeInheritFrom(this ISymbol symbol, params INamedTypeSymbol?[] attributeTypeSymbols)
+        {
+            if (attributeTypeSymbols.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                foreach (var @interface in attribute.AttributeClass!.AllInterfaces)
+                {
+                    foreach (var namedTypeSymbol in attributeTypeSymbols.Where(static s => s is not null))
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(@interface, namedTypeSymbol))
+                        {
+                            return true;
+                        }
                     }
                 }
             }

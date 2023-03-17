@@ -101,8 +101,12 @@ namespace CoreWCF.Channels
         {
             if (IsAuthenticationRequired)
             {
-                string scheme = _httpSettings.AuthenticationScheme.ToString();
-                AuthenticateResult authenticateResult = await context.AuthenticateAsync(scheme);
+                string scheme = _httpSettings.AuthenticationScheme == AuthenticationSchemes.None
+                    ? null
+                    : _httpSettings.AuthenticationScheme.ToString();
+
+                var authenticateResult = await context.AuthenticateAsync(scheme);
+
                 if (authenticateResult.None)
                 {
                     await context.ChallengeAsync(scheme);
@@ -133,8 +137,6 @@ namespace CoreWCF.Channels
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
             }
-
-            return;
         }
 
         private async Task<WebSocketContext> AcceptWebSocketAsync(HttpContext context, CancellationToken token)
@@ -158,25 +160,38 @@ namespace CoreWCF.Channels
                     string negotiatedProtocol = null;
 
                     // match client protocols vs server protocol
-                    foreach (string protocol in context.WebSockets.WebSocketRequestedProtocols)
+                    if (context.WebSockets.WebSocketRequestedProtocols.Count != 0)
                     {
-                        if (string.Compare(protocol, _httpSettings.WebSocketSettings.SubProtocol, StringComparison.OrdinalIgnoreCase) == 0)
+                        foreach (string protocol in context.WebSockets.WebSocketRequestedProtocols)
                         {
-                            negotiatedProtocol = protocol;
-                            break;
+                            if (string.Compare(protocol, _httpSettings.WebSocketSettings.SubProtocol,
+                                    StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                negotiatedProtocol = protocol;
+                                break;
+                            }
+                        }
+
+                        if (negotiatedProtocol == null)
+                        {
+                            string errorMessage = SR.Format(SR.WebSocketInvalidProtocolNotInClientList,
+                                _httpSettings.WebSocketSettings.SubProtocol,
+                                string.Join(", ", context.WebSockets.WebSocketRequestedProtocols));
+                            Fx.Exception.AsWarning(new WebException(errorMessage));
+
+                            context.Response.StatusCode = (int)HttpStatusCode.UpgradeRequired;
+                            context.Features.Get<IHttpResponseFeature>().ReasonPhrase =
+                                SR.WebSocketEndpointOnlySupportWebSocketError;
+                            return null;
                         }
                     }
-
-                    if (negotiatedProtocol == null)
+                    else if (!string.IsNullOrEmpty(_httpSettings.WebSocketSettings.SubProtocol))
                     {
-                        string errorMessage = SR.Format(SR.WebSocketInvalidProtocolNotInClientList, _httpSettings.WebSocketSettings.SubProtocol, string.Join(", ", context.WebSockets.WebSocketRequestedProtocols));
-                        Fx.Exception.AsWarning(new WebException(errorMessage));
-
                         context.Response.StatusCode = (int)HttpStatusCode.UpgradeRequired;
-                        context.Features.Get<IHttpResponseFeature>().ReasonPhrase = SR.WebSocketEndpointOnlySupportWebSocketError;
+                        context.Features.Get<IHttpResponseFeature>().ReasonPhrase =
+                            SR.WebSocketEndpointOnlySupportWebSocketError;
                         return null;
                     }
-
                     WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync(negotiatedProtocol);
                     return new AspNetCoreWebSocketContext(context, webSocket);
                 }

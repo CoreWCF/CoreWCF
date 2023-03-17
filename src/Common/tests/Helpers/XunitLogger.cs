@@ -11,11 +11,13 @@ namespace Helpers
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly string _categoryName;
+        private readonly string _callerMethodName;
 
-        public XunitLogger(ITestOutputHelper testOutputHelper, string categoryName)
+        public XunitLogger(ITestOutputHelper testOutputHelper, string categoryName, string callerMethodName)
         {
             _testOutputHelper = testOutputHelper;
             _categoryName = categoryName;
+            _callerMethodName = callerMethodName;
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -26,10 +28,17 @@ namespace Helpers
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
-            if (exception != null)
+            try
             {
-                _testOutputHelper.WriteLine(exception.ToString());
+                _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
+                if (exception != null)
+                {
+                    _testOutputHelper.WriteLine(exception.ToString());
+                }
+            }
+            catch (InvalidOperationException e) when (e.Message == "There is no currently active test.")
+            {
+                throw new InvalidOperationException($"{_callerMethodName} is no longer an active test.", e.InnerException);
             }
         }
 

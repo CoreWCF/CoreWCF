@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Description;
 using CoreWCF.IdentityModel;
@@ -20,10 +21,10 @@ using SysAuthorizationContext = CoreWCF.IdentityModel.Policy.AuthorizationContex
 namespace CoreWCF.Security
 {
     /// <summary>
-    /// Custom ServiceAuthorizationManager implementation. This class substitues the WCF 
-    /// generated IAuthorizationPolicies with 
+    /// Custom ServiceAuthorizationManager implementation. This class substitues the WCF
+    /// generated IAuthorizationPolicies with
     /// <see cref="CoreWCF.IdentityModel.Tokens.AuthorizationPolicy"/>. These
-    /// policies do not participate in the EvaluationContext and hence will render an 
+    /// policies do not participate in the EvaluationContext and hence will render an
     /// empty WCF AuthorizationConext. Once this AuthorizationManager is substitued to
     /// a ServiceHost, only <see cref="System.Security.Claims.ClaimsPrincipal"/>
     /// will be available for Authorization decisions.
@@ -95,7 +96,7 @@ namespace CoreWCF.Security
                     //
                     // We ignore the SctAuthorizationPolicy if any found as they were created
                     // as wrapper policies to hold the primary identity claim during a token renewal path.
-                    // WCF would otherwise fault thinking the token issuance and renewal identities are 
+                    // WCF would otherwise fault thinking the token issuance and renewal identities are
                     // different. This policy should be treated as a dummy policy and thereby should not be transformed.
                     //
                     // We ignore EndpointAuthorizationPolicy as well. This policy is used only to carry
@@ -107,7 +108,7 @@ namespace CoreWCF.Security
 
                 if (authPolicy is AuthorizationPolicy idfxAuthPolicy)
                 {
-                    // Identities obtained from the Tokens in the message layer would 
+                    // Identities obtained from the Tokens in the message layer would
                     identities.AddRange(idfxAuthPolicy.IdentityCollection);
                 }
                 else
@@ -153,20 +154,20 @@ namespace CoreWCF.Security
 
                     //
                     // NOTE: In the below code, we are trying to identify the IAuthorizationPolicy that WCF
-                    // created for the Transport token and eliminate it. This assumes that any client Security  
-                    // Token that came in the Security header would have been validated by the SecurityTokenHandler 
-                    // and hence would have created a IDFx AuthorizationPolicy. 
-                    // For example, if X.509 Certificate was used to authenticate the client at the transport layer 
+                    // created for the Transport token and eliminate it. This assumes that any client Security
+                    // Token that came in the Security header would have been validated by the SecurityTokenHandler
+                    // and hence would have created a IDFx AuthorizationPolicy.
+                    // For example, if X.509 Certificate was used to authenticate the client at the transport layer
                     // and then again at the Message security layer we depend on our TokenHandlers to have been in
                     // place to validate the X.509 Certificate at the message layer. This would clearly distinguish
-                    // which policy was created for the Transport token by WCF. 
+                    // which policy was created for the Transport token by WCF.
                     //
                     EliminateTransportTokenPolicy(transportToken, tranportTokenIdentities, uncheckedAuthorizationPolicies);
                 }
             }
 
             //
-            // STEP 3: Process any uncheckedAuthorizationPolicies here. Convert these to IDFx 
+            // STEP 3: Process any uncheckedAuthorizationPolicies here. Convert these to IDFx
             //         Claims.
             //
             if (uncheckedAuthorizationPolicies.Count > 0)
@@ -210,7 +211,7 @@ namespace CoreWCF.Security
             List<ClaimsIdentity> transportTokenIdentityCollection = new List<ClaimsIdentity>();
 
             //////////////////////////////////////////////////////////////////////////////////////////
-            // 
+            //
             // There are 5 well-known Client Authentication types at the transport layer. Each of these will
             // result either in a WindowsSecurityToken, X509SecurityToken or UserNameSecurityToken.
             // All other type of credentials (like OAuth token) result other token that will be passed trough regular validation process.
@@ -289,7 +290,7 @@ namespace CoreWCF.Security
             // by WCF will have two Claimsets, a X509ClaimSet and a WindowsClaimSet. We need to prune out this case
             // and ignore both these Claimsets as we have made a call to the token handler to authenticate this
             // token above. If we create a AuthorizationContext using all the IAuthorizationPolicies then all
-            // the claimsets are merged and it becomes hard to identify this case. 
+            // the claimsets are merged and it becomes hard to identify this case.
             //
             IAuthorizationPolicy policyToEliminate = null;
             foreach (IAuthorizationPolicy authPolicy in baseAuthorizationPolicies)
@@ -339,7 +340,7 @@ namespace CoreWCF.Security
             }
 
             //////////////////////////////////////////////////////////////////////////////////////////
-            // 
+            //
             // There are 5 Client Authentication types at the transport layer. Each of these will
             // result either in a WindowsSecurityToken, X509SecurityToken or UserNameSecurityToken.
             //
@@ -371,10 +372,10 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    // For WindowsSecurityToken and UserNameSecurityToken check that IClaimsdentity.Name 
+                    // For WindowsSecurityToken and UserNameSecurityToken check that IClaimsdentity.Name
                     // matches the Name Claim in the ClaimSet.
-                    // In most cases, we will have only one Identity in the ClaimsIdentityCollection 
-                    // generated from transport token. 
+                    // In most cases, we will have only one Identity in the ClaimsIdentityCollection
+                    // generated from transport token.
                     foreach (ClaimsIdentity transportTokenIdentity in tranportTokenIdentities)
                     {
                         if (claimset.ContainsClaim(new CoreWCF.IdentityModel.Claims.Claim(
@@ -440,7 +441,7 @@ namespace CoreWCF.Security
         // Adds an Authentication Method claims to the given ClaimsIdentity if one is not already present.
         private static void AddAuthenticationInstantClaim(ClaimsIdentity claimsIdentity, string authenticationInstant)
         {
-            // the issuer for this claim should always be the default issuer. 
+            // the issuer for this claim should always be the default issuer.
             string issuerName = ClaimsIdentity.DefaultIssuer;
             System.Security.Claims.Claim authenticationInstantClaim =
                     claimsIdentity.Claims.FirstOrDefault(claim => claim.Type == System.Security.Claims.ClaimTypes.AuthenticationInstant);
@@ -455,14 +456,14 @@ namespace CoreWCF.Security
             }
         }
 
-        // When a token creates more than one Identity we have to merge these identities. 
-        // The below method takes two Identities and will return a single identity. If one of the 
-        // Identities is a WindowsIdentity then all claims from the other identity are 
+        // When a token creates more than one Identity we have to merge these identities.
+        // The below method takes two Identities and will return a single identity. If one of the
+        // Identities is a WindowsIdentity then all claims from the other identity are
         // merged into the WindowsIdentity. If neither are WindowsIdentity then it
         // selects 'identity1' and merges all the claims from 'identity2' into 'identity1'.
         //
         // It is not clear how we can handler duplicate name claim types and delegates.
-        // So, we are just cloning the claims from one identity and adding it to another. 
+        // So, we are just cloning the claims from one identity and adding it to another.
         internal static ClaimsIdentity MergeClaims(ClaimsIdentity identity1, ClaimsIdentity identity2)
         {
             if ((identity1 == null) && (identity2 == null))
@@ -503,7 +504,7 @@ namespace CoreWCF.Security
         /// </summary>
         /// <param name="operationContext">The OperationContext for the current authorization request.</param>
         /// <returns>true if authorized, false otherwise</returns>
-        protected override bool CheckAccessCore(OperationContext operationContext)
+        protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext)
         {
             throw new NotImplementedException();
         }

@@ -82,6 +82,7 @@ namespace CoreWCF.Configuration
             AddBinding(group.Bindings?.NetTcpBinding.Bindings);
             AddBinding(group.Bindings?.NetHttpBinding.Bindings);
             AddBinding(group.Bindings?.wsHttpBinding.Bindings);
+            AddBinding(group.Bindings?.WebHttpBinding.Bindings);
             AddBinding(group.Bindings?.CustomBinding.Bindings);
             AddEndpoint(group.Services?.Services);
         }

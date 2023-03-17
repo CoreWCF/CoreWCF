@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -17,46 +16,18 @@ namespace CoreWCF.Security.NegotiateInternal
         // https://www.gnu.org/software/gss/reference/gss.pdf
         private const uint GSS_S_NO_CRED = 7 << 16;
 
-        private static readonly ConstructorInfo s_constructor;
-        private static readonly MethodInfo s_getOutgoingBlob;
-        private static readonly MethodInfo s_isCompleted;
-        private static readonly MethodInfo s_isValidContext;
-
-        private static readonly MethodInfo s_protocol;
         private static readonly MethodInfo s_getIdentity;
-        private static readonly MethodInfo s_closeContext;
-        //private static readonly MethodInfo _getContext;
-        private static readonly MethodInfo s_encrypt;
 
         private static readonly FieldInfo s_statusCode;
         private static readonly FieldInfo s_statusException;
         private static readonly FieldInfo s_gssMinorStatus;
         private static readonly Type s_gssExceptionType;
 
-        private readonly object _instance;
+        private readonly INTAuthenticationFacade _ntAuthentication;
 
         static NegotiateInternalState()
         {
             Assembly secAssembly = typeof(AuthenticationException).Assembly;
-            Type ntAuthType = secAssembly.GetType("System.Net.NTAuthentication", throwOnError: true);
-            s_constructor = ntAuthType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
-            s_getOutgoingBlob = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("GetOutgoingBlob") && info.GetParameters().Count() == 3).Single();
-            s_isCompleted = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("get_IsCompleted")).Single();
-            s_protocol = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("get_ProtocolName")).Single();
-            s_closeContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("CloseContext")).Single();
-
-            //Added these 2 new call
-            //   _getContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-            //       info.Name.Equals("GetContext")).Single();
-            s_encrypt = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("Encrypt")).Single();
-            s_isValidContext = ntAuthType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-            info.Name.Equals("get_IsValidContext")).Single();
-            //end 
 
             //TODO this fails in framework
             Type securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
@@ -81,9 +52,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public NegotiateInternalState()
         {
-
-            ICredentials credential = CredentialCache.DefaultCredentials;
-            _instance = s_constructor.Invoke(new object[] { true, "Negotiate", credential, null, 0, null });
+            _ntAuthentication = NTAuthenticationFacade.Build();
         }
 
         // Copied rather than reflected to remove the IsCompleted -> CloseContext check.
@@ -113,11 +82,8 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             try
             {
-                // byte[] GetOutgoingBlob(byte[] incomingBlob, bool throwOnError, out SecurityStatusPal statusCode)
-                object[] parameters = new object[] { incomingBlob, false, null };
-                byte[] blob = (byte[])s_getOutgoingBlob.Invoke(_instance, parameters);
+                byte[] blob = _ntAuthentication.GetOutgoingBlob(incomingBlob, false, out object securityStatus);
 
-                object securityStatus = parameters[2];
                 // TODO: Update after corefx changes
                 error = (Exception)(s_statusException.GetValue(securityStatus)
                     ?? GetException.Invoke(null, new[] { securityStatus }));
@@ -170,41 +136,31 @@ namespace CoreWCF.Security.NegotiateInternal
             }
         }
 
-        public bool IsCompleted => (bool)s_isCompleted.Invoke(_instance, Array.Empty<object>());
+        public bool IsCompleted => _ntAuthentication.IsCompleted;
 
-        public string Protocol => (string)s_protocol.Invoke(_instance, Array.Empty<object>());
+        public string Protocol => _ntAuthentication.Protocol;
 
-        public bool IsValidContext => (bool)s_isValidContext.Invoke(_instance, Array.Empty<object>());
+        public bool IsValidContext => _ntAuthentication.IsValidContext;
 
         public static MethodInfo GetException { get; private set; }
 
-        public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { _instance });
+        public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { _ntAuthentication.Instance });
 
         public byte[] Encrypt(byte[] input)
         {
-
-            /*
-             *     internal int Encrypt(
-      byte[] buffer,
-      int offset,
-      int count,
-      ref byte[] output,
-      uint sequenceNumber)
-             */
             if (input == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(input));
             }
 
             byte[] _writeBuffer = new byte[4];
-            object[] parameters = new object[] { input, 0, input.Length, _writeBuffer, 0U };
-            int totalBytes = (int)s_encrypt.Invoke(_instance, parameters);
+            int totalBytes = _ntAuthentication.Encrypt(input, ref _writeBuffer);
             byte[] result = new byte[totalBytes - 4];
-            Buffer.BlockCopy((byte[])parameters[3], 4, result, 0, result.Length);
+            Buffer.BlockCopy(_writeBuffer, 4, result, 0, result.Length);
             return result;
         }
 
-        public void Dispose() => s_closeContext.Invoke(_instance, Array.Empty<object>());
+        public void Dispose() => _ntAuthentication.CloseContext();
 
         private bool IsCredentialError(NegotiateInternalSecurityStatusErrorCode error) => error == NegotiateInternalSecurityStatusErrorCode.LogonDenied ||
                 error == NegotiateInternalSecurityStatusErrorCode.UnknownCredentials ||

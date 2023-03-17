@@ -3,11 +3,12 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Security.Claims;
 using System.Security.Principal;
 using CoreWCF.Channels;
-using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security;
+using Claim = CoreWCF.IdentityModel.Claims.Claim;
 
 namespace CoreWCF
 {

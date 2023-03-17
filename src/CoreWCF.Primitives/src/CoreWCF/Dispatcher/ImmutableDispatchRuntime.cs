@@ -39,6 +39,7 @@ namespace CoreWCF.Dispatcher
             _messageInspectors = EmptyArray<IDispatchMessageInspector>.ToArray(dispatch.MessageInspectors);
             SecurityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
             RequireClaimsPrincipalOnOperationContext = dispatch.RequireClaimsPrincipalOnOperationContext;
+            SupportsAuthorizationData = dispatch.SupportsAuthorizationData;
             IsImpersonationEnabledOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
@@ -94,6 +95,8 @@ namespace CoreWCF.Dispatcher
         internal bool IsImpersonationEnabledOnSerializingReply { get; }
 
         internal bool RequireClaimsPrincipalOnOperationContext { get; }
+
+        internal bool SupportsAuthorizationData { get; }
 
         internal bool ManualAddressing { get; }
 
@@ -545,16 +548,14 @@ namespace CoreWCF.Dispatcher
                 rpc.SuccessfullyIncrementedActivity = true;
             }
 
-            // TODO: Make authenticationBehavior Async
             if (_authenticationBehavior != null)
             {
-                _authenticationBehavior.Authenticate(ref rpc);
+                rpc = await _authenticationBehavior.AuthenticateAsync(rpc);
             }
 
-            // TODO: Make authorizationBehavior Async
-            if (_authorizationBehavior != null)
+            if (_authorizationBehavior != null && !SupportsAuthorizationData)
             {
-                _authorizationBehavior.Authorize(ref rpc);
+                rpc = await _authorizationBehavior.AuthorizeAsync(rpc);
             }
 
             await InstanceBehavior.EnsureInstanceContextAsync(rpc);
@@ -603,6 +604,16 @@ namespace CoreWCF.Dispatcher
             }
 
             InstanceBehavior.EnsureServiceInstance(rpc);
+
+            if (RequireClaimsPrincipalOnOperationContext)
+            {
+                rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
+            }
+
+            if (_authorizationBehavior != null && SupportsAuthorizationData)
+            {
+                rpc = await _authorizationBehavior.AuthorizePolicyAsync(rpc);
+            }
 
             try
             {

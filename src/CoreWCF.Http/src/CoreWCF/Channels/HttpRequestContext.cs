@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Authentication.ExtendedProtection;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
@@ -189,7 +191,7 @@ namespace CoreWCF.Channels
             if (message == null)
             {
                 // A null message means either a one-way request or that the service operation returned null and
-                // hence we can close the HttpOutput. By default we keep the HttpOutput open to allow the writing to the output 
+                // hence we can close the HttpOutput. By default we keep the HttpOutput open to allow the writing to the output
                 // even after the HttpInput EOF is received and the HttpOutput will be closed only on close of the HttpRequestContext.
                 closeOnReceivedEof = true;
                 message = CreateAckMessage(HttpStatusCode.Accepted, string.Empty);
@@ -258,7 +260,7 @@ namespace CoreWCF.Channels
         public async Task<bool> ProcessAuthenticationAsync()
         {
             HttpStatusCode statusCode = ValidateAuthentication();
-            
+
             if (statusCode == HttpStatusCode.OK)
             {
                 bool authenticationSucceeded = false;
@@ -358,6 +360,7 @@ namespace CoreWCF.Channels
             {
                 return new AspNetCoreHttpInput(this);
             }
+
             public override HttpOutput GetHttpOutput(Message message)
             {
                 if (StringComparer.OrdinalIgnoreCase.Equals(Http11ProtocolString, _aspNetContext.Request.Protocol))
@@ -385,8 +388,8 @@ namespace CoreWCF.Channels
             {
                 if (HttpTransportSettings.IsAuthenticationRequired)
                 {
-                    ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User.Identity);
-                    SecurityMessageProperty securityMessageProperty = new SecurityMessageProperty
+                    ServiceSecurityContext securityContext = await CreateSecurityContextAsync(_aspNetContext.User);
+                    SecurityMessageProperty securityMessageProperty = new()
                     {
                         ServiceSecurityContext = securityContext
                     };
@@ -398,7 +401,13 @@ namespace CoreWCF.Channels
 
             protected override HttpStatusCode ValidateAuthentication()
             {
-                // TODO: Wire up authentication for ASP.Net Core
+                if (HttpTransportSettings.IsAuthenticationRequired)
+                {
+                    return _aspNetContext.User.Identity.IsAuthenticated
+                        ? HttpStatusCode.OK
+                        : HttpStatusCode.Unauthorized;
+                }
+
                 return HttpStatusCode.OK;
                 //return Listener.ValidateAuthentication(listenerContext);
             }
@@ -425,22 +434,29 @@ namespace CoreWCF.Channels
                 //}
             }
 
-            private async Task<ServiceSecurityContext> CreateSecurityContextAsync(IIdentity identity)
+            private async Task<ServiceSecurityContext> CreateSecurityContextAsync(IPrincipal principal)
             {
-                if (identity is WindowsIdentity wid)
+                if (principal.Identity is WindowsIdentity wid)
                 {
                     WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
                     SecurityToken windowsToken = new WindowsSecurityToken(wid);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(windowsToken);
                     return new ServiceSecurityContext(authorizationPolicies);
                 }
-                else if (identity is GenericIdentity gid)
+                else if (principal.Identity is GenericIdentity gid)
                 {
                     WindowsSecurityTokenAuthenticator tokenAuthenticator = new WindowsSecurityTokenAuthenticator();
                     SecurityToken genericToken = new GenericIdentitySecurityToken(gid, SecurityUniqueId.Create().Value);
                     ReadOnlyCollection<IAuthorizationPolicy> authorizationPolicies = await tokenAuthenticator.ValidateTokenAsync(genericToken);
                     return new ServiceSecurityContext(authorizationPolicies);
                 }
+                else if (principal.Identity is ClaimsIdentity)
+                {
+                    AuthorizationContext authorizationContext = AuthorizationContext.CreateDefaultAuthorizationContext(null);
+                    authorizationContext.Properties.Add(nameof(ClaimsPrincipal), principal);
+                    return new ServiceSecurityContext(authorizationContext);
+                }
+
                 return null;
             }
 

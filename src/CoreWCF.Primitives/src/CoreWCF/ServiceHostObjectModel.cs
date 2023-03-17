@@ -123,6 +123,7 @@ namespace CoreWCF
                     }
                 }
             }
+
             ReflectedContracts = reflectedContracts;
 
             implementedContracts = reflectedContracts.ToImplementedContracts();

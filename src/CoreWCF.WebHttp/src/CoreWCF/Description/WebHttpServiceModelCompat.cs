@@ -44,6 +44,13 @@ internal static class WebHttpServiceModelCompat
             od.OperationBehaviors.Add(converted);
     }
 
+    public static TAttribute? GetNativeAttribute<TAttribute>(MethodInfo opMethod) where TAttribute : Attribute, IOperationBehavior
+    {
+        var attributes = opMethod.GetCustomAttributes();
+        return AttributeConverters.Convert(attributes).OfType<TAttribute>()
+            .FirstOrDefault();
+    }
+
     private static class AttributeConverters
     {
 

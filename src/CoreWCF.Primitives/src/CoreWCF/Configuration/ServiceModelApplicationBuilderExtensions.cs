@@ -36,7 +36,7 @@ namespace CoreWCF.Configuration
         {
             ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
             ILoggerFactory loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-            ILogger logger = loggerFactory.CreateLogger(nameof(ServiceModelApplicationBuilderExtensions));
+            ILogger logger = loggerFactory.CreateLogger(typeof(ServiceModelApplicationBuilderExtensions));
 
             var options = app.ApplicationServices.GetService<IOptions<ServiceModelOptions>>();
             var serviceModelOptions = options.Value ?? new ServiceModelOptions();

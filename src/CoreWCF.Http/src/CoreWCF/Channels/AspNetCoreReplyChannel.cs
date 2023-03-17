@@ -99,7 +99,11 @@ namespace CoreWCF.Channels
 
             using (var requestContext = HttpRequestContext.CreateContext(_httpSettings, context))
             {
-                await requestContext.ProcessAuthenticationAsync();
+                bool authenticationResult = await requestContext.ProcessAuthenticationAsync();
+                if (!authenticationResult)
+                {
+                    return;
+                }
 
                 HttpInput httpInput = requestContext.GetHttpInput(true);
                 (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();

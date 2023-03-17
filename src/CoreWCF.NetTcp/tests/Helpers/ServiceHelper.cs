@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
 using System.Net;
+using System.Runtime.CompilerServices;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -19,7 +20,28 @@ namespace Helpers
 {
     public static class ServiceHelper
     {
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0) where TStartup : class
+        public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "")
+        {
+            if (ipAddress == null)
+            {
+                //using .Any breaks the getaddress method
+                ipAddress = IPAddress.Loopback;
+            }
+            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+                .ConfigureLogging((ILoggingBuilder logging) =>
+                {
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                    logging.AddFilter("Default", LogLevel.Debug);
+                    logging.AddFilter("Microsoft", LogLevel.Debug);
+                    logging.SetMinimumLevel(LogLevel.Debug);
+                })
+#endif // DEBUG
+                .UseNetTcp(ipAddress, port)
+                .UseStartup(startupType);
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "") where TStartup : class
         {
             if (ipAddress == null)
             {
@@ -30,7 +52,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);

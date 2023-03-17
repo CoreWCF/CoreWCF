@@ -4,6 +4,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using System.IO;
+using System;
 
 namespace CoreWCF.Configuration
 {
@@ -11,6 +13,12 @@ namespace CoreWCF.Configuration
     {
         public static IServiceCollection AddServiceModelConfigurationManagerFile(this IServiceCollection builder, string path)
         {           
+            if (!File.Exists(path)) { throw new FileNotFoundException(SR.Format(SR.FileNotFound, path)); }
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+            {
+                if (!fs.CanRead) { throw new IOException(SR.Format(SR.CannotAccessFile, path)); }    
+            }
+            
             builder.TryAddSingleton<IConfigurationHolder, ConfigurationHolder>();
             builder.TryAddSingleton<IBindingFactory, BindingFactory>();
             builder.AddSingleton<IConfigureOptions<ServiceModelOptions>>(ctx => new ConfigurationManagerServiceModelOptions(ctx, path));          

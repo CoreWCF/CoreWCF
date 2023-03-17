@@ -12,6 +12,8 @@ using CoreWCF.Channels;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using CoreWCF.Runtime.Collections;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CoreWCF.Description
 {
@@ -1117,6 +1119,12 @@ namespace CoreWCF.Description
                     requestDescription.Body.WrapperName = requestDescription.Body.WrapperNamespace = null;
                 }
             }
+
+            if (direction == MessageDirection.Input)
+            {
+                operationDescription.AuthorizeData = new GenericHashtable<Type, ReadOnlyCollection<IAuthorizeData>>();
+            }
+
             return operationDescription;
         }
 

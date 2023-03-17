@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Net;
 using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
@@ -138,7 +139,7 @@ namespace CoreWCF
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
             if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
             {
-                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.TransportWithMessageCredential));
+                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.Message));
             }
             else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
             {

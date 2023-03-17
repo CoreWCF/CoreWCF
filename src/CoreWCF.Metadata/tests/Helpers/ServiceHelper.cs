@@ -29,16 +29,22 @@ namespace Helpers
         private const int HttpListenPort = 8080;
         private const int HttpsListenPort = 8443;
 
-        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(Binding binding, string url, ITestOutputHelper outputHelper = default) where TService : class
+        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(Binding binding, string url,
+            Action<IServiceCollection> configureServices = null,
+            ITestOutputHelper outputHelper = default,
+            string callerMethodName = "")
+            where TService : class
         {
+
             var customBinding = new CustomBinding(binding);
             ApplyDebugTimeouts(customBinding);
             var transportScheme = binding.Scheme;
-            return CreateWebHostBuilder(outputHelper, new[] { transportScheme })
+            return CreateWebHostBuilder(outputHelper, new[] { transportScheme }, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
                             .AddServiceModelMetadata();
+                    configureServices?.Invoke(services);
                 },
                 app =>
                 {
@@ -58,7 +64,7 @@ namespace Helpers
                 });
         }
 
-        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(Binding binding1, Binding binding2, string url, ITestOutputHelper outputHelper = default) where TService1 : class where TService2 : class
+        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(Binding binding1, Binding binding2, string url, ITestOutputHelper outputHelper = default, string callerMethodName = "") where TService1 : class where TService2 : class
         {
             var customBinding1 = new CustomBinding(binding1);
             ApplyDebugTimeouts(customBinding1);
@@ -66,7 +72,7 @@ namespace Helpers
             var customBinding2 = new CustomBinding(binding2);
             ApplyDebugTimeouts(customBinding2);
             var transportScheme2 = binding1.Scheme;
-            return CreateWebHostBuilder(outputHelper, new[] { transportScheme1, transportScheme2 })
+            return CreateWebHostBuilder(outputHelper, new[] { transportScheme1, transportScheme2 }, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
@@ -100,11 +106,11 @@ namespace Helpers
                 });
         }
 
-        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(IDictionary<string, Binding> bindingEndpointMap, Uri[] baseAddresses, ITestOutputHelper outputHelper = default) where TService : class
+        internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(IDictionary<string, Binding> bindingEndpointMap, Uri[] baseAddresses, ITestOutputHelper outputHelper = default, string callerMethodName = "") where TService : class
         {
             // Presume all bindings are the same type
             var transportSchemes = bindingEndpointMap.Values.Select(binding => binding.Scheme).ToArray();
-            return CreateWebHostBuilder(outputHelper, transportSchemes)
+            return CreateWebHostBuilder(outputHelper, transportSchemes, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
@@ -171,7 +177,7 @@ namespace Helpers
             throw new InvalidOperationException($"There are no listening addresses for scheme {transportScheme}. Available addresses are {string.Join(", ", addresses)}");
         }
 
-        private static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, IEnumerable<string> transportSchemes)
+        private static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, IEnumerable<string> transportSchemes, string callerMethodName)
         {
             var schemesCollection = new HashSet<string>(transportSchemes, StringComparer.OrdinalIgnoreCase);
             var host = WebHost.CreateDefaultBuilder(Array.Empty<string>());
@@ -179,7 +185,7 @@ namespace Helpers
             host.ConfigureLogging((ILoggingBuilder logging) =>
             {
                 if (outputHelper != default)
-                    logging.AddProvider(new XunitLoggerProvider(outputHelper));
+                    logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);

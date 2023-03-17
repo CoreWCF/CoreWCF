@@ -61,7 +61,7 @@ namespace CoreWCF.Channels.Framing
         public int EnvelopeOffset { get; internal set; }
         public BufferManager BufferManager { get; internal set; }
         public int EnvelopeSize { get; internal set; }
-        public int MaxReceivedMessageSize { get; internal set; }
+        public long MaxReceivedMessageSize { get; internal set; }
         public int MaxBufferSize { get; internal set; }
         public int ConnectionBufferSize { get; internal set; }
         public TransferMode TransferMode { get; internal set; }

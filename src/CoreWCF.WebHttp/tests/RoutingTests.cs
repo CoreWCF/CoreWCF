@@ -38,6 +38,20 @@ namespace CoreWCF.WebHttp.Tests
         }
 
         [Fact]
+        public async Task NoParamWithEmptyRoot()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithEmptyRoot>(_output).Build();
+            using (host)
+            {
+                host.Start();
+
+                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync("noparam");
+
+                Assert.Equal(HttpStatusCode.OK, statusCode);
+            }
+        }
+
+        [Fact]
         public async Task PathParam()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
@@ -127,8 +141,20 @@ namespace CoreWCF.WebHttp.Tests
             }
         }
 
-        internal class Startup
+        internal class Startup : StartupBase
         {
+            protected override string RootAddress { get; } = "api";
+        }
+
+        internal class StartupWithEmptyRoot : StartupBase
+        {
+            protected override string RootAddress { get; } = string.Empty;
+        }
+
+        internal abstract class StartupBase
+        {
+            protected abstract string RootAddress { get; }
+
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelWebServices();
@@ -139,7 +165,7 @@ namespace CoreWCF.WebHttp.Tests
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.RoutingService>();
-                    builder.AddServiceWebEndpoint<Services.RoutingService, ServiceContract.IRoutingService>("api");
+                    builder.AddServiceWebEndpoint<Services.RoutingService, ServiceContract.IRoutingService>(RootAddress);
                 });
             }
         }

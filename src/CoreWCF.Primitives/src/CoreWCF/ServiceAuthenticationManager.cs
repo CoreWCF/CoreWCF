@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Security;
@@ -13,9 +14,16 @@ namespace CoreWCF
 {
     public class ServiceAuthenticationManager
     {
+        [Obsolete("Implementers should override AuthenticateAsync.")]
         public virtual ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
         {
             return authPolicy;
+        }
+
+        public virtual ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
+        {
+            var policies = Authenticate(authPolicy, listenUri, ref message);
+            return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((policies, message));
         }
     }
 
@@ -28,7 +36,7 @@ namespace CoreWCF
             _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
-        public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
+        public override ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
         {
             if ((message != null) &&
                 (message.Properties != null) &&
@@ -45,7 +53,7 @@ namespace CoreWCF
                 authPolicy = authPolicies.AsReadOnly();
             }
 
-            return _wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
         }
     }
 
@@ -68,11 +76,11 @@ namespace CoreWCF
             _wrappedAuthenticationManager = wrappedServiceAuthManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(wrappedServiceAuthManager));
         }
 
-        public override ReadOnlyCollection<IAuthorizationPolicy> Authenticate(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, ref Message message)
+        public override ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)> AuthenticateAsync(ReadOnlyCollection<IAuthorizationPolicy> authPolicy, Uri listenUri, Message message)
         {
             if (CanSkipAuthentication(message))
             {
-                return authPolicy;
+                return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((authPolicy, message));
             }
 
             if (_filteredActionUriCollection != null)
@@ -84,18 +92,18 @@ namespace CoreWCF
                         !string.IsNullOrEmpty(message.Headers.Action) &&
                         (message.Headers.Action == _filteredActionUriCollection[i]))
                     {
-                        return authPolicy;
+                        return new ValueTask<(ReadOnlyCollection<IAuthorizationPolicy> policies, Message message)>((authPolicy, message));
                     }
                 }
             }
 
-            return _wrappedAuthenticationManager.Authenticate(authPolicy, listenUri, ref message);
+            return _wrappedAuthenticationManager.AuthenticateAsync(authPolicy, listenUri, message);
         }
 
         //
         // We skip the authentication step if the client already has an SCT and there are no Transport level tokens.
         // ServiceAuthenticationManager would have been called when the SCT was issued and there is no need to do
-        // Authentication again. If TransportToken was present then we would call ServiceAutenticationManager as 
+        // Authentication again. If TransportToken was present then we would call ServiceAutenticationManager as
         // TransportTokens are not authenticated during SCT issuance.
         //
         private bool CanSkipAuthentication(Message message)

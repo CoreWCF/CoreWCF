@@ -5,12 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -500,7 +503,7 @@ namespace CoreWCF.Description
 
                 if (!operation.IsServerInitiated())
                 {
-                    BuildDispatchOperation(operation, dispatch, provider);
+                    BuildDispatchOperation(operation, dispatch, provider, serviceDescription.ServiceProvider);
                 }
                 else
                 {
@@ -545,7 +548,8 @@ namespace CoreWCF.Description
             parent.Operations.Add(child);
         }
 
-        private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider)
+        private static void BuildDispatchOperation(OperationDescription operation, DispatchRuntime parent, EndpointFilterProvider provider,
+            IServiceProvider services)
         {
             string requestAction = operation.Messages[0].Action;
             DispatchOperation child;
@@ -590,6 +594,42 @@ namespace CoreWCF.Description
 
                 parent.UnhandledDispatchOperation = child;
             }
+
+            var authorizationPolicyProvider = services.GetService<IAuthorizationPolicyProvider>();
+            if (authorizationPolicyProvider != null)
+            {
+                child.AuthorizationPolicy = new Lazy<AuthorizationPolicy>(() =>
+                {
+                    object serviceInstance = OperationContext.Current.InstanceContext.GetServiceInstance();
+                    Type serviceType = serviceInstance.GetType();
+                    ReadOnlyCollection<IAuthorizeData> authorizeData = operation.AuthorizeData.ContainsKey(serviceType)
+                        ? operation.AuthorizeData[serviceType]
+                        : operation.AuthorizeData[serviceType] = BuildAuthorizeData(operation, serviceType);
+
+                    if (authorizeData.Count > 0)
+                    {
+                        // TODO: Make this chain call async
+                        return AuthorizationPolicy.CombineAsync(authorizationPolicyProvider, authorizeData).GetAwaiter()
+                            .GetResult();
+                    }
+
+                    return null;
+                });
+            }
+        }
+
+        private static ReadOnlyCollection<IAuthorizeData> BuildAuthorizeData(OperationDescription operation, Type serviceType)
+        {
+            List<IAuthorizeData> authorizeData = new();
+            authorizeData.AddRange(serviceType.GetCustomAttributes(false).OfType<IAuthorizeData>());
+            InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operation.OperationMethod.DeclaringType);
+            int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operation.OperationMethod);
+            if (index >= 0)
+            {
+                authorizeData.AddRange(interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>());
+            }
+
+            return authorizeData.AsReadOnly();
         }
 
         private static void BindOperations(ContractDescription contract, ClientRuntime proxy, DispatchRuntime dispatch)
