@@ -43,7 +43,7 @@ namespace CoreWCF.Http.Tests
             {
                 host.Start();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(Startup.GetClientBinding(clientMessageVersion),
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/MessageVersionTest.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/MessageVersionTest.svc")));
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 var result = channel.EchoString(testString);
                 Assert.Equal(testString, result);

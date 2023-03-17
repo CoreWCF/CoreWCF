@@ -24,9 +24,9 @@ namespace CoreWCF.ConfigurationManager.Tests
             MessageCredentialType clientCredType = MessageCredentialType.UserName;
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <wsHttpBinding>
                 <binding name=""{expectedName}""
                          maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
@@ -35,10 +35,10 @@ namespace CoreWCF.ConfigurationManager.Tests
                     <security mode=""{expectedSecurityMode}"">
                     <message clientCredentialType=""{clientCredType}"" />
                      </security>
-                    <readerQuotas maxDepth=""{expectedMaxDepth}"" />                    
+                    <readerQuotas maxDepth=""{expectedMaxDepth}"" />
                 </binding >
-            </wsHttpBinding>                             
-        </bindings>                             
+            </wsHttpBinding>
+        </bindings>
     </system.serviceModel>
 </configuration>";
 
@@ -50,7 +50,7 @@ namespace CoreWCF.ConfigurationManager.Tests
 
                     var actualBinding = settingHolder.ResolveBinding(nameof(WSHttpBinding), expectedName) as WSHttpBinding;
                     Assert.Equal(expectedName, actualBinding.Name);
-                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);                 
+                    Assert.Equal(expectedMaxReceivedMessageSize, actualBinding.MaxReceivedMessageSize);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.CloseTimeout);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.OpenTimeout);
                     Assert.Equal(expectedDefaultTimeout, actualBinding.SendTimeout);
@@ -74,13 +74,13 @@ namespace CoreWCF.ConfigurationManager.Tests
             TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <wsHttpBinding>
                 <binding name=""{expectedName}""/>
-            </wsHttpBinding>                             
-        </bindings>                             
+            </wsHttpBinding>
+        </bindings>
     </system.serviceModel>
 </configuration>";
 

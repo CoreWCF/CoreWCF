@@ -28,9 +28,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/async/get");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(), "api/async/get");
                 ServiceContract.AsyncData responseData = SerializationHelpers.DeserializeJson<ServiceContract.AsyncData>(content);
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
@@ -44,9 +44,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/async/post", new ServiceContract.AsyncData { Data = "async" });
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(),"api/async/post", new ServiceContract.AsyncData { Data = "async" });
                 ServiceContract.AsyncData responseData = SerializationHelpers.DeserializeJson<ServiceContract.AsyncData>(content);
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);

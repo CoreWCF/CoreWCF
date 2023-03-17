@@ -37,7 +37,7 @@ public class AuthorizationTests
         using (host)
         {
             await host.StartAsync();
-            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/echo", TestString);
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(), "api/echo", TestString);
             Assert.Equal(HttpStatusCode.OK, statusCode);
             Assert.Equal(JsonConvert.SerializeObject(TestString), content);
         }
@@ -52,7 +52,7 @@ public class AuthorizationTests
         using (host)
         {
             await host.StartAsync();
-            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/echo", TestString);
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(), "api/echo", TestString);
             Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
         }
     }
@@ -66,7 +66,7 @@ public class AuthorizationTests
         using (host)
         {
             await host.StartAsync();
-            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/echo", TestString);
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(), "api/echo", TestString);
             Assert.Equal(HttpStatusCode.BadRequest, statusCode);
             Assert.Contains("Access is denied", content);
         }

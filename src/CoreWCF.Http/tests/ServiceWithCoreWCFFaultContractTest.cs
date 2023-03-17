@@ -40,7 +40,7 @@ namespace BasicHttp
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceWithCoreWCFFaultContract>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/Service.svc")));
                 IServiceWithCoreWCFFaultContract channel = factory.CreateChannel();
 
                 var e = Assert.Throws<System.ServiceModel.FaultException<ClientContract.SSMCompatibilityFault>>(() => channel.Identity("test"));

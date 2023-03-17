@@ -36,7 +36,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>();
+                ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>(host);
                 try
                 {
                     switch (serviceOpType)
