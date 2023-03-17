@@ -22,6 +22,10 @@ public interface IFrameworkService
     [WebGet(UriTemplate = "/hello", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json, RequestFormat = WebMessageFormat.Json)]
     [OperationContract]
     public string SyncWebGet();
+
+    [WebGet(UriTemplate = "/implicitFormat", BodyStyle = WebMessageBodyStyle.Bare)]
+    [OperationContract]
+    public string ImplicitlySetFormat();
 }
 
 #endif

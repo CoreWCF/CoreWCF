@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Web;
 
@@ -19,7 +20,7 @@ namespace CoreWCF.Description;
 /// This allows endpoints to be defined using WCF classic attributes as well as CoreWCF
 /// attributes, for a simpler migration path.
 /// </summary>
-internal static class WebHttpServiceModelCompat
+public static class WebHttpServiceModelCompat
 {
     public static void ServiceModelAttributeFixup(ServiceEndpoint endpoint)
     {
@@ -81,7 +82,7 @@ internal static class WebHttpServiceModelCompat
         }
     }
 
-
+    private static readonly Regex IsXXXSetExplicitly = new Regex("Is.*SetExplicitly", RegexOptions.Compiled);
     private static class AttributeConverter<TOut> where TOut : class, IOperationBehavior
     {
         private static readonly ConcurrentDictionary<Type, Func<Attribute, TOut?>> s_converterCache = new();
@@ -118,6 +119,8 @@ internal static class WebHttpServiceModelCompat
                 .Invoke(null, Array.Empty<object>());
         }
 
+
+
         private static Func<Attribute, TOut?> BuildDynamic<TInput>()
         {
             var inputExpression = Expression.Parameter(typeof(TInput));
@@ -133,6 +136,9 @@ internal static class WebHttpServiceModelCompat
                 // strings, numbers, and enums.
                 // Therefore a simple cast expression should convert the enums simply.
                 let value = Expression.Convert(Expression.Property(inputExpression, inputProp), outputProp.PropertyType)
+                // We need to copy the IsXXXSetExplicitly properties last
+                // as they can be overwritten by the other setters.
+                orderby IsXXXSetExplicitly.IsMatch(inputProp.Name)
                 select (MemberBinding)Expression.Bind(outputProp, value);
 
             var convert = Expression.Lambda<Func<TInput, TOut>>(
