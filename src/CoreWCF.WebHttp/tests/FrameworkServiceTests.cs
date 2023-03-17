@@ -4,10 +4,12 @@
 using System.Net;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceContract;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -53,6 +55,17 @@ public class FrameworkServiceTests
             Assert.Equal(HttpStatusCode.OK, statusCode);
             Assert.Equal("async", responseData.Data);
         }
+    }
+
+    [Fact]
+    public void ImplicitlySetFormatIsCopiedCorrectly()
+    {
+        var method = typeof(IFrameworkService).GetMethod(nameof(IFrameworkService.ImplicitlySetFormat));
+
+        var webGetAttribute = WebHttpServiceModelCompat.GetNativeAttribute<CoreWCF.Web.WebGetAttribute>(method!)!;
+
+        Assert.False(webGetAttribute.IsRequestFormatSetExplicitly, $"{nameof(Web.WebGetAttribute.IsRequestFormatSetExplicitly)} was not correctly copied");
+        Assert.False(webGetAttribute.IsResponseFormatSetExplicitly, $"{nameof(Web.WebGetAttribute.IsResponseFormatSetExplicitly)} was not correctly copied");
     }
 
     internal class Startup
