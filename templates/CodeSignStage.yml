@@ -8,7 +8,6 @@ stages:
     displayName: Code Signing
     pool:
       vmImage: windows-latest # Code signing must run on a Windows agent for Authenticode signing (dll/exe)
-    environment: Code Sign - Approvals
     variables:
     - group: Sign Client Credentials
     steps:
