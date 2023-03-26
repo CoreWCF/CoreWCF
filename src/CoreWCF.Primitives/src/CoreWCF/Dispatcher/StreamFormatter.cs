@@ -96,12 +96,14 @@ namespace CoreWCF.Dispatcher
 
         private Task WriteEndWrapperIfNecessaryAsync(XmlDictionaryWriter writer)
         {
+#pragma warning disable VSTHRD103 // XmlBinaryNodeWriter throws NotImplementedException
             writer.WriteEndElement();
+
             if (WrapperName != null)
             {
                 writer.WriteEndElement();
             }
-
+#pragma warning restore VSTHRD103
             return Task.CompletedTask;
         }
 

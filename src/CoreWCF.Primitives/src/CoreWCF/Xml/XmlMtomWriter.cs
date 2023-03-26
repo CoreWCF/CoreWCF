@@ -463,7 +463,7 @@ namespace CoreWCF.Xml
 
                 await Writer.WriteStartElementAsync(MtomGlobals.XopIncludePrefix, MtomGlobals.XopIncludeLocalName, MtomGlobals.XopIncludeNamespace);
                 Writer.WriteStartAttribute(MtomGlobals.XopIncludeHrefLocalName, MtomGlobals.XopIncludeHrefNamespace);
-                Writer.WriteString(string.Format(CultureInfo.InvariantCulture, "{0}{1}", MimeGlobals.ContentIDScheme, _contentID));
+                await Writer.WriteStringAsync(string.Format(CultureInfo.InvariantCulture, "{0}{1}", MimeGlobals.ContentIDScheme, _contentID));
                 Writer.WriteEndAttribute();
                 await Writer.WriteEndElementAsync();
                 _binaryDataChunks = null;

@@ -110,7 +110,9 @@ namespace CoreWCF.IdentityModel.Selectors
 
         protected virtual Task CancelTokenCoreAsync(SecurityToken token, TimeSpan timeout)
         {
+#pragma warning disable VSTHRD103 // Requires to deprecate synchronous public api
             CancelToken(timeout, token);
+#pragma warning restore VSTHRD103
             return Task.CompletedTask;
         }
     }

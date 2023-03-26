@@ -745,7 +745,7 @@ namespace CoreWCF.Channels
                 message.Properties.Encoder = this;
                 XmlDictionaryWriter xmlWriter = _factory.TakeStreamedWriter(stream);
                 await message.WriteMessageAsync(xmlWriter);
-                xmlWriter.Flush();
+                await xmlWriter.FlushAsync();
 
                 _factory.ReturnStreamedWriter(xmlWriter);
                 if (compressionFormat != CompressionFormat.None)

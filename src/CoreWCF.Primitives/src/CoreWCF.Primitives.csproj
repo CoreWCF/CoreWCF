@@ -22,6 +22,10 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.23.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.23.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="2.1.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.5.22">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.DirectoryServices" Version="7.0.0" />
     <PackageReference Include="System.DirectoryServices.Protocols" Version="7.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="7.0.0" />

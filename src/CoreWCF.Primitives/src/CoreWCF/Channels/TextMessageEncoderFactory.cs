@@ -129,7 +129,7 @@ namespace CoreWCF.Channels
             }
 
             // then some heuristic matches (since System.Mime.ContentType is a performance hit)
-            // start by looking for a parameter. 
+            // start by looking for a parameter.
 
             // If none exists, we don't have an encoding
             int semiColonIndex = contentType.IndexOf(';');
@@ -142,7 +142,7 @@ namespace CoreWCF.Channels
             int charsetValueIndex = -1;
 
             // for Indigo scenarios, we'll have "; charset=", so check for the c
-            if ((contentType.Length > semiColonIndex + 11) // need room for parameter + charset + '=' 
+            if ((contentType.Length > semiColonIndex + 11) // need room for parameter + charset + '='
                 && contentType[semiColonIndex + 2] == 'c'
                 && string.Compare("charset=", 0, contentType, semiColonIndex + 2, 8, StringComparison.OrdinalIgnoreCase) == 0)
             {
@@ -490,12 +490,12 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    xmlWriter.WriteStartDocument();
+                    await xmlWriter.WriteStartDocumentAsync();
                     await message.WriteMessageAsync(xmlWriter);
-                    xmlWriter.WriteEndDocument();
+                    await xmlWriter.WriteEndDocumentAsync();
                 }
 
-                xmlWriter.Flush();
+                await xmlWriter.FlushAsync();
                 ReturnStreamedWriter(xmlWriter);
                 await stream.FlushAsync();
             }

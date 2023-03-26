@@ -661,13 +661,13 @@ namespace CoreWCF.Dispatcher
                 return new object[1];
             }
 
-            public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
+            public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
             {
                 object[] outputs = EmptyArray<object>.Allocate(0);
 
                 if (!(inputs[0] is Message message))
                 {
-                    return new ValueTask<(object returnValue, object[] outputs)>(((object)null, outputs));
+                    return (null, outputs);
                 }
 
                 string action = message.Headers.Action;
@@ -714,19 +714,15 @@ namespace CoreWCF.Dispatcher
                 if (_dispatchRuntime._shared.EnableFaults)
                 {
                     MessageFault fault = MessageFault.CreateFault(code, reason, action);
-                    return new ValueTask<(object returnValue, object[] outputs)>(
-                        (Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction),
-                         outputs));
+                    return (Message.CreateMessage(message.Version, fault, message.Version.Addressing.DefaultFaultAction), outputs);
                 }
                 else
                 {
-                    OperationContext.Current.RequestContext.CloseAsync().GetAwaiter().GetResult();
+                    await OperationContext.Current.RequestContext.CloseAsync();
                     OperationContext.Current.RequestContext = null;
-                    return new ValueTask<(object returnValue, object[] outputs)>((null, outputs));
+                    return (null, outputs);
                 }
             }
-
-
 
             public IAsyncResult InvokeBegin(object instance, object[] inputs, AsyncCallback callback, object state)
             {

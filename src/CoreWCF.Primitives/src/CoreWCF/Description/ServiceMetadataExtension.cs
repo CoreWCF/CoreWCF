@@ -1516,11 +1516,11 @@ SR.SFxDocExt_NoMetadataSection5        ));
                         var utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
                         using (var textWriter = new StreamWriter(memoryStream, encoding: utf8NoBomEncoding, bufferSize: 1024, leaveOpen: true))
                         {
-                            using (var xmlTextWriter = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = false, OmitXmlDeclaration = false }))
+                            using (var xmlTextWriter = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = false, Async = true, OmitXmlDeclaration = false }))
                             {
-                                xmlTextWriter.WriteStartDocument();
+                                await xmlTextWriter.WriteStartDocumentAsync();
                                 Write(xmlTextWriter);
-                                xmlTextWriter.WriteEndDocument();
+                                await xmlTextWriter.WriteEndDocumentAsync();
                             }
                         }
                         memoryStream.Position = 0;
