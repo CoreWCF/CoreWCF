@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Queue.Common
 {
-    internal class QueuePollingService : IHostedService
+    internal class QueuePollingService : IHostedService, IDisposable
     {
         private readonly QueueMiddleware _queueMiddleware;
         private readonly IServiceProvider _services;
@@ -98,6 +98,17 @@ namespace CoreWCF.Queue.Common
         private static async Task StartFetchingMessage(QueueTransportContext queueTransport, CancellationToken token)
         {
             await queueTransport.QueuePump.StartPumpAsync(queueTransport, token);
+        }
+
+        public void Dispose()
+        {
+            foreach (var queueTransportContext in _queueTransportContexts)
+            {
+                if (queueTransportContext.QueuePump is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
     }
 }
