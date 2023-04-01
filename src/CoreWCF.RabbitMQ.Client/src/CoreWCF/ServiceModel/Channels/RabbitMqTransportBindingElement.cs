@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.ServiceModel.Channels;
 using RabbitMQ.Client;
 
@@ -7,10 +6,6 @@ namespace CoreWCF.ServiceModel.Channels
 {
     public class RabbitMqTransportBindingElement : TransportBindingElement
     {
-        private const int MaxRabbitMqMessageSize = 536870912; // 512 * (2^20) = 512 MB, max message size as of RabbitMQ v3.8
-        private const int DefaultMaxMessageSize = 65535;  // 64K
-        private long _maxReceivedMessageSize = DefaultMaxMessageSize;
-
         public RabbitMqTransportBindingElement()
         { }
 
@@ -18,14 +13,10 @@ namespace CoreWCF.ServiceModel.Channels
             : base(other)
         {
             MaxReceivedMessageSize = other.MaxReceivedMessageSize;
-            BaseAddress = other.BaseAddress;
             BrokerProtocol = other.BrokerProtocol;
             SslOption = other.SslOption;
             VirtualHost = other.VirtualHost;
-            Credentials = other.Credentials;
         }
-
-        public Uri BaseAddress { get; internal set; }
 
         /// <summary>
         /// Gets the scheme used by the binding, soap.amqp
@@ -33,27 +24,6 @@ namespace CoreWCF.ServiceModel.Channels
         public override string Scheme
         {
             get { return RabbitMqDefaults.Scheme; }
-        }
-
-        /// <summary>
-        /// The largest receivable encoded message
-        /// </summary>
-        public override long MaxReceivedMessageSize
-        {
-            get
-            {
-                return _maxReceivedMessageSize;
-            }
-
-            set
-            {
-                if (value <= 0 || value > MaxRabbitMqMessageSize)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, SR.Format(SR.InvalidMaxReceivedMessageSizeValue, 1, MaxRabbitMqMessageSize));
-                }
-
-                _maxReceivedMessageSize = value;
-            }
         }
 
         /// <summary>
@@ -71,11 +41,6 @@ namespace CoreWCF.ServiceModel.Channels
         /// Virtual host for the RabbitMQ queue
         /// </summary>
         public string VirtualHost { get; set; }
-
-        /// <summary>
-        /// Credentials used for accessing the RabbitMQ host
-        /// </summary>
-        public ICredentials Credentials { get; set; }
 
         public override BindingElement Clone()
         {

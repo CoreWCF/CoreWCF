@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using RabbitMQ.Client;
 using BinaryMessageEncodingBindingElement = System.ServiceModel.Channels.BinaryMessageEncodingBindingElement;
 using Binding = System.ServiceModel.Channels.Binding;
@@ -15,10 +14,7 @@ namespace CoreWCF.ServiceModel.Channels
         private BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
         private RabbitMqMessageEncoding _messageEncoding = RabbitMqMessageEncoding.Text;
 
-        public RabbitMqBinding(string uri) : this(new Uri(uri))
-        { }
-
-        public RabbitMqBinding(Uri uri)
+        public RabbitMqBinding()
         {
             _textMessageEncodingBindingElement = new TextMessageEncodingBindingElement();
             _binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement();
@@ -28,7 +24,6 @@ namespace CoreWCF.ServiceModel.Channels
             
             _transport = new RabbitMqTransportBindingElement
             {
-                BaseAddress = uri,
                 SslOption = sslOption,
                 VirtualHost = virtualHost
             };
@@ -52,22 +47,10 @@ namespace CoreWCF.ServiceModel.Channels
             set => _transport.BrokerProtocol = value;
         }
 
-        public Uri BaseAddress
-        {
-            get => _transport.BaseAddress;
-            set => _transport.BaseAddress = value;
-        }
-
         public SslOption SslOption
         {
             get => _transport.SslOption;
             set => _transport.SslOption = value;
-        }
-
-        public string VirtualHost
-        {
-            get => _transport.VirtualHost;
-            set => _transport.VirtualHost = value;
         }
 
         /// <summary>
@@ -89,7 +72,6 @@ namespace CoreWCF.ServiceModel.Channels
                 }
                 _messageEncoding = value;
             }
-
         }
 
         public override BindingElementCollection CreateBindingElements()

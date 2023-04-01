@@ -28,6 +28,7 @@ namespace CoreWCF.RabbitMQ.Tests
         }
 
         [Fact(Skip = "Requires RabbitMQ host with SSL")]
+        [Trait("Category", "LinuxOnly")]
         public void ClassicQueueWithTls_SendReceiveMessage_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
@@ -43,7 +44,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
                 // Send a message with the client
                 var endpointAddress = new System.ServiceModel.EndpointAddress(uri);
-                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding(uri)
+                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding()
                 {
                     SslOption = sslOption
                 };
@@ -77,7 +78,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
                 // Send a message with the client
                 var endpointAddress = new System.ServiceModel.EndpointAddress(uri);
-                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding(uri);
+                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding();
                 var factory = new ChannelFactory<ITestContract>(rabbitMqBinding, endpointAddress);
                 factory.Credentials.UserName.UserName = userName;
                 factory.Credentials.UserName.Password = password;
@@ -108,7 +109,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
                 // Send a message with the client
                 var endpointAddress = new System.ServiceModel.EndpointAddress(uri);
-                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding(uri);
+                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding();
                 var factory = new ChannelFactory<ITestContract>(rabbitMqBinding, endpointAddress);
                 factory.Credentials.UserName.UserName = userName;
                 factory.Credentials.UserName.Password = password;
@@ -139,7 +140,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
                 // Send a message with the client
                 var endpointAddress = new System.ServiceModel.EndpointAddress(uri);
-                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding(uri);
+                var rabbitMqBinding = new ServiceModel.Channels.RabbitMqBinding();
                 var factory = new ChannelFactory<ITestContract>(rabbitMqBinding, endpointAddress);
                 factory.Credentials.UserName.UserName = userName;
                 factory.Credentials.UserName.Password = password;

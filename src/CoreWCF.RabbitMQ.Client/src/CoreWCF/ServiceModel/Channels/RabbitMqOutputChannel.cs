@@ -24,6 +24,8 @@ namespace CoreWCF.ServiceModel.Channels
 
         internal RabbitMqOutputChannel(
             RabbitMqChannelFactory factory,
+            EndpointAddress endpointAddress,
+            Uri via,
             RabbitMqTransportBindingElement transport,
             SecurityTokenManager securityTokenManager,
             MessageEncoder encoder)
@@ -34,8 +36,8 @@ namespace CoreWCF.ServiceModel.Channels
             _securityTokenManager = securityTokenManager;
             _encoder = encoder;
             
-            _via = _transport.BaseAddress;
-            _baseAddress = new EndpointAddress(_via);
+            _via = via;
+            _baseAddress = endpointAddress;
         }
 
         EndpointAddress IOutputChannel.RemoteAddress => _baseAddress;
@@ -80,7 +82,7 @@ namespace CoreWCF.ServiceModel.Channels
         /// </summary>
         protected override void OnOpen(TimeSpan timeout)
         {
-            OnOpenAsync(timeout).Wait();
+            OnOpenAsync(timeout).GetAwaiter().GetResult();
         }
 
         protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
@@ -98,7 +100,7 @@ namespace CoreWCF.ServiceModel.Channels
 
         protected override void OnClose(TimeSpan timeout)
         {
-            OnCloseAsync().Wait();
+            OnCloseAsync().GetAwaiter().GetResult();
         }
 
         protected override IAsyncResult OnBeginClose(TimeSpan timeout, AsyncCallback callback, object state)
@@ -113,12 +115,12 @@ namespace CoreWCF.ServiceModel.Channels
 
         public void Send(Message message)
         {
-            SendAsync(message).Wait();
+            SendAsync(message).GetAwaiter().GetResult();
         }
 
         public void Send(Message message, TimeSpan timeout)
         {
-            SendAsync(message, timeout).Wait();
+            SendAsync(message, timeout).GetAwaiter().GetResult();
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
@@ -185,12 +187,12 @@ namespace CoreWCF.ServiceModel.Channels
         }
 
         /// <summary>
-        /// Published a Message to RabbitMQ.
+        /// Publish a message to RabbitMQ
         /// </summary>
         /// <exception cref="TimeoutException"></exception>
         private Task SendAsync(Message message)
         {
-            return SendAsync(message, TimeSpan.Zero);
+            return SendAsync(message, System.Threading.Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
@@ -217,7 +219,7 @@ namespace CoreWCF.ServiceModel.Channels
                     exchange: _connectionSettings.Exchange,
                     routingKey: _connectionSettings.RoutingKey,
                     body: messageBuffer);
-                if (timeout.Ticks > 0)
+                if (timeout > TimeSpan.Zero)
                 {
                     _rabbitMqClient.WaitForConfirmsOrDie(timeout);
                 }
@@ -252,7 +254,7 @@ namespace CoreWCF.ServiceModel.Channels
         {
             if (_securityTokenManager == null)
             {
-                return null;
+                throw new Exception(SR.SecurityTokenManagerIsNull);
             }
 
             var usernameRequirement = new InitiatorServiceModelSecurityTokenRequirement
@@ -278,7 +280,7 @@ namespace CoreWCF.ServiceModel.Channels
 
         private RabbitMqConnectionSettings GetConnectionSettings(string userName, string password)
         {
-            return RabbitMqConnectionSettings.FromUri(_transport.BaseAddress, userName, password, _transport.SslOption, _transport.VirtualHost);
+            return RabbitMqConnectionSettings.FromUri(_via, userName, password, _transport.SslOption, _transport.VirtualHost);
         }
     }
 }

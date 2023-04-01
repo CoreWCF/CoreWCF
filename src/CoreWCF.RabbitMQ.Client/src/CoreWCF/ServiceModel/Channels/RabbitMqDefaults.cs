@@ -5,6 +5,7 @@
         internal const string Scheme = "amqp";
 
         private static readonly System.ServiceModel.Channels.MessageEncoderFactory _messageEncoderFactory;
+
         static RabbitMqDefaults()
         {
             _messageEncoderFactory = new System.ServiceModel.Channels.TextMessageEncodingBindingElement().CreateMessageEncoderFactory();

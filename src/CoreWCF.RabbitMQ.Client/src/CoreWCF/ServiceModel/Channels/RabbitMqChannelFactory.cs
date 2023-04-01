@@ -1,47 +1,57 @@
-﻿using System.Linq;
-using System;
+﻿using System;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using System.IdentityModel.Selectors;
+using System.IdentityModel.Tokens;
+using System.Net.Http;
 using ClientCredentials = System.ServiceModel.Description.ClientCredentials;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CoreWCF.ServiceModel.Channels
 {
     internal class RabbitMqChannelFactory : ChannelFactoryBase<IOutputChannel>
     {
-        private BufferManager _bufferManager;
-        private MessageEncoderFactory _messageEncoderFactory;
-        private RabbitMqTransportBindingElement _transport;
         private SecurityCredentialsManager _channelCredentials;
         private SecurityTokenManager _securityTokenManager;
+        private X509CertificateValidator _sslCertificateValidator;
+        private Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> _remoteCertificateValidationCallback;
 
         internal RabbitMqChannelFactory(RabbitMqTransportBindingElement transport, BindingContext context)
             : base(context.Binding)
         {
-            _transport = transport;
-            _bufferManager = BufferManager.CreateBufferManager(transport.MaxBufferPoolSize, int.MaxValue);
+            Transport = transport;
+            BufferManager = BufferManager.CreateBufferManager(transport.MaxBufferPoolSize, int.MaxValue);
             InitializeSecurityTokenManager(context);
 
+            // TODO: Uncomment when .GetCertificateValidator() becomes available (currently internal to System.ServiceModel.Primitives)
+            //ClientCredentials credentials = context.BindingParameters.Find<ClientCredentials>();
+            //if (credentials != null && credentials.ServiceCertificate.SslCertificateAuthentication != null)
+            //{
+            //    _sslCertificateValidator = credentials.ServiceCertificate.SslCertificateAuthentication.GetCertificateValidator();
+            //    _remoteCertificateValidationCallback = RemoteCertificateValidationCallback;
+            //}
+
             var messageEncoderBindingElement = context.BindingParameters.Find<MessageEncodingBindingElement>();
-            _messageEncoderFactory = messageEncoderBindingElement == null
+            MessageEncoderFactory = messageEncoderBindingElement == null
                 ? RabbitMqDefaults.DefaultMessageEncoderFactory
                 : messageEncoderBindingElement.CreateMessageEncoderFactory();
         }
 
         private void InitializeSecurityTokenManager(BindingContext context)
         {
-            _channelCredentials = context.BindingParameters.OfType<SecurityCredentialsManager>().FirstOrDefault();
+            _channelCredentials = context.BindingParameters.Find<SecurityCredentialsManager>();
             _channelCredentials ??= new ClientCredentials();
             _securityTokenManager = _channelCredentials.CreateSecurityTokenManager();
         }
 
-        public RabbitMqTransportBindingElement Transport => _transport;
+        public RabbitMqTransportBindingElement Transport { get; }
 
-        public BufferManager BufferManager => _bufferManager;
+        public BufferManager BufferManager { get; }
 
-        public MessageEncoderFactory MessageEncoderFactory => _messageEncoderFactory;
+        public MessageEncoderFactory MessageEncoderFactory { get; }
 
         public override T GetProperty<T>()
         {
@@ -73,11 +83,13 @@ namespace CoreWCF.ServiceModel.Channels
             result.ToApmEnd();
         }
 
-        protected override IOutputChannel OnCreateChannel(System.ServiceModel.EndpointAddress queueUrl, Uri via)
+        protected override IOutputChannel OnCreateChannel(System.ServiceModel.EndpointAddress endpointAddress, Uri via)
         {
             return new RabbitMqOutputChannel(
                 this,
-                _transport,
+                endpointAddress,
+                via,
+                Transport,
                 _securityTokenManager,
                 MessageEncoderFactory.Encoder);
         }
@@ -85,7 +97,25 @@ namespace CoreWCF.ServiceModel.Channels
         protected override void OnClosed()
         {
             base.OnClosed();
-            _bufferManager.Clear();
+            BufferManager.Clear();
+        }
+
+        private bool RemoteCertificateValidationCallback(HttpRequestMessage sender, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (_sslCertificateValidator == null)
+            {
+                throw new Exception(SR.SslCertificateValidatorIsNull);
+            }
+
+            try
+            {
+                _sslCertificateValidator.Validate(certificate);
+                return true;
+            }
+            catch (SecurityTokenValidationException ex)
+            {
+                return false;
+            }
         }
     }
 }
