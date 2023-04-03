@@ -898,6 +898,13 @@ namespace CoreWCF.Channels
                     }
                 }
 
+                if (_httpResponse.ContentType != null && _httpResponse.ContentType.StartsWith(@"multipart/related; type=""application/xop+xml"""))
+                {
+                    // For MTOM messages, add a MIME version header
+                    AddMimeVersion("1.0");
+                    message.Properties.Add("CoreWCF.Channel.MtomMessageEncoder.WriteMessageHeaders", false);
+                }
+
                 return result;
             }
 

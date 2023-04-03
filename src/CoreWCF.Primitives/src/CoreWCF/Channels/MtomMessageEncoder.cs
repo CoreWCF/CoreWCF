@@ -423,7 +423,7 @@ namespace CoreWCF.Channels
 
         public override ArraySegment<byte> WriteMessage(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset)
         {
-            return WriteMessageInternal(message, maxMessageSize, bufferManager, messageOffset, GenerateStartInfoString(), _boundary, MtomStartUri, writeMessageHeaders: true);
+            return WriteMessageInternal(message, maxMessageSize, bufferManager, messageOffset, GenerateStartInfoString(), _boundary, MtomStartUri);
         }
 
         // public override Task<ArraySegment<byte>> WriteMessageAsync(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset)
@@ -446,8 +446,14 @@ namespace CoreWCF.Channels
                 MtomContentType, MtomStartUri, boundary, startInfo);
         }
 
-        private ArraySegment<byte> WriteMessageInternal(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset, string startInfo, string boundary, string startUri, bool writeMessageHeaders)
+        private ArraySegment<byte> WriteMessageInternal(Message message, int maxMessageSize, BufferManager bufferManager, int messageOffset, string startInfo, string boundary, string startUri)
         {
+            bool writeMessageHeaders = true;
+            if (message.Properties.TryGetValue("CoreWCF.Channel.MtomMessageEncoder.WriteMessageHeaders", out object boolAsObject) && boolAsObject is bool)
+            {
+                writeMessageHeaders = (bool)boolAsObject;
+            }
+
             if (message == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             if (bufferManager == null)
@@ -506,7 +512,7 @@ namespace CoreWCF.Channels
 
         public override Task WriteMessageAsync(Message message, Stream stream)
         {
-            return WriteMessageInternalAsync(message, stream, GenerateStartInfoString(), _boundary, MtomStartUri, writeMessageHeaders: true);
+            return WriteMessageInternalAsync(message, stream, GenerateStartInfoString(), _boundary, MtomStartUri);
         }
 
         // public override IAsyncResult BeginWriteMessage(Message message, Stream stream, AsyncCallback callback, object state)
@@ -519,8 +525,14 @@ namespace CoreWCF.Channels
         //     result.ToApmEnd();
         // }
 
-        private async Task WriteMessageInternalAsync(Message message, Stream stream, string startInfo, string boundary, string startUri, bool writeMessageHeaders)
+        private async Task WriteMessageInternalAsync(Message message, Stream stream, string startInfo, string boundary, string startUri)
         {
+            bool writeMessageHeaders = true;
+            if (message.Properties.TryGetValue("CoreWCF.Channel.MtomMessageEncoder.WriteMessageHeaders", out object boolAsObject) && boolAsObject is bool)
+            {
+                writeMessageHeaders = (bool)boolAsObject;
+            }
+
             if (message == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(message)));
             if (stream == null)
