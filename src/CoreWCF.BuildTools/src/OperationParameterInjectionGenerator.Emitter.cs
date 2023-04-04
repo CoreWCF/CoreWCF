@@ -243,7 +243,7 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 void AppendInvokeUserProvidedImplementation()
                 {
                     _builder.Append($"{indentor}{@return}{@await}{operationContractSpec.UserProvidedOperationContractImplementation.Name}(");
-                    for (int i = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
+                    for (int i = 0,j = 0; i < operationContractSpec.UserProvidedOperationContractImplementation.Parameters.Length; i++)
                     {
                         IParameterSymbol parameter = operationContractSpec.UserProvidedOperationContractImplementation.Parameters[i];
                         if (i != 0)
@@ -257,12 +257,14 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                         }
                         else
                         {
-                            _builder.Append(parameter.RefKind switch
+                            IParameterSymbol originalParameter = operationContractSpec.MissingOperationContract.Parameters[j];
+                            _builder.Append(originalParameter.RefKind switch
                             {
-                                RefKind.Ref => $"ref {parameter.Name}",
-                                RefKind.Out => $"out {parameter.Name}",
-                                _ => parameter.Name,
+                                RefKind.Ref => $"ref {originalParameter.Name}",
+                                RefKind.Out => $"out {originalParameter.Name}",
+                                _ => originalParameter.Name,
                             });
+                            j++;
                         }
                     }
                     _builder.AppendLine(");");
