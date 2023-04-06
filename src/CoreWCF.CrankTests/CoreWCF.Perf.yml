@@ -1,0 +1,484 @@
+jobs:
+  CoreWCFPerfClient:
+    source:
+      repository: https://github.com/CoreWCF/CoreWCF.git
+      branchOrCommit: main
+      project:  src/CoreWCF.CrankTests/CoreWCFPerfClient/CoreWCF.PerfClient.csproj
+    isConsoleApp: true
+    waitForExit: true
+    variables:
+      Duration: 300
+      requests: 3000
+    arguments: "binding:{{Binding}} serviceurl:{{Protocol}}://{{serverAddress}}:{{serverPort}}/SayHello/SayHello.svc perfmeasurementduration:{{Duration}} Requests:{{requests}} closeandopen:{{closeandopen}}"
+  CoreWCFPerfService:
+    source:
+      repository: https://github.com/CoreWCF/CoreWCF.git
+      branchOrCommit: main
+      project: src/CoreWCF.CrankTests/CoreWCFPerfService/CoreWCF.PerfService.csproj
+    arguments: "baseaddress:{{Protocol}}://{{serverAddress}}"
+    isConsoleApp: true
+
+scenarios:
+  BasicHttpWithCloseAndOpen:  
+    application:
+      job: CoreWCFPerfService
+      variables:
+        Protocol: http
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: http
+        Binding: BasicHttp
+        closeandopen: true
+        serverPort: 8080
+
+  NetTcpWithCloseAndOpen: 
+    application:
+      job: CoreWCFPerfService
+      variables:
+        Protocol: net.tcp
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: net.tcp
+        Binding: NetTcp
+        closeandopen: true
+        serverPort: 8808
+
+  BasicHttpWithoutCloseAndOpen:   
+    application:
+      job: CoreWCFPerfService
+      variables:
+        Protocol: http
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: http
+        Binding: BasicHttp
+        closeandopen: false
+        serverPort: 8080
+
+  NetTcpWithoutCloseAndOpen:    
+    application:
+      job: CoreWCFPerfService
+      variables:
+        Protocol: net.tcp
+    load:
+      job: CoreWCFPerfClient
+      variables:
+        Protocol: net.tcp
+        Binding: NetTcp
+        closeandopen: false
+        serverPort: 8808
+
+profiles:
+  short:
+    variables:
+      warmup: 3
+      duration: 7
+
+  pgo:
+    jobs: 
+      application:
+        environmentVariables:
+        - DOTNET_TieredPGO: 1
+        - DOTNET_TC_QuickJitForLoops: 1
+        - DOTNET_ReadyToRun: 0
+
+  local:
+    variables:
+      serverAddress: localhost
+    jobs: 
+      db:
+        endpoints: 
+          - http://localhost:5010
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://localhost:5010
+        variables:
+          databaseServer: localhost
+      load:
+        endpoints: 
+          - http://localhost:5010
+        aliases:
+          - warmup
+
+  aspnet-citrine-lin:
+    variables:
+      serverAddress: 10.0.0.102
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-db:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-lin:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-citrine-load:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-lin-relay:
+    variables:
+      serverAddress: 10.0.0.102
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinedb
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinelin
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineload
+        aliases:
+          - warmup
+
+  aspnet-citrine-win:
+    variables:
+      serverAddress: 10.0.0.104
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-load:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-win:5001
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - http://asp-citrine-db:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-win-relay:
+    variables:
+      serverAddress: 10.0.0.104
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineload
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinewin
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinedb
+        aliases:
+          - warmup
+          
+  aspnet-citrine-win2:
+    variables:
+      serverAddress: 10.0.0.101
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-db:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-win2:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-citrine-amd:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-win-relay:
+    variables:
+      serverAddress: 10.0.0.101
+      cores: 28
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinedb
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinewin2
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineload
+        aliases:
+          - warmup
+          
+  aspnet-citrine-arm:
+    variables:
+      serverAddress: 10.0.0.107
+      cores: 32
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-db:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-arm:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-citrine-load:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-arm-relay:
+    variables:
+      serverAddress: 10.0.0.107
+      cores: 32
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinedb
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinearm
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineload
+        aliases:
+          - warmup
+
+  aspnet-citrine-ampere:
+    variables:
+      serverAddress: 10.0.0.108
+      cores: 80
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-ampere:5001
+        variables:
+          databaseServer: 10.0.0.109
+      load:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-arm-lin:
+    variables:
+      serverAddress: 10.0.0.108
+      cores: 80
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-ampere:5001
+        variables:
+          databaseServer: 10.0.0.109
+      load:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-arm-win:
+    variables:
+      serverAddress: 10.0.0.110
+      cores: 80
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://10.240.177.200:5001
+        variables:
+          databaseServer: 10.0.0.109
+      load:
+        endpoints: 
+          - http://asp-citrine-amd:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-amd2:
+    variables:
+      serverAddress: 10.0.0.109
+      cores: 48
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-ampere:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-amd2:5001
+        variables:
+          databaseServer: 10.0.0.108
+      load:
+        endpoints: 
+          - http://asp-citrine-ampere:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-amd:
+    variables:
+      serverAddress: 10.0.0.106
+      cores: 48
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-citrine-load:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-citrine-amd:5001
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - http://asp-citrine-db:5001
+        aliases:
+          - warmup
+
+  aspnet-citrine-amd-relay:
+    variables:
+      serverAddress: 10.0.0.106
+      cores: 48
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineload
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrineamd
+        variables:
+          databaseServer: 10.0.0.105
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/citrinedb
+        aliases:
+          - warmup
+
+  aspnet-perf-lin:
+    variables:
+      serverAddress: 10.0.0.102
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-perf-db:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-perf-lin:5001
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - http://asp-perf-load:5001
+        aliases:
+          - warmup
+
+  aspnet-perf-lin-relay:
+    variables:
+      serverAddress: 10.0.0.102
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perfdb
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perflin
+        variables:
+          databaseServer: 10.0.0.103
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perfload
+        aliases:
+          - warmup
+
+  aspnet-perf-win:
+    variables:
+      serverAddress: 10.0.0.110
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - http://asp-perf-load:5001
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - http://asp-perf-win:5001
+        variables:
+          databaseServer: 10.0.0.104
+      load:
+        endpoints: 
+          - http://asp-perf-db:5001
+        aliases:
+          - warmup
+
+  aspnet-perf-win-relay:
+    variables:
+      serverAddress: 10.0.0.110
+      cores: 12
+    jobs: 
+      db:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perfload
+        aliases:
+          - downstream
+      application:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perfwin
+        variables:
+          databaseServer: 10.0.0.104
+      load:
+        endpoints: 
+          - https://aspnetperf.servicebus.windows.net/perfsb
+        aliases:
+          - warmup
