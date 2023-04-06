@@ -7,6 +7,11 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net6.0' ">
+    <Compile Remove="**\*.cs" />
+    <Compile Remove="*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
@@ -22,14 +27,9 @@
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <ProjectReference Include="..\..\CoreWCF.RabbitMQ.Client\src\CoreWCF.RabbitMQ.Client.csproj" />
     <ProjectReference Include="..\src\CoreWCF.RabbitMQ.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="MessageFiles\rabbitmqTestMessage.bin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
