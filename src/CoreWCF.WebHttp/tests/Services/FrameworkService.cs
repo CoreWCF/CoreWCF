@@ -15,7 +15,7 @@ public class FrameworkService : IFrameworkService
 
     public string SyncWebGet() => "Hello World";
 
-    public string ImplicitlySetFormat() => "Hello World";
+    public Task<AsyncData> ImplicitlySetFormat() => Task.FromResult(new AsyncData { Data = "async" });
 }
 
 #endif

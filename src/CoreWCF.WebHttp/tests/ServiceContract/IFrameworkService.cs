@@ -23,9 +23,9 @@ public interface IFrameworkService
     [OperationContract]
     public string SyncWebGet();
 
-    [WebGet(UriTemplate = "/implicitFormat", BodyStyle = WebMessageBodyStyle.Bare)]
+    [WebGet(UriTemplate = "/implicitFormat")]
     [OperationContract]
-    public string ImplicitlySetFormat();
+    public Task<AsyncData> ImplicitlySetFormat();
 }
 
 #endif

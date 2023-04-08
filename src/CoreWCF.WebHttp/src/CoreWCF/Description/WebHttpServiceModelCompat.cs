@@ -20,7 +20,7 @@ namespace CoreWCF.Description;
 /// This allows endpoints to be defined using WCF classic attributes as well as CoreWCF
 /// attributes, for a simpler migration path.
 /// </summary>
-public static class WebHttpServiceModelCompat
+internal static class WebHttpServiceModelCompat
 {
     public static void ServiceModelAttributeFixup(ServiceEndpoint endpoint)
     {
@@ -119,8 +119,6 @@ public static class WebHttpServiceModelCompat
                 .Invoke(null, Array.Empty<object>());
         }
 
-
-
         private static Func<Attribute, TOut?> BuildDynamic<TInput>()
         {
             var inputExpression = Expression.Parameter(typeof(TInput));
@@ -160,7 +158,8 @@ public static class WebHttpServiceModelCompat
                     //     Bar = (CoreWCF.WebHttp.SomeEnum)input.Bar,
                     //     Baz = (CoreWCF.WebHttp.SomeEnum)input.Baz,
                     // };
-                    return convert(input);
+                    var ret = convert(input);
+                    return ret;
                 }
 
                 return null;
