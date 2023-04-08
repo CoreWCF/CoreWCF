@@ -1,10 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
+using CoreWCF.Web;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -58,14 +62,20 @@ public class FrameworkServiceTests
     }
 
     [Fact]
-    public void ImplicitlySetFormatIsCopiedCorrectly()
+    public async Task CanUseJsonWithFormatNotSetExplicitly()
     {
-        var method = typeof(IFrameworkService).GetMethod(nameof(IFrameworkService.ImplicitlySetFormat));
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        using (host)
+        {
+            await host.StartAsync();
 
-        var webGetAttribute = WebHttpServiceModelCompat.GetNativeAttribute<CoreWCF.Web.WebGetAttribute>(method!)!;
+            using var client = new HttpClient { BaseAddress = new Uri("http://localhost:8080") };
+            using var request = new HttpRequestMessage(HttpMethod.Get, "api/implicitFormat");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await client.SendAsync(request);
 
-        Assert.False(webGetAttribute.IsRequestFormatSetExplicitly, $"{nameof(Web.WebGetAttribute.IsRequestFormatSetExplicitly)} was not correctly copied");
-        Assert.False(webGetAttribute.IsResponseFormatSetExplicitly, $"{nameof(Web.WebGetAttribute.IsResponseFormatSetExplicitly)} was not correctly copied");
+            Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
+        }
     }
 
     internal class Startup
@@ -80,7 +90,10 @@ public class FrameworkServiceTests
             app.UseServiceModel(builder =>
             {
                 builder.AddService<Services.FrameworkService>();
-                builder.AddServiceWebEndpoint<Services.FrameworkService, ServiceContract.IFrameworkService>("api");
+                builder.AddServiceWebEndpoint<Services.FrameworkService, IFrameworkService>("api", behavior =>
+                {
+                    behavior.DefaultOutgoingResponseFormat = WebMessageFormat.Json;
+                });
             });
         }
     }

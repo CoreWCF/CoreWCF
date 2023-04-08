@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
                 string automatedSelectionContentType = outgoingResponse.AutomatedFormatSelectionContentType;
                 if (!string.IsNullOrEmpty(automatedSelectionContentType))
                 {
-                    // Don't set the content-type if it is default xml for backwards compatiabilty
+                    // Don't set the content-type if it is default xml for backwards compatibility
                     if (!string.Equals(automatedSelectionContentType, DefaultContentTypes[WebMessageFormat.Xml], StringComparison.OrdinalIgnoreCase))
                     {
                         outgoingResponse.ContentType = automatedSelectionContentType;
@@ -80,7 +80,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    // Don't set the content-type if it is default xml for backwards compatiabilty
+                    // Don't set the content-type if it is default xml for backwards compatibility
                     if (format != WebMessageFormat.Xml)
                     {
                         outgoingResponse.ContentType = DefaultContentTypes[format];
