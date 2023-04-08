@@ -82,7 +82,6 @@ internal static class WebHttpServiceModelCompat
         }
     }
 
-    private static readonly Regex IsXXXSetExplicitly = new Regex("Is.*SetExplicitly", RegexOptions.Compiled);
     private static class AttributeConverter<TOut> where TOut : class, IOperationBehavior
     {
         private static readonly ConcurrentDictionary<Type, Func<Attribute, TOut?>> s_converterCache = new();
@@ -136,7 +135,7 @@ internal static class WebHttpServiceModelCompat
                 let value = Expression.Convert(Expression.Property(inputExpression, inputProp), outputProp.PropertyType)
                 // We need to copy the IsXXXSetExplicitly properties last
                 // as they can be overwritten by the other setters.
-                orderby IsXXXSetExplicitly.IsMatch(inputProp.Name)
+                orderby inputProp.Name.EndsWith("SetExplicitly")
                 select (MemberBinding)Expression.Bind(outputProp, value);
 
             var convert = Expression.Lambda<Func<TInput, TOut>>(
