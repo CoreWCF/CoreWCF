@@ -3,14 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     internal class NamedPipeTransportManager
     {
         private readonly ILogger<NamedPipeTransportManager> _logger;

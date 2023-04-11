@@ -4,12 +4,14 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using CoreWCF.Runtime;
 using Microsoft.Win32.SafeHandles;
 
 namespace CoreWCF.Security
 {
+    [SupportedOSPlatform("windows")]
     internal static class SecurityUtils
     {
         // The logon sid is generated on process start up so it is unique to this process.

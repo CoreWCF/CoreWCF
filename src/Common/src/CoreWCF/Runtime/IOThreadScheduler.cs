@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -578,14 +579,13 @@ namespace CoreWCF.Runtime
         // by the GC anyway.
         private unsafe class ScheduledOverlapped
         {
-            private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             private readonly NativeOverlapped* _nativeOverlapped;
             private IOThreadScheduler _scheduler;
             private readonly Action _postDelegate;
 
             public ScheduledOverlapped()
             {
-                if (s_isWindows)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     _nativeOverlapped = (new Overlapped()).UnsafePack(
                         Fx.ThunkCallback(new IOCompletionCallback(IOCallback)), null);
@@ -672,6 +672,7 @@ namespace CoreWCF.Runtime
                 _postDelegate();
             }
 
+            [SupportedOSPlatform("windows")]
             private void PostIOCP()
             {
                 ThreadPool.UnsafeQueueNativeOverlapped(_nativeOverlapped);
@@ -690,7 +691,7 @@ namespace CoreWCF.Runtime
                     throw Fx.AssertAndThrowFatal("Cleanup called on an overlapped that is in-flight.");
                 }
 
-                if (s_isWindows)
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     Overlapped.Free(_nativeOverlapped);
                 }

@@ -5,17 +5,19 @@ using System;
 using System.ComponentModel;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Runtime.Versioning;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.IO;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32.SafeHandles;
-using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     internal static class PipeStreamHelper
     {
         internal static readonly Action<object> s_cancellationCallback = CancellationCallback;
@@ -65,44 +67,6 @@ namespace CoreWCF.Channels
                 return stateHolder.TaskCompletionSource.Task;
             }
         }
-
-        //public Task WriteZeroAsync(CancellationToken cancellationToken)
-        //    {
-        //        var zeroByteGCHandle = GCHandle.Alloc(_zeroByteBuffer, GCHandleType.Pinned);
-        //        var stateHolder = new StateHolder(zeroByteGCHandle);
-        //        CancellationTokenRegistration cancellationRegistration = default;
-        //        var nativeOverlapped = _overlapped.Pack(s_ioCallback, stateHolder);
-        //        // Queue an async WriteFile operation.
-        //        if (UnsafeNativeMethods.WriteFile(_pipeStream.SafePipeHandle, ref _zeroByteBuffer, 0, IntPtr.Zero, nativeOverlapped) == 0)
-        //        {
-        //            // The operation failed, or it's pending.
-        //            int error = Marshal.GetLastWin32Error();
-        //            switch (error)
-        //            {
-        //                case UnsafeNativeMethods.ERROR_IO_PENDING:
-        //                    // Common case: IO was initiated, completion will be handled by callback.
-        //                    // Register for cancellation now that the operation has been initiated.
-        //                    cancellationRegistration = cancellationToken.Register(s_cancellationCallback, (stateHolder.TaskCompletionSource, cancellationToken));
-        //                    // Need to cleanup cancellation registration after the Task completes.
-        //                    return stateHolder.TaskCompletionSource.Task.ContinueWith((task, state) => { ((CancellationTokenRegistration)state).Dispose(); }, cancellationRegistration);
-        //                default:
-        //                    // Error. Callback will not be invoked.
-        //                    Overlapped.Unpack(nativeOverlapped);
-        //                    zeroByteGCHandle.Free();
-        //                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateWriteException(error));
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // WriteFile returned a non-zero result which means it completed execution synchronously.
-        //            // Need to cleanup the zero byte memory handle, but not the cancellation registration
-        //            // as that only gets registered when we go async.
-        //            stateHolder.TaskCompletionSource.TrySetResult(0);
-        //            zeroByteGCHandle.Free();
-        //            Overlapped.Unpack(nativeOverlapped);
-        //            return stateHolder.TaskCompletionSource.Task;
-        //        }
-        //    }
 
         private static unsafe void IOCallback(uint errorCode, uint numBytes, NativeOverlapped* pOverlapped)
         {

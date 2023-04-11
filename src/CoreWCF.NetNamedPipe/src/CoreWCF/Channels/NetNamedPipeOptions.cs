@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     public class NetNamedPipeOptions
     {
         internal List<NamedPipeListenOptions> CodeBackedListenOptions { get; } = new List<NamedPipeListenOptions>();

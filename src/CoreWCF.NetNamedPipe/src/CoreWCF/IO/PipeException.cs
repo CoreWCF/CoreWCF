@@ -4,9 +4,11 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 
 namespace CoreWCF.IO
 {
+    [SupportedOSPlatform("windows")]
     [Serializable]
     public class PipeException : IOException
     {

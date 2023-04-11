@@ -7,7 +7,7 @@ using CoreWCF.IdentityModel.Claims;
 
 namespace CoreWCF.Primitives.Tests.CustomSecurity
 {
-    internal abstract class MyTestServiceAuthorizationManagerBase : ServiceAuthorizationManager
+    public abstract class MyTestServiceAuthorizationManagerBase : ServiceAuthorizationManager
     {
         protected Func<OperationContext, bool> Logic = (OperationContext operationContext) =>
         {
@@ -42,13 +42,13 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
         };
     }
 
-    internal class MySyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
+    public class MySyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
     {
         [Obsolete("Implementers should override CheckAccessCoreAsync.")]
         protected override bool CheckAccessCore(OperationContext operationContext) => Logic(operationContext);
     }
 
-    internal class MyAsyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
+    public class MyAsyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
     {
         protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new (Logic(operationContext));
     }

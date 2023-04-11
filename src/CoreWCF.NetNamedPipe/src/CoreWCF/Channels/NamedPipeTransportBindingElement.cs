@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.Versioning;
 using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     public class NamedPipeTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
         public NamedPipeTransportBindingElement() : base() { }
