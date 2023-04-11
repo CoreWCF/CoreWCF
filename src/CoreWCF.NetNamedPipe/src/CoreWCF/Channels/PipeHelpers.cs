@@ -3,21 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.MemoryMappedFiles;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.ComponentModel;
 using System.Security.Principal;
-using System.Diagnostics;
 using System.Security.AccessControl;
 using CoreWCF.IO;
 using System.Globalization;
 using System.Threading;
 using CoreWCF.Security;
 using Microsoft.Extensions.Logging;
-using System.Reflection.Metadata;
+using System.Runtime.Versioning;
 
 namespace CoreWCF.Channels
 {
@@ -25,6 +22,7 @@ namespace CoreWCF.Channels
     // it's shortened by using a hash algorithm. This matches the algorithm the client uses to find
     // the shared memory path. The shared memory will then contain the actual named pipe name which is
     // unique from one run to the next.
+    [SupportedOSPlatform("windows")]
     internal static class PipeUri
     {
         public static void Validate(Uri uri)
@@ -123,6 +121,7 @@ namespace CoreWCF.Channels
 
     // This class handles creating a shared memory object which holds the guid of the actual
     // named pipe that clients will connect to.
+    [SupportedOSPlatform("windows")]
     internal unsafe class PipeSharedMemory : IDisposable
     {
         internal const string PipePrefix = @"\\.\pipe\";
@@ -348,6 +347,7 @@ namespace CoreWCF.Channels
         }
     }
 
+    [SupportedOSPlatform("windows")]
     internal static class SecurityDescriptorHelper
     {
         private static byte[] s_worldCreatorOwnerWithReadAndWriteDescriptorDenyNetwork;

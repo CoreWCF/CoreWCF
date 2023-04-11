@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>CoreWCF.NetNamedPipe</AssemblyName>
-    <PackageId>CoreWCF.NetTcp</PackageId>
+    <PackageId>CoreWCF.NetNamedPipe</PackageId>
     <RootNamespace />
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
@@ -18,7 +18,7 @@
     <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
-    <ProjectReference Include="..\..\CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj" />
   </ItemGroup>
 </Project>

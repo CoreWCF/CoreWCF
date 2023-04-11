@@ -9,12 +9,20 @@
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+	<Compile Include="$(CommonPath)/System/**/*.cs">
+      <Visible>true</Visible>
+      <Link>shared/System/%(RecursiveDir)%(Filename)%(Extension)</Link>
+	</Compile>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeCommonTestCode)' == 'true'">
-    <Compile Include="$(CommonTestPath)/**/*.cs">
+  <ItemGroup Condition="'$(ReferenceCommonTestProject)' == 'true'">
+    <ProjectReference Include="$(UnitTestCommonProjectPath)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(ReferenceCommonTestProject)' == 'true'">
+    <Compile Include="$(SourceDir)Common/UnitTests.Common/XunitTestAssemblyAttribute.cs">
       <Visible>true</Visible>
-      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>shared/UnitTests.Common/%(Filename)%(Extension)</Link>
     </Compile>
   </ItemGroup>
 

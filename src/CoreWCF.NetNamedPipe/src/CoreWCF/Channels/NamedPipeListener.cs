@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.IO.Pipelines;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
@@ -12,11 +11,10 @@ using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     internal class NamedPipeListener
     {
         private NamedPipeListenOptions _options;

@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
-    <ProjectReference Include="..\..\CoreWCF.Queue\src\CoreWCF.Queue.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Queue\src\CoreWCF.Queue.csproj" />
   </ItemGroup>
 
 </Project>

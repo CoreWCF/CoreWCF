@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
 
 namespace CoreWCF.Channels
 {
+    [SupportedOSPlatform("windows")]
     public class NamedPipeListenOptions : IConnectionBuilder
     {
         // Some properties which were originally set via ConnectionOrientedTransportBindingElement (eg ConnectionBufferSize) make more sense to

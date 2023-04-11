@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.Versioning;
 using CoreWCF.Channels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
+    [SupportedOSPlatform("windows")]
     public static class NamedPipeWebHostBuilderExtensions
     {
         public static IWebHostBuilder UseNetNamedPipe(this IWebHostBuilder webHostBuilder)

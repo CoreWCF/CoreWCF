@@ -71,11 +71,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.RabbitMQ.Tests", "CoreWCF.RabbitMQ\tests\CoreWCF.RabbitMQ.Tests.csproj", "{983B4A05-3DA2-4AF7-B359-2E2275090CD5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.RabbitMQ.Client", "CoreWCF.RabbitMQ.Client\src\CoreWCF.RabbitMQ.Client.csproj", "{6BDC3206-39D9-4498-8625-436957B31FF0}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.NetFramingBase", "CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj", "{15BAEFE3-0A55-4749-96C3-09E7FB0FF5F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.NetNamedPipe", "CoreWCF.NetNamedPipe\src\CoreWCF.NetNamedPipe.csproj", "{256558C4-475A-46F4-A852-C640E1C28FBC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.NetNamedPipe.Tests", "CoreWCF.NetNamedPipe\tests\CoreWCF.NetNamedPipe.Tests.csproj", "{D0F853FB-A3E1-4091-9E05-733E78CE1F41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests.Common", "Common\UnitTests.Common\UnitTests.Common.csproj", "{357CE1CE-72A8-427A-8163-145588449536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -387,6 +390,18 @@ Global
 		{D0F853FB-A3E1-4091-9E05-733E78CE1F41}.Release|x64.Build.0 = Release|Any CPU
 		{D0F853FB-A3E1-4091-9E05-733E78CE1F41}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0F853FB-A3E1-4091-9E05-733E78CE1F41}.Release|x86.Build.0 = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|x64.Build.0 = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Debug|x86.Build.0 = Debug|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|Any CPU.Build.0 = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|x64.ActiveCfg = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|x64.Build.0 = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|x86.ActiveCfg = Release|Any CPU
+		{357CE1CE-72A8-427A-8163-145588449536}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -418,6 +433,7 @@ Global
 		{15BAEFE3-0A55-4749-96C3-09E7FB0FF5F3} = {0B5D4C83-181F-44AD-8F24-95599BFD66B8}
 		{256558C4-475A-46F4-A852-C640E1C28FBC} = {0B5D4C83-181F-44AD-8F24-95599BFD66B8}
 		{D0F853FB-A3E1-4091-9E05-733E78CE1F41} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
+		{357CE1CE-72A8-427A-8163-145588449536} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C86AC5B-B946-48AD-A3A5-0E1A29EDA4CF}

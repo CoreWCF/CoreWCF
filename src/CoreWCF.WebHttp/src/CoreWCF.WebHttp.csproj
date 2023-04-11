@@ -13,6 +13,6 @@
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CoreWCF.Http\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Http\src\CoreWCF.Http.csproj" />
   </ItemGroup>
 </Project>

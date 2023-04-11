@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using CoreWCF.Channels;
+using System.Runtime.Versioning;
 using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Configuration
 {
+    [SupportedOSPlatform("windows")]
     internal class NetNamedPipeServerOptionsSetup : IConfigureOptions<Channels.NetNamedPipeOptions>
     {
         private readonly IServiceProvider _services;

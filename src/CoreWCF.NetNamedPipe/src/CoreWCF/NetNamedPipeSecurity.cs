@@ -4,9 +4,11 @@
 using CoreWCF.Channels;
 using System.ComponentModel;
 using System;
+using System.Runtime.Versioning;
 
 namespace CoreWCF
 {
+    [SupportedOSPlatform("windows")]
     public sealed class NetNamedPipeSecurity
     {
         internal const NetNamedPipeSecurityMode DefaultMode = NetNamedPipeSecurityMode.Transport;

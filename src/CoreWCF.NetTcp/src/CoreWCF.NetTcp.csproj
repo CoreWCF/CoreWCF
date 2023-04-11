@@ -18,7 +18,7 @@
     <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
-    <ProjectReference Include="..\..\CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj" />
   </ItemGroup>
 </Project>
