@@ -23,7 +23,10 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'net472' AND !$(TargetFramework.Contains('-windows'))">
     <Compile Remove="**\*.cs" />
-    <Compile Remove="*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472' OR !$(TargetFramework.Contains('-windows'))">
+    <None Include="**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
