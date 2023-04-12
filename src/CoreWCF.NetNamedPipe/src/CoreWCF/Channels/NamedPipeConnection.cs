@@ -106,12 +106,29 @@ namespace CoreWCF.Channels
         {
             try
             {
+                _ = CloseAsync();
                 _connectionClosingCts.Cancel();
             }
             catch (ObjectDisposedException)
             {
                 // There's a race where the token could be disposed
                 // swallow the exception and no-op
+            }
+        }
+
+        private async Task CloseAsync()
+        {
+            try
+            {
+                await ConnectionContext.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(0, ex, "Error while closing connection {ConnectionId}.", ConnectionContext.ConnectionId);
+            }
+            finally
+            {
+                Complete();
             }
         }
 

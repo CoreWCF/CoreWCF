@@ -137,6 +137,10 @@ namespace CoreWCF.Channels
 
         internal Task StopAsync(CancellationToken cancellationToken)
         {
+            // TODO: Signal the main dispatcher we're closing down and give it some time to cleanly
+            // close the channels. If it doesn't close them in time, we'll close the connection from
+            // underneath it to avoid leaking the connection.
+            // For now we just close the connection from underneath it.
             return _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken);
         }
     }
