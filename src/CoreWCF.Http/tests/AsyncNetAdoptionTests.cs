@@ -42,8 +42,6 @@ namespace BasicHttp
             }
         }
 
-        
-
         [Fact]
         public async Task OneWayPatternTest_Parallel()
         {
