@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
+using System.Configuration;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -41,7 +43,6 @@ namespace BasicHttp
         }
 
         [Fact]
-        //[UseEndpointConnectionLimit(1000)]
         public async Task OneWayPatternTest_Parallel()
         {
             var inputs = Enumerable.Range(0, 100).Select(x => x.ToString()).ToArray();
