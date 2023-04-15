@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Templates.Test.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CoreWCF.Templates.Tests;
 
-[Collection("CoreWCF.Templates collection")]
-public class BasicTests
+public class BasicTests : IClassFixture<ProjectFactoryFixture>
 {
     public BasicTests(ProjectFactoryFixture projectFactory, ITestOutputHelper output)
     {
@@ -30,7 +32,18 @@ public class BasicTests
         public const string Net462 = "net462";
     }
 
-    public class TestVariation
+    public class TestVariations : TheoryData<TestVariation>
+    {
+        public TestVariations()
+        {
+            foreach (var testVariation in GetTestVariations())
+            {
+                Add(testVariation);
+            }
+        }
+    }
+
+    public class TestVariation : IXunitSerializable
     {
         public List<string> Arguments { get; private set; } = new List<string>();
 
@@ -66,10 +79,20 @@ public class BasicTests
             return this;
         }
 
-        public static implicit operator object[](TestVariation testVariation) => new object[] { testVariation };
+        public void Deserialize(IXunitSerializationInfo info)
+        {
+
+        }
+
+        public void Serialize(IXunitSerializationInfo info)
+        {
+            info.AddValue(nameof(Arguments), JsonConvert.SerializeObject(Arguments));
+            info.AddValue(nameof(AssertMetadataEndpoint), JsonConvert.SerializeObject(AssertMetadataEndpoint));
+            info.AddValue(nameof(UseHttps), JsonConvert.SerializeObject(UseHttps));
+        }
     }
 
-    public static IEnumerable<object[]> GetTestVariations()
+    private static IEnumerable<TestVariation> GetTestVariations()
     {
         yield return TestVariation.New();
         yield return TestVariation.New().Framework(Frameworks.Net7);
@@ -128,10 +151,9 @@ public class BasicTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTestVariations))]
+    [ClassData(typeof(TestVariations))]
     public async Task CoreWCFTemplateDefault(TestVariation variation)
     {
-
         await CoreWCFTemplateDefaultCore(variation.Arguments.ToArray(),
             variation.AssertMetadataEndpoint,
             variation.UseHttps,
