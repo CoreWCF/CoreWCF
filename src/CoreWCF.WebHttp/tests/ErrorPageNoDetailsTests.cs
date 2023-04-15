@@ -29,9 +29,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/errorpage");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/errorpage");
 
                 Assert.Equal(HttpStatusCode.BadRequest, statusCode);
                 Assert.False(string.IsNullOrEmpty(content));

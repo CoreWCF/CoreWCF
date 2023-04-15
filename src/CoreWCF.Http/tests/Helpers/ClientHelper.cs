@@ -9,6 +9,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
 using ClientContract;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Helpers
 {
@@ -248,10 +249,10 @@ namespace Helpers
             return GetStringFrom(stream);
         }
 
-        public static T GetProxy<T>()
+        public static T GetProxy<T>(IWebHost host)
         {
             BasicHttpBinding httpBinding = GetBufferedModeBinding();
-            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }

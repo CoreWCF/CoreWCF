@@ -5,7 +5,6 @@ using System;
 using System.ServiceModel;
 using ClientContract;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +18,7 @@ namespace CoreWCF.Http.Tests
     public class ContractBehaviorTests
     {
         private readonly ITestOutputHelper _output;
+        private IWebHost _host;
 
         public ContractBehaviorTests(ITestOutputHelper output)
         {
@@ -38,10 +38,10 @@ namespace CoreWCF.Http.Tests
         public void Variations(string method)
         {
             Startup._method = method;
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
-            using (host)
+            _host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (_host)
             {
-                host.Start();
+                _host.Start();
                 switch (method)
                 {
                     case "ByHand":
@@ -75,9 +75,9 @@ namespace CoreWCF.Http.Tests
         public void TwoAttributesSameType_Test()
         {
             Startup._method = "TwoAttributesSameType";
-            using (IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
+            using (_host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build())
             {
-                Assert.Throws<ArgumentException>(() => host.Start());
+                Assert.Throws<ArgumentException>(() => _host.Start());
             }
         }
 
@@ -85,15 +85,15 @@ namespace CoreWCF.Http.Tests
         //1.GetEndpointAddress for the service
         //2.CreateChannelFactory
         //2.1:Add the custom behavior - Optional
-        //3.Get the BehaviorAttribute instance in the ChannelDescription 
+        //3.Get the BehaviorAttribute instance in the ChannelDescription
         //4.Open the ChannelFactory
-        //5.Check the Behavior static flags 
+        //5.Check the Behavior static flags
         //6.Check the Behavior instance flags
         //7.Send a message to the server
-        public static ChannelFactory<T> GetChannelFactory<T>()
+        public ChannelFactory<T> GetChannelFactory<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractBehaviorService.svc")));
+            return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/ContractBehaviorService.svc")));
         }
 
         private void Variation_ByHand(bool useHiddenProperty)

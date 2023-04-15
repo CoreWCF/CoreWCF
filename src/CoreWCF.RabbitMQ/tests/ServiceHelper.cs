@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using CoreWCF.RabbitMQ.Tests.Helpers;
+using Helpers;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;

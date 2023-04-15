@@ -30,9 +30,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync("api/statuscode");
+                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/statuscode");
 
                 Assert.Equal(HttpStatusCode.Accepted, statusCode);
             }
@@ -44,11 +44,11 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 using HttpClient httpClient = new HttpClient();
 
-                HttpResponseMessage response = await httpClient.GetAsync("http://localhost:8080/api/responseheader");
+                HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:{host.GetHttpPort()}/api/responseheader");
 
                 Assert.True(response.Headers.Contains("TestHeader"));
                 Assert.Equal("test", string.Join("", response.Headers.GetValues("TestHeader")));
@@ -61,11 +61,11 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
                 using HttpClient httpClient = new HttpClient();
 
-                HttpResponseMessage response = await httpClient.GetAsync("http://localhost:8080/api/contenttype");
+                HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:{host.GetHttpPort()}/api/contenttype");
 
                 Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             }
@@ -77,11 +77,11 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode _, string content) = await HttpHelpers.GetAsync("api/match");
+                (HttpStatusCode _, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(), "api/match");
 
-                Assert.Equal("\"http:\\/\\/localhost:8080\\/api\\/match\"", content);
+                Assert.Equal($"\"http:\\/\\/127.0.0.1:{host.GetHttpPort()}\\/api\\/match\"", content);
             }
         }
 

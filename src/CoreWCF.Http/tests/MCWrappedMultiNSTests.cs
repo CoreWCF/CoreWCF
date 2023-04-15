@@ -31,7 +31,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMCWrappedMultiNS>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/MCWrappedMultiNSService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/MCWrappedMultiNSService.svc")));
                 IMCWrappedMultiNS channel = factory.CreateChannel();
 
                 MC2MultiNS RetMC = channel.M(new MCMultiNS());

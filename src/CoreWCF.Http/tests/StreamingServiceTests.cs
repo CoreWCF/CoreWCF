@@ -20,6 +20,7 @@ namespace CoreWCF.Http.Tests
         private readonly ITestOutputHelper _output;
         public const string TestString = "String to test";
         public const string FileToSend = "temp.dat";
+        private IWebHost _host;
 
         public StreamingServiceTests(ITestOutputHelper output)
         {
@@ -42,11 +43,11 @@ namespace CoreWCF.Http.Tests
         [InlineData("MessageContractStreamMutipleOperationsService")]
         public void StreamingInputOutputTest(string method)
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            _host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             Startup._method = method;
-            using (host)
+            using (_host)
             {
-                host.Start();
+                _host.Start();
                 switch (method)
                 {
                     case "VoidStreamService":
@@ -82,7 +83,7 @@ namespace CoreWCF.Http.Tests
         private T GetProxy<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/StreamingInputOutputService.svc")));
+            ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/StreamingInputOutputService.svc")));
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }

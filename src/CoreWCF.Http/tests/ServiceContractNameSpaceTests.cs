@@ -16,6 +16,7 @@ namespace CoreWCF.Http.Tests
     public class ServiceContractNameSpaceTests
     {
         private readonly ITestOutputHelper _output;
+        private IWebHost _host;
         public ServiceContractNameSpaceTests(ITestOutputHelper output)
         {
             _output = output;
@@ -36,10 +37,10 @@ namespace CoreWCF.Http.Tests
         {
             string result = null;
             SerivceContractNameSpace._method = method;
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<SerivceContractNameSpace>(_output).Build();
-            using (host)
+            _host = ServiceHelper.CreateWebHostBuilder<SerivceContractNameSpace>(_output).Build();
+            using (_host)
             {
-                host.Start();
+                _host.Start();
                 switch (method)
                 {
                     case "XmlCharacters":
@@ -104,7 +105,7 @@ namespace CoreWCF.Http.Tests
         private string Variation_Service_XmlCharacters(string clientString)
         {
             // Create the proxy
-            ClientContract.IServiceContractNamespace_784756_XmlCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XmlCharacters_Service>();
+            ClientContract.IServiceContractNamespace_784756_XmlCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XmlCharacters_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_XmlCharacters]");
             string response = clientProxy.Method1(clientString);
@@ -114,8 +115,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_WhiteSpace(string clientString)
         {
-            // Create the proxy            
-            ClientContract.IServiceContractNamespace_784756_WhiteSpace_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_WhiteSpace_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_WhiteSpace_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_WhiteSpace_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_WhiteSpace]");
             string response = clientProxy.Method2(clientString);
@@ -125,8 +126,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_XMLEncoded(string clientString)
         {
-            // Create the proxy           
-            ClientContract.IServiceContractNamespace_784756_XMLEncoded_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XMLEncoded_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_XMLEncoded_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XMLEncoded_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_XMLEncoded]");
             string response = clientProxy.Method3(clientString);
@@ -136,8 +137,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_NonAlphaCharacters(string clientString)
         {
-            // Create the proxy         
-            ClientContract.IServiceContractNamespace_784756_NonAlphaCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_NonAlphaCharacters_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_NonAlphaCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_NonAlphaCharacters_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_NonAlphaCharacters]");
             string response = clientProxy.Method4(clientString);
@@ -147,8 +148,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_LocalizedCharacters(string clientString)
         {
-            // Create the proxy            
-            ClientContract.IServiceContractNamespace_784756_LocalizedCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_LocalizedCharacters_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_LocalizedCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_LocalizedCharacters_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_LocalizedCharacters]");
             string response = clientProxy.Method5(clientString);
@@ -158,8 +159,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_SurrogateCharacters(string clientString)
         {
-            // Create the proxy           
-            ClientContract.IServiceContractNamespace_784756_SurrogateCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_SurrogateCharacters_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_SurrogateCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_SurrogateCharacters_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_SurrogateCharacters]");
             string response = clientProxy.Method6(clientString);
@@ -169,8 +170,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_XMLReservedCharacters(string clientString)
         {
-            // Create the proxy        
-            ClientContract.IServiceContractNamespace_784756_XMLReservedCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XMLReservedCharacters_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_XMLReservedCharacters_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_XMLReservedCharacters_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_XMLReservedCharacters]");
             string response = clientProxy.Method7(clientString);
@@ -180,8 +181,8 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_URI(string clientString)
         {
-            // Create the proxy           
-            ClientContract.IServiceContractNamespace_784756_URI_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_URI_Service>();
+            // Create the proxy
+            ClientContract.IServiceContractNamespace_784756_URI_Service clientProxy = ClientHelper.GetProxy<ClientContract.IServiceContractNamespace_784756_URI_Service>(_host);
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_URI]");
             string response = clientProxy.Method8(clientString);

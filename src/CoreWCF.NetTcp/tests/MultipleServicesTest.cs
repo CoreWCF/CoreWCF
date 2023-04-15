@@ -26,21 +26,17 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void AddMultipleServices()
         {
-            int port = 11808;
-            string expectedBaseAddress = $"net.tcp://{IPAddress.Loopback}:{port}";
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback, port).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback).Build();
             using (host)
             {
                 host.Start();
-                Assert.Equal(expectedBaseAddress, host.GetNetTcpAddressInUse());
-
                 var netTcpBinding = ClientHelper.GetBufferedModeBinding();
                 var testServiceFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(netTcpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"{expectedBaseAddress}/TestService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"{host.GetNetTcpAddressInUse()}/TestService.svc")));
                 var testServiceChannel = testServiceFactory.CreateChannel();
 
                 var messageEncodingServiceFactory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(netTcpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"{expectedBaseAddress}/MessageEncodingService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"{host.GetNetTcpAddressInUse()}/MessageEncodingService.svc")));
                 var messageEncodingServiceChannel = messageEncodingServiceFactory.CreateChannel();
 
                 // Verify the EchoService echoes the input string

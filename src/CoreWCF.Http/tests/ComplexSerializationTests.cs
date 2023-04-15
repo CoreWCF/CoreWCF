@@ -33,7 +33,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IDataContractEventsService proxy = ClientHelper.GetProxy<ClientContract.IDataContractEventsService>();
+                ClientContract.IDataContractEventsService proxy = ClientHelper.GetProxy<ClientContract.IDataContractEventsService>(host);
                 switch (variation)
                 {
                     case "Variation_DataContractEvents_All":
@@ -80,7 +80,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IDataContractInheritanceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractInheritanceService>();
+                ClientContract.IDataContractInheritanceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractInheritanceService>(host);
 
                 switch (variation)
                 {
@@ -124,7 +124,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IDataContractNamespaceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractNamespaceService>();
+                ClientContract.IDataContractNamespaceService proxy = ClientHelper.GetProxy<ClientContract.IDataContractNamespaceService>(host);
 
                 switch (variation)
                 {
@@ -186,7 +186,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IISerializableService proxy = ClientHelper.GetProxy<ClientContract.IISerializableService>();
+                ClientContract.IISerializableService proxy = ClientHelper.GetProxy<ClientContract.IISerializableService>(host);
 
                 switch (variation)
                 {
@@ -236,7 +236,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                ClientContract.IIXMLSerializableService proxy = ClientHelper.GetProxy<ClientContract.IIXMLSerializableService>();
+                ClientContract.IIXMLSerializableService proxy = ClientHelper.GetProxy<ClientContract.IIXMLSerializableService>(host);
 
                 switch (variation)
                 {
@@ -288,7 +288,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 if (serviceMethod == "Versioning_789896_Service_New")
                 {
-                    ClientContract.IVersioningClientOld proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientOld>();
+                    ClientContract.IVersioningClientOld proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientOld>(host);
 
                     switch (variation)
                     {
@@ -312,7 +312,7 @@ namespace CoreWCF.Http.Tests
 
                 if (serviceMethod == "Versioning_789896_Service_Old")
                 {
-                    ClientContract.IVersioningClientNew proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientNew>();
+                    ClientContract.IVersioningClientNew proxy = ClientHelper.GetProxy<ClientContract.IVersioningClientNew>(host);
                     switch (variation)
                     {
                         case "Variation_ClientNewServerOld":
@@ -559,7 +559,7 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.TypeWithDCInheritingFromSer();
             output = null;
             clientProxy.Method_TypeWithDCInheritingFromSer_out(input, out output);
-            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null "); 
+            Assert.True(output != null, "TypeWithDCInheritingFromSer Method_TypeWithDCInheritingFromSer_out output should not be null ");
 
             _output.WriteLine("Testing [Variation_TypeWithDCInheritingFromSer] Method_TypeWithDCInheritingFromSer_ref ");
             input = new ServiceContract.TypeWithDCInheritingFromSer();
@@ -785,7 +785,7 @@ namespace CoreWCF.Http.Tests
             input = new ServiceContract.MyISerClass();
             output = null;
             output = clientProxy.Method_MyISerClass_ref(ref input);
-            Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClass Method_MyISerClass_ref output should not be null ");
         }
 
         private void Variation_MyISerStruct(ClientContract.IISerializableService clientProxy)
@@ -825,7 +825,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_MyISerClassFromClass_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromClass_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");                     
+            Assert.True(output != null, "MyISerClassFromClass Method_MyISerClassFromClass_ref output should not be null ");
         }
 
         private void Variation_BoxedStructHolder(ClientContract.IISerializableService clientProxy)
@@ -847,7 +847,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_BoxedStructHolder_ref(ref input);
             _output.WriteLine("Method_BoxedStructHolder_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");          
+            Assert.True(output != null, "BoxedStructHolder Method_BoxedStructHolder_ref output should not be null ");
         }
 
         private void Variation_MyISerClassFromSerializable(ClientContract.IISerializableService clientProxy)
@@ -869,7 +869,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_MyISerClassFromSerializable_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromSerializable_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");                   
+            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");
         }
 
         private void Variation_IReadWriteXmlLotsOfData(ClientContract.IIXMLSerializableService clientProxy)

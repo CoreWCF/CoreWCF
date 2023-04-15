@@ -36,7 +36,7 @@ namespace BasicHttp
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestPrimitives>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/TaskPrimitives/basichttp.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/TaskPrimitives/basichttp.svc")));
                 ITestPrimitives channel = factory.CreateChannel();
 
                 Task[] tasks = new Task[22];
