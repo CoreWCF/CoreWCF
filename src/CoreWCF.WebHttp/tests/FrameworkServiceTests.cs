@@ -37,7 +37,7 @@ public class FrameworkServiceTests
         {
             await host.StartAsync();
 
-            (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/async/get");
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/async/get");
             ServiceContract.AsyncData responseData = SerializationHelpers.DeserializeJson<ServiceContract.AsyncData>(content);
 
             Assert.Equal(HttpStatusCode.OK, statusCode);
@@ -53,7 +53,7 @@ public class FrameworkServiceTests
         {
             await host.StartAsync();
 
-            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync("api/async/post", new ServiceContract.AsyncData { Data = "async" });
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.PostJsonAsync(host.GetHttpBaseAddressUri(),"api/async/post", new ServiceContract.AsyncData { Data = "async" });
             ServiceContract.AsyncData responseData = SerializationHelpers.DeserializeJson<ServiceContract.AsyncData>(content);
 
             Assert.Equal(HttpStatusCode.OK, statusCode);
@@ -69,7 +69,7 @@ public class FrameworkServiceTests
         {
             await host.StartAsync();
 
-            using var client = new HttpClient { BaseAddress = new Uri("http://localhost:8080") };
+            using var client = new HttpClient { BaseAddress = host.GetHttpBaseAddressUri() };
             using var request = new HttpRequestMessage(HttpMethod.Get, "api/implicitFormat");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var response = await client.SendAsync(request);

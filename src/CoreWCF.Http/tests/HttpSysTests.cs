@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using CoreWCF.Configuration;
+using CoreWCF.Http.Tests.Helpers;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests
 {
+    [Collection(HttpSysTestCollectionDefinition.HttpSysTestCollection)]
     public class HttpSysTests
     {
         private readonly ITestOutputHelper _output;

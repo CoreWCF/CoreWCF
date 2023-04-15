@@ -38,7 +38,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/TaskCollectionsTest.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/TaskCollectionsTest.svc")));
                 collectionsTest = channelFactory.CreateChannel();
 
                 Task[] array;

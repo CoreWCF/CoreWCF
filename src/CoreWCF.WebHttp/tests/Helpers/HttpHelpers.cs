@@ -11,14 +11,11 @@ namespace Helpers
 {
     public static class HttpHelpers
     {
-        private static readonly Uri _baseAddress = new Uri("http://localhost:8080");
-        private static readonly Uri _baseAddressSsl = new Uri("https://localhost:8081");
-
-        public static async Task<(HttpStatusCode statusCode, string content)> GetAsync(string url)
+        public static async Task<(HttpStatusCode statusCode, string content)> GetAsync(Uri baseAddress, string url)
         {
             using (HttpClient httpClient = new HttpClient())
             {
-                httpClient.BaseAddress = _baseAddress;
+                httpClient.BaseAddress = baseAddress;
 
                 HttpResponseMessage response = await httpClient.GetAsync(url);
                 string content = await response.Content.ReadAsStringAsync();
@@ -27,7 +24,7 @@ namespace Helpers
             }
         }
 
-        public static async Task<(HttpStatusCode statusCode, string content)> GetSslAsync(string url)
+        public static async Task<(HttpStatusCode statusCode, string content)> GetSslAsync(Uri baseAddress, string url)
         {
             var handler = new HttpClientHandler
             {
@@ -36,7 +33,7 @@ namespace Helpers
 
             using (HttpClient httpClient = new HttpClient(handler))
             {
-                httpClient.BaseAddress = _baseAddressSsl;
+                httpClient.BaseAddress = baseAddress;
 
                 HttpResponseMessage response = await httpClient.GetAsync(url);
                 string content = await response.Content.ReadAsStringAsync();
@@ -45,11 +42,11 @@ namespace Helpers
             }
         }
 
-        public static async Task<(HttpStatusCode statusCode, string content)> PostJsonAsync<T>(string url, T data)
+        public static async Task<(HttpStatusCode statusCode, string content)> PostJsonAsync<T>(Uri baseAddress, string url, T data)
         {
             using (HttpClient httpClient = new HttpClient())
             {
-                httpClient.BaseAddress = _baseAddress;
+                httpClient.BaseAddress = baseAddress;
 
                 string json = SerializationHelpers.SerializeJson(data);
                 using StringContent requestContent = new StringContent(json, Encoding.UTF8, "application/json");
@@ -61,11 +58,11 @@ namespace Helpers
             }
         }
 
-        public static async Task<(HttpStatusCode statusCode, string content)> PostXmlAsync<T>(string url, T data)
+        public static async Task<(HttpStatusCode statusCode, string content)> PostXmlAsync<T>(Uri baseAddress, string url, T data)
         {
             using (HttpClient httpClient = new HttpClient())
             {
-                httpClient.BaseAddress = _baseAddress;
+                httpClient.BaseAddress = baseAddress;
 
                 string xml = SerializationHelpers.SerializeXml(data);
                 using StringContent requestContent = new StringContent(xml, Encoding.UTF8, "text/xml");
@@ -77,11 +74,11 @@ namespace Helpers
             }
         }
 
-        public static async Task<(HttpStatusCode statusCode, byte[] content)> PostRawAsync(string url, byte[] data)
+        public static async Task<(HttpStatusCode statusCode, byte[] content)> PostRawAsync(Uri baseAddress, string url, byte[] data)
         {
             using (HttpClient client = new ())
             {
-                client.BaseAddress = _baseAddress;
+                client.BaseAddress = baseAddress;
 
                 HttpRequestMessage request = new(HttpMethod.Post, url);
                 request.Content = new ByteArrayContent(data);

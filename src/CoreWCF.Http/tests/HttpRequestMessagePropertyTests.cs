@@ -40,7 +40,7 @@ namespace BasicHttp
                 {
                     System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<IHttpHeadersService>(httpBinding,
-                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/httpHeaders.svc")));
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/httpHeaders.svc")));
                     channel = factory.CreateChannel();
                     using (new System.ServiceModel.OperationContextScope((System.ServiceModel.IContextChannel)channel))
                     {
@@ -74,7 +74,7 @@ namespace BasicHttp
                 {
                     System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                     factory = new System.ServiceModel.ChannelFactory<IHttpHeadersService>(httpBinding,
-                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/httpHeaders.svc")));
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/httpHeaders.svc")));
                     channel = factory.CreateChannel();
                     Task<string> resultTask = null;
                     using (new System.ServiceModel.OperationContextScope((System.ServiceModel.IContextChannel)channel))

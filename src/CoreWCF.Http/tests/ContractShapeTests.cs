@@ -30,7 +30,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Params>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeParamsService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ContractShapeParamsService.svc")));
                 ClientContract.IServiceContract_Params channel = factory.CreateChannel();
 
                 int[] nums = { 0, 1, 5, 25 };
@@ -57,7 +57,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IServiceContract_Overloads>(httpBinding,
-                          new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ContractShapeOverloadsService.svc")));
+                          new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ContractShapeOverloadsService.svc")));
                 ClientContract.IServiceContract_Overloads channel = factory.CreateChannel();
 
                 // Call into the appropriate overload per variation

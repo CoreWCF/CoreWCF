@@ -28,13 +28,13 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilderWithSsl<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/hello");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/hello");
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"hello\"", content);
 
-                (HttpStatusCode sslStatusCode, string sslContent) = await HttpHelpers.GetSslAsync("api/hello");
+                (HttpStatusCode sslStatusCode, string sslContent) = await HttpHelpers.GetSslAsync(host.GetHttpsBaseAddressUri(),"api/hello");
                 Assert.Equal(HttpStatusCode.OK, sslStatusCode);
                 Assert.Equal("\"hello\"", sslContent);
             }

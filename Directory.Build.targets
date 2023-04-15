@@ -19,12 +19,16 @@
     <ProjectReference Include="$(UnitTestCommonProjectPath)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(ReferenceCommonTestProject)' == 'true'">
-    <Compile Include="$(SourceDir)Common/UnitTests.Common/XunitTestAssemblyAttribute.cs">
+  <ItemGroup>
+    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'true'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.cs">
       <Visible>true</Visible>
-      <Link>shared/UnitTests.Common/%(Filename)%(Extension)</Link>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-  </ItemGroup>
+    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'false'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.NoConcurrency.cs">
+      <Visible>true</Visible>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>    
 
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
 </Project>

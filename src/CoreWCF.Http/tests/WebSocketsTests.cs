@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using Helpers;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +18,12 @@ namespace NetHttp
 {
     public class WebSocketsTests
     {
-        private const string NetHttpServiceBaseUri = "http://localhost:8080";
-        private const string NetHttpBufferedServiceUri = NetHttpServiceBaseUri + Startup.BufferedPath;
+        private const string NetHttpServiceBaseUriFormat = "http://localhost:{0}";
+        private static string GetNetHttpServiceBaseUri(IWebHost webHost)
+            => string.Format(NetHttpServiceBaseUriFormat, webHost.GetHttpPort());
+        private static string GetNetHttpBufferedServiceUri(IWebHost webHost)
+            => string.Concat(GetNetHttpServiceBaseUri(webHost), Startup.BufferedPath);
+
         private readonly ITestOutputHelper _output;
 
         public WebSocketsTests(ITestOutputHelper output)
@@ -89,7 +94,7 @@ namespace NetHttp
 
             using var channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(
                 clientBinding,
-                new System.ServiceModel.EndpointAddress(new Uri(NetHttpServiceBaseUri + path)));
+                new System.ServiceModel.EndpointAddress(new Uri(GetNetHttpServiceBaseUri(host) + path)));
             var client = channelFactory.CreateChannel();
 
             try
@@ -117,7 +122,7 @@ namespace NetHttp
                 {
                     System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri(NetHttpBufferedServiceUri)));
+                        new System.ServiceModel.EndpointAddress(new Uri(GetNetHttpBufferedServiceUri(host))));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);

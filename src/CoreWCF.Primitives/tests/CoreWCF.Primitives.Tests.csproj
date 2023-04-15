@@ -8,6 +8,10 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Properties\**" />
+    <None Remove="Properties\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -32,8 +36,5 @@
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.NetTcp/src/CoreWCF.NetTcp.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties/" />
   </ItemGroup>
 </Project>

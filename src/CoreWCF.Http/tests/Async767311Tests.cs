@@ -35,7 +35,7 @@ namespace CoreWCF.Http.Tests
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_EndMethod]");
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, null, null);
@@ -53,7 +53,7 @@ namespace CoreWCF.Http.Tests
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_WaitMethod]");
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
@@ -73,7 +73,7 @@ namespace CoreWCF.Http.Tests
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_PollingMethod]");
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
@@ -103,7 +103,7 @@ namespace CoreWCF.Http.Tests
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/SyncService.svc")));
+                var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_CallbackMethod]");
                 AsyncCallback callback = new AsyncCallback(CallbackResults);
