@@ -36,9 +36,8 @@ namespace CoreWCF.NetTcp.Tests
             yield return new object[] { typeof(Startup<MyAsyncTestServiceAuthorizationManager>) };
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [MemberData(nameof(GetSimpleNetTcpClientConnectionWindowsAuthTestVariations))]
-        [Trait("Category", "WindowsOnly")]
         public void SimpleNetTcpClientConnectionWindowsAuth(Type startupType)
         {
             string testString = new string('a', 3000);
@@ -69,8 +68,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void SimpleNetTcpClientConnectionUseWindowsGroups()
         {
             string testString = "a" + PrincipalPermissionMode.UseWindowsGroups + "test";
@@ -78,8 +76,7 @@ namespace CoreWCF.NetTcp.Tests
             AssertForCommon(testString, host);
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void SimpleNetTcpClientConnectionUseAlways()
         {
             string testString = "a" + PrincipalPermissionMode.Always + "test";
@@ -87,8 +84,7 @@ namespace CoreWCF.NetTcp.Tests
             AssertForCommon(testString, host);
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void SimpleNetTcpClientConnectionUseNone()
         {
             string testString = "a" + PrincipalPermissionMode.None + "test";
@@ -96,8 +92,7 @@ namespace CoreWCF.NetTcp.Tests
             AssertForCommon(testString, host);
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void SimpleNetTcpClientImpersonateUser()
         {
             string sourceString = "test";

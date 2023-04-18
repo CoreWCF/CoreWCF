@@ -27,15 +27,14 @@ namespace CoreWCF.RabbitMQ.Tests
             _output = output;
         }
 
-        [Fact(Skip = "Requires RabbitMQ host with SSL")]
-        [Trait("Category", "LinuxOnly")]
+        [LinuxWhenCIOnlyFact(Skip = "Requires RabbitMQ host with SSL")]
         public void ClassicQueueWithTls_SendReceiveMessage_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
             using (host)
             {
                 host.Start();
-                
+
                 var uri = ClassicQueueWithTLSStartup.Uri;
                 var credentials = ClassicQueueWithTLSStartup.Credentials.GetCredential(uri, string.Empty);
                 var userName = credentials.UserName;
@@ -62,8 +61,7 @@ namespace CoreWCF.RabbitMQ.Tests
         }
 
         // Automated tests use a Linux container to host RabbitMQ so this test is Linux-only
-        [Fact]
-        [Trait("Category", "LinuxOnly")]
+        [LinuxWhenCIOnlyFact]
         public void DefaultClassicQueueConfiguration_ReceiveMessage_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
@@ -93,8 +91,7 @@ namespace CoreWCF.RabbitMQ.Tests
         }
 
         // Automated tests use a Linux container to host RabbitMQ so this test is Linux-only
-        [Fact]
-        [Trait("Category", "LinuxOnly")]
+        [LinuxWhenCIOnlyFact]
         public void DefaultQuorumQueueConfiguration_ReceiveMessage_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
@@ -124,8 +121,7 @@ namespace CoreWCF.RabbitMQ.Tests
         }
 
         // Automated tests use a Linux container to host RabbitMQ so this test is Linux-only
-        [Fact]
-        [Trait("Category", "LinuxOnly")]
+        [LinuxWhenCIOnlyFact]
         public void DefaultQueueConfiguration_ReceiveMessage_Success()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
@@ -189,7 +185,7 @@ namespace CoreWCF.RabbitMQ.Tests
             });
         }
     }
-    
+
     public class DefaultClassicQueueStartup
     {
         public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
@@ -218,7 +214,7 @@ namespace CoreWCF.RabbitMQ.Tests
             });
         }
     }
-    
+
     public class DefaultQuorumQueueStartup
     {
         public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
