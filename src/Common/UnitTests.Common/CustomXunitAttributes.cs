@@ -55,7 +55,6 @@ public class LinuxWhenCIOnlyFactAttribute : FactAttribute
 {
     public LinuxWhenCIOnlyFactAttribute()
     {
-        Console.WriteLine($"$CI={Environment.GetEnvironmentVariable("CI")}");
         if (Environment.GetEnvironmentVariable("CI") == "true")
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
