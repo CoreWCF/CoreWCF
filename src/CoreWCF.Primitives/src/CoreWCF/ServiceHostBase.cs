@@ -96,12 +96,12 @@ namespace CoreWCF
             {
                 if (value < TimeSpan.Zero)
                 {
-                    string message = SR.SFxTimeoutOutOfRange0;
+                    string message = SRCommon.SFxTimeoutOutOfRange0;
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
@@ -168,12 +168,12 @@ namespace CoreWCF
             {
                 if (value < TimeSpan.Zero)
                 {
-                    string message = SR.SFxTimeoutOutOfRange0;
+                    string message = SRCommon.SFxTimeoutOutOfRange0;
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
                 lock (ThisLock)
@@ -274,19 +274,14 @@ namespace CoreWCF
         private ServiceAuthorizationBehavior EnsureAuthorization(ServiceDescription description)
         {
             Fx.Assert(State == CommunicationState.Created || State == CommunicationState.Opening, "");
-            ServiceAuthorizationBehavior a = description.Behaviors.Find<ServiceAuthorizationBehavior>();
+            ServiceAuthorizationBehavior behavior = description.Behaviors.Find<ServiceAuthorizationBehavior>();
 
-            if (a == null)
+            if (behavior == null)
             {
-                // In ServiceHostBaseTests ServiceProvider is null..
-                a = description.ServiceProvider?.GetService(typeof(ServiceAuthorizationBehavior)) as ServiceAuthorizationBehavior;
-                if (a != null)
-                {
-                    description.Behaviors.Add(a);
-                }
+                behavior = description.ServiceProvider.GetService(typeof(ServiceAuthorizationBehavior)) as ServiceAuthorizationBehavior;
             }
 
-            return a;
+            return behavior;
         }
 
         //ServiceAuthenticationBehavior EnsureAuthentication(ServiceDescription description)

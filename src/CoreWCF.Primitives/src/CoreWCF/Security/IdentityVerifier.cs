@@ -14,7 +14,7 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    internal abstract class IdentityVerifier
+    public abstract class IdentityVerifier
     {
         protected IdentityVerifier()
         {

@@ -18,6 +18,7 @@ namespace CoreWCF.Http.Tests
     public class ServiceWithContractInheritanceTests
     {
         private readonly ITestOutputHelper _output;
+        private IWebHost _host;
 
         public ServiceWithContractInheritanceTests(ITestOutputHelper output)
         {
@@ -35,10 +36,10 @@ namespace CoreWCF.Http.Tests
             Startup._interface = interf;
             InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() =>
             {
-                IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
-                using (host)
+                _host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+                using (_host)
                 {
-                    host.Start();
+                    _host.Start();
                 }
             });
             Assert.Equal(expectResults, ex.Message);
@@ -54,10 +55,10 @@ namespace CoreWCF.Http.Tests
             StartupEndpoints.ServiceType = serviceType;
             StartupEndpoints.ClientType = clientType;
 
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupEndpoints>(_output).Build();
-            using (host)
+            _host = ServiceHelper.CreateWebHostBuilder<StartupEndpoints>(_output).Build();
+            using (_host)
             {
-                host.Start();
+                _host.Start();
 
                 switch (clientType.ToLower())
                 {
@@ -105,11 +106,11 @@ namespace CoreWCF.Http.Tests
         {
             _output.WriteLine("Entered SanityAParentB_857419_Client.Run");
             StartupSanityAParentB._method = method;
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupSanityAParentB>(_output).Build();
+            _host = ServiceHelper.CreateWebHostBuilder<StartupSanityAParentB>(_output).Build();
 
-            using (host)
+            using (_host)
             {
-                host.Start();
+                _host.Start();
                 // Client type: OneWay and TwoWay
                 string result;
                 switch (method)
@@ -179,13 +180,13 @@ namespace CoreWCF.Http.Tests
         private T GetProxy<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<T> channelFactory = new System.ServiceModel.ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<T> channelFactory = new (httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }
 
-        #region Variation       
+        #region Variation
 
         private string Variation_Service_DerivedOneWay(string clientString)
         {
@@ -213,7 +214,7 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_DerivedReNameMethod()
         {
-            // Create the proxy          
+            // Create the proxy
             ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
             // Send the two way message
             _output.WriteLine("Testing [Variation_Service_DerivedReNameMethod]");
@@ -237,7 +238,7 @@ namespace CoreWCF.Http.Tests
         {
             // Create the proxy
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new (httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
 
             // var clientProxy = this.GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>();
@@ -289,7 +290,7 @@ namespace CoreWCF.Http.Tests
 
         private string Variation_Service_DerivedCallingBaseDataContractMethod(string clientString)
         {
-            // Create the proxy           
+            // Create the proxy
             ClientContract.ISanityAParentB_857419_ContractDerived clientProxy = GetProxy<ClientContract.ISanityAParentB_857419_ContractDerived>();
 
             // Send the two way message

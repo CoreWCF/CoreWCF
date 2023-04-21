@@ -3,7 +3,7 @@
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal static class SecurityTokenTypes
+    public static class SecurityTokenTypes
     {
         private const string Namespace = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens";
         private const string userName = Namespace + "/UserName";

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Web;
 
@@ -81,7 +82,6 @@ internal static class WebHttpServiceModelCompat
         }
     }
 
-
     private static class AttributeConverter<TOut> where TOut : class, IOperationBehavior
     {
         private static readonly ConcurrentDictionary<Type, Func<Attribute, TOut?>> s_converterCache = new();
@@ -133,6 +133,9 @@ internal static class WebHttpServiceModelCompat
                 // strings, numbers, and enums.
                 // Therefore a simple cast expression should convert the enums simply.
                 let value = Expression.Convert(Expression.Property(inputExpression, inputProp), outputProp.PropertyType)
+                // We need to copy the IsXXXSetExplicitly properties last
+                // as they can be overwritten by the other setters.
+                orderby inputProp.Name.EndsWith("SetExplicitly")
                 select (MemberBinding)Expression.Bind(outputProp, value);
 
             var convert = Expression.Lambda<Func<TInput, TOut>>(
@@ -154,7 +157,8 @@ internal static class WebHttpServiceModelCompat
                     //     Bar = (CoreWCF.WebHttp.SomeEnum)input.Bar,
                     //     Baz = (CoreWCF.WebHttp.SomeEnum)input.Baz,
                     // };
-                    return convert(input);
+                    var ret = convert(input);
+                    return ret;
                 }
 
                 return null;

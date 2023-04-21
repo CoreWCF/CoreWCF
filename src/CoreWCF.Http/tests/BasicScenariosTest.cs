@@ -35,11 +35,11 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenarios>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc")));
                 ClientContract.ITestBasicScenarios channel = factory.CreateChannel();
 
                 var factory2 = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenariosClientService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc")));
                 ClientContract.ITestBasicScenariosClientService channel2 = factory2.CreateChannel();
 
                 //Variation string TestMethodDefaults
@@ -54,25 +54,25 @@ namespace CoreWCF.Http.Tests
                 name = "Action";
                 channel.TestMethodSetAction(ID, name);
 
-                //Variation_int TestMethodSetReplyAction               
+                //Variation_int TestMethodSetReplyAction
                 ID = 1;
                 name = "ReplyAction";
                 int resultInt = channel.TestMethodSetReplyAction(ID, name);
                 Assert.Equal(resultInt, ID);
 
-                //Variation_void TestMethodUntypedAction                
+                //Variation_void TestMethodUntypedAction
                 Message clientMessage = Message.CreateMessage(MessageVersion.Soap11, "myUntypedAction");
                 channel.TestMethodUntypedAction(clientMessage);
 
-                //Variation_Message TestMethodUntypedreplyAction                
+                //Variation_Message TestMethodUntypedreplyAction
                 Message msg = channel.TestMethodUntypedReplyAction();
                 Assert.NotNull(msg);
 
-                //Variation_void TestMethodSetUntypedAction                                  
+                //Variation_void TestMethodSetUntypedAction
                 Message clientUntypedActionMessage = Message.CreateMessage(MessageVersion.Soap11, "mySetUntypedAction");
                 channel.TestMethodSetUntypedAction(clientUntypedActionMessage);
 
-                //Variation_sting TestMethodasync                
+                //Variation_sting TestMethodasync
                 ID = 1;
                 name = "Async";
                 result = channel2.TestMethodAsync(ID, name).GetAwaiter().GetResult();
@@ -90,7 +90,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 using (var httpClient = new HttpClient())
                 {
-                    var response = await httpClient.GetAsync("http://localhost:8080/BasicWcfService/ITestBasicScenariosService.svc");
+                    var response = await httpClient.GetAsync($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc");
                     Assert.False(response.IsSuccessStatusCode);
                     Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                     Assert.Equal(0, response.Content.Headers.ContentLength);

@@ -29,9 +29,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync("api/noparam");
+                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/noparam");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
             }
@@ -43,9 +43,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithEmptyRoot>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync("noparam");
+                (HttpStatusCode statusCode, string _) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"noparam");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
             }
@@ -57,9 +57,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/pathparam/test");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/pathparam/test");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"test\"", content);
@@ -72,9 +72,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/queryparam?param=test");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/queryparam?param=test");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"test\"", content);
@@ -87,9 +87,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/wildcard");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/wildcard");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"wildcard\"", content);
@@ -102,9 +102,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/compound/test.jpg");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/compound/test.jpg");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"test.jpg\"", content);
@@ -117,9 +117,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/named/one/two");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/named/one/two");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"one\\/two\"", content);
@@ -132,9 +132,9 @@ namespace CoreWCF.WebHttp.Tests
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("api/default/");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/default/");
 
                 Assert.Equal(HttpStatusCode.OK, statusCode);
                 Assert.Equal("\"default\"", content);

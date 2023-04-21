@@ -7,8 +7,10 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 namespace CoreWCF.Http.Tests.Authorization
 {
@@ -48,6 +50,13 @@ namespace CoreWCF.Http.Tests.Authorization
             var result = AuthenticateResult.Success(ticket);
 
             return Task.FromResult(result);
+        }
+
+        protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            Response.Headers.Append(HeaderNames.WWWAuthenticate, AuthenticationScheme);
+            return Task.CompletedTask;
         }
     }
 }

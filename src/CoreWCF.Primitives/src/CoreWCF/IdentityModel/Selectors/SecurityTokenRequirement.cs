@@ -74,7 +74,7 @@ namespace CoreWCF.IdentityModel.Selectors
             }
         }
 
-        internal SecurityKeyUsage KeyUsage
+        public SecurityKeyUsage KeyUsage
         {
             get
             {
@@ -110,7 +110,7 @@ namespace CoreWCF.IdentityModel.Selectors
             {
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.ValueMustBeNonNegative));
                 }
                 Properties[KeySizeProperty] = value;
             }

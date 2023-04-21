@@ -22,22 +22,19 @@ namespace CoreWCF.BuildTools
             }
 
             var parameters = methodSymbol.Parameters;
-            foreach (IParameterSymbol parameterSymbol in userProvidedMethodSymbol.Parameters)
+
+            for (int i = 0,j = 0; i < userProvidedMethodSymbol.Parameters.Length; i++)
             {
+                IParameterSymbol parameterSymbol = userProvidedMethodSymbol.Parameters[i];
                 if (parameterSymbol.GetOneAttributeOf(coreWCFInjectedAttribute, fromServicesAttribute) is not null)
                 {
                     continue;
                 }
 
-                foreach (IParameterSymbol parameter in parameters)
+                if (parameterSymbol.IsMatchingParameter(parameters[j]))
                 {
-                    if (parameterSymbol.IsMatchingParameter(parameter))
-                    {
-                        parameterFound++;
-                        break;
-                    }
-
-                    return false;
+                    j++;
+                    parameterFound++;
                 }
             }
 
@@ -48,8 +45,7 @@ namespace CoreWCF.BuildTools
     internal static class ParameterSymbolExtensions
     {
         public static bool IsMatchingParameter(this IParameterSymbol symbol, IParameterSymbol parameterSymbol)
-            => SymbolEqualityComparer.Default.Equals(symbol.Type, parameterSymbol.Type)
-                && symbol.Name == parameterSymbol.Name;
+            => SymbolEqualityComparer.Default.Equals(symbol.Type, parameterSymbol.Type);
     }
 
     internal static class SymbolExtensions

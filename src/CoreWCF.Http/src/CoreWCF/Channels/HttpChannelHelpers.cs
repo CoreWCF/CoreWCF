@@ -898,6 +898,13 @@ namespace CoreWCF.Channels
                     }
                 }
 
+                if (_httpResponse.ContentType != null && _httpResponse.ContentType.StartsWith(@"multipart/related; type=""application/xop+xml"""))
+                {
+                    // For MTOM messages, add a MIME version header
+                    AddMimeVersion("1.0");
+                    message.Properties.Add("CoreWCF.Channel.MtomMessageEncoder.WriteMessageHeaders", false);
+                }
+
                 return result;
             }
 
@@ -1844,7 +1851,7 @@ namespace CoreWCF.Channels
                 if (count < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), count,
-                        SR.ValueMustBeNonNegative));
+                        SRCommon.ValueMustBeNonNegative));
                 }
 
                 if (count == 0)

@@ -12,14 +12,26 @@
   <!-- Set up some common paths -->
   <PropertyGroup>
     <CommonPath>$(SourceDir)Common/src/</CommonPath>
-    <CommonTestPath>$(SourceDir)Common/tests/</CommonTestPath>
+    <UnitTestCommonProjectPath>$(SourceDir)Common/UnitTests.Common/UnitTests.Common.csproj</UnitTestCommonProjectPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
+    <IsClientProject>$(MSBuildProjectName.Contains(`Client`))</IsClientProject>
+    <IsMsmqProject>$(MSBuildProjectName.Contains(`MSMQ`))</IsMsmqProject> 
+    <IsMetadataProject>$(MSBuildProjectName.Contains(`Metadata`))</IsMetadataProject>
+    <IsQueueProject>$(MSBuildProjectName.Contains(`Queue`))</IsQueueProject>
     <IsBuildToolsProject>$(MSBuildProjectName.Contains(`BuildTools`))</IsBuildToolsProject>
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
-	  <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject))">true</IncludeCommonCode>
-    <IncludeCommonTestCode Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)))">true</IncludeCommonTestCode>
+    <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject) OR $(IsClientProject))">true</IncludeCommonCode>
+    <ReferenceCommonTestProject Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)) AND !($(IsClientProject)))">true</ReferenceCommonTestProject>
+  </PropertyGroup>
+
+  <!-- UT concurrency -->
+  <PropertyGroup>
+    <RunUnitTestsConcurrently Condition="$(IsTestProject)">true</RunUnitTestsConcurrently>
+  </PropertyGroup>  
+  <PropertyGroup >
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject))">false</RunUnitTestsConcurrently>
   </PropertyGroup>
 
   <!-- Output directories -->

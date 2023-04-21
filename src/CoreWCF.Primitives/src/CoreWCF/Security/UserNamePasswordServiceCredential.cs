@@ -126,13 +126,13 @@ namespace CoreWCF.Security
             {
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
                 ThrowIfImmutable();
                 _cachedLogonTokenLifetime = value;

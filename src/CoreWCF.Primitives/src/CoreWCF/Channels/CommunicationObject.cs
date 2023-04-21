@@ -580,7 +580,7 @@ namespace CoreWCF.Channels
 
         private Exception CreateNotOpenException()
         {
-            return new InvalidOperationException(SR.Format(SR.CommunicationObjectCannotBeUsed, GetCommunicationObjectType().ToString(), State.ToString()));
+            return new InvalidOperationException(SR.Format(SRCommon.CommunicationObjectCannotBeUsed, GetCommunicationObjectType().ToString(), State.ToString()));
         }
 
         private Exception CreateBaseClassMethodNotCalledException(string method)

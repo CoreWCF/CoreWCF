@@ -48,7 +48,7 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ArgumentOutOfRangeException(nameof(maxSizeOfHeaders), maxSizeOfHeaders,
-                    SR.ValueMustBeNonNegative));
+                    SRCommon.ValueMustBeNonNegative));
             }
 
             if (version == null)
@@ -1283,7 +1283,7 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ArgumentOutOfRangeException(nameof(initialSize), initialSize,
-                    SR.ValueMustBeNonNegative));
+                    SRCommon.ValueMustBeNonNegative));
             }
 
             MessageVersion = version ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(version));

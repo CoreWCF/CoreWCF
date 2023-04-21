@@ -13,17 +13,17 @@ stages:
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
-          testArgs: ''
+          testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: ''          
+          testArgs: '--filter Category!=LinuxOnly'
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
+          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
         Linux_net6.0:
           imageName: 'ubuntu-latest'
@@ -34,11 +34,20 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''          
+          additionalDotNetCoreSdk: ''
     displayName: Test Release
     pool:
       vmImage: $(imageName)
     steps:
+    - bash: |
+        echo 'Starting docker services...'
+        docker-compose up -d
+      name: DockerComposeLinuxServices
+      displayName: Start services hosted by linux containers
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
+
     - task: DownloadPipelineArtifact@2
       displayName: Download build artifacts
       inputs:
@@ -83,6 +92,15 @@ stages:
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
+      
+    - bash: |
+        echo 'Cleaning up docker services...'
+        docker-compose down --rmi all
+      name: DockerComposeDownLinuxServices
+      displayName: Clean up containers used to host services
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
 
   - job: TestDebug
     strategy:
@@ -90,17 +108,17 @@ stages:
         Windows_net6.0:
           imageName: 'windows-latest'
           targetFramework: 'net6.0'
-          testArgs: ''
+          testArgs: '--filter Category!=LinuxOnly'
           additionalDotNetCoreSdk: '6.0.x'
         Windows_net7.0:
           imageName: 'windows-latest'
           targetFramework: 'net7.0'
-          testArgs: ''
-          additionalDotNetCoreSdk: ''          
+          testArgs: '--filter Category!=LinuxOnly'
+          additionalDotNetCoreSdk: ''
         Windows_netfx:
           imageName: 'windows-latest'
           targetFramework: 'net472'
-          testArgs: '--filter Category!=NetCoreOnly'
+          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
           additionalDotNetCoreSdk: ''
         Linux_net6.0:
           imageName: 'ubuntu-latest'
@@ -111,11 +129,20 @@ stages:
           imageName: 'ubuntu-latest'
           targetFramework: 'net7.0'
           testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''          
+          additionalDotNetCoreSdk: ''
     displayName: Test Debug
     pool:
       vmImage: $(imageName)
     steps:
+    - bash: |
+        echo 'Starting docker services...'
+        docker-compose up -d
+      name: DockerComposeLinuxServices
+      displayName: Start services hosted by linux containers
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2
+
     - task: DownloadPipelineArtifact@2
       displayName: Download build artifacts
       inputs:
@@ -154,9 +181,18 @@ stages:
 
     - task: DotNetCoreCLI@2
       displayName: Run Tests
-      timeoutInMinutes: 15
+      timeoutInMinutes: 20
       inputs:
         command: 'test'
         projects: ${{ parameters.testProjects}}
         publishTestResults: true
         arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
+      
+    - bash: |
+        echo 'Cleaning up docker services...'
+        docker-compose down --rmi all
+      name: DockerComposeDownLinuxServices
+      displayName: Clean up containers used to host services
+      condition: eq(variables.imageName, 'ubuntu-latest')
+      timeoutInMinutes: 5
+      retryCountOnTaskFailure: 2

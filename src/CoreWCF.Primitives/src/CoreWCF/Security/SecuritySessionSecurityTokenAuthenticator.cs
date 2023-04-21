@@ -113,13 +113,13 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
                 _sessionTokenLifetime = value;
             }
@@ -136,13 +136,13 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value <= TimeSpan.Zero)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.TimeSpanMustBeGreaterThanTimeSpanZero));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
                 }
 
                 if (TimeoutHelper.IsTooLarge(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
-                        SR.SFxTimeoutOutOfRangeTooBig));
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
                 _keyRenewalInterval = value;
             }
@@ -159,7 +159,7 @@ namespace CoreWCF.Security
                 CommunicationObject.ThrowIfDisposedOrImmutable();
                 if (value < 0)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SR.ValueMustBeNonNegative));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), SRCommon.ValueMustBeNonNegative));
                 }
                 _maximumConcurrentNegotiations = value;
             }

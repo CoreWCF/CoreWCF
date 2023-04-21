@@ -274,12 +274,12 @@ namespace CoreWCF.Channels
             {
                 if (value < TimeSpan.Zero)
                 {
-                    string message = SR.SFxTimeoutOutOfRange0;
+                    string message = SRCommon.SFxTimeoutOutOfRange0;
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, message));
                 }
                 if (TimeoutHelper.IsTooLarge(value))
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SR.SFxTimeoutOutOfRangeTooBig));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value, SRCommon.SFxTimeoutOutOfRangeTooBig));
                 }
 
 

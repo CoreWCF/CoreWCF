@@ -664,7 +664,7 @@ namespace CoreWCF.Channels
                 if (maxMessageSize < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
-                        SR.ValueMustBeNonNegative));
+                        SRCommon.ValueMustBeNonNegative));
                 }
 
                 message.Properties.Encoder = this;
@@ -682,7 +682,7 @@ namespace CoreWCF.Channels
                 if (messageOffset < 0)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageOffset), messageOffset,
-                        SR.ValueMustBeNonNegative));
+                        SRCommon.ValueMustBeNonNegative));
                 }
 
                 if (messageOffset > maxMessageSize)

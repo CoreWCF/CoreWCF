@@ -9,14 +9,26 @@
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+	<Compile Include="$(CommonPath)/System/**/*.cs">
+      <Visible>true</Visible>
+      <Link>shared/System/%(RecursiveDir)%(Filename)%(Extension)</Link>
+	</Compile>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeCommonTestCode)' == 'true'">
-    <Compile Include="$(CommonTestPath)/**/*.cs">
+  <ItemGroup Condition="'$(ReferenceCommonTestProject)' == 'true'">
+    <ProjectReference Include="$(UnitTestCommonProjectPath)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'true'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.cs">
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
-  </ItemGroup>
+    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'false'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.NoConcurrency.cs">
+      <Visible>true</Visible>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>    
 
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
 </Project>

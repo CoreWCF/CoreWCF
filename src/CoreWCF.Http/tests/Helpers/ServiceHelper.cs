@@ -18,6 +18,7 @@ using System.Security.Authentication;
 using System.Text;
 using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.TestHost;
 
 namespace Helpers
 {
@@ -120,7 +121,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                    options.Listen(IPAddress.Loopback, 0, listenOptions =>
                     {
                         if (Debugger.IsAttached)
                         {
@@ -143,7 +144,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 8080, listenOptions =>
+                options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {
@@ -167,20 +168,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
-                {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
-                    if (Debugger.IsAttached)
-                    {
-                        listenOptions.UseConnectionLogging();
-                    }
-                });
-                options.Listen(address: IPAddress.Any, 8443, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {
@@ -261,20 +249,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(address: IPAddress.Loopback, 8444, listenOptions =>
-                {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
-                    if (Debugger.IsAttached)
-                    {
-                        listenOptions.UseConnectionLogging();
-                    }
-                });
-                options.Listen(address: IPAddress.Loopback, 8443, listenOptions =>
+                options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
                     {

@@ -12,6 +12,7 @@ namespace CoreWCF.Http.Tests.Authorization;
 internal class AuthenticationServiceHolder
 {
     public bool IsAuthenticateAsyncCalled { get; set; }
+    public bool IsChallengeAsyncCalled { get; set; }
 }
 
 internal class AuthenticationServiceInterceptor : IAuthenticationService
@@ -25,15 +26,18 @@ internal class AuthenticationServiceInterceptor : IAuthenticationService
         _holder = holder;
     }
 
-    public async Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
+    public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string scheme)
     {
         _holder.IsAuthenticateAsyncCalled = true;
-        var result = await _authenticationService.AuthenticateAsync(context, scheme);
-        return result;
+        return _authenticationService.AuthenticateAsync(context, scheme);
     }
 
     public Task ChallengeAsync(HttpContext context, string scheme, AuthenticationProperties properties)
-        => _authenticationService.ChallengeAsync(context, scheme, properties);
+    {
+        _holder.IsChallengeAsyncCalled = true;
+        return _authenticationService.ChallengeAsync(context, scheme, properties);
+    }
+        
 
     public Task ForbidAsync(HttpContext context, string scheme, AuthenticationProperties properties)
         => _authenticationService.ForbidAsync(context, scheme, properties);

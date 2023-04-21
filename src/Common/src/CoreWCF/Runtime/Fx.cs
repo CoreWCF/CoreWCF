@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
-using System.Threading.Tasks;
 using CoreWCF.Runtime.Diagnostics;
+using System.Runtime.Versioning;
 
 namespace CoreWCF.Runtime
 {
@@ -214,6 +214,7 @@ namespace CoreWCF.Runtime
             return new ActionThunk<T1, T2, T3>(callback).ThunkFrame;
         }
 
+        [SupportedOSPlatform("windows")]
         public static IOCompletionCallback ThunkCallback(IOCompletionCallback callback)
         {
             Assert(callback != null, "Trying to create a ThunkCallback with a null callback method");
@@ -246,7 +247,6 @@ namespace CoreWCF.Runtime
 
             private void UnhandledExceptionFrame(T1 param1)
             {
-                RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
                     Callback(param1);
@@ -277,7 +277,6 @@ namespace CoreWCF.Runtime
 
             private void UnhandledExceptionFrame(T1 param1, T2 param2)
             {
-                RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
                     Callback(param1, param2);
@@ -308,7 +307,6 @@ namespace CoreWCF.Runtime
 
             private void UnhandledExceptionFrame(T1 param1, T2 param2, T3 param3)
             {
-                RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
                     Callback(param1, param2, param3);
@@ -401,6 +399,7 @@ namespace CoreWCF.Runtime
         }
 
         // This can't derive from Thunk since T would be unsafe.
+        [SupportedOSPlatform("windows")]
         private sealed unsafe class IOCompletionThunk
         {
             private readonly IOCompletionCallback _callback;
@@ -420,7 +419,6 @@ namespace CoreWCF.Runtime
 
             private void UnhandledExceptionFrame(uint error, uint bytesRead, NativeOverlapped* nativeOverlapped)
             {
-                RuntimeHelpers.PrepareConstrainedRegions();
                 try
                 {
                     _callback(error, bytesRead, nativeOverlapped);

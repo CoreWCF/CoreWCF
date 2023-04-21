@@ -50,7 +50,7 @@ namespace CoreWCF.Http.Tests
                 {
                     case "Http1Binding":
                         channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IStream>(ClientHelper.GetBufferedModHttp1Binding(),
-                      new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService1/RequestReplyTests.svc")));
+                      new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService1/RequestReplyTests.svc")));
                         break;
                     //case "Http2Binding":
                     //    channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.IStream>(ClientHelper.GetBufferedModHttp2Binding(),

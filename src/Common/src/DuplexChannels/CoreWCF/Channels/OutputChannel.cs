@@ -49,7 +49,7 @@ namespace CoreWCF.Channels
             if (token.IsCancellationRequested)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    new ArgumentException(SR.SFxTimeoutOutOfRange0, nameof(token)));
+                    new ArgumentException(SRCommon.SFxTimeoutOutOfRange0, nameof(token)));
             }
 
             ThrowIfDisposedOrNotOpen();

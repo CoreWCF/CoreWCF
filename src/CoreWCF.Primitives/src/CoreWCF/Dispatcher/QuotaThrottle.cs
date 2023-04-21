@@ -83,7 +83,7 @@ namespace CoreWCF.Dispatcher
             if (incrementBy < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(incrementBy), incrementBy,
-                                                     SR.ValueMustBeNonNegative));
+                                                     SRCommon.ValueMustBeNonNegative));
             }
 
             int newLimit;
@@ -152,7 +152,7 @@ namespace CoreWCF.Dispatcher
             if (messageLimit < 0)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageLimit), messageLimit,
-                                                    SR.ValueMustBeNonNegative));
+                                                    SRCommon.ValueMustBeNonNegative));
             }
 
             TaskCompletionSource<object>[] released = null;

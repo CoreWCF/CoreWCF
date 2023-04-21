@@ -21,7 +21,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
             ISecuredService channel = factory.CreateChannel();
             string result = channel.Echo(TestString);
             Assert.Equal(TestString, result);
@@ -37,7 +37,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
         }
@@ -54,7 +54,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
         }

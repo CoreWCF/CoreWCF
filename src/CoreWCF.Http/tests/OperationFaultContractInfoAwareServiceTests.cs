@@ -32,7 +32,7 @@ namespace CoreWCF.Http.Tests
                 host.Start();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ICalculatorService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8080/BasicWcfService/Service.svc")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/Service.svc")));
                 ICalculatorService channel = factory.CreateChannel();
 
                 var result = channel.Divide(2, 1);
@@ -58,7 +58,7 @@ namespace CoreWCF.Http.Tests
                     builder.ConfigureServiceHostBase<Services.OperationFaultContractInfoAwareCalculatorService>(service =>
                     {
                         var behavior = app.ApplicationServices.GetService<Services.OperationFaultContractInfoAwareServiceBehavior>();
-                        service.Description.Behaviors.Add(behavior);                        
+                        service.Description.Behaviors.Add(behavior);
                     });
                     builder.AddService<Services.OperationFaultContractInfoAwareCalculatorService>();
                     builder.AddServiceEndpoint<Services.OperationFaultContractInfoAwareCalculatorService, ServiceContract.ICalculatorService>(new BasicHttpBinding(), "/BasicWcfService/Service.svc");
