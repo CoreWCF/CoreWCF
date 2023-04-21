@@ -46,7 +46,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         internal MSIdentitySAML.SamlSecurityToken WrappedSamlSecurityToken { get; }
 
-        internal MSIdentitySAML.SamlAssertion Assertion { get; private set; }
+        public MSIdentitySAML.SamlAssertion Assertion { get; private set; }
 
         internal SecurityToken SigningToken { get; set; }
 
