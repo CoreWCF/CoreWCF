@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class SamlNameIdentifierClaimResource
+    public class SamlNameIdentifierClaimResource
     {
         [DataMember]
         private readonly string _nameQualifier;
