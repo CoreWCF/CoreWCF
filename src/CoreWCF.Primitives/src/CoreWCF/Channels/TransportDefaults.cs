@@ -172,4 +172,20 @@ namespace CoreWCF.Channels
     {
         internal const int ConnectionBufferSize = 8192;
     }
+
+    internal static class ReliableSessionDefaults
+    {
+        internal const string AcknowledgementIntervalString = "00:00:00.2";
+        internal static TimeSpan AcknowledgementInterval { get { return TimeSpan.FromMilliseconds(200); } }
+        internal const bool Enabled = false;
+        internal const bool FlowControlEnabled = true;
+        internal const string InactivityTimeoutString = "00:10:00";
+        internal static TimeSpan InactivityTimeout { get { return TimeSpan.FromMinutes(10); } }
+        internal const int MaxPendingChannels = 4;
+        internal const int MaxRetryCount = 8;
+        internal const int MaxTransferWindowSize = 8;
+        internal const bool Ordered = true;
+        internal static ReliableMessagingVersion ReliableMessagingVersion { get { return ReliableMessagingVersion.WSReliableMessagingFebruary2005; } }
+        internal const string ReliableMessagingVersionString = "WSReliableMessagingFebruary2005";
+    }
 }
