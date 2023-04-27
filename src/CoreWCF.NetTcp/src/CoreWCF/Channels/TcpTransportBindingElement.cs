@@ -88,11 +88,10 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
-            // TODO: Decide whether to support DeliveryRequirementsAttribute
-            //if (typeof(T) == typeof(IBindingDeliveryCapabilities))
-            //{
-            //    return (T)(object)new BindingDeliveryCapabilitiesHelper();
-            //}
+            if (typeof(T) == typeof(IBindingDeliveryCapabilities))
+            {
+                return (T)(object)new BindingDeliveryCapabilitiesHelper();
+            }
             if (typeof(T) == typeof(ExtendedProtectionPolicy))
             {
                 return (T)(object)ExtendedProtectionPolicy;
@@ -114,6 +113,13 @@ namespace CoreWCF.Channels
         public override IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher)
         {
             return innerDispatcher;
+        }
+
+        private class BindingDeliveryCapabilitiesHelper : IBindingDeliveryCapabilities
+        {
+            internal BindingDeliveryCapabilitiesHelper() { }
+            bool IBindingDeliveryCapabilities.AssuresOrderedDelivery => true;
+            bool IBindingDeliveryCapabilities.QueuedDelivery => false;
         }
     }
 }
