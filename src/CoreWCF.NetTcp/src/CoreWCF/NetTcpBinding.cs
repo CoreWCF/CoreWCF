@@ -1,7 +1,9 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.ComponentModel;
+using System.Text;
 using System.Xml;
 using CoreWCF.Channels;
 
@@ -9,9 +11,11 @@ namespace CoreWCF
 {
     public class NetTcpBinding : Binding
     {
+        private OptionalReliableSession _reliableSession;
         // private BindingElements
         private TcpTransportBindingElement _transport;
         private BinaryMessageEncodingBindingElement _encoding;
+        private ReliableSessionBindingElement _session;
         private NetTcpSecurity _security = new NetTcpSecurity();
 
         public NetTcpBinding() { Initialize(); }
@@ -90,6 +94,25 @@ namespace CoreWCF
         //    get { return false; }
         //}
 
+        public OptionalReliableSession ReliableSession
+        {
+            get
+            {
+                return _reliableSession;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
+                }
+
+                _reliableSession.Ordered = value.Ordered;
+                _reliableSession.InactivityTimeout = value.InactivityTimeout;
+                _reliableSession.Enabled = value.Enabled;
+            }
+        }
+
         public override string Scheme { get { return _transport.Scheme; } }
 
         public EnvelopeVersion EnvelopeVersion
@@ -122,22 +145,28 @@ namespace CoreWCF
         {
             _transport = new TcpTransportBindingElement();
             _encoding = new BinaryMessageEncodingBindingElement();
+            _session = new ReliableSessionBindingElement();
+            _reliableSession = new OptionalReliableSession(_session);
         }
 
         public override BindingElementCollection CreateBindingElements()
         {
             // return collection of BindingElements
-            BindingElementCollection bindingElements = new BindingElementCollection
+            BindingElementCollection bindingElements = new BindingElementCollection();
+            // order of BindingElements is important
+            // add session
+            if (_reliableSession.Enabled)
             {
-                // order of BindingElements is important
-                // add encoding
-                _encoding
-            };
+                bindingElements.Add(_session);
+            }
+            // add security (*optional)
             SecurityBindingElement wsSecurity = CreateMessageSecurity();
             if (wsSecurity != null)
             {
                 bindingElements.Add(wsSecurity);
             }
+            // add encoding
+            bindingElements.Add(_encoding);
             // add transport security
             BindingElement transportSecurity = CreateTransportSecurity();
             if (transportSecurity != null)
