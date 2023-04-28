@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace ClientContract
 {
@@ -26,11 +27,11 @@ namespace ClientContract
 
         [OperationContract(Name = "EchoStringAsync", Action = Constants.OPERATION_BASE + "EchoStringAsync",
             ReplyAction = Constants.OPERATION_BASE + "EchoStringAsyncResponse")]
-        string EchoStringAsync(string echo);
+        Task<string> EchoStringAsync(string echo);
 
         [OperationContract(Name = "EchoStreamAsync", Action = Constants.OPERATION_BASE + "EchoStreamAsync",
             ReplyAction = Constants.OPERATION_BASE + "EchoStreamAsyncResponse")]
-        Stream EchoStreamAsync(Stream echo);
+        Task<Stream> EchoStreamAsync(Stream echo);
 
         [OperationContract(Name = "EchoToFail", Action = Constants.OPERATION_BASE + "EchoToFail",
      ReplyAction = Constants.OPERATION_BASE + "EchoToFailResponse")]
