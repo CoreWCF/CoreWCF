@@ -105,7 +105,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public bool SendUnsecuredFaults { get; set; }
+        public bool SendUnsecuredFaults { get; set; } = true;
 
         public IChannel OuterChannel { get; set; }
 
