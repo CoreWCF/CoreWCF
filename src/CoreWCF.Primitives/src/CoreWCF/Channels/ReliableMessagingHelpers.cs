@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
 
@@ -115,12 +116,12 @@ namespace CoreWCF.Channels
             InternalSet();
         }
 
-        public Task<bool> WaitAsync(TimeSpan timeout)
+        public Task<bool> WaitAsync(CancellationToken token)
         {
-            return WaitAsync(timeout, _throwTimeoutByDefault);
+            return WaitAsync(token, _throwTimeoutByDefault);
         }
 
-        public async Task<bool> WaitAsync(TimeSpan timeout, bool throwTimeoutException)
+        public async Task<bool> WaitAsync(CancellationToken token, bool throwTimeoutException)
         {
             lock (_thisLock)
             {
@@ -144,11 +145,11 @@ namespace CoreWCF.Channels
 
             try
             {
-                if (!await _tcs.Task.AwaitWithTimeout(timeout))
+                if (!await _tcs.Task.WaitWithCancellationAsync(token))
                 {
                     if (throwTimeoutException)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.TimeoutOnOperation, timeout)));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.TimeoutOnOperation, TimeoutHelper.GetOriginalTimeout(token))));
                     }
                     else
                     {
