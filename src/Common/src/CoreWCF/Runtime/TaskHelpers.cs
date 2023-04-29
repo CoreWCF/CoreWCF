@@ -189,6 +189,27 @@ namespace CoreWCF.Runtime
             }
         }
 
+        public static async Task<bool> WaitWithCancellationAsync(this Task task, CancellationToken token)
+        {
+            if (task.IsCompleted)
+            {
+                return true;
+            }
+
+            if (!token.CanBeCanceled)
+            {
+                await task;
+                return true;
+            }
+
+            TaskCompletionSource<object> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (token.Register((tcsObj) => ((TaskCompletionSource<object>)tcsObj).TrySetResult(null), tcs, useSynchronizationContext: false))
+            {
+                Task completedTask = await Task.WhenAny(task, tcs.Task);
+                return completedTask == task;
+            }
+        }
+
         // Task.GetAwaiter().GetResult() calls an internal variant of Wait() which doesn't wrap exceptions in
         // an AggregateException. It does spinwait so if it's expected that the Task isn't about to complete,
         // then use the NoSpin variant.
