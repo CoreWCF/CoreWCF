@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Channels
@@ -23,14 +24,14 @@ namespace CoreWCF.Channels
 
         void Abort();
 
-        Task CloseAsync(TimeSpan timeout);
-        Task CloseAsync(TimeSpan timeout, MaskingMode maskingMode);
-        Task OpenAsync(TimeSpan timeout);
-        Task SendAsync(Message message, TimeSpan timeout);
-        Task SendAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
+        Task CloseAsync(CancellationToken token);
+        Task CloseAsync(CancellationToken token, MaskingMode maskingMode);
+        Task OpenAsync(CancellationToken token);
+        Task SendAsync(Message message, CancellationToken token);
+        Task SendAsync(Message message, CancellationToken token, MaskingMode maskingMode);
 
-        Task<(bool, RequestContext)> TryReceiveAsync(TimeSpan timeout);
-        Task<(bool, RequestContext)> TryReceiveAsync(TimeSpan timeout, MaskingMode maskingMode);
+        Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token);
+        Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode);
 
         ISession GetInnerSession();
         void HandleException(Exception e);
