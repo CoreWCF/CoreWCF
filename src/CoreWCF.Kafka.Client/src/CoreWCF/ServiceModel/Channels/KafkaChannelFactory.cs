@@ -22,16 +22,8 @@ namespace CoreWCF.ServiceModel.Channels
             _transportTransportBindingElement = transportBindingElement;
             _bufferManager = BufferManager.CreateBufferManager(transportBindingElement.MaxBufferPoolSize, int.MaxValue);
 
-            var messageEncoderBindingElements
-                = context.BindingParameters.OfType<MessageEncodingBindingElement>().ToArray();
-
-            MessageEncoderFactory = messageEncoderBindingElements.Length switch
-            {
-                > 1 => throw new InvalidOperationException(
-                    "More than one MessageEncodingBindingElement was found in the BindingParameters of the BindingContext"),
-                1 => messageEncoderBindingElements[0].CreateMessageEncoderFactory(),
-                _ => KafkaConstants.DefaultMessageEncoderFactory
-            };
+            MessageEncoderFactory = context.BindingParameters.Find<MessageEncodingBindingElement>()?.CreateMessageEncoderFactory()
+                ?? KafkaConstants.DefaultMessageEncoderFactory;
         }
 
         public BufferManager BufferManager => _bufferManager;
