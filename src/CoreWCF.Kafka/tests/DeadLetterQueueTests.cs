@@ -70,11 +70,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Single(testService.Names);
         }
 
-        //Assert.True(await KafkaEx.EnsureConsumerLagIsZeroAsync(Output, ConsumerGroup, Topic));
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
-
-        //Assert.True(await KafkaEx.EnsureMessageCountIsOneAsync(Output, DeadLetterQueueTopic));
-        Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic));
+        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
     }
 
     [Fact]
@@ -103,11 +100,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        //Assert.True(await KafkaEx.EnsureConsumerLagIsZeroAsync(Output, ConsumerGroup, Topic));
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
-
-        //Assert.True(await KafkaEx.EnsureMessageCountIsOneAsync(Output, DeadLetterQueueTopic));
-        Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic));
+        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
     }
 
     private class Startup

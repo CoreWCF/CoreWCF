@@ -10,7 +10,6 @@ using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
