@@ -44,19 +44,19 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         Topic = serviceDispatcher.BaseAddress.PathAndQuery.TrimStart('/');
         if (string.IsNullOrEmpty(Topic) || !s_topicNameRegex.IsMatch(Topic))
         {
-            throw new NotSupportedException($"The specified topic name '{Topic}' is not valid");
+            throw new NotSupportedException(string.Format(SR.InvalidTopicName, Topic));
         }
 
         if (transportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
             if (string.IsNullOrEmpty(transportBindingElement.DeadLetterQueueTopic))
             {
-                throw new NotSupportedException($"The DeadLetterQueueTopic is missing");
+                throw new NotSupportedException(SR.InvalidDeadLetterQueueTopicName);
             }
 
             if (!s_topicNameRegex.IsMatch(transportBindingElement.DeadLetterQueueTopic))
             {
-                throw new NotSupportedException($"The specified topic name '{Topic}' is not valid");
+                throw new NotSupportedException(string.Format(SR.InvalidTopicName, Topic));
             }
         }
         TransportBindingElement = transportBindingElement;
@@ -168,7 +168,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             (KafkaDeliverySemantics.AtMostOnce, { EnableAutoCommit: false, EnableAutoOffsetStore: null }) => s_atMostOnceConfigValues,
             (KafkaDeliverySemantics.AtLeastOnce, { EnableAutoCommit: true, EnableAutoOffsetStore: false } ) => s_atLeastOnceBatchCommitConfigValues,
             (KafkaDeliverySemantics.AtLeastOnce, { EnableAutoCommit: false, EnableAutoOffsetStore: null }) => s_atLeastOncePerMessageCommitConfigValues,
-            _ => throw new NotSupportedException(string.Format(SR.ProvidedKafkaConfigurationIsNotValid, kafkaDeliverySemantics, consumerConfig.EnableAutoCommit, consumerConfig.EnableAutoOffsetStore))
+            _ => throw new NotSupportedException(string.Format(SR.InvalidKafkaConfiguration, kafkaDeliverySemantics, consumerConfig.EnableAutoCommit, consumerConfig.EnableAutoOffsetStore))
         };
 
     private void OnLog(IConsumer<Null, byte[]> consumer, LogMessage logMessage)

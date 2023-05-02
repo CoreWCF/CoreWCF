@@ -47,8 +47,7 @@ public sealed class KafkaTransportSecurity
 
             if (!KafkaCredentialTypeHelper.IsSupported(value))
             {
-                throw new ArgumentException(
-                    "This credential type is not directly supported by KafkaBinding yet. However you should be able to configure KafkaTransportBindingElement to achieve your goal.");
+                throw new ArgumentException(SR.InvalidCredentialType);
             }
 
             _credentialType = value;
@@ -69,7 +68,7 @@ public sealed class KafkaTransportSecurity
             {
                 if (SslKeyPairCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSslKeyPairCredential);
                 }
 
                 bindingElement.SecurityProtocol ??= SecurityProtocol.Ssl;
@@ -77,14 +76,14 @@ public sealed class KafkaTransportSecurity
                 bindingElement.SslKeyPem ??= SslKeyPairCredential.SslKeyPem;
                 bindingElement.SslKeyPassword ??= SslKeyPairCredential.SslKeyPassword;
                 bindingElement.SslCertificatePem ??= SslKeyPairCredential.SslCertificatePem;
-                
+
             }
 
             if (_credentialType == KafkaCredentialType.SaslPlain)
             {
                 if (SaslUsernamePasswordCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSaslUsernamePasswordCredential);
                 }
 
                 bindingElement.SslCaPem ??= CaPem;
@@ -103,7 +102,7 @@ public sealed class KafkaTransportSecurity
             {
                 if (SaslUsernamePasswordCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSaslUsernamePasswordCredential);
                 }
 
                 bindingElement.SecurityProtocol ??= SecurityProtocol.SaslPlaintext;

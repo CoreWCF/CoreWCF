@@ -39,7 +39,7 @@ namespace CoreWCF.ServiceModel.Channels
             _topic = address.Uri.PathAndQuery.Substring(1, address.Uri.PathAndQuery.Length - 1);
             if (string.IsNullOrEmpty(_topic) || !s_topicNameRegex.IsMatch(_topic))
             {
-                throw new NotSupportedException($"The specified topic name '{_topic}' is not valid");
+                throw new NotSupportedException(string.Format(SR.InvalidTopicName, _topic));
             }
             ProducerConfig producerConfig = transportBindingElement.Config;
             producerConfig.BootstrapServers = bootstrapServer;
@@ -136,45 +136,10 @@ namespace CoreWCF.ServiceModel.Channels
 
         public void Send(Message message) => Send(message, DefaultSendTimeout);
 
-        private void ProduceSynchronously(byte[] bytes, TimeSpan timeout)
-        {
-            // the .net synchronous Consumer.Produce method produces asynchronously and uses a callback to signal message is sent.
-            // Usual production pattern is to call producer.Produce multiple times and then producer.Flush
-            // So here the throughput will be significantly impacted but will better fit CoreWCF model
-            ManualResetEventSlim mre = new();
-            _producer.Produce(_topic, new Message<Null, byte[]> { Value = bytes }, report =>
-            {
-                try
-                {
-                    if (report.Error.IsError)
-                    {
-                        throw KafkaChannelHelpers.ConvertError(report.Error);
-                    }
-                }
-                finally
-                {
-                    mre.Set();
-                }
-            });
-            mre.Wait(timeout);
-        }
-
         public void Send(Message message, TimeSpan timeout)
         {
-            ArraySegment<byte> messageBuffer = EncodeMessage(message);
-            try
-            {
-                byte[] bytes = new Span<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count).ToArray();
-                ProduceSynchronously(bytes, timeout);
-            }
-            catch (ProduceException<Null, byte[]> produceException)
-            {
-                throw KafkaChannelHelpers.ConvertProduceException(produceException);
-            }
-            finally
-            {
-                _parent.BufferManager.ReturnBuffer(messageBuffer.Array);
-            }
+            using CancellationTokenSource cts = new(timeout);
+            SendAsync(message, cts.Token).GetAwaiter().GetResult();
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)

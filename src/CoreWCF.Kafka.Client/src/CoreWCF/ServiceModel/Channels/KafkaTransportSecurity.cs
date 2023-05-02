@@ -63,7 +63,7 @@ public sealed class KafkaTransportSecurity
             {
                 if (SslKeyPairCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSslKeyPairCredential);
                 }
 
                 bindingElement.SecurityProtocol ??= SecurityProtocol.Ssl;
@@ -78,7 +78,7 @@ public sealed class KafkaTransportSecurity
             {
                 if (SaslUsernamePasswordCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSaslUsernamePasswordCredential);
                 }
 
                 bindingElement.SslCaPem ??= CaPem;
@@ -97,7 +97,7 @@ public sealed class KafkaTransportSecurity
             {
                 if (SaslUsernamePasswordCredential is null)
                 {
-                    throw new NotSupportedException();
+                    throw new NotSupportedException(SR.MissingSaslUsernamePasswordCredential);
                 }
 
                 bindingElement.SecurityProtocol ??= SecurityProtocol.SaslPlaintext;
