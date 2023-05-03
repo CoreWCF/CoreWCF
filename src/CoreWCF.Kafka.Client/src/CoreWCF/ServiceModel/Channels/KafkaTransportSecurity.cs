@@ -45,6 +45,11 @@ public sealed class KafkaTransportSecurity
                 throw new ArgumentOutOfRangeException(nameof(value));
             }
 
+            if (!KafkaCredentialTypeHelper.IsSupported(value))
+            {
+                throw new ArgumentException(SR.InvalidCredentialType);
+            }
+
             _credentialType = value;
         }
     }

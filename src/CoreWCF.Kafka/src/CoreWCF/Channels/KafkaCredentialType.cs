@@ -7,13 +7,9 @@ public enum KafkaCredentialType
 {
     None,
     SslKeyPairCertificate,
-    // not supported yet because not tested with integration test.
-    SaslGssapi, 
+    SaslGssapi,
     SaslPlain,
-    // not supported yet because not tested with integration test.
     SaslScramSha256,
-    // not supported yet because not tested with integration test.
     SaslScramSha512,
-    // not supported yet because not tested with integration test.
     SaslOAuthBearer,
 }
