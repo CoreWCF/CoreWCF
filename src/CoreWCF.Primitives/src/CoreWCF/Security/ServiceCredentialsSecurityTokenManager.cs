@@ -15,7 +15,7 @@ using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
 {
-    internal class ServiceCredentialsSecurityTokenManager : SecurityTokenManager, IEndpointIdentityProvider
+    public class ServiceCredentialsSecurityTokenManager : SecurityTokenManager, IEndpointIdentityProvider
     {
         public ServiceCredentialsSecurityTokenManager(ServiceCredentials parent)
         {

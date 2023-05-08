@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -156,6 +158,74 @@ namespace BasicHttp
             }
         }
 
+        [Fact]
+        public void BasicHttpRequestReplyWithTransportMessageCertificateUsingServiceCredentialsEchoString()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
+                BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                string clientCredentialsUserName = "testuser@corewcf";
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = clientCredentialsUserName;
+                clientCredentials.UserName.Password = clientCredentialsUserName.Reverse().ToString();
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);                
+                ((IChannel)channel).Close();
+                factory.Close();
+            }
+        }
+
+        [Fact]
+        public void BasicHttpRequestReplyWithTransportMessageCertificateUsingServiceCredentialsEchoStringThrow()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
+                    BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    string clientCredentialsUserName = "testuser@corewcf";
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.UserName.UserName = clientCredentialsUserName;
+                    clientCredentials.UserName.Password = new string('a', 8);
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var exception = Assert.Throws<System.ServiceModel.Security.MessageSecurityException>(() =>
+                    {
+                        string result = channel.EchoString(testString);
+                    });
+                    Assert.Contains("At least one security token in the message could not be validated.", exception.InnerException.Message);
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
         private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
         {
             return true;
@@ -189,6 +259,62 @@ namespace BasicHttp
             }
         }
 
+        internal class MyUserNameCredential : CoreWCF.Description.ServiceCredentials
+        {
+            public MyUserNameCredential() : base() { }
+
+            protected MyUserNameCredential(MyUserNameCredential other) : base(other) { }
+
+            protected override CoreWCF.Description.ServiceCredentials CloneCore()
+            {
+                return new MyUserNameCredential(this);
+            }
+
+            public override SecurityTokenManager CreateSecurityTokenManager()
+            {
+                return new MySecurityTokenManager(this);
+            }
+        }
+
+        internal class MyTokenAuthenticator : UserNameSecurityTokenAuthenticator
+        {
+            protected override ValueTask<ReadOnlyCollection<CoreWCF.IdentityModel.Policy.IAuthorizationPolicy>> ValidateUserNamePasswordCoreAsync(string userName, string password)
+            {
+                string clientCredentialsUserName = "testuser@corewcf";
+                if (string.Compare(userName, clientCredentialsUserName, StringComparison.OrdinalIgnoreCase) != 0 ||
+                    string.Compare(password, clientCredentialsUserName.Reverse().ToString(), StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    throw new CoreWCF.IdentityModel.Tokens.SecurityTokenValidationException("Permission Denied");
+                }
+
+                List<CoreWCF.IdentityModel.Policy.IAuthorizationPolicy> policies = new List<CoreWCF.IdentityModel.Policy.IAuthorizationPolicy>(1);
+                return new ValueTask<ReadOnlyCollection<CoreWCF.IdentityModel.Policy.IAuthorizationPolicy>>(policies.AsReadOnly());
+            }
+        }
+
+        internal class MySecurityTokenManager : CoreWCF.Security.ServiceCredentialsSecurityTokenManager
+        {
+            private readonly string _userNameTokenType = "http://schemas.microsoft.com/ws/2006/05/identitymodel/tokens/UserName";
+
+            public MySecurityTokenManager(MyUserNameCredential myUserNameCredential)
+                : base(myUserNameCredential)
+            {
+            }
+
+            public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
+            {
+                if (tokenRequirement.TokenType == _userNameTokenType)
+                {
+                    outOfBandTokenResolver = null;
+                    return new MyTokenAuthenticator();
+                }
+                else
+                {
+                    return base.CreateSecurityTokenAuthenticator(tokenRequirement, out outOfBandTokenResolver);
+                }
+            }
+        }
+
         internal class BasicHttpTransportWithMessageCredentialWithCertificate : StartupBasicHttpBase
         {
             public BasicHttpTransportWithMessageCredentialWithCertificate() :
@@ -206,6 +332,22 @@ namespace BasicHttp
                     StoreLocation.CurrentUser,
                     StoreName.My, X509FindType.FindBySerialNumber,
                     "16437c0e611928da");
+                host.Description.Behaviors.Add(srvCredentials);
+            }
+        }
+
+        internal class BasicHttpTransportWithMessageCredentialWithUserName : StartupBasicHttpBase
+        {
+            public BasicHttpTransportWithMessageCredentialWithUserName() :
+                base(CoreWCF.Channels.BasicHttpSecurityMode.TransportWithMessageCredential, BasicHttpMessageCredentialType.UserName)
+            {
+            }
+
+            public override void ChangeHostBehavior(ServiceHostBase host)
+            {
+                var srvCredentials = new MyUserNameCredential();
+                srvCredentials.ClientCertificate.Authentication.CertificateValidationMode
+                    = CoreWCF.Security.X509CertificateValidationMode.PeerOrChainTrust;
                 host.Description.Behaviors.Add(srvCredentials);
             }
         }
@@ -231,7 +373,7 @@ namespace BasicHttp
 
         internal abstract class StartupBasicHttpBase
         {
-            private readonly CoreWCF.Channels.BasicHttpSecurityMode  _basicHttpSecurityMode;
+            private readonly CoreWCF.Channels.BasicHttpSecurityMode _basicHttpSecurityMode;
             private readonly BasicHttpMessageCredentialType _credentialType;
             public StartupBasicHttpBase(CoreWCF.Channels.BasicHttpSecurityMode securityMode, BasicHttpMessageCredentialType credentialType)
             {
