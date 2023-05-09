@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.ServiceModel.Channels;
 using CoreWCF.Configuration;
 using Helpers;
@@ -64,6 +65,47 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
+        [Fact]
+        [Trait("Category", "WindowsOnly")]
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+        public void HostedServiceDuplexWindowsClaimSetEcho()
+        {
+            // This test uses a non Kestrel IServer implementation (HttpSys) to trigger code path
+            // which uses an IHostedService. In the future this test should switch to using
+            // the .NET Generic Host (https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host)
+            // It's not available on asp.net core 2.1 so we couldn't test on .NET Framework
+            string currentUserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            IWebHost host = ServiceHelper.CreateNonKestrelWebHostBuilder<StartupWithTransportSecurity>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ServiceContract.IDuplexTestService> factory = null;
+                ServiceContract.IDuplexTestService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    binding.Security.Transport.ClientCredentialType = System.ServiceModel.TcpClientCredentialType.Windows;
+                    var callback = new ServiceContract.DuplexTestCallback();
+                    factory = new System.ServiceModel.DuplexChannelFactory<ServiceContract.IDuplexTestService>(
+                        new System.ServiceModel.InstanceContext(callback),
+                        binding,
+                        new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.DuplexRelativeAddress));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var verifySuccess = channel.VerifyWindowsClaimSetUserName(currentUserName);
+                    Assert.True(verifySuccess, "WindowsClaim UserName verification was not successful");
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
         public class Startup
         {
             public const string DuplexRelativeAddress = "/nettcp.duplex.svc/";
@@ -79,6 +121,36 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     builder.AddService<Services.DuplexTestService>();
                     builder.AddServiceEndpoint<Services.DuplexTestService, ServiceContract.IDuplexTestService>(new CoreWCF.NetTcpBinding(SecurityMode.None), DuplexRelativeAddress);
+                });
+            }
+        }
+
+        public class StartupWithTransportSecurity
+        {
+            public const string DuplexRelativeAddress = "/nettcp.duplex.svc/";
+
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void ChangeHostBehavior(ServiceHostBase host)
+            {
+                var srvCredentials = new CoreWCF.Description.ServiceCredentials();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
+                srvCredentials.ClientCertificate.Authentication.CertificateValidationMode =
+                    CoreWCF.Security.X509CertificateValidationMode.PeerOrChainTrust;
+                host.Description.Behaviors.Add(srvCredentials);
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.DuplexTestService>();
+                    builder.AddServiceEndpoint<Services.DuplexTestService, ServiceContract.IDuplexTestService>(new CoreWCF.NetTcpBinding(SecurityMode.Transport), DuplexRelativeAddress);
+                    Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
+                    builder.ConfigureServiceHostBase<Services.DuplexTestService>(serviceHost);
                 });
             }
         }
