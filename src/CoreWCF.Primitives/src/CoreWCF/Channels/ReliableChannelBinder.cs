@@ -334,6 +334,76 @@ namespace CoreWCF.Channels
             return TryReceiveAsync(token, DefaultMaskingMode);
         }
 
+        public Task DispatchAsync(RequestContext context)
+        {
+            return DispatchAsync(context, DefaultMaskingMode);
+        }
+
+        public Task DispatchAsync(RequestContext context, MaskingMode maskingMode)
+        {
+            RequestContext requestContext;
+            if (maskingMode != MaskingMode.None)
+            {
+                throw Fx.AssertAndThrow("This method was implemented only for the case where we do not mask exceptions.");
+            }
+
+            // TODO, what to return here?
+            if (!ValidateInputOperation())
+            {
+                throw new Exception("Need to resolve this");
+                //return (true, null);
+            }
+
+            while (true)
+            {
+                bool autoAborted = false;
+
+                try
+                {
+                    (bool success, TChannel channel) = await Synchronizer.TryGetChannelForInputAsync(
+                        CanGetChannelForReceive, token);
+                    success = !success; // Need opposite of what TryGetChannelForInputAsync returns
+
+                    if (channel == null)
+                    {
+                        return (success, null);
+                    }
+
+                    try
+                    {
+                        (success, requestContext) = await OnTryReceiveAsync(channel, token);
+
+                        // timed out || got message, return immediately
+                        if (!success || (requestContext != null))
+                        {
+                            return (success, requestContext);
+                        }
+
+                        // the underlying channel closed or faulted, retry
+                        Synchronizer.OnReadEof();
+                    }
+                    finally
+                    {
+                        autoAborted = Synchronizer.Aborting;
+                        await Synchronizer.ReturnChannelAsync();
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e))
+                    {
+                        throw;
+                    }
+
+                    if (!HandleException(e, maskingMode, autoAborted))
+                    {
+                        throw;
+                    }
+                }
+            }
+
+        }
+
         // TODO: This method needs to be replaced with an implementation that uses the push dispatch model.
         public virtual async Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode)
         {
