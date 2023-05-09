@@ -11,7 +11,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Claims
 {
-    internal class WindowsClaimSet : ClaimSet, IIdentityInfo, IDisposable
+    public class WindowsClaimSet : ClaimSet, IIdentityInfo, IDisposable
     {
         internal const bool DefaultIncludeWindowsGroups = true;
         private readonly ClaimsIdentity _windowsIdentity;
