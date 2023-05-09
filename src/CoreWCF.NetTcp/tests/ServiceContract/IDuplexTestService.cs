@@ -50,5 +50,11 @@ namespace ServiceContract
         [System.ServiceModel.OperationContract(Name = "SendMessage", Action = Constants.DUPLEX_OPERATION_BASE + "SendMessage",
             ReplyAction = Constants.DUPLEX_OPERATION_BASE + "SendMessageResponse")]
         void SendMessage(string message);
+
+        [OperationContract(Name = "VerifyWindowsClaimSetUserName", Action = Constants.DUPLEX_OPERATION_BASE + "ClaimEcho",
+            ReplyAction = Constants.DUPLEX_OPERATION_BASE + "VerifyWindowsClaimSetUserNameResponse")]
+        [System.ServiceModel.OperationContract(Name = "VerifyWindowsClaimSetUserName", Action = Constants.DUPLEX_OPERATION_BASE + "ClaimEcho",
+            ReplyAction = Constants.DUPLEX_OPERATION_BASE + "VerifyWindowsClaimSetUserNameResponse")]
+        public bool VerifyWindowsClaimSetUserName(string currentUserName);
     }
 }
