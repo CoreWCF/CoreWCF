@@ -506,6 +506,10 @@ namespace CoreWCF.Security
                 {
                     ChannelBuilder.AddServiceDispatcher<IDuplexSessionChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
                 }
+                else if (typeof(IDuplexChannel).Equals(AcceptorChannelType))
+                {
+                    ChannelBuilder.AddServiceDispatcher<IDuplexChannel>(sessionServiceDispatcher, new ChannelDemuxerFilter(sctFilter, int.MaxValue));
+                }
 
                 AddPendingSession(sessionToken.ContextId, sessionToken, sctFilter);
             }
