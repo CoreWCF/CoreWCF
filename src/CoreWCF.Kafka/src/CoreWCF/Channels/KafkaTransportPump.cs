@@ -24,7 +24,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal IProducer<Null, byte[]> Producer { get; private set; }
     internal string Topic { get; }
     internal KafkaTransportBindingElement TransportBindingElement { get; }
-    private long _receiveContextCount;
+    private CountdownEvent _receiveContextCountdownEvent;
 
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
@@ -68,6 +68,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         _cts = new();
         _mres = new();
         _mres.Reset();
+        _receiveContextCountdownEvent = new(1);
 
         CancellationToken ct = CancellationTokenSource
             .CreateLinkedTokenSource(_cts.Token, token).Token;
@@ -147,10 +148,9 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         _cts.Cancel();
         await _mres.WaitAsync(CancellationToken.None);
         _cts.Dispose();
-        while (_receiveContextCount > 0)
-        {
-            await Task.Delay(10);
-        }
+        _receiveContextCountdownEvent.Signal();
+        _receiveContextCountdownEvent.Wait(CancellationToken.None);
+        _receiveContextCountdownEvent.Dispose();
         if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
             Producer.Flush(CancellationToken.None);
@@ -225,12 +225,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     private void IncrementReceiveContextCount()
     {
-        Interlocked.Increment(ref _receiveContextCount);
+        _receiveContextCountdownEvent.AddCount();
     }
 
     internal void DecrementReceiveContextCount()
     {
-        Interlocked.Decrement(ref _receiveContextCount);
+        _receiveContextCountdownEvent.Signal();
     }
 
     public void Dispose()
