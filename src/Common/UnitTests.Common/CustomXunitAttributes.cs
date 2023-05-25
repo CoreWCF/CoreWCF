@@ -28,6 +28,17 @@ public class WindowsOnlyFactAttribute : FactAttribute
     }
 }
 
+public class LinuxOnlyFactAttribute : FactAttribute
+{
+    public LinuxOnlyFactAttribute()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Skip = nameof(LinuxOnlyFactAttribute);
+        }
+    }
+}
+
 public class WindowsOnlyTheoryAttribute : TheoryAttribute
 {
     public WindowsOnlyTheoryAttribute()

@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace CoreWCF.Channels
 {
@@ -15,5 +16,7 @@ namespace CoreWCF.Channels
         public abstract bool CanUpgrade(string contentType);
 
         public abstract Task<Stream> AcceptUpgradeAsync(Stream stream);
+
+        public virtual IFeatureCollection Features { get; }= new FeatureCollection();
     }
 }
