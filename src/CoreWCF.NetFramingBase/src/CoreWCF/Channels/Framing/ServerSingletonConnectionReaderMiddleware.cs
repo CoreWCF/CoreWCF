@@ -429,13 +429,7 @@ namespace CoreWCF.Channels.Framing
 
                         // Consume those bytes from our buffer
                         _buffer = _buffer.Slice(bytesToCopy);
-
-                        // If the buffer has been exhausted, advance the input pipe to consume them and release the buffer
-                        if (_buffer.Length == 0)
-                        {
-                            _connection.Input.AdvanceTo(_buffer.End);
-                        }
-
+                        
                         // Create an ArraySegment of the right size to copy the bytes to. The synchronous Read method uses a Span<byte> instead, but
                         // you can't instantiate a Span<T> in an async method but there's an implicit case of ArraySegment to Span.
                         var _toBuffer = new ArraySegment<byte>(buffer, offset, bytesToCopy);
@@ -450,6 +444,12 @@ namespace CoreWCF.Channels.Framing
                     {
                         // We are starting a new chunk. Read the size, and loop around again
                         DecodeSize(ref _buffer);
+                    }
+
+                    // If the buffer has been exhausted, advance the input pipe to consume them and release the buffer
+                    if (_buffer.Length == 0)
+                    {
+                        _connection.Input.AdvanceTo(_buffer.End);
                     }
                 }
             }
