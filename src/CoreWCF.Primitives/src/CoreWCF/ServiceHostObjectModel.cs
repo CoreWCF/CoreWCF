@@ -254,6 +254,14 @@ namespace CoreWCF
             {
                 address = "https://localhost" + address.Substring(9);
             }
+            else if (address.StartsWith("http://[::]", StringComparison.OrdinalIgnoreCase)) //IPAddress.IPv6Any
+            {
+                address = "http://localhost" + address.Substring(11);
+            }
+            else if (address.StartsWith("https://[::]", StringComparison.OrdinalIgnoreCase)) //IPAddress.IPv6Any
+            {
+                address = "https://localhost" + address.Substring(12);
+            }
             else if (address.StartsWith("https://*.", StringComparison.OrdinalIgnoreCase) ||
                     address.StartsWith("http://*.", StringComparison.OrdinalIgnoreCase))
             {
