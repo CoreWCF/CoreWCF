@@ -95,7 +95,7 @@ namespace CoreWCF
         public const string String87 = "PortName";
         public const string String88 = "ReferenceProperties";
         public const string String89 = "RelationshipType";
-        public const string String90 = "Reply";
+        public const string String90 = "ReplyAsync";
         public const string String91 = "a";
         public const string String92 = "http://schemas.xmlsoap.org/ws/2006/02/addressingidentity";
         public const string String93 = "Identity";
@@ -354,8 +354,8 @@ namespace CoreWCF
         public const string String346 = "r";
         public const string String347 = "SequenceFault";
         public const string String348 = "SequenceTerminated";
-        public const string String349 = "TerminateSequence";
-        public const string String350 = "http://schemas.xmlsoap.org/ws/2005/02/rm/TerminateSequence";
+        public const string String349 = "TerminateSequenceAsync";
+        public const string String350 = "http://schemas.xmlsoap.org/ws/2005/02/rm/TerminateSequenceAsync";
         public const string String351 = "UnknownSequence";
         public const string String352 = "http://schemas.microsoft.com/ws/2006/02/tx/oletx";
         public const string String353 = "oletx";
