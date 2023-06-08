@@ -805,11 +805,11 @@ namespace CoreWCF.Channels
 
                 if (rpc.Reply != null)
                 {
-                    //TraceUtility.MessageFlowAtMessageReceived(rpc.Reply, null, rpc.EventTraceActivity, false);
+                    //TraceUtility.MessageFlowAtMessageReceived(rpc.ReplyAsync, null, rpc.EventTraceActivity, false);
 
                     //if (MessageLogger.LogMessagesAtServiceLevel)
                     //{
-                    //    MessageLogger.LogMessage(ref rpc.Reply, MessageLoggingSource.ServiceLevelReceiveReply | MessageLoggingSource.LastChance);
+                    //    MessageLogger.LogMessage(ref rpc.ReplyAsync, MessageLoggingSource.ServiceLevelReceiveReply | MessageLoggingSource.LastChance);
                     //}
                     operation.Parent.AfterReceiveReply(ref rpc);
 

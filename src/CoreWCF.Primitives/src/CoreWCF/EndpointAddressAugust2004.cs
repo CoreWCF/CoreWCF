@@ -183,7 +183,7 @@ namespace CoreWCF
   </xs:complexType>
   <xs:simpleType name=""RelationshipTypeValues"">
     <xs:restriction base=""xs:QName"">
-      <xs:enumeration value=""wsa:Reply""/>
+      <xs:enumeration value=""wsa:ReplyAsync""/>
     </xs:restriction>
   </xs:simpleType>
   <xs:element name=""ReplyAfter"" type=""wsa:ReplyAfterType""/>

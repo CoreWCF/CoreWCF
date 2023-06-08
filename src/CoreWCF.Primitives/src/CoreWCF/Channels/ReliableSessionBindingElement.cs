@@ -326,11 +326,13 @@ namespace CoreWCF.Channels
 
                 if (context.CanBuildNextServiceDispatcher<IDuplexSessionChannel>())
                 {
-                    serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplexSession(this, context);
+                    throw new PlatformNotSupportedException();
+                    //serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplexSession(this, context);
                 }
                 else if (context.CanBuildNextServiceDispatcher<IDuplexChannel>())
                 {
-                    serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplex(this, innerDispatcher);
+                    throw new PlatformNotSupportedException();
+                    //serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplex(this, innerDispatcher);
                 }
 
                 if (serviceDispatcher != null)
@@ -345,11 +347,11 @@ namespace CoreWCF.Channels
 
                 if (context.CanBuildNextServiceDispatcher<IReplySessionChannel>())
                 {
-                    serviceDispatcher = new ReliableReplyServiceDispatcherOverReplySession(this, context);
+                    serviceDispatcher = new ReliableReplyServiceDispatcherOverReplySession(this, context, innerDispatcher);
                 }
                 else if (context.CanBuildNextServiceDispatcher<IReplyChannel>())
                 {
-                    serviceDispatcher = new ReliableReplyServiceDispatcherOverReply(this, context);
+                    serviceDispatcher = new ReliableReplyServiceDispatcherOverReply(this, context, innerDispatcher);
                 }
 
                 if (serviceDispatcher != null)

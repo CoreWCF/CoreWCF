@@ -372,17 +372,17 @@ namespace CoreWCF.Dispatcher
                 //if (DiagnosticUtility.ShouldTraceWarning)
                 //{
                 //    // If a service both returns null and sets RequestContext null, that
-                //    // means they handled it (either by calling Close or Reply manually).
+                //    // means they handled it (either by calling Close or ReplyAsync manually).
                 //    // These traces catch accidents, where you accidentally return null,
                 //    // or you accidentally close the context so we can't return your message.
-                //    if ((rpc.Reply == null) && (context != null))
+                //    if ((rpc.ReplyAsync == null) && (context != null))
                 //    {
                 //        TraceUtility.TraceEvent(System.Diagnostics.TraceEventType.Warning,
                 //            TraceCode.ServiceOperationMissingReply,
                 //            SR.Format(SR.TraceCodeServiceOperationMissingReply, rpc.Operation.Name ?? String.Empty),
                 //            null, null);
                 //    }
-                //    else if ((context == null) && (rpc.Reply != null))
+                //    else if ((context == null) && (rpc.ReplyAsync != null))
                 //    {
                 //        TraceUtility.TraceEvent(System.Diagnostics.TraceEventType.Warning,
                 //            TraceCode.ServiceOperationMissingReplyContext,
@@ -467,7 +467,7 @@ namespace CoreWCF.Dispatcher
             AddMessageProperties(rpc.Reply, rpc.OperationContext, rpc.Channel);
             //if (FxTrace.Trace.IsEnd2EndActivityTracingEnabled && rpc.EventTraceActivity != null)
             //{
-            //    rpc.Reply.Properties[EventTraceActivity.Name] = rpc.EventTraceActivity;
+            //    rpc.ReplyAsync.Properties[EventTraceActivity.Name] = rpc.EventTraceActivity;
             //}
 
             return canSendReply;
@@ -681,9 +681,9 @@ namespace CoreWCF.Dispatcher
             if (rpc.CanSendReply)
             {
                 rpc.ReplyTimeoutHelper = new TimeoutHelper(rpc.Channel.OperationTimeout);
-                //if (rpc.Reply != null)
+                //if (rpc.ReplyAsync != null)
                 //{
-                //    TraceUtility.MessageFlowAtMessageSent(rpc.Reply, rpc.EventTraceActivity);
+                //    TraceUtility.MessageFlowAtMessageSent(rpc.ReplyAsync, rpc.EventTraceActivity);
                 //}
 
                 await ReplyAsync(rpc);
@@ -707,7 +707,7 @@ namespace CoreWCF.Dispatcher
         // one of the message and parameter needs to be disposed,
         // since they refer to the same object.
         //
-        //                               Request           Reply
+        //                               Request           ReplyAsync
         //               Message   |     M or P      |     M or P
         //     Dispose   Stream    |     P           |     M and P
         //               Params    |     M and P     |     M and P

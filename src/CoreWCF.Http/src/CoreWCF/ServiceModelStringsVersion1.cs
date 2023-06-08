@@ -95,7 +95,7 @@ namespace CoreWCF
         public const string String87 = "PortName";
         public const string String88 = "ReferenceProperties";
         public const string String89 = "RelationshipType";
-        public const string String90 = "Reply";
+        public const string String90 = "ReplyAsync";
         public const string String91 = "a";
         public const string String92 = "http://schemas.xmlsoap.org/ws/2006/02/addressingidentity";
         public const string String93 = "Identity";
