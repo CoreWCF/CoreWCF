@@ -307,7 +307,7 @@ namespace CoreWCF.Channels
             {
                 // TODO: Fix the timeout value reported
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(
-                                                SR.Format(SR.SendToViaTimedOut, TimeSpan.Zero),
+                                                SR.Format(SR.SendToViaTimedOut, Via, TimeSpan.Zero),
                                                 TimeoutHelper.CreateEnterTimedOutException(TimeSpan.Zero)));
             }
 
