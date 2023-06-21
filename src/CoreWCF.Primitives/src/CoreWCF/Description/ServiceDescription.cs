@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -194,7 +195,6 @@ namespace CoreWCF.Description
 
         internal ServiceCredentials EnsureCredentials()
         {
-           // 
             ServiceCredentials c = Behaviors.Find<ServiceCredentials>();
 
             if (c == null)
@@ -320,7 +320,20 @@ namespace CoreWCF.Description
         {
             ServiceType = typeof(TService);
             ServiceProvider = services;
-            AddBehaviors<TService>(this, injectedBehaviors);
+            // ServiceDescription<T> is registered as a singleton with open generic syntax and resolves all the IServiceBehavior registered in DI.
+            // As ServiceAuthorizationBehavior is registered as Transient lifetime, the instance of ServiceProvider caches the IEnumerable<IServiceBehavior> resolved after the first call.
+            // (switching to a dynamic resolution of the serviceBehaviors with `services.GetServices<IServiceBehavior>()` does not help here)
+            // Thus we need to clone the ServiceAuthorizationBehavior to get new instances that can be overriden by each Service.
+            var behaviors = injectedBehaviors.ToList();
+            for (int i = 0; i < behaviors.Count; i++)
+            {
+                if(behaviors[i] is ServiceAuthorizationBehavior authorizationBehavior)
+                {
+                    behaviors[i] = authorizationBehavior.Clone();
+                }
+            }
+
+            AddBehaviors<TService>(this, behaviors);
             SetupSingleton<TService>(this, services);
         }
     }

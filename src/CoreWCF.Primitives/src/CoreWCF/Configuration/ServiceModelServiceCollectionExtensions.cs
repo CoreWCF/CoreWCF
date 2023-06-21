@@ -74,7 +74,11 @@ namespace CoreWCF.Configuration
             services.AddSingleton<IServiceBuilder>(provider => provider.GetRequiredService<ServiceBuilder>());
             services.AddSingleton<IServiceBehavior>(provider => provider.GetRequiredService<ServiceAuthorizationBehavior>());
             services.AddSingleton<ServiceAuthorizationBehaviorFactory>();
-            services.AddTransient(provider => provider.GetService<ServiceAuthorizationBehaviorFactory>().Create());
+            services.AddTransient(provider =>
+            {
+                ServiceAuthorizationBehaviorFactory factory = provider.GetService<ServiceAuthorizationBehaviorFactory>();
+                return factory.GetOrCreate();
+            });
             services.TryAddSingleton(typeof(IServiceConfiguration<>), typeof(ServiceConfiguration<>));
             services.TryAddSingleton<IDispatcherBuilder, DispatcherBuilderImpl>();
             services.AddSingleton(typeof(ServiceConfigurationDelegateHolder<>));

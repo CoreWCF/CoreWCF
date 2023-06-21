@@ -36,6 +36,8 @@ public class Issue1114Tests
         using (host)
         {
             host.Start();
+            Spy spy = host.Services.GetService<Spy>();
+
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var customFactory = new System.ServiceModel.ChannelFactory<IMyCustomService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(
@@ -43,11 +45,23 @@ public class Issue1114Tests
             IMyCustomService customChannel = customFactory.CreateChannel();
             customChannel.Echo("Hello World!");
 
+            Assert.Equal(1, spy.CustomAuthorizationPolicyCallCount);
+            Assert.Equal(0, spy.OtherAuthorizationPolicyCallCount);
+            Assert.Equal(0, spy.ThirdAuthorizationPolicyCallCount);
+
+            spy.Reset();
+
             var otherFactory = new System.ServiceModel.ChannelFactory<IMyOtherService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(
                     new Uri($"http://localhost:{host.GetHttpPort()}/MyOtherService.svc")));
             IMyOtherService otherChannel = otherFactory.CreateChannel();
             otherChannel.Echo("Hello World!");
+
+            Assert.Equal(0, spy.CustomAuthorizationPolicyCallCount);
+            Assert.Equal(1, spy.OtherAuthorizationPolicyCallCount);
+            Assert.Equal(0, spy.ThirdAuthorizationPolicyCallCount);
+
+            spy.Reset();
 
             var thirdFactory = new System.ServiceModel.ChannelFactory<IMyThirdService>(httpBinding,
                 new System.ServiceModel.EndpointAddress(
@@ -55,9 +69,9 @@ public class Issue1114Tests
             IMyThirdService thirdChannel = thirdFactory.CreateChannel();
             thirdChannel.Echo("Hello World!");
 
-            Spy spy = host.Services.GetService<Spy>();
-            Assert.Equal(1, spy.CustomAuthorizationPolicyCallCount);
-            Assert.Equal(1, spy.OtherAuthorizationPolicyCallCount);
+            Assert.Equal(0, spy.CustomAuthorizationPolicyCallCount);
+            Assert.Equal(0, spy.OtherAuthorizationPolicyCallCount);
+            Assert.Equal(1, spy.ThirdAuthorizationPolicyCallCount);
         }
     }
 
@@ -146,10 +160,38 @@ public class Issue1114Tests
         }
     }
 
+    internal class MyThirdAuthorizationPolicy : IAuthorizationPolicy
+    {
+        private readonly Spy _spy;
+
+        public MyThirdAuthorizationPolicy(Spy spy)
+        {
+            _spy = spy;
+        }
+
+        public string Id { get; }
+        public ClaimSet Issuer { get; }
+
+        public bool Evaluate(EvaluationContext evaluationContext, ref object state)
+        {
+            _spy.ThirdAuthorizationPolicyCallCount++;
+            evaluationContext.Properties.Add("Principal", new ClaimsPrincipal());
+            return true;
+        }
+    }
+
     internal class Spy
     {
         public int CustomAuthorizationPolicyCallCount { get; set; } = 0;
         public int OtherAuthorizationPolicyCallCount { get; set; } = 0;
+        public int ThirdAuthorizationPolicyCallCount { get; set; } = 0;
+
+        public void Reset()
+        {
+            CustomAuthorizationPolicyCallCount = 0;
+            OtherAuthorizationPolicyCallCount = 0;
+            ThirdAuthorizationPolicyCallCount = 0;
+        }
     }
 
     internal class Startup
@@ -163,6 +205,16 @@ public class Issue1114Tests
         public void Configure(IApplicationBuilder app)
         {
             Spy spy = app.ApplicationServices.GetService<Spy>();
+
+            ServiceAuthorizationBehavior authBehavior = app.ApplicationServices.GetRequiredService<ServiceAuthorizationBehavior>();
+            var authPolicies = new List<IAuthorizationPolicy>
+            {
+                new MyThirdAuthorizationPolicy(spy)
+            };
+            var externalAuthPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(authPolicies);
+            authBehavior.ExternalAuthorizationPolicies = externalAuthPolicies;
+            authBehavior.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
+
             app.UseServiceModel(builder =>
             {
                 builder.AddService<MyCustomService>();
@@ -174,34 +226,29 @@ public class Issue1114Tests
                 builder.AddService<MyThirdService>();
                 builder.AddServiceEndpoint<MyThirdService, IMyThirdService>(
                     new BasicHttpBinding(BasicHttpSecurityMode.None), "/MyThirdService.svc");
+
                 builder.ConfigureAllServiceHostBase(serviceHost =>
                 {
                     if (serviceHost.Description.ServiceType == typeof(MyCustomService))
                     {
-                        serviceHost.Description.Behaviors
-                            .Remove<ServiceAuthorizationBehavior>();
-                        serviceHost.Description.Behaviors.Add(new ServiceAuthorizationBehavior
-                        {
-                            ExternalAuthorizationPolicies =
+                        ServiceAuthorizationBehavior serviceAuthorizationBehavior =
+                            serviceHost.Description.Behaviors.Find<ServiceAuthorizationBehavior>();
+                        serviceAuthorizationBehavior.ExternalAuthorizationPolicies =
                                 new ReadOnlyCollection<IAuthorizationPolicy>(
-                                    new List<IAuthorizationPolicy> { new MyCustomAuthorizationPolicy(spy) }),
-                            PrincipalPermissionMode = PrincipalPermissionMode.Custom,
-                        });
+                                    new List<IAuthorizationPolicy> { new MyCustomAuthorizationPolicy(spy) });
+                        serviceAuthorizationBehavior.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
 
                         return;
                     }
 
                     if (serviceHost.Description.ServiceType == typeof(MyOtherService))
                     {
-                        serviceHost.Description.Behaviors
-                            .Remove<ServiceAuthorizationBehavior>();
-                        serviceHost.Description.Behaviors.Add(new ServiceAuthorizationBehavior
-                        {
-                            ExternalAuthorizationPolicies =
-                                new ReadOnlyCollection<IAuthorizationPolicy>(
-                                    new List<IAuthorizationPolicy> { new MyOtherAuthorizationPolicy(spy) }),
-                            PrincipalPermissionMode = PrincipalPermissionMode.Custom,
-                        });
+                        ServiceAuthorizationBehavior serviceAuthorizationBehavior =
+                            serviceHost.Description.Behaviors.Find<ServiceAuthorizationBehavior>();
+                        serviceAuthorizationBehavior.ExternalAuthorizationPolicies =
+                            new ReadOnlyCollection<IAuthorizationPolicy>(
+                                new List<IAuthorizationPolicy> { new MyOtherAuthorizationPolicy(spy) });
+                        serviceAuthorizationBehavior.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
                     }
                 });
             });

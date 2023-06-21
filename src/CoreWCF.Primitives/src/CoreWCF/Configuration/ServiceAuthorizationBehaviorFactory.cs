@@ -18,7 +18,7 @@ internal class ServiceAuthorizationBehaviorFactory
         _serviceProvider = serviceProvider;
     }
 
-    public ServiceAuthorizationBehavior Create()
+    public ServiceAuthorizationBehavior GetOrCreate()
     {
         if (_singleton == null)
         {

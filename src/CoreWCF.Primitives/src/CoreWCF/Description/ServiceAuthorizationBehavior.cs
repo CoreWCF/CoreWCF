@@ -38,6 +38,20 @@ namespace CoreWCF.Description
             _principalPermissionMode = DefaultPrincipalPermissionMode;
         }
 
+        private ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
+        {
+            _impersonateCallerForAllOperations = other._impersonateCallerForAllOperations;
+            _impersonateOnSerializingReply = other._impersonateOnSerializingReply;
+            _externalAuthorizationPolicies = other._externalAuthorizationPolicies;
+            _serviceAuthorizationManager = other._serviceAuthorizationManager;
+            _serviceScopeFactory = other._serviceScopeFactory;
+            _scope = other._scope;
+            _principalPermissionMode = other._principalPermissionMode;
+            _isExternalPoliciesSet = other._isExternalPoliciesSet;
+            _isAuthorizationManagerSet = other._isAuthorizationManagerSet;
+            _isReadOnly = other._isReadOnly;
+        }
+
         public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
         {
             get
@@ -225,6 +239,11 @@ namespace CoreWCF.Description
         internal void MakeReadOnly()
         {
             _isReadOnly = true;
+        }
+
+        internal ServiceAuthorizationBehavior Clone()
+        {
+            return new ServiceAuthorizationBehavior(this);
         }
 
         private void ThrowIfImmutable()
