@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
-    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable
+    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable, ICloneable
     {
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
@@ -241,7 +241,7 @@ namespace CoreWCF.Description
             _isReadOnly = true;
         }
 
-        internal ServiceAuthorizationBehavior Clone()
+        public object Clone()
         {
             return new ServiceAuthorizationBehavior(this);
         }

@@ -327,9 +327,9 @@ namespace CoreWCF.Description
             var behaviors = injectedBehaviors.ToList();
             for (int i = 0; i < behaviors.Count; i++)
             {
-                if(behaviors[i] is ServiceAuthorizationBehavior authorizationBehavior)
+                if(behaviors[i] is ICloneable cloneable)
                 {
-                    behaviors[i] = authorizationBehavior.Clone();
+                    behaviors[i] = (IServiceBehavior)cloneable.Clone();
                 }
             }
 
