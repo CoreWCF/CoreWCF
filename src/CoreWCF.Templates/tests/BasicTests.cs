@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Templates.Test.Helpers;
 using Xunit;
 using Xunit.Abstractions;
@@ -81,14 +79,16 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
         public void Deserialize(IXunitSerializationInfo info)
         {
-
+            Arguments = JsonSerializer.Deserialize<List<string>>(info.GetValue<string>(nameof(Arguments)));
+            AssertMetadataEndpoint = bool.Parse(info.GetValue<string>(nameof(AssertMetadataEndpoint)));
+            UseHttps = bool.Parse(info.GetValue<string>(nameof(UseHttps)));
         }
 
         public void Serialize(IXunitSerializationInfo info)
         {
-            info.AddValue(nameof(Arguments), JsonConvert.SerializeObject(Arguments));
-            info.AddValue(nameof(AssertMetadataEndpoint), JsonConvert.SerializeObject(AssertMetadataEndpoint));
-            info.AddValue(nameof(UseHttps), JsonConvert.SerializeObject(UseHttps));
+            info.AddValue(nameof(Arguments), JsonSerializer.Serialize(Arguments));
+            info.AddValue(nameof(AssertMetadataEndpoint), AssertMetadataEndpoint.ToString());
+            info.AddValue(nameof(UseHttps), UseHttps.ToString());
         }
     }
 
