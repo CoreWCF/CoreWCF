@@ -134,9 +134,8 @@ namespace CoreWCF.Description
 
         private IAuthorizationService GetAuthorizationService()
         {
-            IServiceScope scope = _scope ??= _serviceScopeFactory.CreateScope();
-            IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
-            return authorizationService;
+            IServiceScope scope = _scope ??= _serviceScopeFactory?.CreateScope();
+            return scope?.ServiceProvider.GetService<IAuthorizationService>();
         }
 
         internal IServiceScopeFactory ServiceScopeFactory
@@ -213,7 +212,11 @@ namespace CoreWCF.Description
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
 
-                        behavior.SetAuthorizationService(GetAuthorizationService());
+                        IAuthorizationService authorizationService = GetAuthorizationService();
+                        if (authorizationService != null)
+                        {
+                            behavior.SetAuthorizationService(GetAuthorizationService());
+                        }
                     }
                 }
             }
