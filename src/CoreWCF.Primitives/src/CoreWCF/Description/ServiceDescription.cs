@@ -320,10 +320,7 @@ namespace CoreWCF.Description
         {
             ServiceType = typeof(TService);
             ServiceProvider = services;
-            // ServiceDescription<T> is registered as a singleton with open generic syntax and resolves all the IServiceBehavior registered in DI.
-            // As ServiceAuthorizationBehavior is registered as Transient lifetime, the instance of ServiceProvider caches the IEnumerable<IServiceBehavior> resolved after the first call.
-            // (switching to a dynamic resolution of the serviceBehaviors with `services.GetServices<IServiceBehavior>()` does not help here)
-            // Thus we need to clone the ServiceAuthorizationBehavior to get new instances that can be overriden by each Service.
+            // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
             var behaviors = injectedBehaviors.ToList();
             for (int i = 0; i < behaviors.Count; i++)
             {
