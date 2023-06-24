@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -194,7 +195,6 @@ namespace CoreWCF.Description
 
         internal ServiceCredentials EnsureCredentials()
         {
-           // 
             ServiceCredentials c = Behaviors.Find<ServiceCredentials>();
 
             if (c == null)
@@ -320,7 +320,17 @@ namespace CoreWCF.Description
         {
             ServiceType = typeof(TService);
             ServiceProvider = services;
-            AddBehaviors<TService>(this, injectedBehaviors);
+            // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
+            var behaviors = injectedBehaviors.ToList();
+            for (int i = 0; i < behaviors.Count; i++)
+            {
+                if(behaviors[i] is ICloneable cloneable)
+                {
+                    behaviors[i] = (IServiceBehavior)cloneable.Clone();
+                }
+            }
+
+            AddBehaviors<TService>(this, behaviors);
             SetupSingleton<TService>(this, services);
         }
     }

@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Description
 {
-    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable
+    public sealed class ServiceAuthorizationBehavior : IServiceBehavior, IDisposable, ICloneable
     {
         internal const bool DefaultImpersonateCallerForAllOperations = false;
         internal const bool DefaultImpersonateOnSerializingReply = false;
@@ -36,6 +36,20 @@ namespace CoreWCF.Description
             _impersonateCallerForAllOperations = DefaultImpersonateCallerForAllOperations;
             _impersonateOnSerializingReply = DefaultImpersonateOnSerializingReply;
             _principalPermissionMode = DefaultPrincipalPermissionMode;
+        }
+
+        private ServiceAuthorizationBehavior(ServiceAuthorizationBehavior other)
+        {
+            _impersonateCallerForAllOperations = other._impersonateCallerForAllOperations;
+            _impersonateOnSerializingReply = other._impersonateOnSerializingReply;
+            _externalAuthorizationPolicies = other._externalAuthorizationPolicies;
+            _serviceAuthorizationManager = other._serviceAuthorizationManager;
+            _serviceScopeFactory = other._serviceScopeFactory;
+            _scope = other._scope;
+            _principalPermissionMode = other._principalPermissionMode;
+            _isExternalPoliciesSet = other._isExternalPoliciesSet;
+            _isAuthorizationManagerSet = other._isAuthorizationManagerSet;
+            _isReadOnly = other._isReadOnly;
         }
 
         public ReadOnlyCollection<IAuthorizationPolicy> ExternalAuthorizationPolicies
@@ -134,9 +148,8 @@ namespace CoreWCF.Description
 
         private IAuthorizationService GetAuthorizationService()
         {
-            IServiceScope scope = _scope ??= _serviceScopeFactory.CreateScope();
-            IAuthorizationService authorizationService = scope.ServiceProvider.GetService<IAuthorizationService>();
-            return authorizationService;
+            IServiceScope scope = _scope ??= _serviceScopeFactory?.CreateScope();
+            return scope?.ServiceProvider.GetService<IAuthorizationService>();
         }
 
         internal IServiceScopeFactory ServiceScopeFactory
@@ -213,7 +226,11 @@ namespace CoreWCF.Description
                             ApplyAuthorizationPoliciesAndManager(behavior);
                         }
 
-                        behavior.SetAuthorizationService(GetAuthorizationService());
+                        IAuthorizationService authorizationService = GetAuthorizationService();
+                        if (authorizationService != null)
+                        {
+                            behavior.SetAuthorizationService(GetAuthorizationService());
+                        }
                     }
                 }
             }
@@ -222,6 +239,11 @@ namespace CoreWCF.Description
         internal void MakeReadOnly()
         {
             _isReadOnly = true;
+        }
+
+        public object Clone()
+        {
+            return new ServiceAuthorizationBehavior(this);
         }
 
         private void ThrowIfImmutable()

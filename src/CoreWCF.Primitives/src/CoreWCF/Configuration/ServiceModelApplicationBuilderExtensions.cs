@@ -25,13 +25,13 @@ namespace CoreWCF.Configuration
                 throw new ArgumentNullException(nameof(configureServices));
             }
 
-            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();          
+            ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
 
             configureServices(serviceBuilder);
 
             return UseServiceModel(app);
         }
-       
+
         public static IApplicationBuilder UseServiceModel(this IApplicationBuilder app)
         {
             ServiceBuilder serviceBuilder = app.ApplicationServices.GetRequiredService<ServiceBuilder>();
