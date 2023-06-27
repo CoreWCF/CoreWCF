@@ -211,7 +211,6 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         QueueTransportContext queueTransportContext)
     {
         var receiveContext = new KafkaReceiveContext(consumeResult, this);
-        IncrementReceiveContextCount();
         var context = new QueueMessageContext
         {
             QueueMessageReader = PipeReader.Create(new ReadOnlySequence<byte>(consumeResult.Message.Value)),
@@ -223,7 +222,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         return queueTransportContext.QueueMessageDispatcher(context);;
     }
 
-    private void IncrementReceiveContextCount()
+    internal void IncrementReceiveContextCount()
     {
         _receiveContextCountdownEvent.AddCount();
     }
