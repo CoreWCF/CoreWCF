@@ -29,6 +29,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
     private AsyncManualResetEvent _mres;
+    private bool _isStarted;
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOnceBatchCommitConfigValues = (true, false);
@@ -69,6 +70,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         _mres = new();
         _mres.Reset();
         _receiveContextCountdownEvent = new(1);
+
+        _isStarted = true;
 
         CancellationToken ct = CancellationTokenSource
             .CreateLinkedTokenSource(_cts.Token, token).Token;
@@ -145,6 +148,11 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     public override async Task StopPumpAsync(CancellationToken token)
     {
+        if (!_isStarted)
+        {
+            return;
+        }
+
         _cts.Cancel();
         await _mres.WaitAsync(CancellationToken.None);
         _cts.Dispose();
