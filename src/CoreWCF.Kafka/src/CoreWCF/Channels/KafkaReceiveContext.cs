@@ -19,6 +19,7 @@ internal class KafkaReceiveContext : ReceiveContext
         _kafkaTransportPump = kafkaTransportPump;
         _kafkaTransportPump.IncrementReceiveContextCount();
     }
+
     protected override async Task OnAbandonAsync(CancellationToken token)
     {
         try
