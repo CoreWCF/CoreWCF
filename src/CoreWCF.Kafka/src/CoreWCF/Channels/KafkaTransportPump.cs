@@ -66,15 +66,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
     {
-        _cts = new();
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(token);;
         _mres = new();
         _mres.Reset();
         _receiveContextCountdownEvent = new(1);
 
         _isStarted = true;
-
-        CancellationToken ct = CancellationTokenSource
-            .CreateLinkedTokenSource(_cts.Token, token).Token;
 
         ConsumerConfig = TransportBindingElement.Config;
         ConsumerConfig.BootstrapServers = _baseAddress.Authority;
@@ -102,11 +99,11 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         Task.Run(async () =>
         {
-            while (!ct.IsCancellationRequested)
+            while (!_cts.Token.IsCancellationRequested)
             {
                 try
                 {
-                    var consumeResult = Consumer.Consume(ct);
+                    var consumeResult = Consumer.Consume(_cts.Token);
                     if (ConsumerConfig.EnablePartitionEof == true && consumeResult.IsPartitionEOF)
                     {
                         continue;
@@ -142,7 +139,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                 }
             }
             _mres.Set();
-        }, ct);
+        }, _cts.Token);
         return Task.CompletedTask;
     }
 
@@ -154,10 +151,10 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         }
 
         _cts.Cancel();
-        await _mres.WaitAsync(CancellationToken.None);
+        await _mres.WaitAsync(token);
         _cts.Dispose();
         _receiveContextCountdownEvent.Signal();
-        _receiveContextCountdownEvent.Wait(CancellationToken.None);
+        _receiveContextCountdownEvent.Wait(token);
         _receiveContextCountdownEvent.Dispose();
         if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
