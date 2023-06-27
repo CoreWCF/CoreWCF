@@ -60,7 +60,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                 throw new NotSupportedException(string.Format(SR.InvalidTopicName, Topic));
             }
         }
-        TransportBindingElement = transportBindingElement;
+        TransportBindingElement = (KafkaTransportBindingElement)transportBindingElement.Clone();
         _baseAddress = serviceDispatcher.BaseAddress;
     }
 
