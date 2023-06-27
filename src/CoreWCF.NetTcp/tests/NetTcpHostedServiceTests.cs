@@ -22,8 +22,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
+        [WindowsOnlyFact]  // HttpSys not supported on Linux
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
@@ -65,8 +64,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif

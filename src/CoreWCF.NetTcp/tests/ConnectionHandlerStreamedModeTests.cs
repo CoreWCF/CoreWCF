@@ -24,8 +24,7 @@ namespace ConnectionHandler
             _output = output;
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);

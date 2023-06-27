@@ -1,198 +1,109 @@
 parameters:
 - name: testProjects
   default: ''
+- name: configurations
+  default: Debug,Release
 
 stages:
 - stage: Test
   displayName: Run Tests
   dependsOn: Build
   jobs:
-  - job: TestRelease
-    strategy:
-      matrix:
-        Windows_net6.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=LinuxOnly'
-          additionalDotNetCoreSdk: '6.0.x'
-        Windows_net7.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net7.0'
-          testArgs: '--filter Category!=LinuxOnly'
-          additionalDotNetCoreSdk: ''
-        Windows_netfx:
-          imageName: 'windows-latest'
-          targetFramework: 'net472'
-          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
-          additionalDotNetCoreSdk: ''
-        Linux_net6.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '6.0.x'
-        Linux_net7.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net7.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''
-    displayName: Test Release
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - bash: |
-        echo 'Starting docker services...'
-        docker-compose up -d
-      name: DockerComposeLinuxServices
-      displayName: Start services hosted by linux containers
-      condition: eq(variables.imageName, 'ubuntu-latest')
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2
+  - ${{ each configuration in split(parameters.configurations, ',') }}:
+    - job: Test${{ configuration }}
+      strategy:
+        matrix:
+          Windows_net6.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net6.0'
+            testArgs: ''
+            additionalDotNetCoreSdk: '6.0.x'
+          Windows_net7.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net7.0'
+            testArgs: ''
+            additionalDotNetCoreSdk: ''
+          Windows_netfx:
+            imageName: 'windows-latest'
+            targetFramework: 'net472'
+            testArgs: ''
+            additionalDotNetCoreSdk: ''
+          Linux_net6.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net6.0'
+            testArgs: ''
+            additionalDotNetCoreSdk: '6.0.x'
+          Linux_net7.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net7.0'
+            testArgs: ''
+            additionalDotNetCoreSdk: ''
+      displayName: Test ${{ configuration }}
+      pool:
+        vmImage: $(imageName)
+      variables:
+        ci: true
+      steps:
+      - bash: |
+          echo 'Starting docker services...'
+          docker-compose up -d
+        name: DockerComposeLinuxServices
+        displayName: Start services hosted by linux containers
+        condition: eq(variables.imageName, 'ubuntu-latest')
+        timeoutInMinutes: 5
+        retryCountOnTaskFailure: 2
 
-    - task: DownloadPipelineArtifact@2
-      displayName: Download build artifacts
-      inputs:
-        source: current
-        artifact: ReleaseBuild
-        path: $(System.DefaultWorkingDirectory)/bin
+      - task: DownloadPipelineArtifact@2
+        displayName: Download build artifacts
+        inputs:
+          source: current
+          artifact: ReleaseBuild
+          path: $(System.DefaultWorkingDirectory)/bin
 
-    - task: UseDotNet@2
-      displayName: 'Use .NET 7.0 sdk'
-      inputs:
-        packageType: sdk
-        version: '7.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
+      - task: UseDotNet@2
+        displayName: 'Use .NET 7.0 sdk'
+        inputs:
+          packageType: sdk
+          version: '7.0.x'
+          installationPath: $(Agent.ToolsDirectory)/dotnet
 
-    - task: UseDotNet@2
-      displayName: 'Use additional .NET Core sdk'
-      inputs:
-        packageType: sdk
-        version: $(additionalDotNetCoreSdk)
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
+      - task: UseDotNet@2
+        displayName: 'Use additional .NET Core sdk'
+        inputs:
+          packageType: sdk
+          version: $(additionalDotNetCoreSdk)
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+        condition: not(eq(variables.additionalDotNetCoreSdk, ''))
 
-    - task: DotNetCoreCLI@2
-      displayName: Restore packages
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Release /t:restore'
+      - task: DotNetCoreCLI@2
+        displayName: Restore packages
+        inputs:
+          command: 'build'
+          projects: ${{ parameters.testProjects}}
+          arguments: '-c ${{ configuration }} /t:restore'
 
-    - task: DotNetCoreCLI@2
-      displayName: Build test projects
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Release --framework $(targetFramework)'
+      - task: DotNetCoreCLI@2
+        displayName: Build test projects
+        inputs:
+          command: 'build'
+          projects: ${{ parameters.testProjects}}
+          arguments: '-c ${{ configuration }} -f $(targetFramework)'
 
-    - task: DotNetCoreCLI@2
-      displayName: Run Tests
-      timeoutInMinutes: 15
-      inputs:
-        command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Release --framework $(targetFramework) $(testArgs)'
-      
-    - bash: |
-        echo 'Cleaning up docker services...'
-        docker-compose down --rmi all
-      name: DockerComposeDownLinuxServices
-      displayName: Clean up containers used to host services
-      condition: eq(variables.imageName, 'ubuntu-latest')
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2
-
-  - job: TestDebug
-    strategy:
-      matrix:
-        Windows_net6.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=LinuxOnly'
-          additionalDotNetCoreSdk: '6.0.x'
-        Windows_net7.0:
-          imageName: 'windows-latest'
-          targetFramework: 'net7.0'
-          testArgs: '--filter Category!=LinuxOnly'
-          additionalDotNetCoreSdk: ''
-        Windows_netfx:
-          imageName: 'windows-latest'
-          targetFramework: 'net472'
-          testArgs: '--filter "Category!=NetCoreOnly&Category!=LinuxOnly"'
-          additionalDotNetCoreSdk: ''
-        Linux_net6.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net6.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: '6.0.x'
-        Linux_net7.0:
-          imageName: 'ubuntu-latest'
-          targetFramework: 'net7.0'
-          testArgs: '--filter Category!=WindowsOnly'
-          additionalDotNetCoreSdk: ''
-    displayName: Test Debug
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - bash: |
-        echo 'Starting docker services...'
-        docker-compose up -d
-      name: DockerComposeLinuxServices
-      displayName: Start services hosted by linux containers
-      condition: eq(variables.imageName, 'ubuntu-latest')
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2
-
-    - task: DownloadPipelineArtifact@2
-      displayName: Download build artifacts
-      inputs:
-        source: current
-        artifact: DebugBuild
-        path: $(System.DefaultWorkingDirectory)/bin
-
-    - task: UseDotNet@2
-      displayName: 'Use .NET 7.0 sdk'
-      inputs:
-        packageType: sdk
-        version: '7.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-
-    - task: UseDotNet@2
-      displayName: 'Use additional .NET Core sdk'
-      inputs:
-        packageType: sdk
-        version: $(additionalDotNetCoreSdk)
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-      condition: not(eq(variables.additionalDotNetCoreSdk, ''))
-
-    - task: DotNetCoreCLI@2
-      displayName: Restore packages
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Debug /t:restore'
+      - task: DotNetCoreCLI@2
+        displayName: Run Tests
+        timeoutInMinutes: 20
+        inputs:
+          command: 'test'
+          projects: ${{ parameters.testProjects}}
+          publishTestResults: true
+          arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
         
-    - task: DotNetCoreCLI@2
-      displayName: Build test projects
-      inputs:
-        command: 'build'
-        projects: ${{ parameters.testProjects}}
-        arguments: '--configuration Debug --framework $(targetFramework)'
+      - bash: |
+          echo 'Cleaning up docker services...'
+          docker-compose down --rmi all
+        name: DockerComposeDownLinuxServices
+        displayName: Clean up containers used to host services
+        condition: eq(variables.imageName, 'ubuntu-latest')
+        timeoutInMinutes: 5
+        retryCountOnTaskFailure: 2
 
-    - task: DotNetCoreCLI@2
-      displayName: Run Tests
-      timeoutInMinutes: 20
-      inputs:
-        command: 'test'
-        projects: ${{ parameters.testProjects}}
-        publishTestResults: true
-        arguments: '--no-restore --no-build --configuration Debug --framework $(targetFramework) $(testArgs)'
-      
-    - bash: |
-        echo 'Cleaning up docker services...'
-        docker-compose down --rmi all
-      name: DockerComposeDownLinuxServices
-      displayName: Clean up containers used to host services
-      condition: eq(variables.imageName, 'ubuntu-latest')
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2

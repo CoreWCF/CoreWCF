@@ -54,9 +54,8 @@ namespace WSHttp
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
-        [Fact, Description("transport-security-with-an-anonymous-client")]
-        [Trait("Category", "WindowsOnly")]
+        // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
+        [WindowsNetCoreOnlyFact, Description("transport-security-with-an-anonymous-client")]
         public void WSHttpRequestReplyEchoStringTransportSecurity()
         {
             string testString = new string('a', 3000);
@@ -80,7 +79,6 @@ namespace WSHttp
                 ((IChannel)channel).Close();
             }
         }
-#endif
 
         [Fact , Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
@@ -178,7 +176,7 @@ namespace WSHttp
             }
         }
 
-         [Fact, Description("transport-security-with-certificate-authentication")]
+        [Fact, Description("transport-security-with-certificate-authentication")]
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
         {
             string testString = new string('a', 3000);
@@ -205,9 +203,8 @@ namespace WSHttp
             }
         }
 
-#if NETCOREAPP3_1_OR_GREATER // Windows Auth on Kestrel not supported on NetFx
-        [Fact, Description("transport-security-with-windows-authentication-kestrel")]
-        [Trait("Category", "WindowsOnly")]
+
+        [WindowsNetCoreOnlyFact, Description("transport-security-with-windows-authentication-kestrel")]
         internal void WSHttpRequestImpersonateWithKestrel()
         {
             string testString = new string('a', 3000);
@@ -230,11 +227,9 @@ namespace WSHttp
                 ((IChannel)channel).Close();
             }
         }
-#endif
 
-        [Fact]
+        [WindowsOnlyFact]
         [Description("transport-security-with-windows-authentication-httpsys")]
-        [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
@@ -261,8 +256,7 @@ namespace WSHttp
             }
         }
 
-        [Fact, Description("no-security-with-an-anonymous-client-using-impersonation")]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact, Description("no-security-with-an-anonymous-client-using-impersonation")]
         public void WSHttpRequestImpersonateFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);
@@ -286,9 +280,8 @@ namespace WSHttp
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
-        [Trait("Category", "WindowsOnly")]  // HttpSys not supported on Linux
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
