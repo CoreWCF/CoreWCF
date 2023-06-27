@@ -31,8 +31,7 @@ public class CustomBindingTests : IntegrationTest
 
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaProducer_WithServerSideCustomBinding_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -65,8 +64,7 @@ public class CustomBindingTests : IntegrationTest
         Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBinding_WithServerSideCustomBinding_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -93,8 +91,7 @@ public class CustomBindingTests : IntegrationTest
         Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientCustomBinding_WithServerSideCustomBinding_Test()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();

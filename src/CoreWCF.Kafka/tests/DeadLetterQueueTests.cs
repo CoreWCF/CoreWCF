@@ -37,8 +37,7 @@ public class DeadLetterQueueTests : IntegrationTest
 
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -74,8 +73,7 @@ public class DeadLetterQueueTests : IntegrationTest
         await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();

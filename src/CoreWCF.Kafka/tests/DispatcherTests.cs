@@ -23,8 +23,7 @@ public class DispatcherTests : IntegrationTest
     {
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public void DispatchOperationTests()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();

@@ -31,8 +31,7 @@ public class BasicServiceTests : IntegrationTest
 
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -65,8 +64,7 @@ public class BasicServiceTests : IntegrationTest
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();

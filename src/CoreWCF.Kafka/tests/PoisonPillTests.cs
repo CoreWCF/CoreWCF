@@ -36,8 +36,7 @@ public class PoisonPillTests : IntegrationTest
         yield return new object[] { typeof(StartupAtMostOnce) };
     }
 
-    [Theory]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyTheory]
     [MemberData(nameof(Get_PoisonPill_TestVariations))]
     public void PoisonPill_Tests(Type startupType)
     {

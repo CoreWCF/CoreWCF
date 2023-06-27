@@ -92,9 +92,8 @@ public class SecurityModeTests : IntegrationTest
         };
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [MemberData(nameof(Get_KafkaProducerTest_TestVariations))]
-    [Trait("Category", "LinuxOnly")]
     public async Task KafkaProducerTest(Type startupType, ProducerConfig producerConfig)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
@@ -193,9 +192,8 @@ public class SecurityModeTests : IntegrationTest
         yield return new object[] { typeof(StartupMutualSslCustomBinding), customBinding, 9096 };
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [MemberData(nameof(Get_ClientSideKafkaBindingTests_TestVariations))]
-    [Trait("Category", "LinuxOnly")]
     public void ClientSideKafkaBindingTests(Type startupType, System.ServiceModel.Channels.Binding binding, int port)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();

@@ -25,11 +25,10 @@ public class KafkaSemanticsTests : IntegrationTest
     {
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(100)]
-    [Trait("Category", "LinuxOnly")]
     public async Task AtLeastOnceTests(int messageCount)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnce>(Output, ConsumerGroup, Topic).Build();
@@ -62,11 +61,10 @@ public class KafkaSemanticsTests : IntegrationTest
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(100)]
-    [Trait("Category", "LinuxOnly")]
     public async Task AtLeastOnceCommitPerMessageTests(int messageCount)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic).Build();
@@ -99,11 +97,10 @@ public class KafkaSemanticsTests : IntegrationTest
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(100)]
-    [Trait("Category", "LinuxOnly")]
     public async Task AtMostOnceTests(int messageCount)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtMostOnce>(Output, ConsumerGroup, Topic).Build();

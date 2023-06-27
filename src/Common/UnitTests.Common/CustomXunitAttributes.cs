@@ -64,3 +64,17 @@ public class LinuxWhenCIOnlyFactAttribute : FactAttribute
         }
     }
 }
+
+public class LinuxWhenCIOnlyTheoryAttribute : TheoryAttribute
+{
+    public LinuxWhenCIOnlyTheoryAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("CI") == "true")
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Skip = nameof(LinuxWhenCIOnlyFactAttribute);
+            }
+        }
+    }
+}

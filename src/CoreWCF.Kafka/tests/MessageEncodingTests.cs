@@ -24,10 +24,9 @@ public class MessageEncodingTests : IntegrationTest
 
     }
 
-    [Theory]
+    [LinuxWhenCIOnlyTheory]
     [InlineData(ServiceModel.Channels.KafkaMessageEncoding.Text, typeof(Startup))]
     [InlineData(ServiceModel.Channels.KafkaMessageEncoding.Binary, typeof(StartupBinaryEncoding))]
-    [Trait("Category", "LinuxOnly")]
     public void EncodingTests(ServiceModel.Channels.KafkaMessageEncoding encoding, Type startupType)
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();

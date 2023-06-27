@@ -23,8 +23,7 @@ public class AsyncContractTests : IntegrationTest
     {
     }
 
-    [Fact]
-    [Trait("Category", "LinuxOnly")]
+    [LinuxWhenCIOnlyFact]
     public async Task AsyncOperationContractTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
