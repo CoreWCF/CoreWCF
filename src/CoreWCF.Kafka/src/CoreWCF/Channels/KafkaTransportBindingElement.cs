@@ -16,6 +16,7 @@ namespace CoreWCF.Channels
         private KafkaMessageEncoding _messageEncoding = KafkaMessageEncoding.Text;
         private KafkaDeliverySemantics _deliverySemantics;
         private KafkaErrorHandlingStrategy _errorHandlingStrategy = KafkaErrorHandlingStrategy.Ignore;
+        private string _deadLetterQueueTopic;
         internal ConsumerConfig Config { get; } = new();
 
         public KafkaDeliverySemantics DeliverySemantics
@@ -60,7 +61,19 @@ namespace CoreWCF.Channels
             }
         }
 
-        public string DeadLetterQueueTopic { get; set; }
+        public string DeadLetterQueueTopic
+        {
+            get => _deadLetterQueueTopic;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _deadLetterQueueTopic = value;
+            }
+        }
 
         public KafkaTransportBindingElement()
         {
@@ -69,8 +82,10 @@ namespace CoreWCF.Channels
         private KafkaTransportBindingElement(KafkaTransportBindingElement other)
             : this()
         {
-            _deliverySemantics = other.DeliverySemantics;
-            _messageEncoding = other.MessageEncoding;
+            _deliverySemantics = other._deliverySemantics;
+            _messageEncoding = other._messageEncoding;
+            _errorHandlingStrategy = other._errorHandlingStrategy;
+            _deadLetterQueueTopic = other._deadLetterQueueTopic;
             Config = other.Config;
         }
 

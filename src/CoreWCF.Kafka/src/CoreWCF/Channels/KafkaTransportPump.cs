@@ -73,7 +73,11 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         _isStarted = true;
 
-        ConsumerConfig = TransportBindingElement.Config;
+        ConsumerConfig = new();
+        foreach (var property in TransportBindingElement.Config)
+        {
+            ConsumerConfig.Set(property.Key, property.Value);
+        }
         ConsumerConfig.BootstrapServers = _baseAddress.Authority;
         var (enableAutoCommit, enableAutoOffsetStore) = GetCommitStrategyConfigValues(ConsumerConfig, _kafkaDeliverySemantics);
         ConsumerConfig.EnableAutoCommit = enableAutoCommit;
@@ -89,7 +93,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
-            ProducerConfig producerConfig = new(ConsumerConfig);
+            ProducerConfig producerConfig = new();
+            foreach (var property in TransportBindingElement.Config)
+            {
+                producerConfig.Set(property.Key, property.Value);
+            }
+            producerConfig.BootstrapServers = _baseAddress.Authority;
             producerConfig.Acks = Acks.All;
             Producer = new ProducerBuilder<Null, byte[]>(producerConfig)
                 .SetKeySerializer(Serializers.Null)
