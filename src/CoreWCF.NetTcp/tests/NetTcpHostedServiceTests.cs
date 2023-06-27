@@ -22,7 +22,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [WindowsNetCoreOnlyFact]  // HttpSys not supported on Linux
+        [WindowsOnlyFact]  // HttpSys not supported on Linux
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif

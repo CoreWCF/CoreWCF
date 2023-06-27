@@ -24,7 +24,7 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-        [WindowsNetCoreOnlyFact]
+        [WindowsOnlyFact]
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif

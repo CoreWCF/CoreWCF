@@ -228,8 +228,11 @@ namespace WSHttp
             }
         }
 
-        [WindowsNetCoreOnlyFact]
+        [WindowsOnlyFact]
         [Description("transport-security-with-windows-authentication-httpsys")]
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         internal void WSHttpRequestImpersonateWithHttpSys()
         {
             string testString = new string('a', 3000);
@@ -277,8 +280,11 @@ namespace WSHttp
             }
         }
 
-        [WindowsNetCoreOnlyFact]
+        [WindowsOnlyFact]
         [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
+#if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
         {
             string testString = new string('a', 3000);
