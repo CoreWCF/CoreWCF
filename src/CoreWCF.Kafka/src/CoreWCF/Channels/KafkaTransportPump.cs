@@ -244,9 +244,11 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     {
         if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
-            Producer.Dispose();
+            Producer?.Dispose();
+            Producer = null;
         }
-        Consumer.Dispose();
+        Consumer?.Dispose();
+        Consumer = null;
         _cts?.Dispose();
         _mres?.Dispose();
     }
