@@ -7,13 +7,7 @@ internal static class KafkaCredentialTypeHelper
 {
     public static bool IsDefined(KafkaCredentialType value)
     {
-        return value == KafkaCredentialType.None
-               || value == KafkaCredentialType.SslKeyPairCertificate
-               || value == KafkaCredentialType.SaslPlain
-               || value == KafkaCredentialType.SaslGssapi
-               || value == KafkaCredentialType.SaslScramSha256
-               || value == KafkaCredentialType.SaslScramSha512
-               || value == KafkaCredentialType.SaslOAuthBearer;
+        return (int)value is >= (int)KafkaCredentialType.None and <= (int)KafkaCredentialType.SaslOAuthBearer;
     }
 
     public static bool IsSupported(KafkaCredentialType value)
