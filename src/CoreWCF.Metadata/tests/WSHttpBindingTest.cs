@@ -23,8 +23,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
-        [Trait("Category", "NetCoreOnly")] // Windows auth not supported on NetFx
+        [NetCoreOnlyFact] // Windows auth not supported on NetFx
         public async Task TransportWithMessageCredentials_MultiAuth()
         {
             var bindingEndpointMap = new Dictionary<string, Binding>

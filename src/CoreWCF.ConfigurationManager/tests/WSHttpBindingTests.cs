@@ -63,8 +63,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             }
         }
 
-        [Fact]
-        [Trait("Category", "NetCoreOnly")]
+        [NetCoreOnlyFact]
         public void WSHttpBinding_WithDefaultSetting()
         {
             string expectedName = "wsHttpBindingConfig";

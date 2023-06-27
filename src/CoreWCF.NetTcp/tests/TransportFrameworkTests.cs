@@ -28,8 +28,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact]
-        [Trait("Category", "WindowsOnly")]
+        [WindowsOnlyFact]
         public void RemoteEndpointMessageProperty()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
