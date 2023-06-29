@@ -13,25 +13,25 @@ namespace ServiceContract
         new public string TheData = "hello1";
 
         [OnSerializing]
-        void OnSerializingMethod(StreamingContext cxt)
+        private void OnSerializingMethod(StreamingContext cxt)
         {
             ((TypeWithDCInheritingFromSer)this).myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
 
         [OnSerialized]
-        void OnSerializedMethod(StreamingContext cxt)
+        private void OnSerializedMethod(StreamingContext cxt)
         {
             ((TypeWithDCInheritingFromSer)this).myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
 
         [OnDeserializing]
-        void OnDeserializingMethod(StreamingContext cxt)
+        private void OnDeserializingMethod(StreamingContext cxt)
         {
             ((TypeWithDCInheritingFromSer)this).myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
 
         [OnDeserialized]
-        void OnDeserializedMethod(StreamingContext cxt)
+        private void OnDeserializedMethod(StreamingContext cxt)
         {
             ((TypeWithDCInheritingFromSer)this).myCallBacksCalled |= CallBacksCalled.OnDeserialized;
         }
@@ -65,25 +65,25 @@ namespace ServiceContract
         new public string TheData = "hello2";
 
         [OnSerializing]
-        void OnSerializingMethod(StreamingContext cxt)
+        private void OnSerializingMethod(StreamingContext cxt)
         {
             ((TypeWithSerInheritingFromDC)this).myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
 
         [OnSerialized]
-        void OnSerializedMethod(StreamingContext cxt)
+        private void OnSerializedMethod(StreamingContext cxt)
         {
             ((TypeWithSerInheritingFromDC)this).myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
 
         [OnDeserializing]
-        void OnDeserializingMethod(StreamingContext cxt)
+        private void OnDeserializingMethod(StreamingContext cxt)
         {
             ((TypeWithSerInheritingFromDC)this).myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
 
         [OnDeserialized]
-        void OnDeserializedMethod(StreamingContext cxt)
+        private void OnDeserializedMethod(StreamingContext cxt)
         {
             ((TypeWithSerInheritingFromDC)this).myCallBacksCalled |= CallBacksCalled.OnDeserialized;
         }
@@ -119,25 +119,25 @@ namespace ServiceContract
         public string TheData = "hello3";
 
         [OnSerializing]
-        void OnSerializingMethod(StreamingContext cxt)
+        private void OnSerializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
 
         [OnSerialized]
-        void OnSerializedMethod(StreamingContext cxt)
+        private void OnSerializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
 
         [OnDeserializing]
-        void OnDeserializingMethod(StreamingContext cxt)
+        private void OnDeserializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
 
         [OnDeserialized]
-        void OnDeserializedMethod(StreamingContext cxt)
+        private void OnDeserializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserialized;
         }

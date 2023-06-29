@@ -6,8 +6,8 @@ namespace Helpers
 {
     internal class PrimitiveDataContract : DataContract
     {
-        static Dictionary<Type, PrimitiveDataContract> typeToContract = new Dictionary<Type, PrimitiveDataContract>();
-        static Dictionary<XmlQualifiedName, PrimitiveDataContract> nameToContract = new Dictionary<XmlQualifiedName, PrimitiveDataContract>();
+        private static Dictionary<Type, PrimitiveDataContract> typeToContract = new Dictionary<Type, PrimitiveDataContract>();
+        private static Dictionary<XmlQualifiedName, PrimitiveDataContract> nameToContract = new Dictionary<XmlQualifiedName, PrimitiveDataContract>();
 
         static PrimitiveDataContract()
         {
@@ -50,7 +50,7 @@ namespace Helpers
             return retVal;
         }
 
-        PrimitiveDataContract(Type type) : base(type)
+        private PrimitiveDataContract(Type type) : base(type)
         {
             string name = null;
             string ns = Globals.SchemaNamespace;

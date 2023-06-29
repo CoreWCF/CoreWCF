@@ -107,7 +107,6 @@ namespace CoreWCF.Http.Tests
         {
             public string Echo(string text)
             {
-                Console.WriteLine($"Received {text} from client!");
                 return text;
             }
         }

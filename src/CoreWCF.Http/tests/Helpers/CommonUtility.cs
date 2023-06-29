@@ -110,7 +110,6 @@ namespace Helpers
                             throw new Exception("Badd atribute Value = " + attriString);
                         }
                         reader.Read(); // end root
-                                       //Console.WriteLine("after a final read Name = {0}", reader.Name);
                         reader.ReadEndElement(); // MYContainer
                     }
                     break;
@@ -142,7 +141,7 @@ namespace Helpers
                         int i = 0;
                         while (reader.Read())
                         { // read inside
-                          //Console.WriteLine("after a {0} read Name = {1}", i++, reader.Name);
+                          
                         }
                         if (i != 3) // run out the clock
                         {
@@ -155,7 +154,7 @@ namespace Helpers
             }
         }
 
-        static readonly char[] _XmlCharacterArray;
+        private static readonly char[] _XmlCharacterArray;
 
         public static char[] XmlCharacterArray
         {
