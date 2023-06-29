@@ -20,22 +20,22 @@ namespace ServiceContract
     {
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
         [OnSerializing]
-        void OnSerializingMethod(StreamingContext cxt)
+        private void OnSerializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
         [OnSerialized]
-        void OnSerializedMethod(StreamingContext cxt)
+        private void OnSerializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
         [OnDeserializing]
-        void OnDeserializingMethod(StreamingContext cxt)
+        private void OnDeserializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
         [OnDeserialized]
-        void OnDeserializedMethod(StreamingContext cxt)
+        private void OnDeserializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserialized;
         }
@@ -66,7 +66,7 @@ namespace ServiceContract
     {
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
         [OnSerializing]
-        void OnSerializingMethod(StreamingContext cxt)
+        private void OnSerializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
@@ -97,7 +97,7 @@ namespace ServiceContract
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
        
         [OnSerialized]
-        void OnSerializedMethod(StreamingContext cxt)
+        private void OnSerializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
@@ -128,7 +128,7 @@ namespace ServiceContract
     {
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
         [OnDeserializing]
-        void OnDeserializingMethod(StreamingContext cxt)
+        private void OnDeserializingMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
@@ -160,7 +160,7 @@ namespace ServiceContract
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
        
         [OnDeserialized]
-        void OnDeserializedMethod(StreamingContext cxt)
+        private void OnDeserializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserialized;
         }

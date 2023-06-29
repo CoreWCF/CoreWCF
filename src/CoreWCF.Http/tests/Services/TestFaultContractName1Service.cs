@@ -17,10 +17,6 @@ namespace Services
                 string faultToThrow = "Test fault thrown from a service";
                 throw new FaultException<string>(faultToThrow);
             }
-            else
-            {
-                System.Console.WriteLine("Error, Received Input: {0}", s);
-            }
             return s;
         }
         #endregion

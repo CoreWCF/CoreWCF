@@ -8,11 +8,11 @@ namespace Helpers
 {
     internal class EnumDataContract : DataContract
     {
-        PrimitiveDataContract baseContract;
-        List<DataMember> members;
-        List<long> values;
-        bool isULong;
-        bool isFlags;
+        private PrimitiveDataContract baseContract;
+        private List<DataMember> members;
+        private List<long> values;
+        private bool isULong;
+        private bool isFlags;
 
         internal EnumDataContract()
         {
