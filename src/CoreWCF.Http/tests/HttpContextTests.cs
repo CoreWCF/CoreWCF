@@ -17,7 +17,7 @@ namespace DependencyInjection
 {
     public partial class HttpContextTests
     {
-        const string input = "ABC";
+        private const string input = "ABC";
 
         [ServiceContract]
         [System.ServiceModel.ServiceContract]

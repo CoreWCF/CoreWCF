@@ -205,7 +205,7 @@ namespace CoreWCF.Http.Tests
 
         internal class AssertMtomOptimizedEndpointBehavior : System.ServiceModel.Description.IEndpointBehavior
         {
-            class AssertMtomOptimizedDelegatingHandler : DelegatingHandler
+            private class AssertMtomOptimizedDelegatingHandler : DelegatingHandler
             {
                 public AssertMtomOptimizedDelegatingHandler(HttpMessageHandler innerHandler) : base(innerHandler)
                 {

@@ -25,7 +25,6 @@ namespace Contracts
 
         public void Create(string name)
         {
-            Console.WriteLine(name);
             ManualResetEvent.Set();
         }
         public ManualResetEventSlim ManualResetEvent { get; }
