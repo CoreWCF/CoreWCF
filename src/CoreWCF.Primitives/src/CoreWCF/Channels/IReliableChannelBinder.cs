@@ -48,7 +48,7 @@ namespace CoreWCF.Channels
         bool AddressResponse(Message request, Message response);
         bool UseNewChannel(IChannel channel);
 
-        Task<Message> RequestAsync(Message message, TimeSpan timeout);
-        Task<Message> RequestAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
+        //Task<Message> RequestAsync(Message message, TimeSpan timeout);
+        //Task<Message> RequestAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
     }
 }
