@@ -73,23 +73,6 @@ namespace CoreWCF.Channels
 
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //    _perfCounterId = _listener.Uri.ToString().ToUpperInvariant();
-
-            if (binder.HasSession)
-            {
-                try
-                {
-                    StartReceiving(false);
-                }
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                    {
-                        throw;
-                    }
-
-                    _session.OnUnknownException(e);
-                }
-            }
         }
 
         public IServerReliableChannelBinder Binder => _binder;

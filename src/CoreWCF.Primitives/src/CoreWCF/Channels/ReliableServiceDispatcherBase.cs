@@ -62,6 +62,8 @@ namespace CoreWCF.Channels
 
         public TimeSpan SendTimeout => InternalSendTimeout;
 
+        public Uri Uri => InnerServiceDispatcher.BaseAddress;
+
         protected abstract bool Duplex { get; }
 
         // Must call under lock.
@@ -216,7 +218,6 @@ namespace CoreWCF.Channels
         protected ReliableServiceDispatcher (ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerServiceDispatcher) : base(binding, context.Binding, innerServiceDispatcher)
         {
             _innerServiceDispatcher = innerServiceDispatcher;
-            WsrmMessageInfo messageInfo;
             //this.typedListener = context.BuildInnerChannelListener<TInnerChannel>();
             //this.inputQueueChannelAcceptor = new InputQueueChannelAcceptor<TChannel>(this);
             //this.Acceptor = this.inputQueueChannelAcceptor;
@@ -224,6 +225,12 @@ namespace CoreWCF.Channels
 
         // TODO: Search for all usages of ThisLock and make sure they are using this async lock.
         protected AsyncLock AsyncLock { get; } = new AsyncLock();
+
+        private IServerReliableChannelBinder CreateBinder(TInnerChannel channel, EndpointAddress localAddress, EndpointAddress remoteAddress)
+        {
+            return ServerReliableChannelBinder<TInnerChannel>.CreateBinder(channel, localAddress,
+                remoteAddress, TolerateFaultsMode.IfNotSecuritySession, DefaultCloseTimeout, DefaultSendTimeout);
+        }
 
         protected abstract Task<TReliableChannel> CreateChannelAsync(UniqueId id, CreateSequenceInfo createSequenceInfo, IServerReliableChannelBinder binder);
 
@@ -287,7 +294,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        private void HandleAcceptComplete(TInnerChannel channel)
+        private async Task HandleAcceptCompleteAsync(TInnerChannel channel)
         {
             if (channel == null)
             {
@@ -297,9 +304,8 @@ namespace CoreWCF.Channels
             try
             {
                 OnInnerChannelAccepted(channel);
-                channel.Open();
+                await channel.OpenAsync();
             }
-#pragma warning suppress 56500 // covered by FxCOP
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
@@ -353,80 +359,19 @@ namespace CoreWCF.Channels
             return (channelsByInput.Count == 1) ? channelsByInput.ContainsKey(inputId) : false;
         }
 
-        private void OnAcceptCompleted(IAsyncResult result)
+        public override async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
         {
-            TInnerChannel channel = null;
-            Exception expectedException = null;
-            Exception unexpectedException = null;
-
-            try
-            {
-                channel = this.typedListener.EndAcceptChannel(result);
-            }
-#pragma warning suppress 56500 // covered by FxCOP
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                    throw;
-
-                if (IsExpectedException(e))
-                {
-                    expectedException = e;
-                }
-                else
-                {
-                    unexpectedException = e;
-                }
-            }
-
             if (channel != null)
             {
-                HandleAcceptComplete(channel);
-                this.StartAccepting();
+                await HandleAcceptCompleteAsync(channel as TInnerChannel);
             }
-            else if (unexpectedException != null)
-            {
-                Fault(unexpectedException);
-            }
-            else if ((expectedException != null)
-                && (this.typedListener.State == CommunicationState.Opened))
-            {
-                DiagnosticUtility.TraceHandledException(expectedException, TraceEventType.Warning);
-
-                this.StartAccepting();
-            }
-            else if (this.typedListener.State == CommunicationState.Faulted)
-            {
-                Fault(expectedException);
-            }
+            return await CreateServiceChannelDispatcherCoreAsync(channel);
         }
 
-        private static void OnAcceptCompletedStatic(IAsyncResult result)
-        {
-            if (!result.CompletedSynchronously)
-            {
-                ReliableChannelListener<TChannel, TReliableChannel, TInnerChannel> listener =
-                    (ReliableChannelListener<TChannel, TReliableChannel, TInnerChannel>)result.AsyncState;
-
-                try
-                {
-                    listener.OnAcceptCompleted(result);
-                }
-#pragma warning suppress 56500 // covered by FxCOP
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                        throw;
-
-                    listener.Fault(e);
-                }
-            }
-        }
+        public abstract Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel);
 
         protected override void OnFaulted()
         {
-            this.typedListener.Abort();
-            this.inputQueueChannelAcceptor.FaultQueue();
             base.OnFaulted();
         }
 
@@ -437,26 +382,6 @@ namespace CoreWCF.Channels
             channelsByInput = new Dictionary<UniqueId, TReliableChannel>();
             if (Duplex)
                 channelsByOutput = new Dictionary<UniqueId, TReliableChannel>();
-
-            if (Thread.CurrentThread.IsThreadPoolThread)
-            {
-                try
-                {
-                    StartAccepting();
-                }
-#pragma warning suppress 56500 // covered by FxCOP
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                        throw;
-
-                    Fault(e);
-                }
-            }
-            else
-            {
-                ActionItem.Schedule(new Action<object>(StartAccepting), this);
-            }
         }
 
         protected async Task<(TReliableChannel channel, bool newChannel)> ProcessCreateSequenceAsync(WsrmMessageInfo info, TInnerChannel channel)
@@ -483,7 +408,7 @@ namespace CoreWCF.Channels
 
                 if (!IsAccepting)
                 {
-                    info.FaultReply = WsrmUtilities.CreateEndpointNotFoundFault(MessageVersion, SR.Format(SR.RMEndpointNotFoundReason, this.Uri));
+                    info.FaultReply = WsrmUtilities.CreateEndpointNotFoundFault(MessageVersion, SR.Format(SR.RMEndpointNotFoundReason, _innerServiceDispatcher.BaseAddress));
                     return (reliableChannel, newChannel);
                 }
 
@@ -509,6 +434,8 @@ namespace CoreWCF.Channels
                 return (reliableChannel, newChannel);
             }
         }
+
+        protected abstract void ProcessChannel(TInnerChannel channel);
 
         // Must call under lock.
         protected override void RemoveChannel(UniqueId inputId, UniqueId outputId)
@@ -542,56 +469,53 @@ namespace CoreWCF.Channels
         protected ReliableServiceDispatcherOverDatagram(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerDispatcher)
             : base(binding, context, innerDispatcher)
         {
-            _asyncHandleReceiveComplete = new Action<object>(AsyncHandleReceiveComplete);
-            _onTryReceiveComplete = Fx.ThunkCallback(new AsyncCallback(OnTryReceiveComplete));
             _channelTracker = new ChannelTracker<TInnerChannel, object>();
         }
 
-        private void AsyncHandleReceiveComplete(object state)
+//        private void AsyncHandleReceiveComplete(object state)
+//        {
+//            try
+//            {
+//                IAsyncResult result = (IAsyncResult)state;
+//                TInnerChannel channel = (TInnerChannel)result.AsyncState;
+//                TItem item = null;
+
+//                try
+//                {
+//                    EndTryReceiveItem(channel, result, out item);
+//                    if (item == null)
+//                        return;
+//                }
+//#pragma warning suppress 56500 // covered by FxCOP
+//                catch (Exception e)
+//                {
+//                    if (Fx.IsFatal(e))
+//                        throw;
+
+//                    if (!HandleException(e, channel))
+//                    {
+//                        channel.Abort();
+//                        return;
+//                    }
+//                }
+
+//                if (item != null && HandleReceiveComplete(item, channel))
+//                    StartReceiving(channel, true);
+//            }
+//#pragma warning suppress 56500 // covered by FxCOP
+//            catch (Exception e)
+//            {
+//                if (Fx.IsFatal(e))
+//                    throw;
+
+//                Fault(e);
+//            }
+//        }
+
+        private async Task<(TReliableChannel reliableChanel,bool newChannel, bool success)> ProcessItemAsync(TItem item, WsrmMessageInfo info, TInnerChannel channel)
         {
-            try
-            {
-                IAsyncResult result = (IAsyncResult)state;
-                TInnerChannel channel = (TInnerChannel)result.AsyncState;
-                TItem item = null;
-
-                try
-                {
-                    EndTryReceiveItem(channel, result, out item);
-                    if (item == null)
-                        return;
-                }
-#pragma warning suppress 56500 // covered by FxCOP
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                        throw;
-
-                    if (!HandleException(e, channel))
-                    {
-                        channel.Abort();
-                        return;
-                    }
-                }
-
-                if (item != null && HandleReceiveComplete(item, channel))
-                    StartReceiving(channel, true);
-            }
-#pragma warning suppress 56500 // covered by FxCOP
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                    throw;
-
-                Fault(e);
-            }
-        }
-
-        private bool BeginProcessItem(TItem item, WsrmMessageInfo info, TInnerChannel channel, out TReliableChannel reliableChannel, out bool newChannel, out bool dispatch)
-        {
-            dispatch = false;
-            reliableChannel = null;
-            newChannel = false;
+            TReliableChannel reliableChannel = null;
+            bool newChannel = false;
             Message faultReply;
 
             if (info.FaultReply != null)
@@ -604,12 +528,12 @@ namespace CoreWCF.Channels
                 reliableChannel = GetChannel(info, out id);
 
                 if (reliableChannel != null)
-                    return true;
+                    return (reliableChannel, newChannel, true);
 
                 if (id == null)
                 {
                     DisposeItem(item);
-                    return true;
+                    return (reliableChannel, newChannel, true);
                 }
 
                 faultReply = new UnknownSequenceFault(id).CreateMessage(MessageVersion,
@@ -617,19 +541,18 @@ namespace CoreWCF.Channels
             }
             else
             {
-                reliableChannel = ProcessCreateSequence(info, channel, out dispatch, out newChannel);
+                (reliableChannel, newChannel) = await ProcessCreateSequenceAsync(info, channel);
 
                 if (reliableChannel != null)
-                    return true;
+                    return (reliableChannel, newChannel, true);
 
                 faultReply = info.FaultReply;
             }
 
             try
             {
-                SendReply(faultReply, channel, item);
+                await SendReplyAsync(faultReply, channel, item);
             }
-#pragma warning suppress 56500 // covered by FxCOP
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))
@@ -638,7 +561,7 @@ namespace CoreWCF.Channels
                 if (!HandleException(e, channel))
                 {
                     channel.Abort();
-                    return false;
+                    return (reliableChannel, newChannel, false);
                 }
             }
             finally
@@ -647,29 +570,20 @@ namespace CoreWCF.Channels
                 DisposeItem(item);
             }
 
-            return true;
+            return (reliableChannel, newChannel, true);
         }
 
-        protected abstract IAsyncResult BeginTryReceiveItem(TInnerChannel channel, AsyncCallback callback, object state);
+        //protected abstract IAsyncResult BeginTryReceiveItem(TInnerChannel channel, AsyncCallback callback, object state);
         protected abstract void DisposeItem(TItem item);
-        protected abstract void EndTryReceiveItem(TInnerChannel channel, IAsyncResult result, out TItem item);
-
-        private void EndProcessItem(TItem item, WsrmMessageInfo info, TReliableChannel channel, bool dispatch)
-        {
-            ProcessSequencedItem(channel, item, info);
-
-            if (dispatch)
-                this.Dispatch();
-        }
+        //protected abstract void EndTryReceiveItem(TInnerChannel channel, IAsyncResult result, out TItem item);
 
         protected abstract Message GetMessage(TItem item);
 
-        private bool HandleReceiveComplete(TItem item, TInnerChannel channel)
+        private async Task DispatchAsync(TItem item, TInnerChannel channel)
         {
             Message message = null;
 
-            // Minimalist fix for MB60747: GetMessage can call RequestContext.RequestMessage which can throw.
-            // If we can handle the exception then keep the receive loop going.
+            // GetMessage can call RequestContext.RequestMessage which can throw.
             try
             {
                 message = GetMessage(item);
@@ -684,7 +598,7 @@ namespace CoreWCF.Channels
 
                 item.Dispose();
 
-                return true;
+                return;
             }
 
             WsrmMessageInfo info = WsrmMessageInfo.Get(MessageVersion, ReliableMessagingVersion, channel,
@@ -693,100 +607,74 @@ namespace CoreWCF.Channels
             if (info.ParsingException != null)
             {
                 DisposeItem(item);
-                return true;
+                return;
             }
 
             TReliableChannel reliableChannel;
 
             bool newChannel;
             bool dispatch;
-
-            if (!BeginProcessItem(item, info, channel, out reliableChannel, out newChannel, out dispatch))
-                return false;
+            bool success;
+            (reliableChannel, newChannel, success) = await ProcessItemAsync(item, info, channel);
+            if (!success)
+            {
+                return;
+            }
 
             if (reliableChannel == null)
             {
                 DisposeItem(item);
-                return true;
+                return;
             }
 
-            // On the one hand the contract of HandleReceiveComplete is that it won't stop the receive loop;
-            // it can block, but it will ensure the loop doesn't stall.
-            // On the other hand we don't want to take on the cost of blindly jumping threads.
-            // So, if we know EndProcessItem might block (dispatch || !newChannel) then we
-            // try another receive. If that completes async then we know it is safe for us to block, 
-            // if not then we force the receive to complete async and *make* it safe for us to block.             
-            if (dispatch || !newChannel)
-            {
-                StartReceiving(channel, false);
-                EndProcessItem(item, info, reliableChannel, dispatch);
-                return false;
-            }
-            else
-            {
-                EndProcessItem(item, info, reliableChannel, dispatch);
-                return true;
-            }
+            await ProcessSequencedItemAsync(reliableChannel, item, info);
         }
 
-        private void OnTryReceiveComplete(IAsyncResult result)
+        //        private void OnTryReceiveComplete(IAsyncResult result)
+        //        {
+        //            if (!result.CompletedSynchronously)
+        //            {
+        //                try
+        //                {
+        //                    TInnerChannel channel = (TInnerChannel)result.AsyncState;
+        //                    TItem item = null;
+
+        //                    try
+        //                    {
+        //                        EndTryReceiveItem(channel, result, out item);
+        //                        if (item == null)
+        //                            return;
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        if (Fx.IsFatal(e))
+        //                            throw;
+
+        //                        if (!HandleException(e, channel))
+        //                        {
+        //                            channel.Abort();
+        //                            return;
+        //                        }
+        //                    }
+
+        //                    if (item != null && HandleReceiveComplete(item, channel))
+        //                        StartReceiving(channel, true);
+        //                }
+        //#pragma warning suppress 56500 // covered by FxCOP
+        //                catch (Exception e)
+        //                {
+        //                    if (Fx.IsFatal(e))
+        //                        throw;
+
+        //                    Fault(e);
+        //                }
+        //            }
+        //        }
+
+        protected override async Task OnOpenAsync(CancellationToken token)
         {
-            if (!result.CompletedSynchronously)
-            {
-                try
-                {
-                    TInnerChannel channel = (TInnerChannel)result.AsyncState;
-                    TItem item = null;
-
-                    try
-                    {
-                        EndTryReceiveItem(channel, result, out item);
-                        if (item == null)
-                            return;
-                    }
-#pragma warning suppress 56500 // covered by FxCOP
-                    catch (Exception e)
-                    {
-                        if (Fx.IsFatal(e))
-                            throw;
-
-                        if (!HandleException(e, channel))
-                        {
-                            channel.Abort();
-                            return;
-                        }
-                    }
-
-                    if (item != null && HandleReceiveComplete(item, channel))
-                        StartReceiving(channel, true);
-                }
-#pragma warning suppress 56500 // covered by FxCOP
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                        throw;
-
-                    Fault(e);
-                }
-            }
-        }
-
-        protected override IAsyncResult OnBeginOpen(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return new ChainedAsyncResult(timeout, callback, state, _channelTracker.BeginOpen, _channelTracker.EndOpen,
-                base.OnBeginOpen, base.OnEndOpen);
-        }
-
-        protected override void OnEndOpen(IAsyncResult result)
-        {
-            ChainedAsyncResult.End(result);
-        }
-
-        protected override void OnOpen(TimeSpan timeout)
-        {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            _channelTracker.Open(timeoutHelper.RemainingTime());
-            base.OnOpen(timeoutHelper.RemainingTime());
+            await _channelTracker.OpenAsync(token);
+            await base.OnOpenAsync(token);
         }
 
         protected override void OnInnerChannelAccepted(TInnerChannel channel)
@@ -797,86 +685,107 @@ namespace CoreWCF.Channels
 
         protected override void ProcessChannel(TInnerChannel channel)
         {
-            try
-            {
-                _channelTracker.Add(channel, null);
-                StartReceiving(channel, false);
-            }
-#pragma warning suppress 56500 // covered by FxCOP
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                    throw;
-
-                Fault(e);
-            }
+            _channelTracker.Add(channel, null);
         }
 
-        protected override void AbortInnerListener()
+        protected override void AbortInnerServiceDispatcher()
         {
-            base.AbortInnerListener();
+            //base.AbortInnerListener();
             _channelTracker.Abort();
         }
 
-        protected override void CloseInnerListener(TimeSpan timeout)
+        protected override async Task CloseInnerServiceDispatcherAsync(CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            base.CloseInnerListener(timeoutHelper.RemainingTime());
-            _channelTracker.Close(timeoutHelper.RemainingTime());
-        }
-
-        protected override IAsyncResult BeginCloseInnerListener(TimeSpan timeout, AsyncCallback callback, object state)
-        {
-            return new ChainedAsyncResult(timeout, callback, state, base.BeginCloseInnerListener, base.EndCloseInnerListener,
-                _channelTracker.BeginClose, _channelTracker.EndClose);
-        }
-
-        protected override void EndCloseInnerListener(IAsyncResult result)
-        {
-            ChainedAsyncResult.End(result);
+            await base.CloseInnerServiceDispatcherAsync(token);
+            await _channelTracker.CloseAsync(token);
         }
 
         protected abstract Task ProcessSequencedItemAsync(TReliableChannel reliableChannel, TItem item, WsrmMessageInfo info);
-        protected abstract void SendReply(Message reply, TInnerChannel channel, TItem item);
+        protected abstract Task SendReplyAsync(Message reply, TInnerChannel channel, TItem item);
 
-        private void StartReceiving(TInnerChannel channel, bool canBlock)
+//        private void StartReceiving(TInnerChannel channel, bool canBlock)
+//        {
+//            while (true)
+//            {
+//                TItem item = null;
+
+//                try
+//                {
+//                    IAsyncResult result = BeginTryReceiveItem(channel, _onTryReceiveComplete, channel);
+//                    if (!result.CompletedSynchronously)
+//                        break;
+
+//                    if (!canBlock)
+//                    {
+//                        ActionItem.Schedule(_asyncHandleReceiveComplete, result);
+//                        break;
+//                    }
+
+//                    EndTryReceiveItem(channel, result, out item);
+
+//                    if (item == null)
+//                        break;
+//                }
+//#pragma warning suppress 56500 // covered by FxCOP
+//                catch (Exception e)
+//                {
+//                    if (Fx.IsFatal(e))
+//                        throw;
+
+//                    if (!HandleException(e, channel))
+//                    {
+//                        channel.Abort();
+//                        break;
+//                    }
+//                }
+
+//                if (item != null && !HandleReceiveComplete(item, channel))
+//                    break;
+//            }
+//        }
+
+        public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
         {
-            while (true)
+            return Task.FromResult<IServiceChannelDispatcher>(new ReliableServiceDatagramChannelDispatcher(channel, this));
+        }
+
+        private class ReliableServiceDatagramChannelDispatcher : IServiceChannelDispatcher
+        {
+            private TInnerChannel _innerChannel;
+            private ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, TInnerChannel, TItem> _serviceDispatcher;
+
+            public ReliableServiceDatagramChannelDispatcher(IChannel channel, ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, TInnerChannel, TItem> serviceDispatcher)
             {
-                TItem item = null;
-
-                try
+                if (channel is TInnerChannel innerChannel)
                 {
-                    IAsyncResult result = BeginTryReceiveItem(channel, _onTryReceiveComplete, channel);
-                    if (!result.CompletedSynchronously)
-                        break;
-
-                    if (!canBlock)
-                    {
-                        ActionItem.Schedule(_asyncHandleReceiveComplete, result);
-                        break;
-                    }
-
-                    EndTryReceiveItem(channel, result, out item);
-
-                    if (item == null)
-                        break;
+                    _innerChannel = innerChannel;
                 }
-#pragma warning suppress 56500 // covered by FxCOP
-                catch (Exception e)
+                else
                 {
-                    if (Fx.IsFatal(e))
-                        throw;
-
-                    if (!HandleException(e, channel))
-                    {
-                        channel.Abort();
-                        break;
-                    }
+                    throw new ArgumentException();
                 }
 
-                if (item != null && !HandleReceiveComplete(item, channel))
-                    break;
+                _serviceDispatcher = serviceDispatcher;
+            }
+
+            public Task DispatchAsync(RequestContext context)
+            {
+                if (context is TItem item)
+                {
+                    return _serviceDispatcher.DispatchAsync(item, _innerChannel);
+                }
+
+                throw new ArgumentException();
+            }
+
+            public Task DispatchAsync(Message message)
+            {
+                if (message is TItem item)
+                {
+                    return _serviceDispatcher.DispatchAsync(item, _innerChannel);
+                }
+
+                throw new ArgumentException();
             }
         }
     }
@@ -931,20 +840,10 @@ namespace CoreWCF.Channels
             FaultHelper = new ReplyFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
         }
 
-        protected override IAsyncResult BeginTryReceiveItem(IReplyChannel channel, AsyncCallback callback, object state)
-        {
-            return channel.BeginTryReceiveRequest(TimeSpan.MaxValue, callback, state);
-        }
-
         protected override void DisposeItem(RequestContext item)
         {
             ((IDisposable)item.RequestMessage).Dispose();
             ((IDisposable)item).Dispose();
-        }
-
-        protected override void EndTryReceiveItem(IReplyChannel channel, IAsyncResult result, out RequestContext item)
-        {
-            channel.EndTryReceiveRequest(result, out item);
         }
 
         protected override Message GetMessage(RequestContext item)
@@ -952,10 +851,14 @@ namespace CoreWCF.Channels
             return item.RequestMessage;
         }
 
-        protected override void SendReply(Message reply, IReplyChannel channel, RequestContext item)
+        protected override Task SendReplyAsync(Message reply, IReplyChannel channel, RequestContext item)
         {
             if (FaultHelper.AddressReply(item.RequestMessage, reply))
-                item.Reply(reply);
+            {
+                return item.ReplyAsync(reply);
+            }
+
+            return Task.CompletedTask;
         }
     }
 
@@ -1018,9 +921,9 @@ namespace CoreWCF.Channels
         //protected abstract void EndTryReceiveItem(TInnerChannel channel, IAsyncResult result, out TItem item);
         protected abstract Message GetMessage(TItem item);
 
-        public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
+        public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
         {
-            return Task.FromResult<IServiceChannelDispatcher>(new ReliableServiceChannelDispatcher(channel, this));
+            return Task.FromResult<IServiceChannelDispatcher>(new ReliableServiceSessionChannelDispatcher(channel, this));
         }
 
         private async Task DispatchAsync(TItem item, TInnerChannel channel)
@@ -1099,15 +1002,17 @@ namespace CoreWCF.Channels
             }
         }
 
+        protected override void ProcessChannel(TInnerChannel channel) { }
+
         protected abstract Task ProcessSequencedItemAsync(TInnerChannel channel, TItem item, TReliableChannel reliableChannel, WsrmMessageInfo info, bool newChannel);
         protected abstract Task SendReplyAsync(Message reply, TInnerChannel channel, TItem item);
 
-        private class ReliableServiceChannelDispatcher : IServiceChannelDispatcher
+        private class ReliableServiceSessionChannelDispatcher : IServiceChannelDispatcher
         {
             private TInnerChannel _innerChannel;
             private ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, TInnerChannel, TInnerSession, TItem> _serviceDispatcher;
 
-            public ReliableServiceChannelDispatcher(IChannel channel, ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, TInnerChannel, TInnerSession, TItem> serviceDispatcher)
+            public ReliableServiceSessionChannelDispatcher(IChannel channel, ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, TInnerChannel, TInnerSession, TItem> serviceDispatcher)
             {
                 if (channel is TInnerChannel innerChannel)
                 {

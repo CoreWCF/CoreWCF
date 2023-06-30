@@ -208,12 +208,15 @@ namespace CoreWCF.Channels
             return new BodyWriterMessage(version, action, EmptyBodyWriter.Value);
         }
 
-        //static internal Message CreateMessage(MessageVersion version, ActionHeader actionHeader)
-        //{
-        //    if (version == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException("version"));
-        //    return new BodyWriterMessage(version, actionHeader, EmptyBodyWriter.Value);
-        //}
+        internal static Message CreateMessage(MessageVersion version, ActionHeader actionHeader)
+        {
+            if (version == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(version)));
+            }
+
+            return new BodyWriterMessage(version, actionHeader, EmptyBodyWriter.Value);
+        }
 
         public static Message CreateMessage(XmlReader envelopeReader, int maxSizeOfHeaders, MessageVersion version)
         {

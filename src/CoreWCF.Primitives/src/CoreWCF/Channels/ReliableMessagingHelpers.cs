@@ -378,7 +378,7 @@ namespace CoreWCF.Channels
         internal static void AddAcknowledgementHeader(ReliableMessagingVersion reliableMessagingVersion,
             Message message, UniqueId id, SequenceRangeCollection ranges, bool final)
         {
-            WsrmUtilities.AddAcknowledgementHeader(reliableMessagingVersion, message, id, ranges, final, -1);
+            AddAcknowledgementHeader(reliableMessagingVersion, message, id, ranges, final, -1);
         }
 
         internal static void AddAcknowledgementHeader(ReliableMessagingVersion reliableMessagingVersion,
@@ -416,7 +416,7 @@ namespace CoreWCF.Channels
             Message message = Message.CreateMessage(version,
                 WsrmIndex.GetSequenceAcknowledgementActionHeader(version.Addressing, reliableMessagingVersion));
 
-            WsrmUtilities.AddAcknowledgementHeader(reliableMessagingVersion, message, id, ranges, final,
+            AddAcknowledgementHeader(reliableMessagingVersion, message, id, ranges, final,
                 bufferRemaining);
             message.Properties.AllowOutputBatching = false;
 
@@ -429,7 +429,7 @@ namespace CoreWCF.Channels
             Message message = Message.CreateMessage(messageVersion,
                 WsrmIndex.GetAckRequestedActionHeader(messageVersion.Addressing, reliableMessagingVersion));
 
-            WsrmUtilities.AddAckRequestedHeader(reliableMessagingVersion, message, id);
+            AddAckRequestedHeader(reliableMessagingVersion, message, id);
             message.Properties.AllowOutputBatching = false;
 
             return message;
@@ -738,7 +738,7 @@ namespace CoreWCF.Channels
 
         public static Int64 ReadSequenceNumber(XmlDictionaryReader reader)
         {
-            return WsrmUtilities.ReadSequenceNumber(reader, false);
+            return ReadSequenceNumber(reader, false);
         }
 
         public static Int64 ReadSequenceNumber(XmlDictionaryReader reader, bool allowZero)
@@ -758,19 +758,18 @@ namespace CoreWCF.Channels
         public static WsrmFault ValidateCloseSequenceResponse(ChannelReliableSession session, UniqueId messageId,
             WsrmMessageInfo info, Int64 last)
         {
-            string exceptionString = null;
-            string faultString = null;
-
+            string exceptionString;
+            string faultString;
             if (info.CloseSequenceResponseInfo == null)
             {
-                exceptionString = SR.GetString(SR.InvalidWsrmResponseSessionFaultedExceptionString,
+                exceptionString = SR.Format(SR.InvalidWsrmResponseSessionFaultedExceptionString,
                     Wsrm11Strings.CloseSequence, info.Action,
                     Wsrm11Strings.CloseSequenceResponseAction);
-                faultString = SR.GetString(SR.InvalidWsrmResponseSessionFaultedFaultString,
+                faultString = SR.Format(SR.InvalidWsrmResponseSessionFaultedFaultString,
                     Wsrm11Strings.CloseSequence, info.Action,
                     Wsrm11Strings.CloseSequenceResponseAction);
             }
-            else if (!object.Equals(messageId, info.CloseSequenceResponseInfo.RelatesTo))
+            else if (!Equals(messageId, info.CloseSequenceResponseInfo.RelatesTo))
             {
                 exceptionString = SR.Format(SR.WsrmMessageWithWrongRelatesToExceptionString, Wsrm11Strings.CloseSequence);
                 faultString = SR.Format(SR.WsrmMessageWithWrongRelatesToFaultString, Wsrm11Strings.CloseSequence);
@@ -790,7 +789,7 @@ namespace CoreWCF.Channels
         }
 
         public static bool ValidateCreateSequence<TChannel>(WsrmMessageInfo info,
-            ReliableServiceDispatcherBase<TChannel> listener, IChannel channel, out EndpointAddress acksTo)
+            ReliableServiceDispatcherBase<TChannel> serviceDispatcher, IChannel channel, out EndpointAddress acksTo)
             where TChannel : class, IChannel
         {
             acksTo = null;
@@ -799,37 +798,37 @@ namespace CoreWCF.Channels
             if (info.CreateSequenceInfo.OfferIdentifier == null)
             {
                 if (typeof(TChannel) == typeof(IDuplexSessionChannel))
-                    reason = SR.Format(SR.CSRefusedDuplexNoOffer, listener.Uri);
+                    reason = SR.Format(SR.CSRefusedDuplexNoOffer, serviceDispatcher.Uri);
                 else if (typeof(TChannel) == typeof(IReplySessionChannel))
-                    reason = SR.Format(SR.CSRefusedReplyNoOffer, listener.Uri);
+                    reason = SR.Format(SR.CSRefusedReplyNoOffer, serviceDispatcher.Uri);
             }
-            else if (listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            else if (serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 if (typeof(TChannel) == typeof(IInputSessionChannel))
-                    reason = SR.Format(SR.CSRefusedInputOffer, listener.Uri);
+                    reason = SR.Format(SR.CSRefusedInputOffer, serviceDispatcher.Uri);
             }
 
             if (reason != null)
             {
-                info.FaultReply = WsrmUtilities.CreateCSRefusedProtocolFault(listener.MessageVersion,
-                    listener.ReliableMessagingVersion, reason);
+                info.FaultReply = CreateCSRefusedProtocolFault(serviceDispatcher.MessageVersion,
+                    serviceDispatcher.ReliableMessagingVersion, reason);
                 info.FaultException = new ProtocolException(SR.ConflictingOffer);
                 return false;
             }
 
-            if (listener.LocalAddresses != null)
+            if (serviceDispatcher.LocalAddresses != null)
             {
                 Collection<EndpointAddress> addresses = new Collection<EndpointAddress>();
 
                 try
                 {
-                    listener.LocalAddresses.GetMatchingValues(info.Message, addresses);
+                    serviceDispatcher.LocalAddresses.GetMatchingValues(info.Message, addresses);
                 }
                 catch (CommunicationException e)
                 {
                     FaultConverter converter = channel.GetProperty<FaultConverter>();
                     if (converter == null)
-                        converter = FaultConverter.GetDefaultFaultConverter(listener.MessageVersion);
+                        converter = FaultConverter.GetDefaultFaultConverter(serviceDispatcher.MessageVersion);
 
                     Message faultReply;
                     if (converter.TryCreateFaultMessage(e, out faultReply))
@@ -850,7 +849,7 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    info.FaultReply = CreateEndpointNotFoundFault(listener.MessageVersion, SR.Format(SR.EndpointNotFound, info.CreateSequenceInfo.To));
+                    info.FaultReply = CreateEndpointNotFoundFault(serviceDispatcher.MessageVersion, SR.Format(SR.EndpointNotFound, info.CreateSequenceInfo.To));
                     info.FaultException = new ProtocolException(SR.ConflictingAddress);
                     return false;
                 }
@@ -908,23 +907,22 @@ namespace CoreWCF.Channels
         public static WsrmFault ValidateTerminateSequenceResponse(ChannelReliableSession session, UniqueId messageId,
             WsrmMessageInfo info, Int64 last)
         {
-            string exceptionString = null;
-            string faultString = null;
-
+            string exceptionString;
+            string faultString;
             if (info.WsrmHeaderFault is UnknownSequenceFault)
             {
                 return null;
             }
             else if (info.TerminateSequenceResponseInfo == null)
             {
-                exceptionString = SR.GetString(SR.InvalidWsrmResponseSessionFaultedExceptionString,
+                exceptionString = SR.Format(SR.InvalidWsrmResponseSessionFaultedExceptionString,
                     WsrmFeb2005Strings.TerminateSequence, info.Action,
                     Wsrm11Strings.TerminateSequenceResponseAction);
-                faultString = SR.GetString(SR.InvalidWsrmResponseSessionFaultedFaultString,
+                faultString = SR.Format(SR.InvalidWsrmResponseSessionFaultedFaultString,
                     WsrmFeb2005Strings.TerminateSequence, info.Action,
                     Wsrm11Strings.TerminateSequenceResponseAction);
             }
-            else if (!object.Equals(messageId, info.TerminateSequenceResponseInfo.RelatesTo))
+            else if (!Equals(messageId, info.TerminateSequenceResponseInfo.RelatesTo))
             {
                 exceptionString = SR.Format(SR.WsrmMessageWithWrongRelatesToExceptionString, WsrmFeb2005Strings.TerminateSequence);
                 faultString = SR.Format(SR.WsrmMessageWithWrongRelatesToFaultString, WsrmFeb2005Strings.TerminateSequence);
