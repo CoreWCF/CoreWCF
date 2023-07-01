@@ -25,6 +25,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal string Topic { get; }
     internal KafkaTransportBindingElement TransportBindingElement { get; }
     private CountdownEvent _receiveContextCountdownEvent;
+    private object _disposeLock = new();
 
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
@@ -248,14 +249,17 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     public void Dispose()
     {
-        if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
+        lock (_disposeLock)
         {
-            Producer?.Dispose();
-            Producer = null;
+            if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
+            {
+                Producer?.Dispose();
+                Producer = null;
+            }
+            Consumer?.Dispose();
+            Consumer = null;
+            _cts?.Dispose();
+            _mres?.Dispose();
         }
-        Consumer?.Dispose();
-        Consumer = null;
-        _cts?.Dispose();
-        _mres?.Dispose();
     }
 }
