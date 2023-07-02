@@ -10,7 +10,7 @@ using MSMQ.Messaging;
 
 namespace CoreWCF.Channels
 {
-    internal class DeadLetterQueueSender : IDeadLetterQueueMsmqSender
+    internal class DeadLetterQueueSender
     {
         public async Task Send(PipeReader message, Uri endpoint)
         {
