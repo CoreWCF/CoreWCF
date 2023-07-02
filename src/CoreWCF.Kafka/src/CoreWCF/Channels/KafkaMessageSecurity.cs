@@ -3,11 +3,7 @@
 
 namespace CoreWCF.Channels;
 
-public enum KafkaSecurityMode
+public sealed class KafkaMessageSecurity
 {
-    None,
-    Transport,
-    TransportCredentialOnly,
-    TransportWithMessageCredential,
-    Message,
+
 }

@@ -237,11 +237,14 @@ public class SecurityModeTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                    Security = new KafkaTransportSecurity
+                    Security = new KafkaSecurity
                     {
                         Mode = KafkaSecurityMode.Transport,
-                        CredentialType = KafkaCredentialType.None,
-                        CaPem = SslHelper.GetSslCaPem()
+                        Transport = new KafkaTransportSecurity
+                        {
+                            CredentialType = KafkaCredentialType.None,
+                            CaPem = SslHelper.GetSslCaPem()
+                        }
                     }
                 }, $"net.kafka://localhost:9093/{topicNameAccessor.Invoke()}");
             });
@@ -269,11 +272,14 @@ public class SecurityModeTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                    Security = new KafkaTransportSecurity
+                    Security = new KafkaSecurity()
                     {
                         Mode = KafkaSecurityMode.TransportCredentialOnly,
-                        CredentialType = KafkaCredentialType.SaslPlain,
-                        SaslUsernamePasswordCredential = new SaslUsernamePasswordCredential("consumer1", "consumer1-secret")
+                        Transport = new KafkaTransportSecurity
+                        {
+                            CredentialType = KafkaCredentialType.SaslPlain,
+                            SaslUsernamePasswordCredential = new SaslUsernamePasswordCredential("consumer1", "consumer1-secret")
+                        }
                     }
                 }, $"net.kafka://localhost:9094/{topicNameAccessor.Invoke()}");
             });
@@ -301,12 +307,15 @@ public class SecurityModeTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                    Security = new KafkaTransportSecurity
+                    Security = new KafkaSecurity
                     {
                         Mode = KafkaSecurityMode.Transport,
-                        CredentialType = KafkaCredentialType.SaslPlain,
-                        CaPem = SslHelper.GetSslCaPem(),
-                        SaslUsernamePasswordCredential = new SaslUsernamePasswordCredential("consumer2", "consumer2-secret"),
+                        Transport = new KafkaTransportSecurity
+                        {
+                            CredentialType = KafkaCredentialType.SaslPlain,
+                            CaPem = SslHelper.GetSslCaPem(),
+                            SaslUsernamePasswordCredential = new SaslUsernamePasswordCredential("consumer2", "consumer2-secret"),
+                        }
                     }
                 }, $"net.kafka://localhost:9095/{topicNameAccessor.Invoke()}");
             });
@@ -334,16 +343,19 @@ public class SecurityModeTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                    Security = new KafkaTransportSecurity
+                    Security = new KafkaSecurity()
                     {
                         Mode = KafkaSecurityMode.Transport,
-                        CredentialType = KafkaCredentialType.SslKeyPairCertificate,
-                        CaPem = SslHelper.GetSslCaPem(),
-                        SslKeyPairCredential = new SslKeyPairCredential
+                        Transport  = new KafkaTransportSecurity
                         {
-                            SslCertificatePem = SslHelper.GetConsumerSslCertificatePem(),
-                            SslKeyPem = SslHelper.GetConsumerSslKeyPem(),
-                            SslKeyPassword = SslHelper.GetConsumerSslKeyPassword(),
+                            CredentialType = KafkaCredentialType.SslKeyPairCertificate,
+                            CaPem = SslHelper.GetSslCaPem(),
+                            SslKeyPairCredential = new SslKeyPairCredential
+                            {
+                                SslCertificatePem = SslHelper.GetConsumerSslCertificatePem(),
+                                SslKeyPem = SslHelper.GetConsumerSslKeyPem(),
+                                SslKeyPassword = SslHelper.GetConsumerSslKeyPassword(),
+                            }
                         }
                     }
                 }, $"net.kafka://localhost:9096/{topicNameAccessor.Invoke()}");

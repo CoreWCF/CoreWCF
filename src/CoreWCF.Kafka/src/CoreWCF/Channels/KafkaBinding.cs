@@ -8,79 +8,107 @@ namespace CoreWCF.Channels
 {
     public class KafkaBinding : Binding
     {
-        private KafkaTransportSecurity _security = new();
-        private readonly KafkaTransportBindingElement _transportBindingElement = new();
-        private readonly BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement = new();
-        private readonly TextMessageEncodingBindingElement _textMessageEncodingBindingElement = new();
+        private KafkaSecurity _security = new();
+        private KafkaTransportBindingElement _transport;
+        private BinaryMessageEncodingBindingElement _binaryEncoding;
+        private TextMessageEncodingBindingElement _textEncoding;
 
-        public KafkaBinding(KafkaDeliverySemantics deliverySemantics = KafkaDeliverySemantics.AtLeastOnce)
+        public KafkaBinding()
         {
-            _transportBindingElement.DeliverySemantics = deliverySemantics;
+            Initialize();
+        }
+
+        public KafkaBinding(KafkaDeliverySemantics deliverySemantics)
+            : this()
+        {
+            _transport.DeliverySemantics = deliverySemantics;
+        }
+
+        public KafkaBinding(KafkaSecurityMode securityMode, KafkaDeliverySemantics deliverySemantics = KafkaDeliverySemantics.AtLeastOnce)
+            : this(deliverySemantics)
+        {
+            _security.Mode = securityMode;
+        }
+
+        private void Initialize()
+        {
+            _transport = new KafkaTransportBindingElement();
+            _binaryEncoding = new BinaryMessageEncodingBindingElement();
+            _textEncoding = new TextMessageEncodingBindingElement();
         }
 
         public override BindingElementCollection CreateBindingElements()
         {
-            _security.ApplySecurity(_transportBindingElement);
+            BindingElementCollection elements = new BindingElementCollection();
 
-            BindingElementCollection elements = new()
+            // TODO: Add Message security.
+            SecurityBindingElement securityBindingElement = _security.CreateMessageSecurity();
+            if (securityBindingElement != null)
             {
-                MessageEncoding switch
-                {
-                    KafkaMessageEncoding.Binary => _binaryMessageEncodingBindingElement,
-                    KafkaMessageEncoding.Text => _textMessageEncodingBindingElement,
-                    _ => _textMessageEncodingBindingElement
-                },
-                _transportBindingElement
+                elements.Add(securityBindingElement);
+            }
+
+            MessageEncodingBindingElement encodingBindingElement = MessageEncoding switch
+            {
+                KafkaMessageEncoding.Binary => _binaryEncoding,
+                KafkaMessageEncoding.Text => _textEncoding,
+                _ => _textEncoding
             };
+
+            elements.Add(encodingBindingElement);
+
+            _security.ApplySecurity(_transport);
+
+            elements.Add(_transport);
 
             return elements;
         }
 
-        public override string Scheme => _transportBindingElement.Scheme;
+        public override string Scheme => _transport.Scheme;
 
         public string GroupId
         {
-            get => _transportBindingElement.GroupId;
-            set => _transportBindingElement.GroupId = value;
+            get => _transport.GroupId;
+            set => _transport.GroupId = value;
         }
 
         public KafkaDeliverySemantics DeliverySemantics
         {
-            get => _transportBindingElement.DeliverySemantics;
-            set => _transportBindingElement.DeliverySemantics = value;
+            get => _transport.DeliverySemantics;
+            set => _transport.DeliverySemantics = value;
         }
 
         public KafkaMessageEncoding MessageEncoding
         {
-            get => _transportBindingElement.MessageEncoding;
-            set => _transportBindingElement.MessageEncoding = value;
+            get => _transport.MessageEncoding;
+            set => _transport.MessageEncoding = value;
         }
 
         public KafkaErrorHandlingStrategy ErrorHandlingStrategy
         {
-            get => _transportBindingElement.ErrorHandlingStrategy;
-            set => _transportBindingElement.ErrorHandlingStrategy = value;
+            get => _transport.ErrorHandlingStrategy;
+            set => _transport.ErrorHandlingStrategy = value;
         }
 
         public string DeadLetterQueueTopic
         {
-            get => _transportBindingElement.DeadLetterQueueTopic;
-            set => _transportBindingElement.DeadLetterQueueTopic = value;
+            get => _transport.DeadLetterQueueTopic;
+            set => _transport.DeadLetterQueueTopic = value;
         }
 
         public AutoOffsetReset? AutoOffsetReset
         {
-            get => _transportBindingElement.AutoOffsetReset;
-            set => _transportBindingElement.AutoOffsetReset = value;
+            get => _transport.AutoOffsetReset;
+            set => _transport.AutoOffsetReset = value;
         }
 
         public IsolationLevel? IsolationLevel
         {
-            get => _transportBindingElement.IsolationLevel;
-            set => _transportBindingElement.IsolationLevel = value;
+            get => _transport.IsolationLevel;
+            set => _transport.IsolationLevel = value;
         }
 
-        public KafkaTransportSecurity Security
+        public KafkaSecurity Security
         {
             get => _security;
             set => _security = value ?? throw new ArgumentNullException(nameof(value));

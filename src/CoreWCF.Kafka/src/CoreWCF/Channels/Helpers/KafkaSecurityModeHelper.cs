@@ -7,8 +7,17 @@ internal static class KafkaSecurityModeHelper
 {
     public static bool IsDefined(KafkaSecurityMode value)
     {
-        return value == KafkaSecurityMode.None
-               || value == KafkaSecurityMode.Transport
-               || value == KafkaSecurityMode.TransportCredentialOnly;
+        return (int)value is >= (int)KafkaSecurityMode.None and <= (int)KafkaSecurityMode.Message;
+    }
+
+    public static bool IsSupported(KafkaSecurityMode value)
+    {
+        return value switch
+        {
+            KafkaSecurityMode.Transport => true,
+            KafkaSecurityMode.TransportCredentialOnly => true,
+            KafkaSecurityMode.None => true,
+            _ => false,
+        };
     }
 }
