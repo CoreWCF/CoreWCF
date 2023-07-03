@@ -26,11 +26,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal KafkaTransportBindingElement TransportBindingElement { get; }
     private CountdownEvent _receiveContextCountdownEvent;
     private object _disposeLock = new();
-
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
     private AsyncManualResetEvent _mres;
     private bool _isStarted;
+    private TimeSpan _closeTimeout;
+
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOnceBatchCommitConfigValues = (true, false);
@@ -63,6 +64,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         }
         TransportBindingElement = (KafkaTransportBindingElement)transportBindingElement.Clone();
         _baseAddress = serviceDispatcher.BaseAddress;
+        _closeTimeout = serviceDispatcher.Binding.CloseTimeout;
     }
 
     public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
@@ -164,11 +166,21 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         await _mres.WaitAsync(token);
         _cts.Dispose();
         _receiveContextCountdownEvent.Signal();
-        _receiveContextCountdownEvent.Wait(token);
+        using CancellationTokenSource closeCts = new (_closeTimeout);
+        try
+        {
+            _receiveContextCountdownEvent.Wait(closeCts.Token);
+        }
+        catch (OperationCanceledException e)
+        {
+            // no-op
+            // Consumer.Close and Producer.Flush will allow to gracefully handle that service stops
+        }
+
         _receiveContextCountdownEvent.Dispose();
         if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
-            Producer.Flush(CancellationToken.None);
+            Producer.Flush(closeCts.Token);
         }
         Consumer.Close();
     }

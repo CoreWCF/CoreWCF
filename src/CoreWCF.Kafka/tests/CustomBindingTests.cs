@@ -60,7 +60,6 @@ public class CustomBindingTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        //Assert.True(await KafkaEx.EnsureConsumerLagIsZeroAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
@@ -87,7 +86,6 @@ public class CustomBindingTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        //Assert.True(await KafkaEx.EnsureConsumerLagIsZeroAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
@@ -118,7 +116,6 @@ public class CustomBindingTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        //Assert.True(await KafkaEx.EnsureConsumerLagIsZeroAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 

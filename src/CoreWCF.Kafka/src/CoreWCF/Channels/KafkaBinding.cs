@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
 
         public override BindingElementCollection CreateBindingElements()
         {
-            BindingElementCollection elements = new BindingElementCollection();
+            BindingElementCollection elements = new();
 
             // TODO: Add Message security.
             SecurityBindingElement securityBindingElement = _security.CreateMessageSecurity();
