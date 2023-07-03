@@ -8,10 +8,10 @@ namespace CoreWCF.ServiceModel.Channels
 {
     public class KafkaBinding : Binding
     {
-        private KafkaTransportSecurity _security;
-        private KafkaTransportBindingElement _transportBindingElement;
-        private TextMessageEncodingBindingElement _textMessageEncodingBindingElement;
-        private BinaryMessageEncodingBindingElement _binaryMessageEncodingBindingElement;
+        private KafkaSecurity _security;
+        private KafkaTransportBindingElement _transport;
+        private TextMessageEncodingBindingElement _textEncoding;
+        private BinaryMessageEncodingBindingElement _binaryEncoding;
 
         private KafkaMessageEncoding _messageEncoding = KafkaMessageEncoding.Text;
 
@@ -20,22 +20,36 @@ namespace CoreWCF.ServiceModel.Channels
             Initialize();
         }
 
+        public KafkaBinding(KafkaSecurityMode securityMode)
+            : this()
+        {
+            _security.Mode = securityMode;
+        }
+
         public override BindingElementCollection CreateBindingElements()
         {
-            _security.Apply(_transportBindingElement);
+            BindingElementCollection elements = new();
 
-            BindingElementCollection bindingElements = new()
+            SecurityBindingElement securityBindingElement = _security.CreateMessageSecurity();
+            if (securityBindingElement != null)
             {
-                MessageEncoding switch
-                {
-                    KafkaMessageEncoding.Binary => _binaryMessageEncodingBindingElement,
-                    KafkaMessageEncoding.Text => _textMessageEncodingBindingElement,
-                    _ => _textMessageEncodingBindingElement
-                },
-                _transportBindingElement
+                elements.Add(securityBindingElement);
+            }
+
+            MessageEncodingBindingElement encodingBindingElement = MessageEncoding switch
+            {
+                KafkaMessageEncoding.Binary => _binaryEncoding,
+                KafkaMessageEncoding.Text => _textEncoding,
+                _ => _textEncoding
             };
 
-            return bindingElements.Clone();
+            elements.Add(encodingBindingElement);
+
+            _security.ApplySecurity(_transport);
+
+            elements.Add(_transport);
+
+            return elements.Clone();
         }
 
         public override string Scheme => KafkaConstants.Scheme;
@@ -55,7 +69,7 @@ namespace CoreWCF.ServiceModel.Channels
             }
         }
 
-        public KafkaTransportSecurity Security
+        public KafkaSecurity Security
         {
             get => _security;
             set => _security = value ?? throw new ArgumentNullException(nameof(value));
@@ -63,10 +77,10 @@ namespace CoreWCF.ServiceModel.Channels
 
         private void Initialize()
         {
-            _security = new KafkaTransportSecurity();
-            _transportBindingElement = new KafkaTransportBindingElement();
-            _textMessageEncodingBindingElement = new TextMessageEncodingBindingElement();
-            _binaryMessageEncodingBindingElement = new BinaryMessageEncodingBindingElement();
+            _security = new KafkaSecurity();
+            _transport = new KafkaTransportBindingElement();
+            _textEncoding = new TextMessageEncodingBindingElement();
+            _binaryEncoding = new BinaryMessageEncodingBindingElement();
         }
     }
 }

@@ -127,11 +127,15 @@ public class SecurityModeTests : IntegrationTest
             typeof(StartupSsl),
             new CoreWCF.ServiceModel.Channels.KafkaBinding
             {
-                Security = new ServiceModel.Channels.KafkaTransportSecurity
+                Security = new ServiceModel.Channels.KafkaSecurity()
                 {
                     Mode = ServiceModel.Channels.KafkaSecurityMode.Transport,
-                    CredentialType = ServiceModel.Channels.KafkaCredentialType.None,
-                    CaPem = SslHelper.GetSslCaPem()
+                    Transport = new ServiceModel.Channels.KafkaTransportSecurity
+                    {
+
+                        CredentialType = ServiceModel.Channels.KafkaCredentialType.None,
+                        CaPem = SslHelper.GetSslCaPem()
+                    }
                 }
             }, 9093
         };
@@ -140,11 +144,14 @@ public class SecurityModeTests : IntegrationTest
             typeof(StartupSaslPlainText),
             new ServiceModel.Channels.KafkaBinding
             {
-                Security = new ServiceModel.Channels.KafkaTransportSecurity
+                Security = new ServiceModel.Channels.KafkaSecurity
                 {
                     Mode = ServiceModel.Channels.KafkaSecurityMode.TransportCredentialOnly,
-                    CredentialType = ServiceModel.Channels.KafkaCredentialType.SaslPlain,
-                    SaslUsernamePasswordCredential = new("consumer1", "consumer1-secret")
+                    Transport = new ServiceModel.Channels.KafkaTransportSecurity()
+                    {
+                        CredentialType = ServiceModel.Channels.KafkaCredentialType.SaslPlain,
+                        SaslUsernamePasswordCredential = new("consumer1", "consumer1-secret")
+                    }
                 }
             }, 9094
         };
@@ -153,12 +160,15 @@ public class SecurityModeTests : IntegrationTest
             typeof(StartupSaslSsl),
             new ServiceModel.Channels.KafkaBinding
             {
-                Security = new ServiceModel.Channels.KafkaTransportSecurity
+                Security = new ServiceModel.Channels.KafkaSecurity
                 {
                     Mode = ServiceModel.Channels.KafkaSecurityMode.Transport,
-                    CredentialType = ServiceModel.Channels.KafkaCredentialType.SaslPlain,
-                    SaslUsernamePasswordCredential = new ServiceModel.Channels.SaslUsernamePasswordCredential("consumer2", "consumer2-secret"),
-                    CaPem = SslHelper.GetSslCaPem()
+                    Transport = new ServiceModel.Channels.KafkaTransportSecurity()
+                    {
+                        CredentialType = ServiceModel.Channels.KafkaCredentialType.SaslPlain,
+                        SaslUsernamePasswordCredential = new ServiceModel.Channels.SaslUsernamePasswordCredential("consumer2", "consumer2-secret"),
+                        CaPem = SslHelper.GetSslCaPem()
+                    }
                 }
             }, 9095
         };
@@ -167,16 +177,19 @@ public class SecurityModeTests : IntegrationTest
             typeof(StartupMutualSsl),
             new ServiceModel.Channels.KafkaBinding
             {
-                Security = new ServiceModel.Channels.KafkaTransportSecurity
+                Security = new ServiceModel.Channels.KafkaSecurity
                 {
                     Mode = ServiceModel.Channels.KafkaSecurityMode.Transport,
-                    CredentialType = ServiceModel.Channels.KafkaCredentialType.SslKeyPairCertificate,
-                    CaPem = SslHelper.GetSslCaPem(),
-                    SslKeyPairCredential = new ServiceModel.Channels.SslKeyPairCredential()
+                    Transport = new ServiceModel.Channels.KafkaTransportSecurity()
                     {
-                        SslCertificatePem = SslHelper.GetProducerSslCertificatePem(),
-                        SslKeyPem = SslHelper.GetProducerSslKeyPem(),
-                        SslKeyPassword = SslHelper.GetProducerSslKeyPassword()
+                        CredentialType = ServiceModel.Channels.KafkaCredentialType.SslKeyPairCertificate,
+                        CaPem = SslHelper.GetSslCaPem(),
+                        SslKeyPairCredential = new ServiceModel.Channels.SslKeyPairCredential()
+                        {
+                            SslCertificatePem = SslHelper.GetProducerSslCertificatePem(),
+                            SslKeyPem = SslHelper.GetProducerSslKeyPem(),
+                            SslKeyPassword = SslHelper.GetProducerSslKeyPassword()
+                        }
                     }
                 }
             }, 9096
