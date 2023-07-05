@@ -83,7 +83,6 @@ namespace CoreWCF.MSMQ.Tests
             services.AddSingleton<TestService>();
             services.AddServiceModelServices();
             services.AddQueueTransport();
-            services.AddServiceModelMsmqSupport();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -104,7 +103,6 @@ namespace CoreWCF.MSMQ.Tests
             services.AddScoped<TestService>();
             services.AddServiceModelServices();
             services.AddQueueTransport();
-            services.AddServiceModelMsmqSupport();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
