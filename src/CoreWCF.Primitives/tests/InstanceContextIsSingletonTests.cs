@@ -30,13 +30,13 @@ namespace CoreWCF.Primitives.Tests
         }
 
         [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall)]
-        public class PerCallSimpleService : AssertInstanceContextIsNotSingletonService{ }
+        public class PerCallSimpleService : AssertInstanceContextIsNotSingletonService { }
 
         [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerSession)]
         public class PerSessionSimpleService : AssertInstanceContextIsNotSingletonService { }
 
         [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-        public class SingleSimpleService: AssertInstanceContextIsSingletonService { }
+        public class SingleSimpleService : AssertInstanceContextIsSingletonService { }
 
         [Fact]
         public void IsSingletonShouldBeFalseWhenInstanceContextModeIsPerCallAndServiceIsRegisteredInDI()

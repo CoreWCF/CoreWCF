@@ -102,7 +102,7 @@ namespace CoreWCF.Primitives.Tests
     }
 
     internal class PingService_Inline : PingServiceBase, IPingService_Inline { }
-   
+
     [System.ServiceModel.ServiceContract]
     [ServiceKnownType(typeof(DerivedMsg))]
     [System.ServiceModel.ServiceKnownType(typeof(DerivedMsg))]
@@ -123,7 +123,7 @@ namespace CoreWCF.Primitives.Tests
     }
 
     internal class PingService_Method : PingServiceBase, IPingService_Method { }
-  
+
     [System.ServiceModel.ServiceContract]
     [ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
     [System.ServiceModel.ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
@@ -134,7 +134,7 @@ namespace CoreWCF.Primitives.Tests
     }
 
     internal class PingService_Method_SSM : PingServiceBase, IPingService_Method_SSM { }
-   
+
     [System.ServiceModel.ServiceContract]
     [System.ServiceModel.ServiceKnownType("GetKnownTypes", typeof(DataProviderTypes))]
     public interface IPingService_Method_SSM

@@ -141,7 +141,7 @@ namespace Helpers
                         int i = 0;
                         while (reader.Read())
                         { // read inside
-                          
+
                         }
                         if (i != 3) // run out the clock
                         {

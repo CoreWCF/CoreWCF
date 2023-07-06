@@ -122,12 +122,12 @@ namespace Helpers
                     {
                         serviceBuilder.AddService<TService>(serviceOptions =>
                         {
-                            foreach(var address in baseAddresses)
+                            foreach (var address in baseAddresses)
                             {
                                 serviceOptions.BaseAddresses.Add(address);
                             }
                         });
-                        foreach(var bindingEndpoint in bindingEndpointMap)
+                        foreach (var bindingEndpoint in bindingEndpointMap)
                         {
                             var customBinding = new CustomBinding(bindingEndpoint.Value);
                             ApplyDebugTimeouts(customBinding);
@@ -151,7 +151,7 @@ namespace Helpers
         {
             string transportScheme = binding.Scheme;
             ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
-            foreach(string address in addresses)
+            foreach (string address in addresses)
             {
                 var addressInUse = new Uri(address, UriKind.Absolute);
                 var port = addressInUse.Port;
@@ -164,11 +164,11 @@ namespace Helpers
 
                     return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
                 }
-                else if("http".Equals(transportScheme, StringComparison.OrdinalIgnoreCase) && port == HttpListenPort)
+                else if ("http".Equals(transportScheme, StringComparison.OrdinalIgnoreCase) && port == HttpListenPort)
                 {
                     return $"http://{addressInUse.Host}:{addressInUse.Port}";
                 }
-                else if ("https".Equals(transportScheme, StringComparison.OrdinalIgnoreCase)&& port == HttpsListenPort)
+                else if ("https".Equals(transportScheme, StringComparison.OrdinalIgnoreCase) && port == HttpsListenPort)
                 {
                     return $"https://{addressInUse.Host}:{addressInUse.Port}";
                 }
@@ -212,9 +212,9 @@ namespace Helpers
                             listenOptions.UseHttps(httpsOptions =>
                             {
 #if NET472
-                                    httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+                                httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 #endif // NET472
-                                });
+                            });
                         }
 
                         if (Debugger.IsAttached)
@@ -225,7 +225,7 @@ namespace Helpers
                 }
             });
 
-            if(schemesCollection.Contains("net.tcp"))
+            if (schemesCollection.Contains("net.tcp"))
             {
                 host.UseNetTcp(IPAddress.Loopback, 0);
             }

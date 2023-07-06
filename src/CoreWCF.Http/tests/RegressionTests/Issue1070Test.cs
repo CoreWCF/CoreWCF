@@ -3,11 +3,9 @@
 
 using System;
 using System.ServiceModel.Description;
-using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 using CoreWCF.Security;
 using Helpers;
 using Microsoft.AspNetCore.Builder;

@@ -2,25 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
 
 namespace Helpers
 {
     public static class ServiceHelper
     {
-		#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
         public static IWebHostBuilder CreateNonKestrelWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "") where TStartup : class
@@ -59,7 +59,7 @@ namespace Helpers
             .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
         }
-		
+
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "")
         {
             if (ipAddress == null)
@@ -101,7 +101,7 @@ namespace Helpers
             .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
         }
-		
+
         public static string GetNetTcpAddressInUse(this IWebHost host)
         {
             IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(addr => new Uri(addr, UriKind.Absolute));

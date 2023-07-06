@@ -49,7 +49,7 @@ namespace CoreWCF.Metadata.Tests
                 httpRequest.Headers.TryGetValue("X-Forwarded-Proto", out var scheme);
                 httpRequest.Headers.TryGetValue("X-Forwarded-Host", out var host);
                 httpRequest.Headers.TryGetValue("X-Forwarded-Port", out var port);
-                return new Uri($"{ scheme }://{ host }:{ port }", UriKind.Absolute);
+                return new Uri($"{scheme}://{host}:{port}", UriKind.Absolute);
             }
         }
     }

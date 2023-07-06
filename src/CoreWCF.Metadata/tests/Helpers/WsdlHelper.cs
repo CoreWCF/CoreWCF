@@ -137,9 +137,9 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 }
 
                 bool validServiceAddress = false;
-                foreach(var baseAddress in serviceBaseAddresses)
+                foreach (var baseAddress in serviceBaseAddresses)
                 {
-                    foreach(var relativePath in bindingEndpointMap.Keys)
+                    foreach (var relativePath in bindingEndpointMap.Keys)
                     {
                         var possibleUri = new Uri(baseAddress.ToString() + "/" + relativePath);
                         if (possibleUri.Equals(servicePathUri))
@@ -207,7 +207,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 Assert.True(nav.MoveToAttribute("location", ""));
                 Assert.Equal(servicePath, nav.Value);
             }
-            if(isSoap12) // Need to also fix EndpointReference/Address
+            if (isSoap12) // Need to also fix EndpointReference/Address
             {
                 navs = navigator.Select($"//wsa10ns:Address", manager);
                 Assert.Single(navs);

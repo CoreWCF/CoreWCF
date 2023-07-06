@@ -29,7 +29,7 @@ namespace CoreWCF.ConfigurationManager.Tests
         //Limiting this logic for test purpose.
         protected static IXmlConfigEndpoint GetXmlConfigEndpointByEndpointName(IConfigurationHolder configHolder, string name)
         {
-           foreach(var serviceEndPoint in configHolder.Endpoints)
+            foreach (var serviceEndPoint in configHolder.Endpoints)
             {
                 if (string.Compare(serviceEndPoint.Name, name, true) == 0)
                 {

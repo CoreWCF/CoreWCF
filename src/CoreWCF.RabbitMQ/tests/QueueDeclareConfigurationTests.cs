@@ -30,12 +30,14 @@ public class QueueDeclareConfigurationTests : IClassFixture<QueueDeclareConfigur
         _fixture = fixture;
     }
 
-    [Fact] public void ClassicQueueConfiguration_QueueType_Is_Classic()
+    [Fact]
+    public void ClassicQueueConfiguration_QueueType_Is_Classic()
     {
         Assert.Equal(RabbitMqQueueType.Classic, _fixture.ClassicQueueConfiguration.QueueType);
     }
 
-    [Fact] public void AsTemporaryQueue_Sets_AutoDelete_To_True()
+    [Fact]
+    public void AsTemporaryQueue_Sets_AutoDelete_To_True()
     {
         Assert.False(_fixture.ClassicQueueConfiguration.AutoDelete);
 
@@ -43,27 +45,31 @@ public class QueueDeclareConfigurationTests : IClassFixture<QueueDeclareConfigur
         Assert.True(_fixture.ClassicQueueConfiguration.AutoDelete);
     }
 
-    [Fact] public void QuorumQueueConfiguration_QueueType_Is_Quorum()
+    [Fact]
+    public void QuorumQueueConfiguration_QueueType_Is_Quorum()
     {
         Assert.Equal(RabbitMqQueueType.Quorum, _fixture.QuorumQueueConfiguration.QueueType);
     }
 
-    [Fact] public void QuorumQueueConfiguration_Throws_If_Durable_Is_Set_To_False()
+    [Fact]
+    public void QuorumQueueConfiguration_Throws_If_Durable_Is_Set_To_False()
     {
         Assert.Throws<ArgumentException>(() =>
             _fixture.QuorumQueueConfiguration.Durable = false);
     }
 
-    [Fact] public void QuorumQueueConfiguration_Throws_If_Exclusive_Is_Set_To_True()
+    [Fact]
+    public void QuorumQueueConfiguration_Throws_If_Exclusive_Is_Set_To_True()
     {
         Assert.Throws<ArgumentException>(() =>
             _fixture.QuorumQueueConfiguration.Exclusive = true);
     }
 
-    [Fact] public void QuorumQueueConfiguration_Throws_If_GlobalQosPrefetch_Is_Set_To_True()
+    [Fact]
+    public void QuorumQueueConfiguration_Throws_If_GlobalQosPrefetch_Is_Set_To_True()
     {
         Assert.Throws<ArgumentException>(() =>
             _fixture.QuorumQueueConfiguration.GlobalQosPrefetch = true);
     }
-    
+
 }

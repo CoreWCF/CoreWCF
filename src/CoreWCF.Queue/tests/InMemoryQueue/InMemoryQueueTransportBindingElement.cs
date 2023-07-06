@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using CoreWCF.Channels;
-using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -18,7 +18,6 @@ using System.Security.Authentication;
 using System.Text;
 using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.TestHost;
 
 namespace Helpers
 {
@@ -112,7 +111,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
@@ -121,14 +120,14 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.Listen(IPAddress.Loopback, 0, listenOptions =>
+                options.Listen(IPAddress.Loopback, 0, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
                     {
-                        if (Debugger.IsAttached)
-                        {
-                            listenOptions.UseConnectionLogging();
-                        }
-                    });
-                })
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, [CallerMemberName] string callerMethodName = "") =>
@@ -159,7 +158,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
@@ -192,7 +191,7 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                if(outputHelper != default)
+                if (outputHelper != default)
                     logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);

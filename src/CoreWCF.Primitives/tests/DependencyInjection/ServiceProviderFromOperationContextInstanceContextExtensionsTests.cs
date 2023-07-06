@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using DispatcherClient;
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using CoreWCF;
 using System.Linq;
+using CoreWCF;
+using DispatcherClient;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace DependencyInjection
 {

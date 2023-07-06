@@ -4,7 +4,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,7 +30,7 @@ namespace CoreWCF.WebHttp.Tests
             {
                 await host.StartAsync();
 
-                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(),"api/errorpage");
+                (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync(host.GetHttpBaseAddressUri(), "api/errorpage");
 
                 Assert.Equal(HttpStatusCode.BadRequest, statusCode);
                 Assert.False(string.IsNullOrEmpty(content));
