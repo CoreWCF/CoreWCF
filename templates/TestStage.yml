@@ -92,7 +92,6 @@ stages:
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 20
-        continueOnError: true
         inputs:
           command: 'test'
           projects: ${{ parameters.testProjects}}
@@ -100,6 +99,7 @@ stages:
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs) --blame-hang-timeout 90s'
 
       - publish: $(Agent.TempDirectory)/**/*
+        condition: failed()
         artifact: TestResults-${{ configuration }}-$(targetFramework)
         
       - bash: |
