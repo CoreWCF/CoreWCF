@@ -11,7 +11,9 @@ namespace CoreWCF.Http.Tests
     {
         public static void Main(params string[] args)
         {
-            ServicePointManager.MaxServicePointIdleTime = 1000 * 30;
+#if !DEBUG            
+            ServicePointManager.MaxServicePointIdleTime = 1000 * 5;
+#endif            
         }
     }
 }
