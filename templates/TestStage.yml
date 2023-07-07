@@ -98,7 +98,7 @@ stages:
           publishTestResults: true
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs) --blame-hang-timeout 90s'
 
-      - publish: $(System.DefaultWorkingDirectory)/**/TestResults/**/*
+      - publish: $(Agent.TempDirectory)/**/*
         artifact: TestResults-${{ configuration }}-$(targetFramework)
         
       - bash: |
