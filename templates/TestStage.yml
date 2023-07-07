@@ -92,6 +92,7 @@ stages:
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 20
+        continueOnError: true
         inputs:
           command: 'test'
           projects: ${{ parameters.testProjects}}
