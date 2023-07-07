@@ -42,11 +42,16 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(assertion));
         }
 
+        public static explicit operator MSIdentitySAML.SamlSecurityToken(SamlSecurityToken samlSecurityToken)
+        {
+            return samlSecurityToken.WrappedSamlSecurityToken;
+        }
+
         public override string Id => Assertion.AssertionId;
 
         internal MSIdentitySAML.SamlSecurityToken WrappedSamlSecurityToken { get; }
 
-        public MSIdentitySAML.SamlAssertion Assertion { get; private set; }
+        internal MSIdentitySAML.SamlAssertion Assertion { get; private set; }
 
         internal SecurityToken SigningToken { get; set; }
 

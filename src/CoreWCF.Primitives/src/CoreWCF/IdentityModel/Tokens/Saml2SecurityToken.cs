@@ -33,6 +33,11 @@ namespace CoreWCF.IdentityModel.Tokens
             Initialize(assertion);
         }
 
+        public static explicit operator MSIdentitySAML2.Saml2SecurityToken(Saml2SecurityToken samlSecurityToken)
+        {
+            return samlSecurityToken.WrappedSaml2SecurityToken;
+        }
+
         protected void Initialize(MSIdentitySAML2.Saml2Assertion assertion)
         {
             Assertion = assertion ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(assertion));
