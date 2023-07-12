@@ -5,6 +5,7 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="OperationParameterInjectionGenerator.Roslyn3.11.cs" />
