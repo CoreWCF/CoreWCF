@@ -200,7 +200,9 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 if (_rsa is RSACryptoServiceProvider rsaCryptoServiceProvider)
                 {
-                    _privateKeyStatus = rsaCryptoServiceProvider.PublicOnly ? PrivateKeyStatus.DoesNotHavePrivateKey : PrivateKeyStatus.HasPrivateKey;
+                    _privateKeyStatus = rsaCryptoServiceProvider.PublicOnly
+                        ? PrivateKeyStatus.DoesNotHavePrivateKey
+                        : PrivateKeyStatus.HasPrivateKey;
                 }
                 else
                 {
@@ -210,7 +212,7 @@ namespace CoreWCF.IdentityModel.Tokens
                         _rsa.DecryptValue(hash); // imitate signing
                         _privateKeyStatus = PrivateKeyStatus.HasPrivateKey;
                     }
-#pragma warning disable CA1031 // Do not catch general exception types - interpret as no private key, don't need to use exception 
+#pragma warning disable CA1031 // Do not catch general exception types - interpret as no private key, don't need to use exception
                     catch (CryptographicException)
                     {
                         _privateKeyStatus = PrivateKeyStatus.DoesNotHavePrivateKey;

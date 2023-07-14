@@ -284,7 +284,7 @@ namespace CoreWCF.Security
                 string rsaXml = reader.ReadString();
                 reader.ReadEndElement();
 
-                System.Security.Cryptography.RSACryptoServiceProvider rsa = new System.Security.Cryptography.RSACryptoServiceProvider();
+                RSA rsa = RSA.Create();
                 rsa.FromXmlString(rsaXml);
                 return new Claim(ClaimTypes.Rsa, rsa, right);
             }
