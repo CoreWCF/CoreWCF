@@ -30,9 +30,9 @@ namespace CoreWCF.Security
         internal const int DefaultMaximumPendingSessions = 128;
         internal static readonly TimeSpan s_defaultInactivityTimeout = TimeSpan.FromMinutes(2);
         private int _maximumPendingSessions;
-        private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions1;
-        private Dictionary<UniqueId, SecurityContextSecurityToken> _pendingSessions2;
-        private Dictionary<UniqueId, MessageFilter> _sessionFilters;
+        private Dictionary<UniqueId, IServerReliableChannelBinder> _pendingSessions1;
+        private Dictionary<UniqueId, IServerReliableChannelBinder> _pendingSessions2;
+        //private Dictionary<UniqueId, MessageFilter> _sessionFilters;
         private IOThreadTimer _inactivityTimer;
         private TimeSpan _inactivityTimeout;
         private bool _tolerateTransportFailures;
@@ -47,6 +47,9 @@ namespace CoreWCF.Security
         private SecurityTokenParameters _issuedTokenParameters;
         private SecurityTokenResolver _sessionTokenResolver;
         private bool _acceptNewWork;
+        private TimeSpan _closeTimeout;
+        private TimeSpan _openTimeout;
+        private TimeSpan _sendTimeout;
         private Uri _listenUri;
         private SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
 
@@ -274,6 +277,12 @@ namespace CoreWCF.Security
 
         public TimeSpan DefaultCloseTimeout => ServiceDefaults.CloseTimeout;
 
+        public TimeSpan OpenTimeout => _openTimeout;
+
+        public TimeSpan CloseTimeout => _closeTimeout;
+
+        public TimeSpan SendTimeout => _sendTimeout;
+
         public void OnFaulted()
         {
         }
@@ -298,22 +307,19 @@ namespace CoreWCF.Security
             WrapperCommunicationObj.Abort();
         }
 
-        private void OnCloseCore(TimeSpan timeout)
+        private async Task OnCloseCoreAsync(CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            ClearPendingSessions();
-            ClosePendingChannels(timeoutHelper.GetCancellationToken());
             if (_inactivityTimer != null)
             {
                 _inactivityTimer.Cancel();
             }
             if (_sessionProtocolFactory != null)
             {
-                _sessionProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                await _sessionProtocolFactory.OnCloseAsync(token);
             }
             if (SessionTokenAuthenticator != null)
             {
-                SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
+                await SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, token);
             }
         }
 
@@ -323,10 +329,12 @@ namespace CoreWCF.Security
             {
                 _inactivityTimer.Cancel();
             }
+
             if (_sessionProtocolFactory != null)
             {
-                _sessionProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                _sessionProtocolFactory.CloseAsync(true, default);
             }
+
             if (SessionTokenAuthenticator != null)
             {
                 SecurityUtils.AbortTokenAuthenticatorIfRequired(SessionTokenAuthenticator);
@@ -376,25 +384,52 @@ namespace CoreWCF.Security
 
         private void AbortPendingChannels(CancellationToken token)
         {
-            ClosePendingChannels(token);
-        }
-
-        private async void ClosePendingChannels(CancellationToken token)
-        {
-            var tasks = new Task[_activeSessions.Count];
             lock (ThisGlobalLock)
             {
-                int index = 0;
-                if (typeof(IReplyChannel).Equals(AcceptorChannelType))
+                if (_pendingSessions1 != null)
                 {
-                    foreach (ServerSecuritySimplexSessionChannel securitySessionSimplexChannel in _activeSessions.Values)
+                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions1.Values)
                     {
-                        tasks[index] = securitySessionSimplexChannel.CloseAsync(token);
+                        pendingChannelBinder.Abort();
+                    }
+                }
+                if (_pendingSessions2 != null)
+                {
+                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions2.Values)
+                    {
+                        pendingChannelBinder.Abort();
+                    }
+                }
+            }
+        }
+
+        private Task ClosePendingChannelsAsync(CancellationToken token)
+        {
+            // TODO: Evaluate this change as this used to close _activeSessions
+            Task[] tasks;
+            lock (ThisGlobalLock)
+            {
+                tasks = new Task[_pendingSessions1?.Count ?? 0 + _pendingSessions2?.Count ?? 0];
+                int index = 0;
+                if (_pendingSessions1 != null)
+                {
+                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions1.Values)
+                    {
+                        tasks[index] = pendingChannelBinder.CloseAsync(token);
+                        index++;
+                    }
+                }
+                if (_pendingSessions2 != null)
+                {
+                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions2.Values)
+                    {
+                        tasks[index] = pendingChannelBinder.CloseAsync(token);
                         index++;
                     }
                 }
             }
-            await Task.WhenAll(tasks);
+
+            return Task.WhenAll(tasks);
         }
 
         private void ConfigureSessionSecurityProtocolFactory()
@@ -495,8 +530,8 @@ namespace CoreWCF.Security
             lock (ThisGlobalLock)
             {
                 MessageFilter sctFilter = new SecuritySessionFilter(sessionToken.ContextId, _sessionProtocolFactory.StandardsManager, (_sessionProtocolFactory.SecurityHeaderLayout == SecurityHeaderLayout.Strict), SecurityStandardsManager.SecureConversationDriver.RenewAction.Value, SecurityStandardsManager.SecureConversationDriver.RenewResponseAction.Value);
-                SessionInitiationMessageServiceDispatcher sessionServiceDispatcher
-                 = new SessionInitiationMessageServiceDispatcher(this, sessionToken, sctFilter, remoteAddress);
+                SessionInitiationMessageServiceDispatcher sessionServiceDispatcher = new SessionInitiationMessageServiceDispatcher(this, sessionToken, sctFilter, remoteAddress);
+                TolerateFaultsMode faultMode = TolerateTransportFailures ? TolerateFaultsMode.Always : TolerateFaultsMode.Never;
                 //logic to separate for Duplex
                 if (typeof(IReplyChannel).Equals(AcceptorChannelType))
                 {
@@ -515,6 +550,41 @@ namespace CoreWCF.Security
             }
         }
 
+        IServerReliableChannelBinder CreateChannelBinder(SecurityContextSecurityToken sessionToken, EndpointAddress remoteAddress)
+        {
+            IServerReliableChannelBinder result = null;
+            MessageFilter sctFilter = new SecuritySessionFilter(sessionToken.ContextId, _sessionProtocolFactory.StandardsManager, _sessionProtocolFactory.SecurityHeaderLayout == SecurityHeaderLayout.Strict, SecurityStandardsManager.SecureConversationDriver.RenewAction.Value, SecurityStandardsManager.SecureConversationDriver.RenewResponseAction.Value);
+            int sctPriority = Int32.MaxValue;
+            TolerateFaultsMode faultMode = TolerateTransportFailures ? TolerateFaultsMode.Always : TolerateFaultsMode.Never;
+            lock (ThisGlobalLock)
+            {
+                if (ChannelBuilder.CanBuildServiceDispatcher<IDuplexSessionChannel>())
+                {
+                    result = ServerReliableChannelBinder<IDuplexSessionChannel>.CreateBinder(ChannelBuilder, remoteAddress, sctFilter, sctPriority, faultMode,
+                        CloseTimeout, SendTimeout);
+                }
+                else if (ChannelBuilder.CanBuildServiceDispatcher<IDuplexChannel>())
+                {
+                    result = ServerReliableChannelBinder<IDuplexChannel>.CreateBinder(ChannelBuilder, remoteAddress, sctFilter, sctPriority, faultMode,
+                        CloseTimeout, SendTimeout);
+                }
+                else if (ChannelBuilder.CanBuildServiceDispatcher<IReplyChannel>())
+                {
+                    result = ServerReliableChannelBinder<IReplyChannel>.CreateBinder(ChannelBuilder, remoteAddress, sctFilter, sctPriority, faultMode,
+                        CloseTimeout, SendTimeout);
+                }
+            }
+            if (result == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
+            }
+
+            result.Open(OpenTimeout);
+            SessionInitiationMessageHandler handler = new SessionInitiationMessageHandler(result, this, sessionToken);
+            handler.BeginReceive(TimeSpan.MaxValue);
+            return result;
+        }
+
         private void OnTokenIssued(SecurityToken issuedToken, EndpointAddress tokenRequestor)
         {
             WrapperCommunicationObj.ThrowIfClosed(); //TODO mark open
@@ -526,7 +596,21 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SessionTokenIsNotSecurityContextToken, issuedToken.GetType(), typeof(SecurityContextSecurityToken))));
             }
-            CreateSessionMessageServiceDispatcher(issuedSecurityContextToken, tokenRequestor ?? EndpointAddress.AnonymousAddress);
+            IServerReliableChannelBinder channelBinder = CreateChannelBinder(issuedSecurityContextToken, tokenRequestor ?? EndpointAddress.AnonymousAddress);
+            bool wasSessionAdded = false;
+            try
+            {
+                AddPendingSession(issuedSecurityContextToken.ContextId, channelBinder);
+                wasSessionAdded = true;
+            }
+            finally
+            {
+                if (!wasSessionAdded)
+                {
+                    channelBinder.Abort();
+                }
+            }
+            //CreateSessionMessageServiceDispatcher(issuedSecurityContextToken, tokenRequestor ?? EndpointAddress.AnonymousAddress);
         }
 
         internal SecurityContextSecurityToken GetSecurityContextSecurityToken(UniqueId sessionId)
@@ -571,6 +655,27 @@ namespace CoreWCF.Security
                     _inactivityTimer.Set(_inactivityTimeout);
                 }
             }
+        }
+
+        private void AddPendingSession(UniqueId sessionId, IServerReliableChannelBinder channelBinder)
+        {
+            lock (ThisGlobalLock)
+            {
+                if ((GetPendingSessionCount() + 1) > MaximumPendingSessions)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new QuotaExceededException(SR.Format(SR.SecuritySessionLimitReached)));
+                }
+                if (_pendingSessions1.ContainsKey(sessionId) || _pendingSessions2.ContainsKey(sessionId))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.SecuritySessionAlreadyPending, sessionId)));
+                }
+                _pendingSessions1.Add(sessionId, channelBinder);
+            }
+            //SecurityTraceRecordHelper.TracePendingSessionAdded(sessionId, this.Uri);
+            //if (TD.SecuritySessionRatioIsEnabled())
+            //{
+            //    TD.SecuritySessionRatio(GetPendingSessionCount(), this.MaximumPendingSessions);
+            //}
         }
 
         private void AddPendingSession(UniqueId sessionId, SecurityContextSecurityToken securityToken, MessageFilter filter)
@@ -714,21 +819,22 @@ namespace CoreWCF.Security
             }
         }
 
-        public Task CloseAsync(TimeSpan timeout)
+        public Task CloseAsync(CancellationToken token)
         {
-            return WrapperCommunicationObj.CloseAsync();
+            return WrapperCommunicationObj.CloseAsync(token);
         }
-        public Task OnCloseAsync(TimeSpan timeout)
+        public async Task OnCloseAsync(CancellationToken token)
         {
-            OnCloseCore(timeout);
-            return Task.CompletedTask;
+            await ClosePendingChannelsAsync(token);
+            await OnCloseCoreAsync(token);
         }
 
-        public Task OpenAsync(TimeSpan timeout)
+        public Task OpenAsync(CancellationToken token)
         {
-            return WrapperCommunicationObj.OpenAsync();
+            return WrapperCommunicationObj.OpenAsync(token);
         }
-        public Task OnOpenAsync(TimeSpan timeout)
+
+        public async Task OnOpenAsync(CancellationToken token)
         {
             if (_sessionProtocolFactory == null)
             {
@@ -756,18 +862,20 @@ namespace CoreWCF.Security
             }
             MessageVersion = _channelBuilder.Binding.MessageVersion;
             _listenUri = _securityServiceDispatcher.BaseAddress;
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            _pendingSessions1 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
-            _pendingSessions2 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
-            _sessionFilters = new Dictionary<UniqueId, MessageFilter>();
+            _openTimeout = _securityServiceDispatcher.InternalOpenTimeout;
+            _closeTimeout = _securityServiceDispatcher.InternalCloseTimeout;
+            _sendTimeout = _securityServiceDispatcher.DefaultSendTimeout;
+            _pendingSessions1 = new Dictionary<UniqueId, IServerReliableChannelBinder>();
+            _pendingSessions2 = new Dictionary<UniqueId, IServerReliableChannelBinder>();
+            //_sessionFilters = new Dictionary<UniqueId, MessageFilter>();
             if (_inactivityTimeout < TimeSpan.MaxValue)
             {
                 _inactivityTimer = new IOThreadTimer(new Action<object>(OnTimer), this, false);
                 _inactivityTimer.Set(_inactivityTimeout);
             }
             ConfigureSessionSecurityProtocolFactory();
-            _sessionProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
-            SetupSessionTokenAuthenticatorAsync();
+            await _sessionProtocolFactory.OpenAsync(token);
+            await SetupSessionTokenAuthenticatorAsync();
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).IssuedSecurityTokenHandler = OnTokenIssued;
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).RenewedSecurityTokenHandler = OnTokenRenewed;
             if (SessionTokenAuthenticator is SecuritySessionSecurityTokenAuthenticator securitySessionTokenAuthenticator)
@@ -778,19 +886,11 @@ namespace CoreWCF.Security
                 wrappedSessionSecurityTokenAuthenticator.SetSecureServiceDispatcher(SecurityServiceDispatcher);
             }
             _acceptNewWork = true;
-            SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
-            return Task.CompletedTask;
+            await SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, token);
         }
 
-        public void OnClosed()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void OnClosing()
-        {
-            throw new NotImplementedException();
-        }
+        public void OnClosed() { }
+        public void OnClosing() { }
 
         //Renaming SessionInitiationMessageHandler to SessionInitiationMessageServiceDispatcher
         //

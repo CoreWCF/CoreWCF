@@ -27,11 +27,6 @@ namespace CoreWCF.Security
 
         public AcceptorSessionSymmetricTransportSecurityProtocol(SessionSymmetricTransportSecurityProtocolFactory factory) : base(factory, null, null)
         {
-            if (factory.ActAsInitiator == true)
-            {
-                Fx.Assert("This protocol can only be used at the recipient.");
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.ProtocolMustBeRecipient, GetType().ToString())));
-            }
             _requireDerivedKeys = factory.SecurityTokenParameters.RequireDerivedKeys;
         }
 

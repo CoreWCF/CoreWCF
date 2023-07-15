@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CoreWCF.Security
@@ -12,11 +12,11 @@ namespace CoreWCF.Security
         TimeSpan DefaultOpenTimeout { get; }
         TimeSpan DefaultCloseTimeout { get; }
         void OnAbort();
-        Task OnCloseAsync(TimeSpan timeout);
+        Task OnCloseAsync(CancellationTokenSource token);
         void OnClosed();
         void OnClosing();
         void OnFaulted();
-        Task OnOpenAsync(TimeSpan timeout);
+        Task OnOpenAsync(CancellationTokenSource token);
         void OnOpened();
         void OnOpening();
     }

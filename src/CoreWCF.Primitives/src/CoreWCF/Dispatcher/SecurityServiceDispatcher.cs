@@ -16,7 +16,7 @@ namespace CoreWCF.Dispatcher
     /// <summary>
     /// This is equivalent of SecurityChannelListener present in WCF codebase
     /// </summary>
-    internal class SecurityServiceDispatcher : IServiceDispatcher, IDisposable
+    internal class SecurityServiceDispatcher : CommunicationObject, IServiceDispatcher, IDisposable
     {
         private readonly BindingContext _bindingContext;
         private ChannelBuilder _channelBuilder;
@@ -25,11 +25,16 @@ namespace CoreWCF.Dispatcher
         private SecurityProtocolFactory _securityProtocolFactory;
         private SecuritySessionServerSettings _sessionServerSettings;
         private SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
+        private bool _hasSecurityStateReference;
 
         //ServiceChannelDispatcher to call SCT (just keep one instance)
         private volatile IServiceChannelDispatcher _securityAuthServiceChannelDispatcher;
         private Task<IServiceChannelDispatcher> _channelTask;
         private bool _disposed = false;
+
+        private TimeSpan _closeTimeout = ServiceDefaults.CloseTimeout;
+        private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
+        private TimeSpan _sendTimeout = ServiceDefaults.SendTimeout;
 
         public SecurityServiceDispatcher(BindingContext context, IServiceDispatcher serviceDispatcher)
         {
@@ -37,6 +42,9 @@ namespace CoreWCF.Dispatcher
             _bindingContext = context;
             // this.securityProtocolFactory =  securityProtocolFactory; // we set it later from TransportSecurityBindingElement
             //  this.settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(this.securityProtocolFactory, this.sessionServerSettings, this.sessionMode, this.InnerChannelListener);
+            _closeTimeout = context.Binding.CloseTimeout;
+            _openTimeout = context.Binding.CloseTimeout;
+            _sendTimeout = context.Binding.SendTimeout;
         }
 
         internal ChannelBuilder ChannelBuilder
@@ -58,7 +66,15 @@ namespace CoreWCF.Dispatcher
 
         public ICollection<Type> SupportedChannelTypes => InnerServiceDispatcher.SupportedChannelTypes;
 
+        foo
+        // Fix this
         private AsyncLock ThisLock { get; } = new AsyncLock();
+
+        protected override TimeSpan DefaultCloseTimeout => _closeTimeout;
+
+        protected override TimeSpan DefaultOpenTimeout => _openTimeout;
+
+        internal TimeSpan DefaultSendTimeout => _sendTimeout;
 
         public SecurityProtocolFactory SecurityProtocolFactory
         {
@@ -135,8 +151,6 @@ namespace CoreWCF.Dispatcher
                 // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
                 //     (IChannelListener<TChannel>)InnerChannelListener, this.securityProtocolFactory.CreateListenerSecurityState());
             }
-            //Called below method in the initialization path, in WCF it's called in Open of ServiceHost.
-            InitializeServiceDispatcherSecurityState();
         }
 
         private void InitializeServiceDispatcherSecurityState()
@@ -151,13 +165,67 @@ namespace CoreWCF.Dispatcher
                 ThrowIfProtocolFactoryNotSet();
                 _securityProtocolFactory.ListenUri = InnerServiceDispatcher.BaseAddress;
             }
+
             _settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(_securityProtocolFactory, _sessionServerSettings, SessionMode);//, this.InnerChannelListener);
             if (_sessionServerSettings != null)
             {
                 _sessionServerSettings.SettingsLifetimeManager = _settingsLifetimeManager;
             }
-            _settingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout).GetAwaiter().GetResult();
-            //this.hasSecurityStateReference = true;
+
+            _hasSecurityStateReference = true;
+        }
+
+        protected override void OnAbort()
+        {
+            using (ThisLock.TakeLock())
+            {
+                if (_hasSecurityStateReference)
+                {
+                    _hasSecurityStateReference = false;
+                    if (_settingsLifetimeManager != null)
+                    {
+                        _settingsLifetimeManager.Abort();
+                    }
+                }
+            }
+
+            if (InnerServiceDispatcher is CommunicationObject co) co.Abort();
+        }
+
+        protected override async Task OnCloseAsync(CancellationToken token)
+        {
+            if (_sessionServerSettings != null)
+            {
+                _sessionServerSettings.StopAcceptingNewWork();
+            }
+            await using (await ThisLock.TakeLockAsync())
+            {
+                if (_hasSecurityStateReference)
+                {
+                    _hasSecurityStateReference = false;
+                    await _settingsLifetimeManager.CloseAsync(token);
+                }
+            }
+
+            if (InnerServiceDispatcher is CommunicationObject co) await co.CloseAsync(token);
+        }
+
+        protected override async Task OnOpenAsync(CancellationToken token)
+        {
+            // TODO: Work out how to get the ExtendedProtectionPolicy settings and then light up this code path
+            //EnableChannelBindingSupport();
+            await using (await ThisLock.TakeLockAsync())
+            {
+                // if an abort happened before the Open, return
+                if (State == CommunicationState.Closing && State == CommunicationState.Closed)
+                {
+                    return;
+                }
+
+                InitializeServiceDispatcherSecurityState();
+            }
+
+            await _settingsLifetimeManager.OpenAsync(token);
         }
 
         //private 
