@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -36,21 +35,19 @@ namespace CoreWCF.Security
             Interlocked.Increment(ref _referenceCount);
         }
 
-        public Task OpenAsync(TimeSpan timeout)
+        public async Task OpenAsync(CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             if (_sessionMode && _sessionSettings != null)
             {
-                _sessionSettings.OpenAsync(timeoutHelper.RemainingTime());
+                await _sessionSettings.OpenAsync(token);
             }
 
             if (_securityProtocolFactory != null && _securityProtocolFactory.CommunicationObject.State == CommunicationState.Created)
              {
-                _securityProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
+                await _securityProtocolFactory.OpenAsync(token);
              }
 
             // this.SetBufferManager();
-            return Task.CompletedTask;
         }
 
         private void SetBufferManager()
@@ -76,22 +73,23 @@ namespace CoreWCF.Security
                 */
         }
 
-        public Task CloseAsync(TimeSpan timeout)
+        public async Task CloseAsync(CancellationToken token)
         {
             if (Interlocked.Decrement(ref _referenceCount) == 0)
             {
-                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 bool throwing = true;
                 try
                 {
                     if (_securityProtocolFactory != null)
                     {
-                        _securityProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                        await _securityProtocolFactory.CloseAsync(false, token);
                     }
+
                     if (_sessionMode && _sessionSettings != null)
                     {
-                        _sessionSettings.CloseAsync(timeoutHelper.RemainingTime());
+                        await _sessionSettings.CloseAsync(token);
                     }
+
                     throwing = false;
                 }
                 finally
@@ -102,7 +100,6 @@ namespace CoreWCF.Security
                     }
                 }
             }
-            return Task.CompletedTask;
         }
 
         private void AbortCore()
