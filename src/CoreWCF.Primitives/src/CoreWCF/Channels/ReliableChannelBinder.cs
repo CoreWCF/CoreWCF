@@ -43,7 +43,6 @@ namespace CoreWCF.Channels
             DefaultMaskingMode = maskingMode;
             _defaultCloseTimeout = defaultCloseTimeout;
             DefaultSendTimeout = defaultSendTimeout;
-            Synchronizer = new ChannelSynchronizer(this, channel, faultMode);
         }
 
         protected abstract bool CanGetChannelForReceive { get; }
@@ -935,6 +934,12 @@ namespace CoreWCF.Channels
             }
         }
 
+        // ChannelSynchronizer is used to reconnect a new incoming channel when the previous one disappeared.
+        // For example, when using NetTcp, the client sends a request. While the request is being dispatched,
+        // the client gets disconnected. The client will reconnect and the new channel needs to be associated
+        // with the existing outstanding request to have the response sent over the new connection. The
+        // ChannelSynchronizer enables the reply code path to wait for the client to reconnect and then sends
+        // the response over the reconnected channel.
         protected class ChannelSynchronizer
         {
             private ReliableChannelBinder<TChannel> _binder;
