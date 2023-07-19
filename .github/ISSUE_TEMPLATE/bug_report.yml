@@ -1,0 +1,120 @@
+name: "Report a bug"
+description: "Create a report to help us improve"
+title: "[Bug]: "
+labels: ["bug"]
+# assignees:
+#   - octocat
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this bug report!
+
+- type: checkboxes
+  id: terms
+  attributes:
+    label: Duplicate ?
+    options:
+      - label: I have searched issues/discussions and did not find other issues/discussions reporting this bug.
+        required: true
+
+- type: input
+  id: version
+  attributes:
+    label: Product version
+    description: Which CoreWCF version are you using?
+    placeholder: ex. 1.0.0
+  validations:
+    required: true
+
+- type: textarea
+  id: expected-behavior
+  attributes:
+    label: Describe expected behavior
+    description: What behavior did you expect to happen?
+    # placeholder: Tell us what you see!
+    # value: "A bug happened!"
+  validations:
+    required: true
+
+- type: textarea
+  id: actual-behavior
+  attributes:
+    label: Describe actual behavior
+    description: What behavior happenned?
+    # placeholder: Tell us what you see!
+    # value: "A bug happened!"
+  validations:
+    required: true      
+
+- type: dropdown
+  id: binding
+  attributes:
+    label: Which binding
+    description: Which binding are you using?
+    options:
+      - NetTcp
+      - BasicHttp
+      - WsHttp
+      - WebHttp
+      - NetNamedPipe
+      - RabbitMQ
+      - MSMQ
+      - CustomBinding
+  validations:
+    required: true  
+
+- type: dropdown
+  id: security
+  attributes:
+    label: security
+    description: Which security are you using?
+    options:
+      - Transport
+      - TransportCredentialOnly
+      - TransportWithMessageCredential
+      - Message
+# - None is a special keywork for the dropdown. It will not be displayed in the dropdown as an option
+      - Other
+# If validation is not required a None option will be displayed in the dropdown
+  validations:
+    required: false      
+
+- type: dropdown
+  id: net-version
+  attributes:
+    label: Which .NET version
+    description: Which .NET version are you using?
+    options:
+      - .NET 6
+      - .NET 7
+      - .NET Framework      
+  validations:
+    required: true
+
+- type: dropdown
+  id: os-platform
+  attributes:
+    label: Which os platform
+    description: Which platform are you using?
+    options:
+      - Windows
+      - Linux
+      - Mac OS
+  validations:
+    required: true
+        
+- type: textarea
+  id: code-snippet
+  attributes:
+    label: Code snippet used to reproduce the issue
+    description: Please copy and paste configuration code. This will be automatically formatted into code, so no need for backticks.
+    render: c#
+
+- type: textarea
+  id: stacktrace
+  attributes:
+    label: Stacktrace if any
+    description: Please copy and paste stack trace. This will be automatically formatted, so no need for backticks.
+    render: shell      
+
