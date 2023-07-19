@@ -1,4 +1,4 @@
-name: "Bug Report"
+name: "Report a bug"
 description: "Create a report to help us improve"
 title: "[Bug]: "
 labels: ["bug"]
@@ -9,6 +9,14 @@ body:
   attributes:
     value: |
       Thanks for taking the time to fill out this bug report!
+
+- type: checkboxes
+  id: terms
+  attributes:
+    label: Duplicate ?
+    options:
+      - label: I have searched issues/discussions and did not find other issues/discussions reporting this bug.
+        required: true
 
 - type: input
   id: version
@@ -53,7 +61,6 @@ body:
       - RabbitMQ
       - MSMQ
       - CustomBinding
-      - Other
   validations:
     required: true  
 
@@ -79,9 +86,9 @@ body:
     label: Which .NET version
     description: Which .NET version are you using?
     options:
-      - .NET Framework
       - .NET 6
       - .NET 7
+      - .NET Framework      
   validations:
     required: true
 
@@ -111,10 +118,3 @@ body:
     description: Please copy and paste stack trace. This will be automatically formatted, so no need for backticks.
     render: shell      
 
-# - type: checkboxes
-#   id: terms
-#   attributes:
-#     label: Duplicate ?
-#     options:
-#       - label: I have searched issues and did not find other issues reporting this bug.
-#         required: true
