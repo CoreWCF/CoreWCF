@@ -60,6 +60,7 @@ body:
       - NetNamedPipe
       - RabbitMQ
       - MSMQ
+      - Kafka
       - CustomBinding
   validations:
     required: true  
