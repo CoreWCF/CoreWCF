@@ -145,7 +145,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        public abstract Task OpenAsync(TimeSpan timeout);
+        public abstract Task OpenAsync(CancellationToken token);
 
         public virtual async Task CloseAsync(CancellationToken token)
         {
@@ -571,7 +571,7 @@ namespace CoreWCF.Channels
         {
         }
 
-        public override Task OpenAsync(TimeSpan timeout)
+        public override Task OpenAsync(CancellationToken token)
         {
             StartInactivityTimer();
             return Task.CompletedTask;

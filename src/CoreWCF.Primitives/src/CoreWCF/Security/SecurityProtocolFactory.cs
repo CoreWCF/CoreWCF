@@ -954,7 +954,7 @@ namespace CoreWCF.Security
             }
             else
             {
-                this.CommunicationObject.Close(timeout);
+                return CommunicationObject.CloseAsync(token);
             }
         }
     }

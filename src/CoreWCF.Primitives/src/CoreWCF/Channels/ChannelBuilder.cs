@@ -73,5 +73,10 @@ namespace CoreWCF.Channels
         {
             return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
         }
+
+        public bool CanBuildServiceDispatcher<TChannel>() where TChannel : class, IChannel
+        {
+            return Binding.CanBuildServiceDispatcher<TChannel>(BindingParameters);
+        }
     }
 }
