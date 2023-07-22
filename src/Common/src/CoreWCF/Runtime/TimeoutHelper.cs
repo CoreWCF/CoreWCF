@@ -47,6 +47,24 @@ namespace CoreWCF.Runtime
             _deadlineSet = (timeout == TimeSpan.MaxValue || timeout == Timeout.InfiniteTimeSpan);
         }
 
+        // This is cheaper than using new TimeoutHelper(timeout).GetCancellationToken()
+        // as it doesn't require calculating a deadline and then requesting the remaining time.
+        public static CancellationToken GetCancellationToken(TimeSpan timeout)
+        {
+            if (timeout >= MaxWait || timeout == Timeout.InfiniteTimeSpan)
+            {
+                return default;
+            }
+            else if (timeout > TimeSpan.Zero)
+            {
+                return TimeoutTokenSource.FromTimeout((int)timeout.TotalMilliseconds);
+            }
+            else
+            {
+                return s_precancelledToken;
+            }
+        }
+
         public CancellationToken GetCancellationToken()
         {
             if (!_cancellationTokenInitialized)

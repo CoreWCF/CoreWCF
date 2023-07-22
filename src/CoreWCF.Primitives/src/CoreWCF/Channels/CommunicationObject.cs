@@ -306,6 +306,30 @@ namespace CoreWCF.Channels
             }
         }
 
+        // Terminal is loosely defined as an interruption to close or a fault.
+        internal Exception GetTerminalException()
+        {
+            Exception exception = GetPendingException();
+
+            if (exception != null)
+            {
+                return exception;
+            }
+
+            switch (State)
+            {
+                case CommunicationState.Closing:
+                case CommunicationState.Closed:
+                    return new CommunicationException(SR.Format(SR.CommunicationObjectCloseInterrupted1, GetCommunicationObjectType().ToString()));
+
+                case CommunicationState.Faulted:
+                    return CreateFaultedException();
+
+                default:
+                    throw Fx.AssertAndThrow("GetTerminalException: Invalid CommunicationObject.state");
+            }
+        }
+
         protected void Fault()
         {
             lock (ThisLock)

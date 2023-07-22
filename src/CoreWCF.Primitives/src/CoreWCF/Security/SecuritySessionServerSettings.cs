@@ -550,7 +550,7 @@ namespace CoreWCF.Security
             }
         }
 
-        IServerReliableChannelBinder CreateChannelBinder(SecurityContextSecurityToken sessionToken, EndpointAddress remoteAddress)
+        private async Task<IServerReliableChannelBinder> CreateChannelBinderAsync(SecurityContextSecurityToken sessionToken, EndpointAddress remoteAddress)
         {
             IServerReliableChannelBinder result = null;
             MessageFilter sctFilter = new SecuritySessionFilter(sessionToken.ContextId, _sessionProtocolFactory.StandardsManager, _sessionProtocolFactory.SecurityHeaderLayout == SecurityHeaderLayout.Strict, SecurityStandardsManager.SecureConversationDriver.RenewAction.Value, SecurityStandardsManager.SecureConversationDriver.RenewResponseAction.Value);
@@ -579,7 +579,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
             }
 
-            result.Open(OpenTimeout);
+            await result.OpenAsync(new TimeoutHelper(OpenTimeout).GetCancellationToken());
             SessionInitiationMessageHandler handler = new SessionInitiationMessageHandler(result, this, sessionToken);
             handler.BeginReceive(TimeSpan.MaxValue);
             return result;
@@ -596,7 +596,8 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.SessionTokenIsNotSecurityContextToken, issuedToken.GetType(), typeof(SecurityContextSecurityToken))));
             }
-            IServerReliableChannelBinder channelBinder = CreateChannelBinder(issuedSecurityContextToken, tokenRequestor ?? EndpointAddress.AnonymousAddress);
+            // TODO: Make call chain async
+            IServerReliableChannelBinder channelBinder = CreateChannelBinderAsync(issuedSecurityContextToken, tokenRequestor ?? EndpointAddress.AnonymousAddress).GetAwaiter().GetResult();
             bool wasSessionAdded = false;
             try
             {
