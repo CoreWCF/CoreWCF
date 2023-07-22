@@ -14,6 +14,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
+    // Based on ReliableChannelListenerBase<TChannel>
     internal abstract class ReliableServiceDispatcherBase<TChannel> : ChannelManagerBase, IReliableFactorySettings, IServiceDispatcher
     {
         private bool _closed = false;
@@ -204,6 +205,7 @@ namespace CoreWCF.Channels
         protected override TimeSpan DefaultSendTimeout => ServiceDefaults.SendTimeout;
     }
 
+    // Based on ReliableChannelListener<TChannel, TReliableChannel, TInnerChannel>
     // TReliableChannel is the type of the channel that the ReliableChannelListener creates, eg ReliableReplySessionChannel
     // TInnerChannel is the type of the channel share that the ReliableChannelListener creates, eg IReplySessionChannel
     internal abstract class ReliableServiceDispatcher<TChannel, TReliableChannel, TInnerChannel> : ReliableServiceDispatcherBase<TChannel>
@@ -233,37 +235,6 @@ namespace CoreWCF.Channels
         }
 
         protected abstract Task<TReliableChannel> CreateChannelAsync(UniqueId id, CreateSequenceInfo createSequenceInfo, IServerReliableChannelBinder binder);
-
-        //public override async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
-        //{
-        //    IServiceChannelDispatcher channelDispatcher;
-        //    TInnerChannel innerChannel;
-        //    try
-        //    {
-        //        innerChannel = (TInnerChannel)channel;
-        //        OnInnerChannelAccepted(innerChannel);
-        //        await innerChannel.OpenAsync();
-        //        channelDispatcher = await _innerServiceDispatcher.CreateServiceChannelDispatcherAsync(channel);
-
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (Fx.IsFatal(e))
-        //            throw;
-
-        //        DiagnosticUtility.TraceHandledException(e, TraceEventType.Error);
-
-        //        channel.Abort();
-        //        return null;
-        //    }
-
-        //    ProcessChannel(innerChannel);
-        //}
-
-        //protected void Dispatch()
-        //{
-        //    this.inputQueueChannelAcceptor.Dispatch();
-        //}
 
         // override to hook up events, etc pre-Open
         protected virtual void OnInnerChannelAccepted(TInnerChannel channel)
@@ -365,9 +336,11 @@ namespace CoreWCF.Channels
             {
                 await HandleAcceptCompleteAsync(channel as TInnerChannel);
             }
+
             return await CreateServiceChannelDispatcherCoreAsync(channel);
         }
 
+        // TODO: Evaluate if this should be virtual as it adds a bit of overhead making a virtual call
         public abstract Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel);
 
         protected override void OnFaulted()
@@ -412,13 +385,6 @@ namespace CoreWCF.Channels
                     return (reliableChannel, newChannel);
                 }
 
-                // We don't have a concept of waiting for a channel to be accepted so this code doesn't have a modern equivalent
-                //if (this.inputQueueChannelAcceptor.PendingCount >= MaxPendingChannels)
-                //{
-                //    info.FaultReply = WsrmUtilities.CreateCSRefusedServerTooBusyFault(MessageVersion, ReliableMessagingVersion, SR.Format(SR.ServerTooBusy, this.Uri));
-                //    return (null, newChannel);
-                //}
-
                 id = WsrmUtilities.NextSequenceId();
 
                 reliableChannel = await CreateChannelAsync(id, createSequenceInfo,
@@ -427,8 +393,6 @@ namespace CoreWCF.Channels
                 if (Duplex)
                     channelsByOutput.Add(createSequenceInfo.OfferIdentifier, reliableChannel);
 
-                // Not needed as we don't have a pending AcceptChannel that then needs a pending TryReceiveRequest
-                //dispatch = EnqueueWithoutDispatch((TChannel)(object)reliableChannel);
                 newChannel = true;
 
                 return (reliableChannel, newChannel);
@@ -445,25 +409,16 @@ namespace CoreWCF.Channels
             if (Duplex)
                 channelsByOutput.Remove(outputId);
         }
-
-        //IServerReliableChannelBinder CreateBinder(TInnerChannel channel, EndpointAddress localAddress, EndpointAddress remoteAddress)
-        //{
-        //    return ServerReliableChannelBinder<TInnerChannel>.CreateBinder(channel, localAddress,
-        //        remoteAddress, TolerateFaultsMode.IfNotSecuritySession, DefaultCloseTimeout,
-        //        DefaultSendTimeout);
-        //}
     }
 
-    /* */
+    // Based on ReliableListenerOverDatagram<TChannel, TReliableChannel, TInnerChannel, TItem>
     internal abstract class ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, TInnerChannel, TItem>
-    : ReliableServiceDispatcher<TChannel, TReliableChannel, TInnerChannel>
-    where TChannel : class, IChannel
-    where TReliableChannel : class, IChannel
-    where TInnerChannel : class, IChannel
-    where TItem : class, IDisposable
+        : ReliableServiceDispatcher<TChannel, TReliableChannel, TInnerChannel>
+        where TChannel : class, IChannel
+        where TReliableChannel : class, IChannel
+        where TInnerChannel : class, IChannel
+        where TItem : class, IDisposable
     {
-        private readonly Action<object> _asyncHandleReceiveComplete;
-        private readonly AsyncCallback _onTryReceiveComplete;
         private readonly ChannelTracker<TInnerChannel, object> _channelTracker;
 
         protected ReliableServiceDispatcherOverDatagram(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerDispatcher)
@@ -472,50 +427,9 @@ namespace CoreWCF.Channels
             _channelTracker = new ChannelTracker<TInnerChannel, object>();
         }
 
-//        private void AsyncHandleReceiveComplete(object state)
-//        {
-//            try
-//            {
-//                IAsyncResult result = (IAsyncResult)state;
-//                TInnerChannel channel = (TInnerChannel)result.AsyncState;
-//                TItem item = null;
-
-//                try
-//                {
-//                    EndTryReceiveItem(channel, result, out item);
-//                    if (item == null)
-//                        return;
-//                }
-//#pragma warning suppress 56500 // covered by FxCOP
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                        throw;
-
-//                    if (!HandleException(e, channel))
-//                    {
-//                        channel.Abort();
-//                        return;
-//                    }
-//                }
-
-//                if (item != null && HandleReceiveComplete(item, channel))
-//                    StartReceiving(channel, true);
-//            }
-//#pragma warning suppress 56500 // covered by FxCOP
-//            catch (Exception e)
-//            {
-//                if (Fx.IsFatal(e))
-//                    throw;
-
-//                Fault(e);
-//            }
-//        }
-
-        private async Task<(TReliableChannel reliableChanel,bool newChannel, bool success)> ProcessItemAsync(TItem item, WsrmMessageInfo info, TInnerChannel channel)
+        private async Task<(TReliableChannel reliableChanel, bool success)> ProcessItemAsync(TItem item, WsrmMessageInfo info, TInnerChannel channel)
         {
             TReliableChannel reliableChannel = null;
-            bool newChannel = false;
             Message faultReply;
 
             if (info.FaultReply != null)
@@ -528,12 +442,12 @@ namespace CoreWCF.Channels
                 reliableChannel = GetChannel(info, out id);
 
                 if (reliableChannel != null)
-                    return (reliableChannel, newChannel, true);
+                    return (reliableChannel, true);
 
                 if (id == null)
                 {
                     DisposeItem(item);
-                    return (reliableChannel, newChannel, true);
+                    return (reliableChannel, true);
                 }
 
                 faultReply = new UnknownSequenceFault(id).CreateMessage(MessageVersion,
@@ -541,10 +455,10 @@ namespace CoreWCF.Channels
             }
             else
             {
-                (reliableChannel, newChannel) = await ProcessCreateSequenceAsync(info, channel);
+                (reliableChannel, bool _) = await ProcessCreateSequenceAsync(info, channel);
 
                 if (reliableChannel != null)
-                    return (reliableChannel, newChannel, true);
+                    return (reliableChannel, true);
 
                 faultReply = info.FaultReply;
             }
@@ -561,7 +475,7 @@ namespace CoreWCF.Channels
                 if (!HandleException(e, channel))
                 {
                     channel.Abort();
-                    return (reliableChannel, newChannel, false);
+                    return (reliableChannel, false);
                 }
             }
             finally
@@ -570,18 +484,17 @@ namespace CoreWCF.Channels
                 DisposeItem(item);
             }
 
-            return (reliableChannel, newChannel, true);
+            return (reliableChannel, true);
         }
 
-        //protected abstract IAsyncResult BeginTryReceiveItem(TInnerChannel channel, AsyncCallback callback, object state);
         protected abstract void DisposeItem(TItem item);
-        //protected abstract void EndTryReceiveItem(TInnerChannel channel, IAsyncResult result, out TItem item);
 
         protected abstract Message GetMessage(TItem item);
 
+        // Contains some of the logic that was originally in HandleReceiveComplete
         private async Task DispatchAsync(TItem item, TInnerChannel channel)
         {
-            Message message = null;
+            Message message;
 
             // GetMessage can call RequestContext.RequestMessage which can throw.
             try
@@ -613,9 +526,8 @@ namespace CoreWCF.Channels
             TReliableChannel reliableChannel;
 
             bool newChannel;
-            bool dispatch;
             bool success;
-            (reliableChannel, newChannel, success) = await ProcessItemAsync(item, info, channel);
+            (reliableChannel, success) = await ProcessItemAsync(item, info, channel);
             if (!success)
             {
                 return;
@@ -790,45 +702,41 @@ namespace CoreWCF.Channels
         }
     }
 
-    //internal abstract class ReliableServiceDispatcherOverDuplex<TChannel, TReliableChannel> :
-    //    ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, IDuplexChannel, Message>
-    //    where TChannel : class, IChannel
-    //    where TReliableChannel : class, IChannel
-    //{
-    //    protected ReliableListenerOverDuplex(ReliableSessionBindingElement binding, BindingContext context)
-    //        : base(binding, context)
-    //    {
-    //        FaultHelper = new SendFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
-    //    }
+    // Based on ReliableListenerOverDuplex<TChannel, TReliableChannel>
+    internal abstract class ReliableServiceDispatcherOverDuplex<TChannel, TReliableChannel> :
+        ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, IDuplexChannel, Message>
+        where TChannel : class, IChannel
+        where TReliableChannel : class, IChannel
+    {
+        protected ReliableServiceDispatcherOverDuplex(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerDispatcher)
+            : base(binding, context, innerDispatcher)
+        {
+            FaultHelper = new SendFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
+        }
 
-    //    protected override IAsyncResult BeginTryReceiveItem(IDuplexChannel channel, AsyncCallback callback, object state)
-    //    {
-    //        return channel.BeginTryReceive(TimeSpan.MaxValue, callback, state);
-    //    }
+        protected override void DisposeItem(Message item)
+        {
+            ((IDisposable)item).Dispose();
+        }
 
-    //    protected override void DisposeItem(Message item)
-    //    {
-    //        ((IDisposable)item).Dispose();
-    //    }
+        protected override Message GetMessage(Message item)
+        {
+            return item;
+        }
 
-    //    protected override void EndTryReceiveItem(IDuplexChannel channel, IAsyncResult result, out Message item)
-    //    {
-    //        channel.EndTryReceive(result, out item);
-    //    }
+        protected override Task SendReplyAsync(Message reply, IDuplexChannel channel, Message item)
+        {
+            if (FaultHelper.AddressReply(item, reply))
+            {
+                return channel.SendAsync(reply);
+            }
 
-    //    protected override Message GetMessage(Message item)
-    //    {
-    //        return item;
-    //    }
-
-    //    protected override void SendReply(Message reply, IDuplexChannel channel, Message item)
-    //    {
-    //        if (FaultHelper.AddressReply(item, reply))
-    //            channel.Send(reply);
-    //    }
-    //}
+            return Task.CompletedTask;
+        }
+    }
 
     /* */
+    // Based on ReliableListenerOverReply<TChannel, TReliableChannel>
     internal abstract class ReliableServiceDispatcherOverReply<TChannel, TReliableChannel>
         : ReliableServiceDispatcherOverDatagram<TChannel, TReliableChannel, IReplyChannel, RequestContext>
         where TChannel : class, IChannel
@@ -862,63 +770,19 @@ namespace CoreWCF.Channels
         }
     }
 
+    // Based on ReliableListenerOverSession<TChannel, TReliableChannel, TInnerChannel, TInnerSession, TItem>
     internal abstract class ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, TInnerChannel, TInnerSession, TItem>
         : ReliableServiceDispatcher<TChannel, TReliableChannel, TInnerChannel>
         where TChannel : class, IChannel
-        where TReliableChannel : InputQueueReplyChannel
+        where TReliableChannel : InputQueueServiceChannelDispatcher<TItem>
         where TInnerChannel : class, IChannel, ISessionChannel<TInnerSession>
         where TInnerSession : ISession
-        where TItem : IDisposable
+        where TItem : class, IDisposable
     {
         protected ReliableServiceDispatcherOverSession(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher serviceDispatcher)
             : base(binding, context, serviceDispatcher) { }
 
-//        private void AsyncHandleReceiveComplete(object state)
-//        {
-//            try
-//            {
-//                IAsyncResult result = (IAsyncResult)state;
-//                TInnerChannel channel = (TInnerChannel)result.AsyncState;
-//                TItem item = default(TItem);
-
-//                try
-//                {
-//                    EndTryReceiveItem(channel, result, out item);
-//                    if (item == null)
-//                    {
-//                        channel.Close();
-//                        return;
-//                    }
-//                }
-//#pragma warning suppress 56500 // covered by FxCOP
-//                catch (Exception e)
-//                {
-//                    if (Fx.IsFatal(e))
-//                        throw;
-
-//                    if (!HandleException(e, channel))
-//                    {
-//                        channel.Abort();
-//                        return;
-//                    }
-//                }
-
-//                if (item != null)
-//                    DispatchAsync(item, channel);
-//            }
-//#pragma warning suppress 56500 // covered by FxCOP
-//            catch (Exception e)
-//            {
-//                if (Fx.IsFatal(e))
-//                    throw;
-
-//                Fault(e);
-//            }
-//        }
-
-        //protected abstract IAsyncResult BeginTryReceiveItem(TInnerChannel channel, AsyncCallback callback, object state);
         protected abstract void DisposeItem(TItem item);
-        //protected abstract void EndTryReceiveItem(TInnerChannel channel, IAsyncResult result, out TItem item);
         protected abstract Message GetMessage(TItem item);
 
         public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
@@ -926,6 +790,7 @@ namespace CoreWCF.Channels
             return Task.FromResult<IServiceChannelDispatcher>(new ReliableServiceSessionChannelDispatcher(channel, this));
         }
 
+        // Based on HandleReceiveComplete
         private async Task DispatchAsync(TItem item, TInnerChannel channel)
         {
             WsrmMessageInfo info = WsrmMessageInfo.Get(MessageVersion, ReliableMessagingVersion, channel,
@@ -975,8 +840,6 @@ namespace CoreWCF.Channels
                 // reliableChannel derives from InputQueueReplyChannel so ProcessSequencedItem will
                 // call InputQueueReplyChannel.Enqueue which will dispatch the item.
                 await ProcessSequencedItemAsync(channel, item, reliableChannel, info, newChannel);
-                //if (dispatch)
-                //    this.Dispatch();
             }
             else
             {
@@ -1003,7 +866,6 @@ namespace CoreWCF.Channels
         }
 
         protected override void ProcessChannel(TInnerChannel channel) { }
-
         protected abstract Task ProcessSequencedItemAsync(TInnerChannel channel, TItem item, TReliableChannel reliableChannel, WsrmMessageInfo info, bool newChannel);
         protected abstract Task SendReplyAsync(Message reply, TInnerChannel channel, TItem item);
 
@@ -1028,6 +890,7 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(RequestContext context)
             {
+                // TODO: If context is null, then the channel is being closed
                 if (context is TItem item)
                 {
                     return _serviceDispatcher.DispatchAsync(item, _innerChannel);
@@ -1048,44 +911,40 @@ namespace CoreWCF.Channels
         }
     }
 
-    //internal abstract class ReliableServiceDispatcherOverDuplexSession<TChannel, TReliableChannel>
-    //    : ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, IDuplexSessionChannel, IDuplexSession, Message>
-    //    where TChannel : class, IChannel
-    //    where TReliableChannel : class, IChannel
-    //{
-    //    protected ReliableListenerOverDuplexSession(ReliableSessionBindingElement binding, BindingContext context)
-    //        : base(binding, context)
-    //    {
-    //        FaultHelper = new SendFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
-    //    }
+    // Based on ReliableListenerOverDuplexSession<TChannel, TReliableChannel>
+    internal abstract class ReliableServiceDispatcherOverDuplexSession<TChannel, TReliableChannel>
+        : ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, IDuplexSessionChannel, IDuplexSession, Message>
+        where TChannel : class, IChannel
+        where TReliableChannel : InputQueueServiceChannelDispatcher<Message>
+    {
+        protected ReliableServiceDispatcherOverDuplexSession(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher serviceDispatcher)
+            : base(binding, context, serviceDispatcher)
+        {
+            FaultHelper = new SendFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
+        }
 
-    //    protected override IAsyncResult BeginTryReceiveItem(IDuplexSessionChannel channel, AsyncCallback callback, object state)
-    //    {
-    //        return channel.BeginTryReceive(TimeSpan.MaxValue, callback, channel);
-    //    }
+        protected override void DisposeItem(Message item)
+        {
+            ((IDisposable)item).Dispose();
+        }
 
-    //    protected override void DisposeItem(Message item)
-    //    {
-    //        ((IDisposable)item).Dispose();
-    //    }
+        protected override Message GetMessage(Message item)
+        {
+            return item;
+        }
 
-    //    protected override void EndTryReceiveItem(IDuplexSessionChannel channel, IAsyncResult result, out Message item)
-    //    {
-    //        channel.EndTryReceive(result, out item);
-    //    }
+        protected override Task SendReplyAsync(Message reply, IDuplexSessionChannel channel, Message item)
+        {
+            if (FaultHelper.AddressReply(item, reply))
+            {
+                return channel.SendAsync(reply);
+            }
 
-    //    protected override Message GetMessage(Message item)
-    //    {
-    //        return item;
-    //    }
+            return Task.CompletedTask;
+        }
+    }
 
-    //    protected override void SendReply(Message reply, IDuplexSessionChannel channel, Message item)
-    //    {
-    //        if (FaultHelper.AddressReply(item, reply))
-    //            channel.Send(reply);
-    //    }
-    //}
-
+    // Based on ReliableListenerOverReplySession<TChannel, TReliableChannel>
     internal abstract class ReliableServiceDispatcherOverReplySession<TChannel, TReliableChannel>
         : ReliableServiceDispatcherOverSession<TChannel, TReliableChannel, IReplySessionChannel, IInputSession, RequestContext>
         where TChannel : class, IChannel
@@ -1097,21 +956,11 @@ namespace CoreWCF.Channels
             FaultHelper = new ReplyFaultHelper(context.Binding.SendTimeout, context.Binding.CloseTimeout);
         }
 
-        //protected override IAsyncResult BeginTryReceiveItem(IReplySessionChannel channel, AsyncCallback callback, object state)
-        //{
-        //    return channel.BeginTryReceiveRequest(TimeSpan.MaxValue, callback, channel);
-        //}
-
         protected override void DisposeItem(RequestContext item)
         {
             ((IDisposable)item.RequestMessage).Dispose();
             ((IDisposable)item).Dispose();
         }
-
-        //protected override void EndTryReceiveItem(IReplySessionChannel channel, IAsyncResult result, out RequestContext item)
-        //{
-        //    channel.EndTryReceiveRequest(result, out item);
-        //}
 
         protected override Message GetMessage(RequestContext item)
         {
@@ -1131,32 +980,30 @@ namespace CoreWCF.Channels
         }
     }
 
-    //internal class ReliableDuplexServiceDispatcherOverDuplex : ReliableServiceDispatcherOverDuplex<IDuplexSessionChannel, ServerReliableDuplexSessionChannel>
-    //{
-    //    public ReliableDuplexListenerOverDuplex(ReliableSessionBindingElement binding, BindingContext context)
-    //        : base(binding, context)
-    //    {
-    //    }
+    // Based on ReliableDuplexListenerOverDuplex
+    internal class ReliableDuplexServiceDispatcherOverDuplex : ReliableServiceDispatcherOverDuplex<IDuplexSessionChannel, ServerReliableDuplexSessionChannel>
+    {
+        public ReliableDuplexServiceDispatcherOverDuplex(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerDispatcher)
+            : base(binding, context, innerDispatcher)
+        {
+        }
 
-    //    protected override bool Duplex
-    //    {
-    //        get { return true; }
-    //    }
+        protected override bool Duplex => true;
 
-    //    protected override ServerReliableDuplexSessionChannel CreateChannel(
-    //        UniqueId id,
-    //        CreateSequenceInfo createSequenceInfo,
-    //        IServerReliableChannelBinder binder)
-    //    {
-    //        binder.Open(InternalOpenTimeout);
-    //        return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-    //    }
+        protected override async Task<ServerReliableDuplexSessionChannel> CreateChannelAsync(
+            UniqueId id,
+            CreateSequenceInfo createSequenceInfo,
+            IServerReliableChannelBinder binder)
+        {
+            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
+            return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+        }
 
-    //    protected override void ProcessSequencedItem(ServerReliableDuplexSessionChannel channel, Message message, WsrmMessageInfo info)
-    //    {
-    //        channel.ProcessDemuxedMessage(info);
-    //    }
-    //}
+        protected override Task ProcessSequencedItemAsync(ServerReliableDuplexSessionChannel channel, Message message, WsrmMessageInfo info)
+        {
+            return channel.ProcessDemuxedMessageAsync(info);
+        }
+    }
 
     //internal class ReliableInputServiceDispatcherOverDuplex : ReliableServiceDispatcherOverDuplex<IInputSessionChannel, ReliableInputSessionChannelOverDuplex>
     //{
@@ -1184,43 +1031,44 @@ namespace CoreWCF.Channels
     //    }
     //}
 
-    //internal class ReliableDuplexServiceDispatcherOverDuplexSession : ReliableServiceDispatcherOverDuplexSession<IDuplexSessionChannel, ServerReliableDuplexSessionChannel>
-    //{
-    //    public ReliableDuplexListenerOverDuplexSession(ReliableSessionBindingElement binding, BindingContext context)
-    //        : base(binding, context)
-    //    {
-    //    }
+    // Based on ReliableDuplexListenerOverDuplexSession
+    internal class ReliableDuplexServiceDispatcherOverDuplexSession : ReliableServiceDispatcherOverDuplexSession<IDuplexSessionChannel, ServerReliableDuplexSessionChannel>
+    {
+        public ReliableDuplexServiceDispatcherOverDuplexSession(ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher serviceDispatcher)
+            : base(binding, context, serviceDispatcher)
+        {
+        }
 
-    //    protected override bool Duplex
-    //    {
-    //        get { return true; }
-    //    }
+        protected override bool Duplex
+        {
+            get { return true; }
+        }
 
-    //    protected override ServerReliableDuplexSessionChannel CreateChannel(UniqueId id,
-    //        CreateSequenceInfo createSequenceInfo,
-    //        IServerReliableChannelBinder binder)
-    //    {
-    //        binder.Open(InternalOpenTimeout);
-    //        return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-    //    }
+        protected override async Task<ServerReliableDuplexSessionChannel> CreateChannelAsync(UniqueId id,
+            CreateSequenceInfo createSequenceInfo,
+            IServerReliableChannelBinder binder)
+        {
+            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
+            return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+        }
 
-    //    protected override void ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ServerReliableDuplexSessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)
-    //    {
-    //        if (!newChannel)
-    //        {
-    //            IServerReliableChannelBinder binder = (IServerReliableChannelBinder)reliableChannel.Binder;
+        protected override async Task ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ServerReliableDuplexSessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)
+        {
+            if (!newChannel)
+            {
+                IServerReliableChannelBinder binder = (IServerReliableChannelBinder)reliableChannel.Binder;
 
-    //            if (!binder.UseNewChannel(channel))
-    //            {
-    //                message.Close();
-    //                channel.Abort();
-    //                return;
-    //            }
-    //        }
+                if (!binder.UseNewChannel(channel))
+                {
+                    message.Close();
+                    channel.Abort();
+                    return;
+                }
+            }
 
-    //        reliableChannel.ProcessDemuxedMessage(info);
-    //    }
-    //}
+            await reliableChannel.ProcessDemuxedMessageAsync(info);
+        }
+    }
 
     //internal class ReliableInputServiceDispatcherOverDuplexSession
     //    : ReliableServiceDispatcherOverDuplexSession<IInputSessionChannel, ReliableInputSessionChannelOverDuplex>

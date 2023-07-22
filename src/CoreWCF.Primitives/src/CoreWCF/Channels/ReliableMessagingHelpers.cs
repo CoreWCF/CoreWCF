@@ -3,22 +3,27 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Runtime;
+using CoreWCF.Security;
+using static CoreWCF.Runtime.TaskHelpers;
 
 namespace CoreWCF.Channels
 {
+    internal delegate Task AsyncOperationWithCancellationCallback(CancellationToken token);
+
     internal sealed class Guard
     {
-        private TaskCompletionSource<object> _tcs;
-        private int _currentCount = 0;
-        private int _maxCount;
+        private readonly TaskCompletionSource<object> _tcs;
+        private readonly int _currentCount = 0;
+        private readonly int _maxCount;
         private bool _closed;
-        private object _thisLock = new object();
-        private SemaphoreSlim _semaphore;
+        private readonly object _thisLock = new object();
+        private readonly SemaphoreSlim _semaphore;
 
         public Guard() : this(1) { }
 
@@ -52,12 +57,12 @@ namespace CoreWCF.Channels
             }
         }
 
-        public bool Enter()
+        public Task<bool> EnterAsync()
         {
             if (_closed)
-                return false;
+                return Task.FromResult(false);
 
-            return _semaphore.Wait(0);
+            return _semaphore.WaitAsync(0);
         }
 
         public void Exit()
@@ -361,6 +366,279 @@ namespace CoreWCF.Channels
         static public TimeSpan RequestorIterationTime = TimeSpan.FromSeconds(10);
         static public TimeSpan RequestorReceiveTime = TimeSpan.FromSeconds(10);
         static public int MaxSequenceRanges = 128;
+    }
+
+    // This class and its derivates attempt to unify 3 similar request reply patterns.
+    // 1. Straightforward R/R pattern
+    // 2. R/R pattern with binder and exception semantics on Open (CreateSequence)
+    // 3. TerminateSequence request - TerminateSequence response for R(Request|Reply)SC
+    internal abstract class ReliableRequestor
+    {
+        private readonly InterruptibleWaitObject _abortHandle = new InterruptibleWaitObject(false, false);
+        private TimeSpan _originalTimeout;
+
+        public IReliableChannelBinder Binder { protected get; set; }
+
+        public bool IsCreateSequence { protected get; set; }
+
+        public ActionHeader MessageAction { private get; set; }
+
+        public BodyWriter MessageBody { private get; set; }
+
+        public UniqueId MessageId { get; private set; }
+
+        public WsrmMessageHeader MessageHeader { get; set; }
+
+        public MessageVersion MessageVersion { private get; set; }
+
+        public string TimeoutString1Index { private get; set; }
+
+        public void Abort(CommunicationObject communicationObject) => _abortHandle.Abort(communicationObject);
+
+        private Message CreateRequestMessage()
+        {
+            Message request = Message.CreateMessage(MessageVersion, MessageAction, MessageBody);
+            request.Properties.AllowOutputBatching = false;
+
+            if (MessageHeader != null)
+            {
+                request.Headers.Insert(0, MessageHeader);
+            }
+
+            if (MessageId != null)
+            {
+                request.Headers.MessageId = MessageId;
+                RequestReplyCorrelator.PrepareRequest(request);
+
+                EndpointAddress address = Binder.LocalAddress;
+
+                if (address == null)
+                {
+                    request.Headers.ReplyTo = null;
+                }
+                else if (MessageVersion.Addressing == AddressingVersion.WSAddressingAugust2004)
+                {
+                    request.Headers.ReplyTo = address;
+                }
+                else if (MessageVersion.Addressing == AddressingVersion.WSAddressing10)
+                {
+                    request.Headers.ReplyTo = address.IsAnonymous ? null : address;
+                }
+                else
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, MessageVersion.Addressing)));
+                }
+            }
+
+            return request;
+        }
+
+        public virtual void Fault(CommunicationObject communicationObject) => _abortHandle.Fault(communicationObject);
+
+        public abstract WsrmMessageInfo GetInfo();
+
+        private CancellationToken GetNextRequestCancellationToken(CancellationToken token, out bool lastIteration)
+        {
+            // Because we don't have the actual timeout value, we can't indicate it's the last iteration when
+            // the overall timeout is iminent. The best we can do is to allow one last request after the overall
+            // CancellationToken has now been cancelled. This means in a timing out scenario, on average we will
+            // take RequestorIterationTime / 2 extra time than was intended. As RequestorIterationTime is 10 seconds,
+            // this means when there's a problem, we will potentially go over time by an average of 5 seconds when
+            // retrying. This is low enough that it shouldn't be consequential.
+            lastIteration = token.IsCancellationRequested;
+            CancellationToken iterationToken = new TimeoutHelper(ReliableMessagingConstants.RequestorIterationTime).GetCancellationToken();
+            return iterationToken;
+        }
+
+        private bool HandleException(Exception exception, bool lastIteration)
+        {
+            if (IsCreateSequence)
+            {
+                if (exception is QuotaExceededException)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new CommunicationException(exception.Message, exception));
+                }
+
+                if (!Binder.IsHandleable(exception)
+                    || exception is MessageSecurityException
+                    || exception is SecurityNegotiationException
+                    || (Binder.State != CommunicationState.Opened)
+                    || lastIteration)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return Binder.IsHandleable(exception);
+            }
+        }
+
+        private void ThrowTimeoutException()
+        {
+            if (TimeoutString1Index != null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new TimeoutException(SR.Format(TimeoutString1Index, _originalTimeout)));
+            }
+        }
+
+        protected abstract Task<Message> OnRequestAsync(Message request, CancellationToken token, bool last);
+
+        public async Task<Message> RequestAsync(CancellationToken token)
+        {
+            TimeoutHelper iterationTimeoutHelper;
+            bool lastIteration;
+
+            while (true)
+            {
+                Message request = null;
+                Message reply = null;
+                bool requestCompleted = false;
+                CancellationToken requestCancellationToken = GetNextRequestCancellationToken(token, out lastIteration);
+
+                try
+                {
+                    request = CreateRequestMessage();
+                    reply = await OnRequestAsync(request, requestCancellationToken, lastIteration);
+                    requestCompleted = true;
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e) || !HandleException(e, lastIteration))
+                    {
+                        throw;
+                    }
+
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                }
+                finally
+                {
+                    if (request != null)
+                    {
+                        request.Close();
+                    }
+                }
+
+                if (requestCompleted)
+                {
+                    if (ValidateReply(reply))
+                    {
+                        return reply;
+                    }
+                }
+
+                if (lastIteration)
+                    break;
+
+                await _abortHandle.WaitAsync(requestCancellationToken);
+            }
+
+            ThrowTimeoutException();
+            return null;
+        }
+
+        public abstract void SetInfo(WsrmMessageInfo info);
+
+        public void SetRequestResponsePattern()
+        {
+            if (MessageId != null)
+            {
+                throw Fx.AssertAndThrow("Initialize messageId only once.");
+            }
+
+            MessageId = new UniqueId();
+        }
+
+        private bool ValidateReply(Message response)
+        {
+            if (MessageId != null)
+            {
+                // r/r pattern requires a response
+                return response != null;
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
+
+    internal sealed class SendWaitReliableRequestor : ReliableRequestor
+    {
+        private bool _replied = false;
+        private readonly InterruptibleWaitObject _replyHandle = new InterruptibleWaitObject(false, true);
+        private WsrmMessageInfo _replyInfo;
+        private Message _request;
+        private readonly object _thisLock = new object();
+
+        private object ThisLock => _thisLock;
+
+        public override void Fault(CommunicationObject communicationObject)
+        {
+            _replied = true;
+            _replyHandle.Fault(communicationObject);
+            base.Fault(communicationObject);
+        }
+
+        public override WsrmMessageInfo GetInfo()
+        {
+            return _replyInfo;
+        }
+
+        private Message GetReply(bool last)
+        {
+            lock (ThisLock)
+            {
+                if (_replyInfo != null)
+                {
+                    _replied = true;
+                    return _replyInfo.Message;
+                }
+                else if (last)
+                {
+                    _replied = true;
+                }
+            }
+
+            return null;
+        }
+
+        private CancellationToken GetWaitCancellationToken()
+        {
+            return TimeoutHelper.GetCancellationToken(ReliableMessagingConstants.RequestorReceiveTime);
+        }
+
+        protected override async Task<Message> OnRequestAsync(Message request, CancellationToken token, bool last)
+        {
+            await Binder.SendAsync(request, token, MaskingMode.None);
+            CancellationToken waitToken = GetWaitCancellationToken();
+            using (CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, waitToken))
+            {
+                await _replyHandle.WaitAsync(linkedCts.Token);
+            }
+
+            return GetReply(last);
+        }
+
+        public override void SetInfo(WsrmMessageInfo info)
+        {
+            lock (ThisLock)
+            {
+                if (_replied || _replyInfo != null)
+                {
+                    return;
+                }
+
+                _replyInfo = info;
+            }
+
+            _replyHandle.Set();
+        }
     }
 
     internal static class WsrmUtilities

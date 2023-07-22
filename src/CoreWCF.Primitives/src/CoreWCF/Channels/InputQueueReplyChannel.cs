@@ -73,14 +73,9 @@ namespace CoreWCF.Channels
 
         protected override void OnAbort() { }
 
-        protected override Task OnCloseAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
+        protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
 
-        protected override Task OnOpenAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
+
     }
 }

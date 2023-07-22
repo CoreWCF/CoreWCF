@@ -12,11 +12,11 @@ namespace CoreWCF.Security
         TimeSpan DefaultOpenTimeout { get; }
         TimeSpan DefaultCloseTimeout { get; }
         void OnAbort();
-        Task OnCloseAsync(CancellationTokenSource token);
+        Task OnCloseAsync(CancellationToken token);
         void OnClosed();
         void OnClosing();
         void OnFaulted();
-        Task OnOpenAsync(CancellationTokenSource token);
+        Task OnOpenAsync(CancellationToken token);
         void OnOpened();
         void OnOpening();
     }

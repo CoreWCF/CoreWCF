@@ -4,6 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
@@ -11,11 +13,14 @@ namespace CoreWCF.Channels
     internal abstract class InputQueueDuplexChannel : InputQueueServiceChannelDispatcher<Message>, IDuplexChannel
     {
         private readonly EndpointAddress _localAddress;
+        private IServiceChannelDispatcher _serviceChannelDispatcher;
+        private Task<IServiceChannelDispatcher> _serviceChannelDispatcherCreateTask = null;
 
-        protected InputQueueDuplexChannel(ChannelManagerBase channelManager, EndpointAddress localAddress)
-            : base(channelManager)
+        protected InputQueueDuplexChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress)
+            : base(timeouts)
         {
             _localAddress = localAddress;
+            _serviceChannelDispatcherCreateTask = serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
         }
 
         public virtual EndpointAddress LocalAddress => _localAddress;
@@ -61,91 +66,44 @@ namespace CoreWCF.Channels
         public Task<Message> ReceiveAsync(CancellationToken token) => throw new NotImplementedException();
         public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
 
-        //public Message Receive()
-        //{
-        //    return Receive(DefaultReceiveTimeout);
-        //}
+        protected override void OnAbort() { }
 
-        //public Message Receive(TimeSpan timeout)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
+        protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
 
-        //    ThrowPending();
-        //    return InputChannel.HelpReceive(this, timeout);
-        //}
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
 
-        //public IAsyncResult BeginReceive(AsyncCallback callback, object state)
-        //{
-        //    return BeginReceive(DefaultReceiveTimeout, callback, state);
-        //}
+        public override async Task InnerDispatchAsync(RequestContext context)
+        {
+            if (_serviceChannelDispatcher == null)
+            {
+                var createDispatcherTask = _serviceChannelDispatcherCreateTask;
+                if (createDispatcherTask != null)
+                {
+                    _serviceChannelDispatcher = await createDispatcherTask;
+                    _serviceChannelDispatcherCreateTask = null;
+                }
 
-        //public IAsyncResult BeginReceive(TimeSpan timeout, AsyncCallback callback, object state)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
-        //    }
+                Fx.Assert(_serviceChannelDispatcher != null, "_serviceChannelDispatcher must not be null if _serviceChannelDispatcherCreateTask is null");
+            }
 
-        //    ThrowPending();
-        //    return InputChannel.HelpBeginReceive(this, timeout, callback, state);
-        //}
+            await _serviceChannelDispatcher.DispatchAsync(context);
+        }
 
-        //public Message EndReceive(IAsyncResult result)
-        //{
-        //    return InputChannel.HelpEndReceive(result);
-        //}
+        public override async Task InnerDispatchAsync(Message message)
+        {
+            if (_serviceChannelDispatcher == null)
+            {
+                var createDispatcherTask = _serviceChannelDispatcherCreateTask;
+                if (createDispatcherTask != null)
+                {
+                    _serviceChannelDispatcher = await createDispatcherTask;
+                    _serviceChannelDispatcherCreateTask = null;
+                }
 
-        //public bool TryReceive(TimeSpan timeout, out Message message)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
+                Fx.Assert(_serviceChannelDispatcher != null, "_serviceChannelDispatcher must not be null if _serviceChannelDispatcherCreateTask is null");
+            }
 
-        //    ThrowPending();
-        //    return base.Dequeue(timeout, out message);
-        //}
-
-        //public IAsyncResult BeginTryReceive(TimeSpan timeout, AsyncCallback callback, object state)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
-
-        //    ThrowPending();
-        //    return base.BeginDequeue(timeout, callback, state);
-        //}
-
-        //public bool EndTryReceive(IAsyncResult result, out Message message)
-        //{
-        //    return base.EndDequeue(result, out message);
-        //}
-
-        //public bool WaitForMessage(TimeSpan timeout)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
-
-        //    ThrowPending();
-        //    return base.WaitForItem(timeout);
-        //}
-
-        //public IAsyncResult BeginWaitForMessage(TimeSpan timeout, AsyncCallback callback, object state)
-        //{
-        //    if (timeout < TimeSpan.Zero)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-        //            new ArgumentOutOfRangeException(nameof(timeout), timeout, SR.SFxTimeoutOutOfRange0));
-
-        //    ThrowPending();
-        //    return base.BeginWaitForItem(timeout, callback, state);
-        //}
-
-        //public bool EndWaitForMessage(IAsyncResult result)
-        //{
-        //    return base.EndWaitForItem(result);
-        //}
+            await _serviceChannelDispatcher.DispatchAsync(message);
+        }
     }
 }

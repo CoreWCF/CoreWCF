@@ -631,9 +631,9 @@ namespace CoreWCF.Security
             }
             return Task.CompletedTask;
         }
-        public Task OnCloseAsync(TimeSpan timeout)
+
+        public Task OnCloseAsync(CancellationToken token)
         {
-            OnClosed();
             return Task.CompletedTask;
         }
     }

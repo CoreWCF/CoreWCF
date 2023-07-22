@@ -599,8 +599,11 @@ namespace CoreWCF.Channels
                 return false;
             }
 
+            // Exception could be a TaskCanceledException, but that's
+            // covered by OperationCanceledException
             return (e is CommunicationException)
-                || (e is TimeoutException);
+                || (e is TimeoutException)
+                || (e is OperationCanceledException);
         }
 
         protected abstract void OnAbort();

@@ -30,7 +30,7 @@ namespace CoreWCF.Channels
         private ReliableRequestContext _lastReply;
         private bool _lastReplyAcked;
         private long _lastReplySequenceNumber = long.MinValue;
-        private readonly ReliableServiceDispatcherBase<IReplySessionChannel> _listener;
+        private readonly ReliableServiceDispatcherBase<IReplySessionChannel> _serviceDispatcher;
         private readonly InterruptibleWaitObject _messagingCompleteWaitObject;
         private long _nextReplySequenceNumber;
         //private readonly string _perfCounterId;
@@ -40,27 +40,27 @@ namespace CoreWCF.Channels
         private ReplyHelper _terminateSequenceReplyHelper;
 
         public ReliableReplySessionChannel(
-            ReliableServiceDispatcherBase<IReplySessionChannel> listener,
+            ReliableServiceDispatcherBase<IReplySessionChannel> serviceDispatcher,
             IServerReliableChannelBinder binder,
             FaultHelper faultHelper,
             UniqueId inputID,
             UniqueId outputID)
-            : base(listener, listener.InnerServiceDispatcher, binder.LocalAddress)
+            : base(serviceDispatcher, serviceDispatcher.InnerServiceDispatcher, binder.LocalAddress)
         {
-            _listener = listener;
+            _serviceDispatcher = serviceDispatcher;
             _connection = new ReliableInputConnection();
-            _connection.ReliableMessagingVersion = _listener.ReliableMessagingVersion;
+            _connection.ReliableMessagingVersion = _serviceDispatcher.ReliableMessagingVersion;
             _binder = binder;
-            _session = new ServerReliableSession(this, listener, binder, faultHelper, inputID, outputID);
+            _session = new ServerReliableSession(this, serviceDispatcher, binder, faultHelper, inputID, outputID);
             _session.UnblockChannelCloseCallback = this.UnblockClose;
 
-            if (_listener.Ordered)
-                _deliveryStrategy = new OrderedDeliveryStrategy<RequestContext>(this, _listener.MaxTransferWindowSize, true);
+            if (_serviceDispatcher.Ordered)
+                _deliveryStrategy = new OrderedDeliveryStrategy<RequestContext>(this, _serviceDispatcher.MaxTransferWindowSize, true);
             else
-                _deliveryStrategy = new UnorderedDeliveryStrategy<RequestContext>(this, _listener.MaxTransferWindowSize);
+                _deliveryStrategy = new UnorderedDeliveryStrategy<RequestContext>(this, _serviceDispatcher.MaxTransferWindowSize);
             _binder.Faulted += OnBinderFaulted;
             _binder.OnException += OnBinderException;
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 _messagingCompleteWaitObject = new InterruptibleWaitObject(false);
             }
@@ -88,7 +88,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        private MessageVersion MessageVersion => _listener.MessageVersion;
+        private MessageVersion MessageVersion => _serviceDispatcher.MessageVersion;
 
         private int PendingRequestContexts
         {
@@ -123,7 +123,7 @@ namespace CoreWCF.Channels
             _requestsByReplySequenceNumber.Clear();
 
 
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 if (_lastReply != null)
                     _lastReply.Abort();
@@ -133,12 +133,12 @@ namespace CoreWCF.Channels
         private void AddAcknowledgementHeader(Message message)
         {
             WsrmUtilities.AddAcknowledgementHeader(
-                _listener.ReliableMessagingVersion,
+                _serviceDispatcher.ReliableMessagingVersion,
                 message,
                 _session.InputID,
                 _connection.Ranges,
                 _connection.IsLastKnown,
-                _listener.MaxTransferWindowSize - _deliveryStrategy.EnqueuedCount);
+                _serviceDispatcher.MaxTransferWindowSize - _deliveryStrategy.EnqueuedCount);
         }
 
         //private static void AsyncReceiveCompleteStatic(object state)
@@ -170,7 +170,7 @@ namespace CoreWCF.Channels
 
         private Task CloseOutputAsync(CancellationToken token)
         {
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 ReliableRequestContext reply = _lastReply;
                 if (reply == null)
@@ -191,18 +191,18 @@ namespace CoreWCF.Channels
 
         private Task UnregisterChannelAsync(CancellationToken token)
         {
-            return _listener.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
+            return _serviceDispatcher.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
         }
 
         private Message CreateAcknowledgement(SequenceRangeCollection ranges)
         {
             Message message = WsrmUtilities.CreateAcknowledgmentMessage(
                 MessageVersion,
-                _listener.ReliableMessagingVersion,
+                _serviceDispatcher.ReliableMessagingVersion,
                 _session.InputID,
                 ranges,
                 _connection.IsLastKnown,
-                _listener.MaxTransferWindowSize - _deliveryStrategy.EnqueuedCount);
+                _serviceDispatcher.MaxTransferWindowSize - _deliveryStrategy.EnqueuedCount);
 
             return message;
         }
@@ -210,7 +210,7 @@ namespace CoreWCF.Channels
         private Message CreateSequenceClosedFault()
         {
             Message message = new SequenceClosedFault(_session.InputID).CreateMessage(
-                _listener.MessageVersion, _listener.ReliableMessagingVersion);
+                _serviceDispatcher.MessageVersion, _serviceDispatcher.ReliableMessagingVersion);
             AddAcknowledgementHeader(message);
             return message;
         }
@@ -252,7 +252,7 @@ namespace CoreWCF.Channels
             {
                 bool haveRequestInDictionary = _requestsByRequestSequenceNumber.ContainsKey(requestSeqNum);
 
-                if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+                if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
                 {
                     return haveRequestInDictionary
                         || ((_lastReply != null) && (_lastReply.RequestSequenceNumber == requestSeqNum) && (!_lastReplyAcked));
@@ -281,7 +281,7 @@ namespace CoreWCF.Channels
             T innerProperty = _binder.Channel.GetProperty<T>();
             if ((innerProperty == null) && (typeof(T) == typeof(FaultConverter)))
             {
-                return (T)(object)FaultConverter.GetDefaultFaultConverter(_listener.MessageVersion);
+                return (T)(object)FaultConverter.GetDefaultFaultConverter(_serviceDispatcher.MessageVersion);
             }
             else
             {
@@ -341,11 +341,11 @@ namespace CoreWCF.Channels
             }
             _session.Abort();
             AbortContexts();
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 _messagingCompleteWaitObject.Abort(this);
             }
-            _listener.OnReliableChannelAbort(_session.InputID, _session.OutputID);
+            _serviceDispatcher.OnReliableChannelAbort(_session.InputID, _session.OutputID);
             base.OnAbort();
         }
 
@@ -369,7 +369,7 @@ namespace CoreWCF.Channels
         {
             ThrowIfCloseInvalid();
             await CloseOutputAsync(token);
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 await _connection.CloseAsync(token);
                 await _messagingCompleteWaitObject.WaitAsync(token);
@@ -382,7 +382,7 @@ namespace CoreWCF.Channels
 
             await _session.CloseAsync(token);
             await _binder.CloseAsync(token, MaskingMode.Handled);
-            await _listener.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
+            await _serviceDispatcher.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
             await base.OnCloseAsync(token);
         }
 
@@ -391,7 +391,7 @@ namespace CoreWCF.Channels
             _deliveryStrategy.Dispose();
             _binder.Faulted -= OnBinderFaulted;
 
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 if (_lastReply != null)
                 {
@@ -458,7 +458,7 @@ namespace CoreWCF.Channels
                     return false;
 
                 long requestSequenceNumber = context.RequestSequenceNumber;
-                bool wsrmFeb2005 = _listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005;
+                bool wsrmFeb2005 = _serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005;
 
                 if (wsrmFeb2005 && (_connection.Last == requestSequenceNumber))
                 {
@@ -510,7 +510,7 @@ namespace CoreWCF.Channels
             AddAcknowledgementHeader(reply);
 
             WsrmUtilities.AddSequenceHeader(
-                _listener.ReliableMessagingVersion,
+                _serviceDispatcher.ReliableMessagingVersion,
                 reply,
                 _session.OutputID,
                 replySequenceNumber,
@@ -549,7 +549,7 @@ namespace CoreWCF.Channels
                         _requestsByReplySequenceNumber.Remove(reply);
                     }
 
-                    if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+                    if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
                     {
                         if (!_lastReplyAcked && (_lastReplySequenceNumber != long.MinValue))
                         {
@@ -683,7 +683,7 @@ namespace CoreWCF.Channels
                 else if (remoteFaultException != null)
                 {
                     Message message = WsrmUtilities.CreateTerminateMessage(MessageVersion,
-                        _listener.ReliableMessagingVersion, _session.OutputID);
+                        _serviceDispatcher.ReliableMessagingVersion, _session.OutputID);
                     AddAcknowledgementHeader(message);
 
                     using (message)
@@ -791,11 +791,11 @@ namespace CoreWCF.Channels
                 {
                     EndpointAddress acksTo;
 
-                    if (WsrmUtilities.ValidateCreateSequence<IReplySessionChannel>(info, _listener, _binder.Channel, out acksTo))
+                    if (WsrmUtilities.ValidateCreateSequence<IReplySessionChannel>(info, _serviceDispatcher, _binder.Channel, out acksTo))
                     {
-                        Message response = WsrmUtilities.CreateCreateSequenceResponse(_listener.MessageVersion,
-                            _listener.ReliableMessagingVersion, true, info.CreateSequenceInfo,
-                            _listener.Ordered, _session.InputID, acksTo);
+                        Message response = WsrmUtilities.CreateCreateSequenceResponse(_serviceDispatcher.MessageVersion,
+                            _serviceDispatcher.ReliableMessagingVersion, true, info.CreateSequenceInfo,
+                            _serviceDispatcher.Ordered, _session.InputID, acksTo);
 
                         using (context)
                         {
@@ -819,7 +819,7 @@ namespace CoreWCF.Channels
                 if (info.AcknowledgementInfo != null)
                 {
                     ProcessAcknowledgment(info.AcknowledgementInfo);
-                    closeContext = info.Action == WsrmIndex.GetSequenceAcknowledgementActionString(_listener.ReliableMessagingVersion);
+                    closeContext = info.Action == WsrmIndex.GetSequenceAcknowledgementActionString(_serviceDispatcher.ReliableMessagingVersion);
                 }
 
                 if (!closeContext)
@@ -831,7 +831,7 @@ namespace CoreWCF.Channels
                     }
                     else if (info.TerminateSequenceInfo != null)
                     {
-                        if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+                        if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
                         {
                             await ProcessTerminateSequenceFeb2005Async(context, info);
                         }
@@ -861,7 +861,7 @@ namespace CoreWCF.Channels
                     }
                 }
 
-                if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+                if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
                 {
                     if (IsMessagingCompleted)
                     {
@@ -909,8 +909,8 @@ namespace CoreWCF.Channels
             ReliableRequestContext reliableContext = null;
             WsrmFault fault = null;
             bool scheduleShutdown = false;
-            bool wsrmFeb2005 = _listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005;
-            bool wsrm11 = _listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11;
+            bool wsrmFeb2005 = _serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005;
+            bool wsrm11 = _serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11;
             long requestSequenceNumber = info.SequenceNumber;
             bool isLast = wsrmFeb2005 && info.LastMessage;
             bool isLastOnly = wsrmFeb2005 && (action == WsrmFeb2005Strings.LastMessageAction);
@@ -977,8 +977,8 @@ namespace CoreWCF.Channels
                 // ordered case, the delivery strategy MaxTransferWindowSize quota mitigates this
                 // threat.
                 else if (_deliveryStrategy.CanEnqueue(requestSequenceNumber)
-                    && (_requestsByReplySequenceNumber.Count < _listener.MaxTransferWindowSize)
-                    && (_listener.Ordered || _connection.CanMerge(requestSequenceNumber)))
+                    && (_requestsByReplySequenceNumber.Count < _serviceDispatcher.MaxTransferWindowSize)
+                    && (_serviceDispatcher.Ordered || _connection.CanMerge(requestSequenceNumber)))
                 {
                     _connection.Merge(requestSequenceNumber, isLast);
                     reliableContext = new ReliableRequestContext(context, info.SequenceNumber, this, false);
@@ -1080,7 +1080,7 @@ namespace CoreWCF.Channels
                 }
 
                 message = WsrmUtilities.CreateTerminateMessage(MessageVersion,
-                    _listener.ReliableMessagingVersion, _session.OutputID);
+                    _serviceDispatcher.ReliableMessagingVersion, _session.OutputID);
                 AddAcknowledgementHeader(message);
 
                 using (message)
@@ -1140,14 +1140,14 @@ namespace CoreWCF.Channels
         {
             bool shouldFault = false;
 
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 if (PendingRequestContexts != 0 || _connection.Ranges.Count > 1)
                 {
                     shouldFault = true;
                 }
             }
-            else if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11)
+            else if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11)
             {
                 if (PendingRequestContexts != 0)
                 {
@@ -1168,7 +1168,7 @@ namespace CoreWCF.Channels
         {
             AbortContexts();
 
-            if (_listener.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
             {
                 _messagingCompleteWaitObject.Fault(this);
             }
@@ -1206,8 +1206,8 @@ namespace CoreWCF.Channels
                 return;
             }
 
-            WsrmMessageInfo info = WsrmMessageInfo.Get(_listener.MessageVersion,
-                _listener.ReliableMessagingVersion, _binder.Channel, _binder.GetInnerSession(),
+            WsrmMessageInfo info = WsrmMessageInfo.Get(_serviceDispatcher.MessageVersion,
+                _serviceDispatcher.ReliableMessagingVersion, _binder.Channel, _binder.GetInnerSession(),
                 context.RequestMessage);
 
             await ProcessRequestAsync(context, info);
