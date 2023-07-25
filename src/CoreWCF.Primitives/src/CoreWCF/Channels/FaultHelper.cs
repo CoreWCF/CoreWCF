@@ -267,7 +267,7 @@ namespace CoreWCF.Channels
 
         protected override async Task SendFaultCoreAsync(IReliableChannelBinder binder, FaultState faultState, TimeSpan timeout)
         {
-            await faultState.RequestContext.ReplyAsync(faultState.FaultMessage, new TimeoutHelper(timeout).GetCancellationToken());
+            await faultState.RequestContext.ReplyAsync(faultState.FaultMessage, TimeoutHelper.GetCancellationToken(timeout));
             faultState.FaultMessage.Close();
         }
 
