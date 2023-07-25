@@ -74,7 +74,7 @@ namespace CoreWCF.Security
             _outgoingSessionToken = token ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
         }
 
-        protected override async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message, TimeSpan timeout)
+        protected override async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message)
         {
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
             ReceiveSecurityHeader securityHeader = Factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
@@ -95,13 +95,12 @@ namespace CoreWCF.Security
             securityHeader.ConfigureTransportBindingServerReceiveHeader(supportingAuthenticators);
             securityHeader.ConfigureOutOfBandTokenResolver(mergedTokenResolvers);
             securityHeader.ExpectEndorsingTokens = true;
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
 
             securityHeader.ReplayDetectionEnabled = Factory.DetectReplays;
             securityHeader.SetTimeParameters(Factory.NonceCache, Factory.ReplayWindow, Factory.MaxClockSkew);
             // do not enforce key derivation requirement for Cancel messages due to WSE interop
             securityHeader.EnforceDerivedKeyRequirement = (message.Headers.Action != Factory.StandardsManager.SecureConversationDriver.CloseAction.Value);
-            await securityHeader.ProcessAsync(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), Factory.ExtendedProtectionPolicy);
+            await securityHeader.ProcessAsync(SecurityUtils.GetChannelBindingFromMessage(message), Factory.ExtendedProtectionPolicy);
             if (securityHeader.Timestamp == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new MessageSecurityException(SR.Format(SR.RequiredTimestampMissingInSecurityHeader)));

@@ -200,7 +200,7 @@ namespace CoreWCF.Channels
 
         public System.Threading.Tasks.Task OpenAsync()
         {
-            CancellationToken token = new TimeoutHelper(DefaultOpenTimeout).GetCancellationToken();
+            CancellationToken token = TimeoutHelper.GetCancellationToken(DefaultOpenTimeout);
             return OpenAsync(token);
         }
 

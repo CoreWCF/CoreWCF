@@ -29,7 +29,10 @@ namespace CoreWCF.Channels
         private readonly IReliableFactorySettings _settings;
         private SendWaitReliableRequestor _terminateRequestor;
 
-        protected ReliableDuplexSessionChannel(ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher, IReliableChannelBinder binder) : base(serviceDispatcher, serviceDispatcher, binder.LocalAddress)
+        protected ReliableDuplexSessionChannel(
+            ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher,
+            IReliableChannelBinder binder)
+            : base(serviceDispatcher, serviceDispatcher, binder.LocalAddress)
         {
             _binder = binder;
             _serviceDispatcher = serviceDispatcher;
@@ -70,11 +73,6 @@ namespace CoreWCF.Channels
                         bufferRemaining);
                 }
             }
-        }
-
-        private Task CloseBinderAsync(CancellationToken token)
-        {
-            return _binder.CloseAsync(token, MaskingMode.Handled);
         }
 
         private Task CloseSequenceAsync(CancellationToken token)
@@ -564,7 +562,7 @@ namespace CoreWCF.Channels
                         {
                             try
                             {
-                                await _binder.SendAsync(message, new TimeoutHelper(DefaultSendTimeout).GetCancellationToken());
+                                await _binder.SendAsync(message, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
                             }
                             finally
                             {
@@ -647,7 +645,7 @@ namespace CoreWCF.Channels
                 {
                     using (Message message = CreateAcknowledgmentMessage())
                     {
-                        await _binder.SendAsync(message, new TimeoutHelper(DefaultSendTimeout).GetCancellationToken());
+                        await _binder.SendAsync(message, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
                     }
                 }
                 finally
@@ -1021,7 +1019,6 @@ namespace CoreWCF.Channels
     internal sealed class ServerReliableDuplexSessionChannel : ReliableDuplexSessionChannel
     {
         private ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher;
-        private readonly string perfCounterId;
 
         public ServerReliableDuplexSessionChannel(
             ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher,
@@ -1102,7 +1099,7 @@ namespace CoreWCF.Channels
             {
                 EndpointAddress acksTo;
 
-                if (WsrmUtilities.ValidateCreateSequence<IDuplexSessionChannel>(info, serviceDispatcher, Binder.Channel, out acksTo))
+                if (WsrmUtilities.ValidateCreateSequence(info, serviceDispatcher, Binder.Channel, out acksTo))
                 {
                     Message response = WsrmUtilities.CreateCreateSequenceResponse(Settings.MessageVersion,
                         Settings.ReliableMessagingVersion, true, info.CreateSequenceInfo, Settings.Ordered,
@@ -1113,7 +1110,7 @@ namespace CoreWCF.Channels
                         {
                             if (((IServerReliableChannelBinder)Binder).AddressResponse(info.Message, response))
                             {
-                                await Binder.SendAsync(response, new TimeoutHelper(DefaultSendTimeout).GetCancellationToken()); ;
+                                await Binder.SendAsync(response, TimeoutHelper.GetCancellationToken(DefaultSendTimeout)); ;
                             }
                         }
                     }
@@ -1143,7 +1140,7 @@ namespace CoreWCF.Channels
 
             public Task CloseOutputSessionAsync()
             {
-                return CloseOutputSessionAsync(new TimeoutHelper(_channel.DefaultCloseTimeout).GetCancellationToken());
+                return CloseOutputSessionAsync(TimeoutHelper.GetCancellationToken(_channel.DefaultCloseTimeout));
             }
 
             public Task CloseOutputSessionAsync(CancellationToken token)

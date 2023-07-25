@@ -414,7 +414,7 @@ namespace CoreWCF.Dispatcher
             }
             Fx.Assert(SecurityProtocol != null, "SecurityProtocol can't be null");
             ThrowIfSecureConversationCloseMessage(message);
-            return await SecurityProtocol.VerifyIncomingMessageAsync(message, timeout, correlationState);
+            return await SecurityProtocol.VerifyIncomingMessageAsync(message, correlationState);
         }
 
         internal ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
@@ -424,7 +424,7 @@ namespace CoreWCF.Dispatcher
                 return new ValueTask<Message>((Message)null);
             }
             ThrowIfSecureConversationCloseMessage(message);
-            return SecurityProtocol.VerifyIncomingMessageAsync(message, timeout);
+            return SecurityProtocol.VerifyIncomingMessageAsync(message);
         }
 
         public abstract Task DispatchAsync(RequestContext context);
@@ -596,11 +596,10 @@ namespace CoreWCF.Dispatcher
 
         protected IDuplexChannel InnerDuplexChannel { get; }
 
-        public Task SendAsync(Message message, TimeSpan timeout)
+        public Task SendAsync(Message message, CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            message = SecurityProtocol.SecureOutgoingMessage(message, timeoutHelper.GetCancellationToken());
-            return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+            SecurityProtocol.SecureOutgoingMessage(ref message);
+            return InnerDuplexChannel.SendAsync(message, token);
         }
     }
 
@@ -680,7 +679,7 @@ namespace CoreWCF.Dispatcher
 
         public Task SendAsync(Message message)
         {
-            return base.SendAsync(message, ServiceDefaults.SendTimeout);
+            return base.SendAsync(message, TimeoutHelper.GetCancellationToken(ServiceDefaults.SendTimeout));
         }
 
         public Task SendAsync(Message message, CancellationToken token)

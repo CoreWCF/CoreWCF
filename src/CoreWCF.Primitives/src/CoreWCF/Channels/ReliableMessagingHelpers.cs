@@ -447,7 +447,7 @@ namespace CoreWCF.Channels
             // this means when there's a problem, we will potentially go over time by an average of 5 seconds when
             // retrying. This is low enough that it shouldn't be consequential.
             lastIteration = token.IsCancellationRequested;
-            CancellationToken iterationToken = new TimeoutHelper(ReliableMessagingConstants.RequestorIterationTime).GetCancellationToken();
+            CancellationToken iterationToken = TimeoutHelper.GetCancellationToken(ReliableMessagingConstants.RequestorIterationTime);
             return iterationToken;
         }
 

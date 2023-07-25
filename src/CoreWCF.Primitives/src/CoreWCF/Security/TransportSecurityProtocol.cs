@@ -21,7 +21,7 @@ namespace CoreWCF.Security
         {
         }
 
-        public override Message SecureOutgoingMessage(Message message, CancellationToken token)
+        public override void SecureOutgoingMessage(ref Message message)
         {
             if (message == null)
             {
@@ -31,14 +31,7 @@ namespace CoreWCF.Security
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
             try
             {
-                if (SecurityProtocolFactory.ActAsInitiator)
-                {
-                    Fx.Assert(false, "Server side code");
-                }
-                else
-                {
-                    message = SecureOutgoingMessageAtResponder(message, actor);
-                }
+                SecureOutgoingMessageAtResponder(ref message, actor);
                 base.OnOutgoingMessageSecured(message);
             }
             catch
@@ -46,21 +39,18 @@ namespace CoreWCF.Security
                 base.OnSecureOutgoingMessageFailure(message);
                 throw;
             }
-
-            return message;
         }
 
-        protected virtual Message SecureOutgoingMessageAtResponder(Message message, string actor)
+        protected virtual void SecureOutgoingMessageAtResponder(ref Message message, string actor)
         {
             if (SecurityProtocolFactory.AddTimestamp && !SecurityProtocolFactory.SecurityBindingElement.EnableUnsecuredResponse)
             {
                 SendSecurityHeader securityHeader = CreateSendSecurityHeaderForTransportProtocol(message, actor, SecurityProtocolFactory);
                 message = securityHeader.SetupExecution();
             }
-            return message;
         }
 
-        public sealed override async ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
+        public sealed override async ValueTask<Message> VerifyIncomingMessageAsync(Message message)
         {
             if (message == null)
             {
@@ -69,7 +59,7 @@ namespace CoreWCF.Security
             CommunicationObject.ThrowIfClosedOrNotOpen();
             try
             {
-                Message verifiedMessage = await VerifyIncomingMessageCoreAsync(message, timeout);
+                Message verifiedMessage = await VerifyIncomingMessageCoreAsync(message);
                 return verifiedMessage;
 
             }
@@ -99,20 +89,19 @@ namespace CoreWCF.Security
             security.ServiceSecurityContext = new ServiceSecurityContext(security.GetInitiatorTokenAuthorizationPolicies());
         }
 
-        protected virtual async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message, TimeSpan timeout)
+        protected virtual async ValueTask<Message> VerifyIncomingMessageCoreAsync(Message message)
         {
             TransportSecurityProtocolFactory factory = (TransportSecurityProtocolFactory)SecurityProtocolFactory;
             string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
 
             ReceiveSecurityHeader securityHeader = factory.StandardsManager.TryCreateReceiveSecurityHeader(message, actor,
-                factory.IncomingAlgorithmSuite, (factory.ActAsInitiator) ? MessageDirection.Output : MessageDirection.Input);
+                factory.IncomingAlgorithmSuite, MessageDirection.Input);
             IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators = factory.GetSupportingTokenAuthenticators(message.Headers.Action,
                 out bool expectSignedTokens, out bool expectBasicTokens, out bool expectEndorsingTokens);
             if (securityHeader == null)
             {
                 bool expectSupportingTokens = expectEndorsingTokens || expectSignedTokens || expectBasicTokens;
-                if ((factory.ActAsInitiator && (!factory.AddTimestamp || factory.SecurityBindingElement.EnableUnsecuredResponse))
-                    || (!factory.ActAsInitiator && !factory.AddTimestamp && !expectSupportingTokens))
+                if (!factory.AddTimestamp && !expectSupportingTokens)
                 {
                     return message;
                 }
@@ -142,26 +131,18 @@ namespace CoreWCF.Security
             // wasn't being applied. The customer fix is to not set the SecurityHeaderLayout as that's what they were effectively running with.
              securityHeader.Layout = factory.SecurityHeaderLayout;
 
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (!factory.ActAsInitiator)
+            securityHeader.ConfigureTransportBindingServerReceiveHeader(supportingAuthenticators);
+            securityHeader.ConfigureOutOfBandTokenResolver(MergeOutOfBandResolvers(supportingAuthenticators, EmptyReadOnlyCollection<SecurityTokenResolver>.Instance));
+            if (factory.ExpectKeyDerivation)
             {
-                securityHeader.ConfigureTransportBindingServerReceiveHeader(supportingAuthenticators);
-                securityHeader.ConfigureOutOfBandTokenResolver(MergeOutOfBandResolvers(supportingAuthenticators, EmptyReadOnlyCollection<SecurityTokenResolver>.Instance));
-                if (factory.ExpectKeyDerivation)
-                {
-                    securityHeader.DerivedTokenAuthenticator = factory.DerivedKeyTokenAuthenticator;
-                }
+                securityHeader.DerivedTokenAuthenticator = factory.DerivedKeyTokenAuthenticator;
             }
             securityHeader.ReplayDetectionEnabled = factory.DetectReplays;
             securityHeader.SetTimeParameters(factory.NonceCache, factory.ReplayWindow, factory.MaxClockSkew);
-            await securityHeader.ProcessAsync(timeoutHelper.RemainingTime(), SecurityUtils.GetChannelBindingFromMessage(message), factory.ExtendedProtectionPolicy);
+            await securityHeader.ProcessAsync(SecurityUtils.GetChannelBindingFromMessage(message), factory.ExtendedProtectionPolicy);
             Message processedMessage = securityHeader.ProcessedMessage;
-            if (!factory.ActAsInitiator)
-            {
                 AttachRecipientSecurityProperty(processedMessage, securityHeader.BasicSupportingTokens, securityHeader.EndorsingSupportingTokens, securityHeader.SignedEndorsingSupportingTokens,
                     securityHeader.SignedSupportingTokens, securityHeader.SecurityTokenAuthorizationPoliciesMapping);
-            }
-
             base.OnIncomingMessageVerified(processedMessage);
 
             return processedMessage;

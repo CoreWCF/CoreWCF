@@ -78,9 +78,9 @@ namespace CoreWCF.Channels
             {
                 connection.Reset();
 
-                CancellationToken ct = new TimeoutHelper(_idleTimeout).GetCancellationToken();
+                CancellationToken ct = TimeoutHelper.GetCancellationToken(_idleTimeout);
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    new TimeoutHelper(_idleTimeout).GetCancellationToken(),
+                    TimeoutHelper.GetCancellationToken(_idleTimeout),
                     cancellationToken))
                 {
                     connection.Logger.StartPendingReadOnIdleSocket();
