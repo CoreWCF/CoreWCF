@@ -67,7 +67,7 @@ namespace CoreWCF.Channels
 
             // ServerReliableSession.OpenAsync is implemented synchronously. If this changes, we need to refactor
             // so that we don't call it from the constructor.
-            var sessionOpenTask = _session.OpenAsync(TimeSpan.Zero);
+            var sessionOpenTask = _session.OpenAsync(default);
             Fx.Assert(sessionOpenTask.IsCompleted, "ReliableReplySessionChannel: Session open task is not completed");
             sessionOpenTask.GetAwaiter().GetResult();
 
@@ -722,7 +722,7 @@ namespace CoreWCF.Channels
 
                 if (!await replyHelper.TransferRequestContextAsync(context, info))
                 {
-                    await replyHelper.ReplyAsync(context, info, new TimeoutHelper(DefaultSendTimeout).GetCancellationToken(), MaskingMode.All);
+                    await replyHelper.ReplyAsync(context, info, TimeoutHelper.GetCancellationToken(DefaultSendTimeout), MaskingMode.All);
 
                     if (isTerminate)
                     {
@@ -791,7 +791,7 @@ namespace CoreWCF.Channels
                 {
                     EndpointAddress acksTo;
 
-                    if (WsrmUtilities.ValidateCreateSequence<IReplySessionChannel>(info, _serviceDispatcher, _binder.Channel, out acksTo))
+                    if (WsrmUtilities.ValidateCreateSequence(info, _serviceDispatcher, _binder.Channel, out acksTo))
                     {
                         Message response = WsrmUtilities.CreateCreateSequenceResponse(_serviceDispatcher.MessageVersion,
                             _serviceDispatcher.ReliableMessagingVersion, true, info.CreateSequenceInfo,
@@ -802,7 +802,7 @@ namespace CoreWCF.Channels
                             using (response)
                             {
                                 if (Binder.AddressResponse(info.Message, response))
-                                    await context.ReplyAsync(response, new TimeoutHelper(DefaultSendTimeout).GetCancellationToken());
+                                    await context.ReplyAsync(response, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
                             }
                         }
                     }

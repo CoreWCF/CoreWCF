@@ -268,86 +268,13 @@ namespace CoreWCF.Security
             }
         }
 
-        public virtual async Task OnOpenAsync(TimeSpan timeout)
+        public virtual Task OnOpenAsync(CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            if (SecurityProtocolFactory.ActAsInitiator)
-            {
-                ChannelSupportingTokenProviderSpecification = new Collection<SupportingTokenProviderSpecification>();
-                ScopedSupportingTokenProviderSpecification = new Dictionary<string, ICollection<SupportingTokenProviderSpecification>>();
-
-                AddSupportingTokenProviders(SecurityProtocolFactory.SecurityBindingElement.EndpointSupportingTokenParameters, false, (IList<SupportingTokenProviderSpecification>)ChannelSupportingTokenProviderSpecification);
-                AddSupportingTokenProviders(SecurityProtocolFactory.SecurityBindingElement.OptionalEndpointSupportingTokenParameters, true, (IList<SupportingTokenProviderSpecification>)ChannelSupportingTokenProviderSpecification);
-                foreach (string action in SecurityProtocolFactory.SecurityBindingElement.OperationSupportingTokenParameters.Keys)
-                {
-                    Collection<SupportingTokenProviderSpecification> providerSpecList = new Collection<SupportingTokenProviderSpecification>();
-                    AddSupportingTokenProviders(SecurityProtocolFactory.SecurityBindingElement.OperationSupportingTokenParameters[action], false, providerSpecList);
-                    ScopedSupportingTokenProviderSpecification.Add(action, providerSpecList);
-                }
-
-                foreach (string action in SecurityProtocolFactory.SecurityBindingElement.OptionalOperationSupportingTokenParameters.Keys)
-                {
-                    Collection<SupportingTokenProviderSpecification> providerSpecList;
-                    if (ScopedSupportingTokenProviderSpecification.TryGetValue(action, out ICollection<SupportingTokenProviderSpecification> existingList))
-                    {
-                        providerSpecList = ((Collection<SupportingTokenProviderSpecification>)existingList);
-                    }
-                    else
-                    {
-                        providerSpecList = new Collection<SupportingTokenProviderSpecification>();
-                        ScopedSupportingTokenProviderSpecification.Add(action, providerSpecList);
-                    }
-
-                    AddSupportingTokenProviders(SecurityProtocolFactory.SecurityBindingElement.OptionalOperationSupportingTokenParameters[action], true, providerSpecList);
-                }
-
-                if (!ChannelSupportingTokenProviderSpecification.IsReadOnly)
-                {
-                    if (ChannelSupportingTokenProviderSpecification.Count == 0)
-                    {
-                        ChannelSupportingTokenProviderSpecification = EmptyTokenProviders;
-                    }
-                    else
-                    {
-                        SecurityProtocolFactory.ExpectSupportingTokens = true;
-                        CancellationToken cancellationToken = timeoutHelper.GetCancellationToken();
-                        foreach (SupportingTokenProviderSpecification tokenProviderSpec in ChannelSupportingTokenProviderSpecification)
-                        {
-                            await SecurityUtils.OpenTokenProviderIfRequiredAsync(tokenProviderSpec.TokenProvider, cancellationToken);
-                            if (tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing || tokenProviderSpec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
-                            {
-                                if (tokenProviderSpec.TokenParameters.RequireDerivedKeys && !tokenProviderSpec.TokenParameters.HasAsymmetricKey)
-                                {
-                                    SecurityProtocolFactory.ExpectKeyDerivation = true;
-                                }
-                            }
-                        }
-                        ChannelSupportingTokenProviderSpecification =
-                            new ReadOnlyCollection<SupportingTokenProviderSpecification>((Collection<SupportingTokenProviderSpecification>)ChannelSupportingTokenProviderSpecification);
-                    }
-                }
-                // create a merged map of the per operation supporting tokens
-                await MergeSupportingTokenProvidersAsync(timeoutHelper.RemainingTime());
-            }
+            return Task.CompletedTask;
         }
 
         public virtual void OnAbort()
         {
-            if (SecurityProtocolFactory.ActAsInitiator)
-            {
-                foreach (SupportingTokenProviderSpecification spec in ChannelSupportingTokenProviderSpecification)
-                {
-                    SecurityUtils.AbortTokenProviderIfRequired(spec.TokenProvider);
-                }
-                foreach (string action in ScopedSupportingTokenProviderSpecification.Keys)
-                {
-                    ICollection<SupportingTokenProviderSpecification> supportingProviders = ScopedSupportingTokenProviderSpecification[action];
-                    foreach (SupportingTokenProviderSpecification spec in supportingProviders)
-                    {
-                        SecurityUtils.AbortTokenProviderIfRequired(spec.TokenProvider);
-                    }
-                }
-            }
         }
 
         //public virtual async Task OnCloseAsync(CancellationToken token)
@@ -414,7 +341,7 @@ namespace CoreWCF.Security
 
         private SendSecurityHeader CreateSendSecurityHeader(Message message, string actor, SecurityProtocolFactory factory, bool requireMessageProtection)
         {
-            MessageDirection transferDirection = factory.ActAsInitiator ? MessageDirection.Input : MessageDirection.Output;
+            MessageDirection transferDirection = MessageDirection.Output;
             SendSecurityHeader sendSecurityHeader = factory.StandardsManager.CreateSendSecurityHeader(
                 message,
                 actor, true, false,
@@ -453,37 +380,9 @@ namespace CoreWCF.Security
             }
         }
 
-        internal async Task<IList<SupportingTokenSpecification>> TryGetSupportingTokensAsync(SecurityProtocolFactory factory, EndpointAddress target, Uri via, Message message, TimeSpan timeout)
+        internal Task<IList<SupportingTokenSpecification>> TryGetSupportingTokensAsync(SecurityProtocolFactory factory, EndpointAddress target, Uri via, Message message, TimeSpan timeout)
         {
-            IList<SupportingTokenSpecification> supportingTokens = null;
-            if (!factory.ActAsInitiator)
-            {
-                return null;
-            }
-
-            if (message == null)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
-            }
-
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            IList<SupportingTokenProviderSpecification> supportingTokenProviders = GetSupportingTokenProviders(message.Headers.Action);
-            if (supportingTokenProviders != null && supportingTokenProviders.Count > 0)
-            {
-                supportingTokens = new Collection<SupportingTokenSpecification>();
-                for (int i = 0; i < supportingTokenProviders.Count; ++i)
-                {
-                    SupportingTokenProviderSpecification spec = supportingTokenProviders[i];
-                    SecurityToken supportingToken;
-                    supportingToken = await spec.TokenProvider.GetTokenAsync(timeoutHelper.GetCancellationToken());
-
-                    supportingTokens.Add(new SupportingTokenSpecification(supportingToken, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, spec.SecurityTokenAttachmentMode, spec.TokenParameters));
-                }
-            }
-
-            // add any runtime supporting tokens
-            AddMessageSupportingTokens(message, ref supportingTokens);
-            return supportingTokens;
+            return Task.FromResult< IList<SupportingTokenSpecification>>(null);
         }
 
         protected ReadOnlyCollection<SecurityTokenResolver> MergeOutOfBandResolvers(IList<SupportingTokenAuthenticatorSpecification> supportingAuthenticators, ReadOnlyCollection<SecurityTokenResolver> primaryResolvers)
@@ -558,7 +457,7 @@ namespace CoreWCF.Security
             SecurityToken token;
             try
             {
-                token = await provider.GetTokenAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                token = await provider.GetTokenAsync(TimeoutHelper.GetCancellationToken(timeout));
             }
             catch (SecurityTokenException exception)
             {
@@ -572,12 +471,13 @@ namespace CoreWCF.Security
             return token;
         }
 
-        public abstract Message SecureOutgoingMessage(Message message, CancellationToken token);
+        public abstract void SecureOutgoingMessage(ref Message message);
 
         // subclasses that offer correlation should override this version
         public virtual (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
         {
-            return (null, SecureOutgoingMessage(message, token));
+            SecureOutgoingMessage(ref message);
+            return (null, message);
         }
 
         protected virtual void OnOutgoingMessageSecured(Message securedMessage)
@@ -588,12 +488,12 @@ namespace CoreWCF.Security
         {
         }
 
-        public abstract ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout);
+        public abstract ValueTask<Message> VerifyIncomingMessageAsync(Message message);
 
         // subclasses that offer correlation should override this version
-        public virtual async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
+        public virtual async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, params SecurityProtocolCorrelationState[] correlationStates)
         {
-            var verifiedMessage = await VerifyIncomingMessageAsync(message, timeout);
+            var verifiedMessage = await VerifyIncomingMessageAsync(message);
             return (verifiedMessage, null);
         }
 
@@ -619,7 +519,7 @@ namespace CoreWCF.Security
             return authenticators;
         }
 
-        public Task CloseAsync(bool aborted, TimeSpan timeout)
+        public Task CloseAsync(bool aborted, CancellationToken token)
         {
             if (aborted)
             {
@@ -627,8 +527,9 @@ namespace CoreWCF.Security
             }
             else
             {
-                CommunicationObject.CloseAsync();
+                return CommunicationObject.CloseAsync(token);
             }
+
             return Task.CompletedTask;
         }
 

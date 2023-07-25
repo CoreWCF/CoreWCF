@@ -5,31 +5,27 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class InputQueueDuplexChannel : InputQueueServiceChannelDispatcher<Message>, IDuplexChannel
+    internal abstract class InputQueueInputChannel : InputQueueServiceChannelDispatcher<Message>, IInputChannel
     {
-        private readonly EndpointAddress _localAddress;
         private IServiceChannelDispatcher _serviceChannelDispatcher;
         private Task<IServiceChannelDispatcher> _serviceChannelDispatcherCreateTask = null;
 
-        protected InputQueueDuplexChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress)
+        public InputQueueInputChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress)
             : base(timeouts)
         {
             LocalAddress = localAddress;
             _serviceChannelDispatcherCreateTask = serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
         }
 
-        public virtual EndpointAddress LocalAddress { get; }
-        public abstract EndpointAddress RemoteAddress { get; }
-        public abstract Uri Via { get; }
+        public EndpointAddress LocalAddress { get; }
 
         public override T GetProperty<T>()
         {
-            if (typeof(T) == typeof(IDuplexChannel))
+            if (typeof(T) == typeof(IInputChannel))
             {
                 return (T)(object)this;
             }
@@ -43,34 +39,12 @@ namespace CoreWCF.Channels
             return default(T);
         }
 
-        protected abstract Task OnSendAsync(Message message, CancellationToken token);
-
-        public Task SendAsync(Message message)
-        {
-            return SendAsync(message, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
-        }
-
-        public Task SendAsync(Message message, CancellationToken token)
-        {
-            if (message == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
-
-            ThrowIfDisposedOrNotOpen();
-
-            AddHeadersTo(message);
-            return OnSendAsync(message, token);
-        }
-
-        protected virtual void AddHeadersTo(Message message) { }
+        protected override void OnAbort() { }
+        protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
 
         public Task<Message> ReceiveAsync(CancellationToken token) => throw new NotImplementedException();
         public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
-
-        protected override void OnAbort() { }
-
-        protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
-
-        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
 
         public override async Task InnerDispatchAsync(RequestContext context)
         {

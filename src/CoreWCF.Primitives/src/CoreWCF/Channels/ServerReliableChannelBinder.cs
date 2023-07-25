@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -14,32 +13,20 @@ namespace CoreWCF.Channels
     internal abstract class ServerReliableChannelBinder<TChannel> : ReliableChannelBinder<TChannel>, IServerReliableChannelBinder where TChannel : class, IChannel
     {
         private const string AddressedPropertyName = "MessageAddressedByBinderProperty";
-        private IServiceDispatcher _serviceDispatcher;
-        private IServiceChannelDispatcher _serviceChannelDispatcher;
-        private EndpointAddress cachedLocalAddress;
-        private EndpointAddress remoteAddress;
-        private TChannel pendingChannel;
-        private readonly InterruptibleWaitObject pendingChannelEvent = new InterruptibleWaitObject(false, false);
-
-
-        protected ServerReliableChannelBinder(IServiceDispatcher serviceDispatcher,
-            EndpointAddress remoteAddress, MessageFilter filter, int priority, MaskingMode maskingMode,
-            TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout)
-            : base(null, maskingMode, faultMode, defaultCloseTimeout, defaultSendTimeout)
-        {
-            _serviceDispatcher = serviceDispatcher;
-            this.remoteAddress = remoteAddress;
-        }
+        private readonly IServiceChannelDispatcher _serviceChannelDispatcher;
+        private readonly EndpointAddress _cachedLocalAddress;
+        private readonly EndpointAddress _remoteAddress;
+        private TChannel _pendingChannel;
+        private readonly InterruptibleWaitObject _pendingChannelEvent = new InterruptibleWaitObject(false, false);
 
         protected ServerReliableChannelBinder(TChannel channel, EndpointAddress cachedLocalAddress,
             EndpointAddress remoteAddress, MaskingMode maskingMode,
             TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout)
-            : base(channel, maskingMode, faultMode, defaultCloseTimeout, defaultSendTimeout)
+            TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
+            : base(channel, maskingMode, faultMode, defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
         {
-            this.cachedLocalAddress = cachedLocalAddress;
-            this.remoteAddress = remoteAddress;
+            _cachedLocalAddress = cachedLocalAddress;
+            _remoteAddress = remoteAddress;
         }
 
         protected override bool CanGetChannelForReceive => true;
@@ -48,13 +35,13 @@ namespace CoreWCF.Channels
         {
             get
             {
-                if (this.cachedLocalAddress != null)
+                if (_cachedLocalAddress != null)
                 {
-                    return this.cachedLocalAddress;
+                    return _cachedLocalAddress;
                 }
                 else
                 {
-                    return this.GetInnerChannelLocalAddress();
+                    return GetInnerChannelLocalAddress();
                 }
             }
         }
@@ -63,7 +50,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this.MustOpenChannel || this.HasSession;
+                return MustOpenChannel || HasSession;
             }
         }
 
@@ -71,7 +58,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this._serviceChannelDispatcher != null;
+                return _serviceChannelDispatcher != null;
             }
         }
 
@@ -79,7 +66,7 @@ namespace CoreWCF.Channels
         {
             get
             {
-                return this.remoteAddress;
+                return _remoteAddress;
             }
         }
 
@@ -90,16 +77,16 @@ namespace CoreWCF.Channels
 
         protected override void AddOutputHeaders(Message message)
         {
-            if (this.GetAddressedProperty(message) == null)
+            if (GetAddressedProperty(message) == null)
             {
-                this.RemoteAddress.ApplyTo(message);
-                this.AddAddressedProperty(message);
+                RemoteAddress.ApplyTo(message);
+                AddAddressedProperty(message);
             }
         }
 
         public bool AddressResponse(Message request, Message response)
         {
-            if (this.GetAddressedProperty(response) != null)
+            if (GetAddressedProperty(response) != null)
             {
                 throw Fx.AssertAndThrow("The binder can't address a response twice");
             }
@@ -108,7 +95,7 @@ namespace CoreWCF.Channels
             {
                 RequestReplyCorrelator.PrepareReply(response, request);
             }
-            catch (MessageHeaderException exception)
+            catch (MessageHeaderException)
             {
                 // swallow it - we don't need to correlate the reply if the MessageId header is bad
                 //if (DiagnosticUtility.ShouldTraceInformation)
@@ -120,7 +107,7 @@ namespace CoreWCF.Channels
             {
                 sendResponse = RequestReplyCorrelator.AddressReply(response, request);
             }
-            catch (MessageHeaderException exception)
+            catch (MessageHeaderException)
             {
                 // swallow it - we don't need to address the reply if the addressing headers are bad
                 //if (DiagnosticUtility.ShouldTraceInformation)
@@ -128,7 +115,7 @@ namespace CoreWCF.Channels
             }
 
             if (sendResponse)
-                this.AddAddressedProperty(response);
+                AddAddressedProperty(response);
 
             return sendResponse;
         }
@@ -142,45 +129,10 @@ namespace CoreWCF.Channels
         // static void OnAcceptChannelCompleteStatic(IAsyncResult result);
         // protected abstract bool OnWaitForRequest(TChannel channel, TimeSpan timeout);
 
-        public static IServerReliableChannelBinder CreateBinder(ChannelBuilder builder,
-            EndpointAddress remoteAddress, MessageFilter filter, int priority,
-            TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout)
-        {
-            Type type = typeof(TChannel);
-
-            if (type == typeof(IDuplexChannel))
-            {
-                return new DuplexServerReliableChannelBinder(builder, remoteAddress, filter,
-                    priority, MaskingMode.None, defaultCloseTimeout, defaultSendTimeout);
-            }
-            else if (type == typeof(IDuplexSessionChannel))
-            {
-                return new DuplexSessionServerReliableChannelBinder(builder, remoteAddress, filter,
-                    priority, MaskingMode.None, faultMode, defaultCloseTimeout,
-                    defaultSendTimeout);
-            }
-            else if (type == typeof(IReplyChannel))
-            {
-                return new ReplyServerReliableChannelBinder(builder, remoteAddress, filter,
-                    priority, MaskingMode.None, defaultCloseTimeout, defaultSendTimeout);
-            }
-            else if (type == typeof(IReplySessionChannel))
-            {
-                return new ReplySessionServerReliableChannelBinder(builder, remoteAddress, filter,
-                    priority, MaskingMode.None, faultMode, defaultCloseTimeout,
-                    defaultSendTimeout);
-            }
-            else
-            {
-                throw Fx.AssertAndThrow("ServerReliableChannelBinder supports creation of IDuplexChannel, IDuplexSessionChannel, IReplyChannel, and IReplySessionChannel only.");
-            }
-        }
-
         public static IServerReliableChannelBinder CreateBinder(TChannel channel,
             EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
             TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout)
+            TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
         {
             Type type = typeof(TChannel);
 
@@ -188,25 +140,25 @@ namespace CoreWCF.Channels
             {
                 return new DuplexServerReliableChannelBinder((IDuplexChannel)channel,
                     cachedLocalAddress, remoteAddress, MaskingMode.All, defaultCloseTimeout,
-                    defaultSendTimeout);
+                    defaultSendTimeout, defaultReceiveTimeout);
             }
             else if (type == typeof(IDuplexSessionChannel))
             {
                 return new DuplexSessionServerReliableChannelBinder((IDuplexSessionChannel)channel,
                     cachedLocalAddress, remoteAddress, MaskingMode.All, faultMode,
-                    defaultCloseTimeout, defaultSendTimeout);
+                    defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout);
             }
             else if (type == typeof(IReplyChannel))
             {
                 return new ReplyServerReliableChannelBinder((IReplyChannel)channel,
                     cachedLocalAddress, remoteAddress, MaskingMode.All, defaultCloseTimeout,
-                    defaultSendTimeout);
+                    defaultSendTimeout, defaultReceiveTimeout);
             }
             else if (type == typeof(IReplySessionChannel))
             {
                 return new ReplySessionServerReliableChannelBinder((IReplySessionChannel)channel,
                     cachedLocalAddress, remoteAddress, MaskingMode.All, faultMode,
-                    defaultCloseTimeout, defaultSendTimeout);
+                    defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout);
             }
             else
             {
@@ -237,11 +189,11 @@ namespace CoreWCF.Channels
         {
             TChannel channel = null;
 
-            lock (this.ThisLock)
+            lock (ThisLock)
             {
-                channel = pendingChannel;
-                pendingChannel = null;
-                pendingChannelEvent.Set();
+                channel = _pendingChannel;
+                _pendingChannel = null;
+                _pendingChannelEvent.Set();
             }
 
             if (channel != null)
@@ -289,20 +241,20 @@ namespace CoreWCF.Channels
             TChannel oldPendingChannel = null;
             TChannel oldBinderChannel = null;
 
-            lock (this.ThisLock)
+            lock (ThisLock)
             {
-                if (!this.Synchronizer.TolerateFaults ||
-                    this.State == CommunicationState.Faulted ||
-                    this.State == CommunicationState.Closing ||
-                    this.State == CommunicationState.Closed)
+                if (!Synchronizer.TolerateFaults ||
+                    State == CommunicationState.Faulted ||
+                    State == CommunicationState.Closing ||
+                    State == CommunicationState.Closed)
                 {
                     return false;
                 }
                 else
                 {
-                    oldPendingChannel = this.pendingChannel;
-                    this.pendingChannel = (TChannel)channel;
-                    oldBinderChannel = this.Synchronizer.AbortCurentChannel();
+                    oldPendingChannel = _pendingChannel;
+                    _pendingChannel = (TChannel)channel;
+                    oldBinderChannel = Synchronizer.AbortCurentChannel();
                 }
             }
 
@@ -311,7 +263,7 @@ namespace CoreWCF.Channels
                 oldPendingChannel.Abort();
             }
 
-            this.pendingChannelEvent.Set();
+            _pendingChannelEvent.Set();
 
             if (oldBinderChannel != null)
             {
@@ -321,25 +273,16 @@ namespace CoreWCF.Channels
             return true;
         }
 
-        abstract class DuplexServerReliableChannelBinder<TDuplexChannel>
+        private abstract class DuplexServerReliableChannelBinder<TDuplexChannel>
             : ServerReliableChannelBinder<TDuplexChannel>
             where TDuplexChannel : class, IDuplexChannel
         {
-            protected DuplexServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             protected DuplexServerReliableChannelBinder(TDuplexChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
                 MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
+                defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -353,60 +296,17 @@ namespace CoreWCF.Channels
 
             protected override EndpointAddress GetInnerChannelLocalAddress()
             {
-                IDuplexChannel channel = this.Synchronizer.CurrentChannel;
+                IDuplexChannel channel = Synchronizer.CurrentChannel;
                 EndpointAddress localAddress = (channel == null) ? null : channel.LocalAddress;
                 return localAddress;
             }
 
-            protected override IAsyncResult OnBeginSend(TDuplexChannel channel, Message message,
-                TimeSpan timeout, AsyncCallback callback, object state)
+            protected override Task OnSendAsync(TDuplexChannel channel, Message message, CancellationToken token)
             {
-                return channel.BeginSend(message, timeout, callback, state);
-            }
-
-            protected override IAsyncResult OnBeginTryReceive(TDuplexChannel channel,
-                TimeSpan timeout, AsyncCallback callback, object state)
-            {
-                return channel.BeginTryReceive(timeout, callback, state);
-            }
-
-            protected override IAsyncResult OnBeginWaitForRequest(TDuplexChannel channel,
-                TimeSpan timeout, AsyncCallback callback, object state)
-            {
-                return channel.BeginWaitForMessage(timeout, callback, state);
-            }
-
-            protected override void OnEndSend(TDuplexChannel channel, IAsyncResult result)
-            {
-                channel.EndSend(result);
-            }
-
-            protected override bool OnEndTryReceive(TDuplexChannel channel, IAsyncResult result,
-                out RequestContext requestContext)
-            {
-                Message message;
-                bool success = channel.EndTryReceive(result, out message);
-                if (success)
-                {
-                    this.OnMessageReceived(message);
-                }
-                requestContext = this.WrapMessage(message);
-                return success;
-            }
-
-            protected override bool OnEndWaitForRequest(TDuplexChannel channel,
-                IAsyncResult result)
-            {
-                return channel.EndWaitForMessage(result);
+                return channel.SendAsync(message, token);
             }
 
             protected abstract void OnMessageReceived(Message message);
-
-            protected override void OnSend(TDuplexChannel channel, Message message,
-                TimeSpan timeout)
-            {
-                channel.Send(message, timeout);
-            }
 
             protected override bool OnTryReceive(TDuplexChannel channel, TimeSpan timeout,
                 out RequestContext requestContext)
@@ -415,35 +315,21 @@ namespace CoreWCF.Channels
                 bool success = channel.TryReceive(timeout, out message);
                 if (success)
                 {
-                    this.OnMessageReceived(message);
+                    OnMessageReceived(message);
                 }
-                requestContext = this.WrapMessage(message);
+                requestContext = WrapMessage(message);
                 return success;
             }
-
-            protected override bool OnWaitForRequest(TDuplexChannel channel, TimeSpan timeout)
-            {
-                return channel.WaitForMessage(timeout);
-            }
-
         }
 
-        sealed class DuplexServerReliableChannelBinder
+        private sealed class DuplexServerReliableChannelBinder
             : DuplexServerReliableChannelBinder<IDuplexChannel>
         {
-            public DuplexServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode,
-                TolerateFaultsMode.Never, defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             public DuplexServerReliableChannelBinder(IDuplexChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
-                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode, TolerateFaultsMode.Never,
-                defaultCloseTimeout, defaultSendTimeout)
+                defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -470,24 +356,15 @@ namespace CoreWCF.Channels
             }
         }
 
-        sealed class DuplexSessionServerReliableChannelBinder
+        private sealed class DuplexSessionServerReliableChannelBinder
             : DuplexServerReliableChannelBinder<IDuplexSessionChannel>
         {
-            public DuplexSessionServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             public DuplexSessionServerReliableChannelBinder(IDuplexSessionChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
                 MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
+                defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -519,7 +396,7 @@ namespace CoreWCF.Channels
 
             public override ISession GetInnerSession()
             {
-                return this.Synchronizer.CurrentChannel.Session;
+                return Synchronizer.CurrentChannel.Session;
             }
 
             protected override bool HasSecuritySession(IDuplexSessionChannel channel)
@@ -530,29 +407,20 @@ namespace CoreWCF.Channels
             protected override void OnMessageReceived(Message message)
             {
                 if (message == null)
-                    this.Synchronizer.OnReadEof();
+                    Synchronizer.OnReadEof();
             }
         }
 
-        abstract class ReplyServerReliableChannelBinder<TReplyChannel>
+        private abstract class ReplyServerReliableChannelBinder<TReplyChannel>
             : ServerReliableChannelBinder<TReplyChannel>
             where TReplyChannel : class, IReplyChannel
         {
-            public ReplyServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             public ReplyServerReliableChannelBinder(TReplyChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
                 MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
+                defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -566,7 +434,7 @@ namespace CoreWCF.Channels
 
             protected override EndpointAddress GetInnerChannelLocalAddress()
             {
-                IReplyChannel channel = this.Synchronizer.CurrentChannel;
+                IReplyChannel channel = Synchronizer.CurrentChannel;
                 EndpointAddress localAddress = (channel == null) ? null : channel.LocalAddress;
                 return localAddress;
             }
@@ -589,9 +457,9 @@ namespace CoreWCF.Channels
                 bool success = channel.EndTryReceiveRequest(result, out requestContext);
                 if (success && (requestContext == null))
                 {
-                    this.OnReadNullMessage();
+                    OnReadNullMessage();
                 }
-                requestContext = this.WrapRequestContext(requestContext);
+                requestContext = WrapRequestContext(requestContext);
                 return success;
             }
 
@@ -610,9 +478,9 @@ namespace CoreWCF.Channels
                 bool success = channel.TryReceiveRequest(timeout, out requestContext);
                 if (success && (requestContext == null))
                 {
-                    this.OnReadNullMessage();
+                    OnReadNullMessage();
                 }
-                requestContext = this.WrapRequestContext(requestContext);
+                requestContext = WrapRequestContext(requestContext);
                 return success;
             }
 
@@ -622,22 +490,14 @@ namespace CoreWCF.Channels
             }
         }
 
-        sealed class ReplyServerReliableChannelBinder
+        private sealed class ReplyServerReliableChannelBinder
             : ReplyServerReliableChannelBinder<IReplyChannel>
         {
-            public ReplyServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode,
-                TolerateFaultsMode.Never, defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             public ReplyServerReliableChannelBinder(IReplyChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
-                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                MaskingMode maskingMode, TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode,
-                TolerateFaultsMode.Never, defaultCloseTimeout, defaultSendTimeout)
+                TolerateFaultsMode.Never, defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -660,24 +520,15 @@ namespace CoreWCF.Channels
             }
         }
 
-        sealed class ReplySessionServerReliableChannelBinder
+        private sealed class ReplySessionServerReliableChannelBinder
             : ReplyServerReliableChannelBinder<IReplySessionChannel>
         {
-            public ReplySessionServerReliableChannelBinder(ChannelBuilder builder,
-                EndpointAddress remoteAddress, MessageFilter filter, int priority,
-                MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
-                : base(builder, remoteAddress, filter, priority, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
-            {
-            }
-
             public ReplySessionServerReliableChannelBinder(IReplySessionChannel channel,
                 EndpointAddress cachedLocalAddress, EndpointAddress remoteAddress,
                 MaskingMode maskingMode, TolerateFaultsMode faultMode,
-                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout)
+                TimeSpan defaultCloseTimeout, TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
                 : base(channel, cachedLocalAddress, remoteAddress, maskingMode, faultMode,
-                defaultCloseTimeout, defaultSendTimeout)
+                defaultCloseTimeout, defaultSendTimeout, defaultReceiveTimeout)
             {
             }
 
@@ -709,7 +560,7 @@ namespace CoreWCF.Channels
 
             public override ISession GetInnerSession()
             {
-                return this.Synchronizer.CurrentChannel.Session;
+                return Synchronizer.CurrentChannel.Session;
             }
 
             protected override bool HasSecuritySession(IReplySessionChannel channel)
@@ -719,7 +570,7 @@ namespace CoreWCF.Channels
 
             protected override void OnReadNullMessage()
             {
-                this.Synchronizer.OnReadEof();
+                Synchronizer.OnReadEof();
             }
         }
     }

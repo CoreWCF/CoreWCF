@@ -33,7 +33,7 @@ namespace CoreWCF.Channels
 
         protected ReliableChannelBinder(TChannel channel, MaskingMode maskingMode,
             TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout)
+            TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
         {
             if ((maskingMode != MaskingMode.None) && (maskingMode != MaskingMode.All))
             {
@@ -338,7 +338,7 @@ namespace CoreWCF.Channels
             return DispatchAsync(context, DefaultMaskingMode);
         }
 
-        public Task DispatchAsync(RequestContext context, MaskingMode maskingMode)
+        public async Task DispatchAsync(RequestContext context, MaskingMode maskingMode)
         {
             RequestContext requestContext;
             if (maskingMode != MaskingMode.None)
