@@ -1,13 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-	<EnableDefaultItems>false</EnableDefaultItems>
-	<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
-	<IsPackable>false</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <IncludeCommonCode>false</IncludeCommonCode>
   </PropertyGroup>
@@ -15,7 +14,7 @@
   <ItemGroup>
     <Compile Remove="@(Compile)" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="SourceBrowser" Version="1.0.43" ExcludeAssets="build;compile" PrivateAssets="All" />
   </ItemGroup>
@@ -26,9 +25,9 @@
 
   <Target Name="StartSourceBrowser" >
     <ExecAsync FilePath="$(OutputPath)Index\Microsoft.SourceBrowser.SourceIndexServer.exe" WorkingDirectory="$(OutputPath)Index" />
-	<Exec Command="start http://localhost:5000" />
+    <Exec Command="start http://localhost:5000" />
   </Target>
-  
+
   <UsingTask
     TaskName="ExecAsync"
     TaskFactory="RoslynCodeTaskFactory"
@@ -36,8 +35,8 @@
     <ParameterGroup>
       <!--The file path is the full path to the executable file to run-->
       <FilePath ParameterType="System.String" Required="true" />
-	  <!--The working directory is the working directory to launch the app in-->
-	  <WorkingDirectory ParameterType="System.String" Required="true" />
+      <!--The working directory is the working directory to launch the app in-->
+      <WorkingDirectory ParameterType="System.String" Required="true" />
       <!--The arguments should contain all the command line arguments that need to be sent to the application-->
       <Arguments ParameterType="System.String" Required="false" />
     </ParameterGroup>
@@ -45,7 +44,7 @@
       <!--<Reference Include="" />
       <Using Namespace="" />-->
       <Code Type="Fragment" Language="cs">
-	          <![CDATA[
+              <![CDATA[
   string name = System.IO.Path.GetFileNameWithoutExtension(FilePath);
   Log.LogMessage("Starting {0}...", name);        
   System.Diagnostics.ProcessStartInfo processStartInfo;
