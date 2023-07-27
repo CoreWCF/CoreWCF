@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IncludeCommonCode>false</IncludeCommonCode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="@(Compile)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SourceBrowser" Version="1.0.43" ExcludeAssets="build;compile" PrivateAssets="All" />
+  </ItemGroup>
+
+  <Target Name="GenerateWebsite" AfterTargets="PostBuildEvent">
+    <Exec Command="$(PkgSourceBrowser)\tools\HtmlGenerator.exe $(SourceDir)CoreWCF.sln /out:$(OutputPath)Index /nobuiltinfederations /federation:https://source.dot.net /federation:http://sourceroslyn.io /force" />
+  </Target>
+
+  <Target Name="StartSourceBrowser" >
+    <ExecAsync FilePath="$(OutputPath)Index\Microsoft.SourceBrowser.SourceIndexServer.exe" WorkingDirectory="$(OutputPath)Index" />
+    <Exec Command="start http://localhost:5000" />
+  </Target>
+
+  <UsingTask
+    TaskName="ExecAsync"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup>
+      <!--The file path is the full path to the executable file to run-->
+      <FilePath ParameterType="System.String" Required="true" />
+      <!--The working directory is the working directory to launch the app in-->
+      <WorkingDirectory ParameterType="System.String" Required="true" />
+      <!--The arguments should contain all the command line arguments that need to be sent to the application-->
+      <Arguments ParameterType="System.String" Required="false" />
+    </ParameterGroup>
+    <Task>
+      <!--<Reference Include="" />
+      <Using Namespace="" />-->
+      <Code Type="Fragment" Language="cs">
+              <![CDATA[
+  string name = System.IO.Path.GetFileNameWithoutExtension(FilePath);
+  Log.LogMessage("Starting {0}...", name);        
+  System.Diagnostics.ProcessStartInfo processStartInfo;
+  if (String.IsNullOrEmpty(Arguments))
+  {
+    processStartInfo = new System.Diagnostics.ProcessStartInfo(FilePath);
+  }
+  else
+  {
+    processStartInfo = new System.Diagnostics.ProcessStartInfo(FilePath, Arguments);
+  }
+  processStartInfo.UseShellExecute = true;
+  processStartInfo.WorkingDirectory = WorkingDirectory;
+  System.Diagnostics.Process.Start(processStartInfo);
+  Log.LogMessage("Finished running process {0}.", name);
+  ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>
