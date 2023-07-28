@@ -329,7 +329,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             SessionDictionary dictionary = SessionDictionary.Instance;
             //
-            // We are creating a reader over the decrypted form of the cookie that is in memory. 
+            // We are creating a reader over the decrypted form of the cookie that is in memory.
             // Passing Max for the XmlDictionaryReaderQuotas is safe.
             //
             using (XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(cookie, 0, cookie.Length, dictionary, XmlDictionaryReaderQuotas.Max, null, null))
@@ -473,7 +473,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     principal = ReadPrincipal(reader, dictionary);
                 }
 
-                SctAuthorizationPolicy sctAuthorizationPolicy = null;                
+                SctAuthorizationPolicy sctAuthorizationPolicy = null;
                 if (reader.IsStartElement(dictionary.SctAuthorizationPolicy, dictionary.EmptyString))
                 {
                     reader.ReadStartElement(dictionary.SctAuthorizationPolicy, dictionary.EmptyString);
@@ -619,7 +619,7 @@ namespace CoreWCF.IdentityModel.Tokens
             SessionDictionary dictionary = SessionDictionary.Instance;
 
             //
-            // XmlDictionaryWriter.CreateBinaryWriter() defaults to ownsStream=true. 
+            // XmlDictionaryWriter.CreateBinaryWriter() defaults to ownsStream=true.
             // So, the XmlWriter returned by the below code owns the memory stream, and will dispose it.
             //
             using (XmlDictionaryWriter dicWriter = XmlDictionaryWriter.CreateBinaryWriter(stream, dictionary))
@@ -651,7 +651,7 @@ namespace CoreWCF.IdentityModel.Tokens
                         dicWriter.WriteElementString(dictionary.Context, dictionary.EmptyString, Context);
                     }
                 }
-                
+
                 // Serialization Format Version
                 // <Version>1</Version>
                 dicWriter.WriteStartElement(dictionary.Version, dictionary.EmptyString);
@@ -700,7 +700,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 WritePrincipal(dicWriter, dictionary, ClaimsPrincipal);
 
                 // The WCF SCT will have a SctAuthorizationPolicy that wraps the Primary Identity
-                // of the bootstrap token. This is required for SCT renewal scenarios. Write the 
+                // of the bootstrap token. This is required for SCT renewal scenarios. Write the
                 // SctAuthorizationPolicy if one is available.
                 if (SctAuthorizationPolicy != null)
                 {
@@ -872,8 +872,8 @@ namespace CoreWCF.IdentityModel.Tokens
             }
             else
             {
-                // The WindowsIdentity(string, string) c'tor does not set the Auth type. Hence we use that c'tor to get a intPtr and 
-                // call the other c'tor that actually sets the authType passed in. 
+                // The WindowsIdentity(string, string) c'tor does not set the Auth type. Hence we use that c'tor to get a intPtr and
+                // call the other c'tor that actually sets the authType passed in.
                 // DevDiv 279196 tracks the issue and in WindowsIdentity c'tor. Its too late to fix it in 4.5 cycle as we are in Beta and would not be
                 // able to complete the analysis of the change for the current release. This should be investigated in 5.0
                 WindowsIdentity winId = new WindowsIdentity(GetUpn(logonName));
@@ -1166,7 +1166,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             //
-            // WindowsIdentity needs special handling 
+            // WindowsIdentity needs special handling
             //
 
             // <Identity>
@@ -1211,8 +1211,8 @@ namespace CoreWCF.IdentityModel.Tokens
                 WriteClaims(dictionaryWriter, dictionary, identity.Claims, (wci == null) ?
                     (OutboundClaimsFilter)null
                     :
-                    // do not serialize SID claims for WindowsIdentities as they will be created when the 
-                    // windows identity is recreated. 
+                    // do not serialize SID claims for WindowsIdentities as they will be created when the
+                    // windows identity is recreated.
                     delegate(Claim c)
                     {
                         if (c.Type == ClaimTypes.GroupSid
@@ -1245,7 +1245,7 @@ namespace CoreWCF.IdentityModel.Tokens
             if (identity.BootstrapContext != null)
             {
                 dictionaryWriter.WriteStartElement(dictionary.BootstrapToken, dictionary.EmptyString);
-                
+
                 using (MemoryStream ms = new MemoryStream())
                 {
                     BinaryFormatter formatter = new BinaryFormatter();
@@ -1340,7 +1340,7 @@ namespace CoreWCF.IdentityModel.Tokens
         }
 
         /// <summary>
-        /// Writes a collection of ClaimProperties using a XmlDictionaryWriter. 
+        /// Writes a collection of ClaimProperties using a XmlDictionaryWriter.
         /// </summary>
         /// <param name="dictionaryWriter">XmlDictionaryWriter to write to.</param>
         /// <param name=nameof(dictionary)>SessionDictionary to provide dictionary strings.</param>
@@ -1582,7 +1582,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 string rsaXml = reader.ReadString();
                 reader.ReadEndElement();
 
-                System.Security.Cryptography.RSACryptoServiceProvider rsa = new System.Security.Cryptography.RSACryptoServiceProvider();
+                RSA rsa = RSA.Create();
                 rsa.FromXmlString(rsaXml);
                 return new SysClaim(SysClaimTypes.Rsa, rsa, right);
             }
@@ -1657,7 +1657,7 @@ namespace CoreWCF.IdentityModel.Tokens
             writer.WriteAttributeString(dictionary.Right, dictionary.EmptyString, claim.Right);
         }
 
-        // As name says, certainly not a complete test, but it will allow us to move forward on 
+        // As name says, certainly not a complete test, but it will allow us to move forward on
         // strings that are possible UPN's
         // a@b will succeed
         // @a, a@, @ will fail
