@@ -232,7 +232,7 @@ namespace CoreWCF.Channels
         private IServerReliableChannelBinder CreateBinder(TInnerChannel channel, EndpointAddress localAddress, EndpointAddress remoteAddress)
         {
             return ServerReliableChannelBinder<TInnerChannel>.CreateBinder(channel, localAddress,
-                remoteAddress, TolerateFaultsMode.IfNotSecuritySession, DefaultCloseTimeout, DefaultSendTimeout, DefaultReceiveTimeout);
+                remoteAddress, TolerateFaultsMode.IfNotSecuritySession, DefaultCloseTimeout, DefaultSendTimeout);
         }
 
         protected abstract Task<TReliableChannel> CreateChannelAsync(UniqueId id, CreateSequenceInfo createSequenceInfo, IServerReliableChannelBinder binder);
@@ -575,7 +575,11 @@ namespace CoreWCF.Channels
 
         public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
         {
-            return Task.FromResult<IServiceChannelDispatcher>(new ReliableServiceDatagramChannelDispatcher(channel, this));
+            IServiceChannelDispatcher dispatcher = new ReliableServiceDatagramChannelDispatcher(channel, this);
+            channel.ChannelDispatcher = dispatcher;
+            var binder = ((ReliableDuplexSessionChannel)channel).Binder as ServerReliableChannelBinder<TInnerChannel>;
+            dispatcher = binder.WrapServiceChannelDispatcher(dispatcher);
+            return Task.FromResult(dispatcher);
         }
 
         private class ReliableServiceDatagramChannelDispatcher : IServiceChannelDispatcher
@@ -857,6 +861,13 @@ namespace CoreWCF.Channels
             }
 
             return Task.CompletedTask;
+        }
+
+        public override async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
+        {
+            var baseServiceChannelDispatcher = await base.CreateServiceChannelDispatcherCoreAsync(channel);
+            var binder = ((ReliableDuplexSessionChannel)channel).Binder as ServerReliableChannelBinder<IDuplexSessionChannel>;
+            return binder.WrapServiceChannelDispatcher(baseServiceChannelDispatcher);
         }
     }
 

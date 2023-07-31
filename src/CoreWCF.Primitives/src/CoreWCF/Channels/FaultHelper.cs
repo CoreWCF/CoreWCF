@@ -113,7 +113,7 @@ namespace CoreWCF.Channels
         {
             try
             {
-                await binder.CloseAsync(_defaultCloseTimeout);
+                await binder.CloseAsync(TimeoutHelper.GetCancellationToken(_defaultCloseTimeout));
             }
             finally
             {
@@ -152,7 +152,7 @@ namespace CoreWCF.Channels
 
         protected abstract TState GetState(RequestContext requestContext, Message faultMessage);
 
-        protected abstract Task SendFaultCoreAsync(IReliableChannelBinder binder, TState state, TimeSpan timeout);
+        protected abstract Task SendFaultCoreAsync(IReliableChannelBinder binder, TState state, CancellationToken token);
 
         protected void RemoveBinder(IReliableChannelBinder binder)
         {
@@ -181,7 +181,7 @@ namespace CoreWCF.Channels
 
             try
             {
-                await SendFaultCoreAsync(binder, state, _defaultSendTimeout);
+                await SendFaultCoreAsync(binder, state, TimeoutHelper.GetCancellationToken(_defaultSendTimeout));
                 throwing = false;
             }
             finally
@@ -265,9 +265,9 @@ namespace CoreWCF.Channels
             faultState.RequestContext.Abort();
         }
 
-        protected override async Task SendFaultCoreAsync(IReliableChannelBinder binder, FaultState faultState, TimeSpan timeout)
+        protected override async Task SendFaultCoreAsync(IReliableChannelBinder binder, FaultState faultState, CancellationToken token)
         {
-            await faultState.RequestContext.ReplyAsync(faultState.FaultMessage, TimeoutHelper.GetCancellationToken(timeout));
+            await faultState.RequestContext.ReplyAsync(faultState.FaultMessage, token);
             faultState.FaultMessage.Close();
         }
 
@@ -293,9 +293,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        protected override async Task SendFaultCoreAsync(IReliableChannelBinder binder, Message message, TimeSpan timeout)
+        protected override async Task SendFaultCoreAsync(IReliableChannelBinder binder, Message message, CancellationToken token)
         {
-            await binder.SendAsync(message, timeout);
+            await binder.SendAsync(message, token);
             message.Close();
         }
 

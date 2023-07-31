@@ -106,7 +106,7 @@ namespace CoreWCF.Security
         {
             if (_securityProtocolFactory != null)
             {
-                _securityProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                _securityProtocolFactory.OnCloseAsync(default).GetAwaiter().GetResult();
             }
             if (_sessionMode && _sessionSettings != null)
             {

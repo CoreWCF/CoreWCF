@@ -800,7 +800,7 @@ namespace CoreWCF.Channels
                 else
                 {
                     _session.OnLocalActivity();
-                    this.AddPendingAcknowledgements(attemptInfo.Message);
+                    AddPendingAcknowledgements(attemptInfo.Message);
 
                     MaskingMode maskingMode = maskUnhandledException ? MaskingMode.Unhandled : MaskingMode.None;
 
@@ -1018,7 +1018,7 @@ namespace CoreWCF.Channels
 
     internal sealed class ServerReliableDuplexSessionChannel : ReliableDuplexSessionChannel
     {
-        private ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher;
+        private ReliableServiceDispatcherBase<IDuplexSessionChannel> _serviceDispatcher;
 
         public ServerReliableDuplexSessionChannel(
             ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher,
@@ -1027,7 +1027,7 @@ namespace CoreWCF.Channels
             UniqueId outputID)
             : base(serviceDispatcher, binder)
         {
-            this.serviceDispatcher = serviceDispatcher;
+            _serviceDispatcher = serviceDispatcher;
             DuplexServerReliableSession session = new DuplexServerReliableSession(this, serviceDispatcher, faultHelper, inputID, outputID);
             SetSession(session);
             var openTask = session.OpenAsync(CancellationToken.None);
@@ -1045,14 +1045,14 @@ namespace CoreWCF.Channels
         protected override void OnAbort()
         {
             base.OnAbort();
-            serviceDispatcher.OnReliableChannelAbort(ReliableSession.InputID,
+            _serviceDispatcher.OnReliableChannelAbort(ReliableSession.InputID,
                 ReliableSession.OutputID);
         }
 
         protected override async Task OnCloseAsync(CancellationToken token)
         {
             await base.OnCloseAsync(token);
-            await serviceDispatcher.OnReliableChannelCloseAsync(ReliableSession.InputID,
+            await _serviceDispatcher.OnReliableChannelCloseAsync(ReliableSession.InputID,
                 ReliableSession.OutputID, token);
         }
 
@@ -1099,7 +1099,7 @@ namespace CoreWCF.Channels
             {
                 EndpointAddress acksTo;
 
-                if (WsrmUtilities.ValidateCreateSequence(info, serviceDispatcher, Binder.Channel, out acksTo))
+                if (WsrmUtilities.ValidateCreateSequence(info, _serviceDispatcher, Binder.Channel, out acksTo))
                 {
                     Message response = WsrmUtilities.CreateCreateSequenceResponse(Settings.MessageVersion,
                         Settings.ReliableMessagingVersion, true, info.CreateSequenceInfo, Settings.Ordered,

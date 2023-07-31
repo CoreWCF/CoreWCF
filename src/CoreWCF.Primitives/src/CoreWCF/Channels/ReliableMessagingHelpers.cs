@@ -491,7 +491,6 @@ namespace CoreWCF.Channels
 
         public async Task<Message> RequestAsync(CancellationToken token)
         {
-            TimeoutHelper iterationTimeoutHelper;
             bool lastIteration;
 
             while (true)

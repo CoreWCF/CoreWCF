@@ -31,8 +31,8 @@ namespace CoreWCF.Channels
         Task SendAsync(Message message, CancellationToken token);
         Task SendAsync(Message message, CancellationToken token, MaskingMode maskingMode);
 
-        Task DispatchAsync(RequestContext context);
-        Task DispatchAsync(RequestContext context, MaskingMode maskingMode);
+        //Task DispatchAsync(RequestContext context);
+        //Task DispatchAsync(RequestContext context, MaskingMode maskingMode);
         //Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token);
         //Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode);
 

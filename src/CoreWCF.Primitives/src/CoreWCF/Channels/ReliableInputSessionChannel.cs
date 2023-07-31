@@ -711,7 +711,6 @@ namespace CoreWCF.Channels
             {
                 await ProcessRequestAsync(context, info);
             }
-#pragma warning suppress 56500 // covered by FxCOP
             catch (Exception e)
             {
                 if (Fx.IsFatal(e))

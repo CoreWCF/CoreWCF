@@ -3,6 +3,7 @@
 
 using System;
 using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Channels
 {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
 using CoreWCF.Runtime;
 using static CoreWCF.Runtime.TaskHelpers;
 
@@ -33,7 +34,7 @@ namespace CoreWCF.Channels
 
         protected ReliableChannelBinder(TChannel channel, MaskingMode maskingMode,
             TolerateFaultsMode faultMode, TimeSpan defaultCloseTimeout,
-            TimeSpan defaultSendTimeout, TimeSpan defaultReceiveTimeout)
+            TimeSpan defaultSendTimeout)
         {
             if ((maskingMode != MaskingMode.None) && (maskingMode != MaskingMode.All))
             {
@@ -43,6 +44,7 @@ namespace CoreWCF.Channels
             DefaultMaskingMode = maskingMode;
             _defaultCloseTimeout = defaultCloseTimeout;
             DefaultSendTimeout = defaultSendTimeout;
+            Synchronizer = new ChannelSynchronizer(this, channel, faultMode);
         }
 
         protected abstract bool CanGetChannelForReceive { get; }
@@ -328,145 +330,73 @@ namespace CoreWCF.Channels
 
         protected abstract Task<bool> TryGetChannelAsync(CancellationToken token);
 
-        public virtual Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token)
-        {
-            return TryReceiveAsync(token, DefaultMaskingMode);
-        }
-
-        public Task DispatchAsync(RequestContext context)
-        {
-            return DispatchAsync(context, DefaultMaskingMode);
-        }
-
-        public async Task DispatchAsync(RequestContext context, MaskingMode maskingMode)
-        {
-            RequestContext requestContext;
-            if (maskingMode != MaskingMode.None)
-            {
-                throw Fx.AssertAndThrow("This method was implemented only for the case where we do not mask exceptions.");
-            }
-
-            // TODO, what to return here?
-            if (!ValidateInputOperation())
-            {
-                throw new Exception("Need to resolve this");
-                //return (true, null);
-            }
-
-            while (true)
-            {
-                bool autoAborted = false;
-
-                try
-                {
-                    (bool success, TChannel channel) = await Synchronizer.TryGetChannelForInputAsync(
-                        CanGetChannelForReceive, token);
-                    success = !success; // Need opposite of what TryGetChannelForInputAsync returns
-
-                    if (channel == null)
-                    {
-                        return (success, null);
-                    }
-
-                    try
-                    {
-                        (success, requestContext) = await OnTryReceiveAsync(channel, token);
-
-                        // timed out || got message, return immediately
-                        if (!success || (requestContext != null))
-                        {
-                            return (success, requestContext);
-                        }
-
-                        // the underlying channel closed or faulted, retry
-                        Synchronizer.OnReadEof();
-                    }
-                    finally
-                    {
-                        autoAborted = Synchronizer.Aborting;
-                        await Synchronizer.ReturnChannelAsync();
-                    }
-                }
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                    {
-                        throw;
-                    }
-
-                    if (!HandleException(e, maskingMode, autoAborted))
-                    {
-                        throw;
-                    }
-                }
-            }
-
-        }
-
         // TODO: This method needs to be replaced with an implementation that uses the push dispatch model.
-        public virtual async Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode)
-        {
-            RequestContext requestContext;
-            if (maskingMode != MaskingMode.None)
-            {
-                throw Fx.AssertAndThrow("This method was implemented only for the case where we do not mask exceptions.");
-            }
+        // Need to add code to deal with not receiving a message for a period of time to EOF the Synchronizer
+        // for an existing channel. Also need to deal with receiving a null message/request context on an
+        // eixisting channel for the same reason.
+        //public virtual async Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode)
+        //{
+        //    RequestContext requestContext;
+        //    if (maskingMode != MaskingMode.None)
+        //    {
+        //        throw Fx.AssertAndThrow("This method was implemented only for the case where we do not mask exceptions.");
+        //    }
 
-            if (!ValidateInputOperation())
-            {
-                return (true, null);
-            }
+        //    if (!ValidateInputOperation())
+        //    {
+        //        return (true, null);
+        //    }
 
-            while (true)
-            {
-                bool autoAborted = false;
+        //    while (true)
+        //    {
+        //        bool autoAborted = false;
 
-                try
-                {
-                    (bool success, TChannel channel) = await Synchronizer.TryGetChannelForInputAsync(
-                        CanGetChannelForReceive, token);
-                    success = !success; // Need opposite of what TryGetChannelForInputAsync returns
+        //        try
+        //        {
+        //            (bool success, TChannel channel) = await Synchronizer.TryGetChannelForInputAsync(
+        //                CanGetChannelForReceive, token);
+        //            success = !success; // Need opposite of what TryGetChannelForInputAsync returns
 
-                    if (channel == null)
-                    {
-                        return (success, null);
-                    }
+        //            if (channel == null)
+        //            {
+        //                return (success, null);
+        //            }
 
-                    try
-                    {
-                        (success, requestContext) = await OnTryReceiveAsync(channel, token);
+        //            try
+        //            {
+        //                (success, requestContext) = await OnTryReceiveAsync(channel, token);
 
-                        // timed out || got message, return immediately
-                        if (!success || (requestContext != null))
-                        {
-                            return (success, requestContext);
-                        }
+        //                // timed out || got message, return immediately
+        //                if (!success || (requestContext != null))
+        //                {
+        //                    return (success, requestContext);
+        //                }
 
-                        // the underlying channel closed or faulted, retry
-                        Synchronizer.OnReadEof();
-                    }
-                    finally
-                    {
-                        autoAborted = Synchronizer.Aborting;
-                        await Synchronizer.ReturnChannelAsync();
-                    }
-                }
-                catch (Exception e)
-                {
-                    if (Fx.IsFatal(e))
-                    {
-                        throw;
-                    }
+        //                // the underlying channel closed or faulted, retry
+        //                Synchronizer.OnReadEof();
+        //            }
+        //            finally
+        //            {
+        //                autoAborted = Synchronizer.Aborting;
+        //                await Synchronizer.ReturnChannelAsync();
+        //            }
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            if (Fx.IsFatal(e))
+        //            {
+        //                throw;
+        //            }
 
-                    if (!HandleException(e, maskingMode, autoAborted))
-                    {
-                        throw;
-                    }
-                }
-            }
-        }
+        //            if (!HandleException(e, maskingMode, autoAborted))
+        //            {
+        //                throw;
+        //            }
+        //        }
+        //    }
+        //}
 
-        internal Task WaitForPendingOperations(CancellationToken token)
+        internal Task WaitForPendingOperationsAsync(CancellationToken token)
         {
             return Synchronizer.WaitForPendingOperationsAsync(token);
         }
@@ -615,11 +545,6 @@ namespace CoreWCF.Channels
         protected virtual Task OnSendAsync(TChannel channel, Message message, CancellationToken token)
         {
             throw Fx.AssertAndThrow("The derived class does not support the SendAsync operation.");
-        }
-
-        protected virtual Task<(bool success, RequestContext requestContext)> OnTryReceiveAsync(TChannel channel, CancellationToken token)
-        {
-            throw Fx.AssertAndThrow("The derived class does not support the TryReceiveAsync operation.");
         }
 
         private void OnInnerChannelFaulted()
@@ -786,6 +711,11 @@ namespace CoreWCF.Channels
             }
 
             if (!TolerateFaults && DefaultMaskingMode == MaskingMode.None)
+            {
+                return context;
+            }
+
+            if (context is BinderRequestContext)
             {
                 return context;
             }
@@ -1913,6 +1843,28 @@ namespace CoreWCF.Channels
 
     internal static class ReliableChannelBinderHelper
     {
+        internal static async Task CloseDuplexSessionChannelAsync(ReliableChannelBinder<IDuplexSessionChannel> binder,
+                                                       IDuplexSessionChannel channel,
+                                                       CancellationToken token)
+        {
+            await channel.Session.CloseOutputSessionAsync(token);
+            await binder.WaitForPendingOperationsAsync(token);
+
+            // The original code looped calling channel.TryReceive() until it returned a null message at which point
+            // it called channel.Close(). The loop would exit if the close timeout expired. We can't do that here.
+            // We might need to have some mechanism which waits for the channel to reach EOF based on its channel
+            // dispatcher receiving a null message. Leaving a naive close implementation here for now as it might
+            // be sufficient.
+            if (token.IsCancellationRequested)
+            {
+                channel.Abort();
+            }
+            else
+            {
+                await channel.CloseAsync(token);
+            }
+        }
+
         internal static bool MaskHandled(MaskingMode maskingMode)
         {
             return (maskingMode & MaskingMode.Handled) == MaskingMode.Handled;
@@ -1921,6 +1873,27 @@ namespace CoreWCF.Channels
         internal static bool MaskUnhandled(MaskingMode maskingMode)
         {
             return (maskingMode & MaskingMode.Unhandled) == MaskingMode.Unhandled;
+        }
+
+        internal static async Task CloseReplySessionChannelAsync(ReliableChannelBinder<IReplySessionChannel> binder,
+                                                           IReplySessionChannel channel,
+                                                           CancellationToken token)
+        {
+            await binder.WaitForPendingOperationsAsync(token);
+
+            // The original code looped calling channel.TryReceiveRequest() until it returned a null RequestContext
+            // at which point it called channel.Close(). The loop would exit if the close timeout expired. We can't
+            // do that here. We might need to have some mechanism which waits for the channel to reach EOF based on
+            // its channel dispatcher receiving a null message. Leaving a naive close implementation here for now as
+            // it might be sufficient.
+            if (token.IsCancellationRequested)
+            {
+                channel.Abort();
+            }
+            else
+            {
+                await channel.CloseAsync(token);
+            }
         }
     }
 }
