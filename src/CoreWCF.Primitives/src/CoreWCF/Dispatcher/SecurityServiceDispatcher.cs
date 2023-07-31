@@ -66,9 +66,7 @@ namespace CoreWCF.Dispatcher
 
         public ICollection<Type> SupportedChannelTypes => InnerServiceDispatcher.SupportedChannelTypes;
 
-        foo
-        // Fix this
-        private AsyncLock ThisLock { get; } = new AsyncLock();
+        private AsyncLock AsyncLock { get; } = new AsyncLock();
 
         protected override TimeSpan DefaultCloseTimeout => _closeTimeout;
 
@@ -90,14 +88,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private void ThrowIfDisposed()
-        {
-            if (_disposed)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
-            }
-        }
-
         public bool SessionMode { get; set; }
 
         internal SecuritySessionServerSettings SessionServerSettings
@@ -106,7 +96,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_sessionServerSettings == null)
                 {
-                    lock (ThisLock)
+                    using (AsyncLock.TakeLock())
                     {
                         if (_sessionServerSettings == null)
                         {
@@ -177,7 +167,7 @@ namespace CoreWCF.Dispatcher
 
         protected override void OnAbort()
         {
-            using (ThisLock.TakeLock())
+            using (AsyncLock.TakeLock())
             {
                 if (_hasSecurityStateReference)
                 {
@@ -198,7 +188,7 @@ namespace CoreWCF.Dispatcher
             {
                 _sessionServerSettings.StopAcceptingNewWork();
             }
-            await using (await ThisLock.TakeLockAsync())
+            await using (await AsyncLock.TakeLockAsync())
             {
                 if (_hasSecurityStateReference)
                 {
@@ -214,7 +204,7 @@ namespace CoreWCF.Dispatcher
         {
             // TODO: Work out how to get the ExtendedProtectionPolicy settings and then light up this code path
             //EnableChannelBindingSupport();
-            await using (await ThisLock.TakeLockAsync())
+            await using (await AsyncLock.TakeLockAsync())
             {
                 // if an abort happened before the Open, return
                 if (State == CommunicationState.Closing && State == CommunicationState.Closed)
@@ -284,7 +274,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_securityAuthServiceChannelDispatcher == null)
             {
-                lock (ThisLock)
+                using (AsyncLock.TakeLock())
                 {
                     if (_channelTask == null)
                     {
@@ -304,11 +294,11 @@ namespace CoreWCF.Dispatcher
         /// </summary>
         /// <param name="outerChannel"></param>
         /// <returns></returns>
-        internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
+        internal async Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
         {
-            lock (ThisLock)
+            await using (await AsyncLock.TakeLockAsync())
             {
-                return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+                return await InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
             }
         }
 
@@ -354,10 +344,7 @@ namespace CoreWCF.Dispatcher
 
         public void Dispose()
         {
-            if (!_disposed)
-            {
-                _disposed = true;
-            }
+            CloseAsync().GetAwaiter().GetResult();
         }
     }
 
@@ -679,12 +666,7 @@ namespace CoreWCF.Dispatcher
 
         public Task SendAsync(Message message)
         {
-            return base.SendAsync(message, TimeoutHelper.GetCancellationToken(ServiceDefaults.SendTimeout));
-        }
-
-        public Task SendAsync(Message message, CancellationToken token)
-        {
-            return SendAsync(message);
+            return SendAsync(message, TimeoutHelper.GetCancellationToken(ServiceDefaults.SendTimeout));
         }
 
         private async ValueTask<Message> ProcessInnerItemAsync(Message innerItem, TimeSpan timeout)
