@@ -384,23 +384,7 @@ namespace CoreWCF.Security
 
         private void AbortPendingChannels(CancellationToken token)
         {
-            lock (ThisGlobalLock)
-            {
-                if (_pendingSessions1 != null)
-                {
-                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions1.Values)
-                    {
-                        pendingChannelBinder.Abort();
-                    }
-                }
-                if (_pendingSessions2 != null)
-                {
-                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions2.Values)
-                    {
-                        pendingChannelBinder.Abort();
-                    }
-                }
-            }
+            ClosePendingChannelsAsync(token).GetAwaiter().GetResult();
         }
 
         private Task ClosePendingChannelsAsync(CancellationToken token)
@@ -413,17 +397,9 @@ namespace CoreWCF.Security
                 int index = 0;
                 if (_pendingSessions1 != null)
                 {
-                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions1.Values)
+                    foreach (ServerSecuritySimplexSessionChannel securitySessionSimplexChannel in _activeSessions.Values)
                     {
-                        tasks[index] = pendingChannelBinder.CloseAsync(token);
-                        index++;
-                    }
-                }
-                if (_pendingSessions2 != null)
-                {
-                    foreach (IServerReliableChannelBinder pendingChannelBinder in _pendingSessions2.Values)
-                    {
-                        tasks[index] = pendingChannelBinder.CloseAsync(token);
+                        tasks[index] = securitySessionSimplexChannel.CloseAsync(token);
                         index++;
                     }
                 }
