@@ -247,11 +247,12 @@ namespace CoreWCF.Channels
             }
             finally
             {
-                if (message != null &&
-                    !ReferenceEquals(message, responseMessage))
+                if (message != null && !ReferenceEquals(message, responseMessage))
                 {
                     responseMessage.Close();
                 }
+
+                _replySentTcs.TrySetResult(null);
             }
         }
 

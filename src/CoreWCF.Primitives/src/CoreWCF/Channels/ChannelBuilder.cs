@@ -3,6 +3,7 @@
 
 using System;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 
 namespace CoreWCF.Channels
@@ -10,9 +11,12 @@ namespace CoreWCF.Channels
     internal class ChannelBuilder
     {
         private readonly bool _isChannelDemuxerRequired = false;
+        private Uri _listenUriBaseAddress;
+        private BindingContext _context;
 
         public ChannelBuilder(BindingContext context, bool addChannelDemuxerIfRequired)
         {
+            _context = context;
             _isChannelDemuxerRequired = addChannelDemuxerIfRequired;
             if (_isChannelDemuxerRequired)
             {
@@ -69,9 +73,20 @@ namespace CoreWCF.Channels
             ChannelDemuxer.RemoveServiceDispatcher<TChannel>(filter, BindingParameters);
         }
 
-        public IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingContext context, IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
+        public IServiceDispatcher BuildServiceDispatcher<TChannel>(IServiceDispatcher innerDispatcher) where TChannel : class, IChannel
         {
-            return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
+            if (_context != null)
+            {
+                IServiceDispatcher serviceDispatcher = _context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
+                _listenUriBaseAddress = serviceDispatcher.BaseAddress;
+                _context = null;
+                return serviceDispatcher;
+            }
+            else
+            {
+                BindingContext context = new BindingContext(new CustomBinding(Binding), BindingParameters, _listenUriBaseAddress, string.Empty);
+                return context.BuildNextServiceDispatcher<TChannel>(innerDispatcher);
+            }
         }
 
         public bool CanBuildServiceDispatcher<TChannel>() where TChannel : class, IChannel

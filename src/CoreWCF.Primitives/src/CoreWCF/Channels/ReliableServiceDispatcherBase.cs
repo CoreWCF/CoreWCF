@@ -217,8 +217,8 @@ namespace CoreWCF.Channels
         where TReliableChannel : class, IChannel
         where TInnerChannel : class, IChannel
     {
-        private Dictionary<UniqueId, TReliableChannel> channelsByInput;
-        private Dictionary<UniqueId, TReliableChannel> channelsByOutput;
+        private Dictionary<UniqueId, TReliableChannel> _channelsByInput;
+        private Dictionary<UniqueId, TReliableChannel> _channelsByOutput;
         private readonly IServiceDispatcher _innerServiceDispatcher;
 
         protected ReliableServiceDispatcher (ReliableSessionBindingElement binding, BindingContext context, IServiceDispatcher innerServiceDispatcher) : base(binding, context.Binding, innerServiceDispatcher)
@@ -249,7 +249,7 @@ namespace CoreWCF.Channels
             lock (ThisLock)
             {
                 TReliableChannel channel = null;
-                if ((id == null) || !channelsByInput.TryGetValue(id, out channel))
+                if ((id == null) || !_channelsByInput.TryGetValue(id, out channel))
                 {
                     if (Duplex)
                     {
@@ -257,7 +257,7 @@ namespace CoreWCF.Channels
                         if (outputId != null)
                         {
                             id = outputId;
-                            channelsByOutput.TryGetValue(id, out channel);
+                            _channelsByOutput.TryGetValue(id, out channel);
                         }
                     }
                 }
@@ -310,7 +310,7 @@ namespace CoreWCF.Channels
         // Must call under lock.
         protected override bool HasChannels()
         {
-            return (channelsByInput == null) ? false : (channelsByInput.Count > 0);
+            return (_channelsByInput == null) ? false : (_channelsByInput.Count > 0);
         }
 
         private bool IsExpectedException(Exception e)
@@ -328,7 +328,7 @@ namespace CoreWCF.Channels
         // Must call under lock. Must call after the ReliableChannelListener has been opened.
         protected override bool IsLastChannel(UniqueId inputId)
         {
-            return (channelsByInput.Count == 1) ? channelsByInput.ContainsKey(inputId) : false;
+            return (_channelsByInput.Count == 1) ? _channelsByInput.ContainsKey(inputId) : false;
         }
 
         public override async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
@@ -352,9 +352,9 @@ namespace CoreWCF.Channels
         {
             base.OnOpened();
 
-            channelsByInput = new Dictionary<UniqueId, TReliableChannel>();
+            _channelsByInput = new Dictionary<UniqueId, TReliableChannel>();
             if (Duplex)
-                channelsByOutput = new Dictionary<UniqueId, TReliableChannel>();
+                _channelsByOutput = new Dictionary<UniqueId, TReliableChannel>();
         }
 
         protected async Task<(TReliableChannel channel, bool newChannel)> ProcessCreateSequenceAsync(WsrmMessageInfo info, TInnerChannel channel)
@@ -374,7 +374,7 @@ namespace CoreWCF.Channels
 
                 if ((createSequenceInfo.OfferIdentifier != null)
                     && Duplex
-                    && channelsByOutput.TryGetValue(createSequenceInfo.OfferIdentifier, out reliableChannel))
+                    && _channelsByOutput.TryGetValue(createSequenceInfo.OfferIdentifier, out reliableChannel))
                 {
                     return (reliableChannel, newChannel);
                 }
@@ -389,9 +389,9 @@ namespace CoreWCF.Channels
 
                 reliableChannel = await CreateChannelAsync(id, createSequenceInfo,
                     CreateBinder(channel, acksTo, createSequenceInfo.ReplyTo));
-                channelsByInput.Add(id, reliableChannel);
+                _channelsByInput.Add(id, reliableChannel);
                 if (Duplex)
-                    channelsByOutput.Add(createSequenceInfo.OfferIdentifier, reliableChannel);
+                    _channelsByOutput.Add(createSequenceInfo.OfferIdentifier, reliableChannel);
 
                 newChannel = true;
 
@@ -404,10 +404,10 @@ namespace CoreWCF.Channels
         // Must call under lock.
         protected override void RemoveChannel(UniqueId inputId, UniqueId outputId)
         {
-            channelsByInput.Remove(inputId);
+            _channelsByInput.Remove(inputId);
 
             if (Duplex)
-                channelsByOutput.Remove(outputId);
+                _channelsByOutput.Remove(outputId);
         }
     }
 
@@ -577,8 +577,8 @@ namespace CoreWCF.Channels
         {
             IServiceChannelDispatcher dispatcher = new ReliableServiceDatagramChannelDispatcher(channel, this);
             channel.ChannelDispatcher = dispatcher;
-            var binder = ((ReliableDuplexSessionChannel)channel).Binder as ServerReliableChannelBinder<TInnerChannel>;
-            dispatcher = binder.WrapServiceChannelDispatcher(dispatcher);
+            //var binder = ((ReliableDuplexSessionChannel)channel).Binder as ServerReliableChannelBinder<TInnerChannel>;
+            //dispatcher = binder.WrapServiceChannelDispatcher(dispatcher);
             return Task.FromResult(dispatcher);
         }
 
@@ -922,8 +922,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(ServerReliableDuplexSessionChannel channel, Message message, WsrmMessageInfo info)
@@ -946,8 +949,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
+            await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(ReliableInputSessionChannelOverDuplex channel, Message message, WsrmMessageInfo info)
@@ -970,8 +976,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override async Task ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ServerReliableDuplexSessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)
@@ -1007,8 +1016,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
+            await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ReliableInputSessionChannelOverDuplex reliableChannel, WsrmMessageInfo info, bool newChannel)
@@ -1043,8 +1055,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ReliableInputSessionChannelOverReply(this, binder, FaultHelper, id);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ReliableInputSessionChannelOverReply(this, binder, FaultHelper, id);
+            await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(ReliableInputSessionChannelOverReply reliableChannel, RequestContext context, WsrmMessageInfo info)
@@ -1066,8 +1081,11 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo,
             IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            //await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(ReliableReplySessionChannel reliableChannel, RequestContext context, WsrmMessageInfo info)
@@ -1127,8 +1145,11 @@ namespace CoreWCF.Channels
 
         protected override async Task<ReliableReplySessionChannel> CreateChannelAsync(UniqueId id, CreateSequenceInfo createSequenceInfo, IServerReliableChannelBinder binder)
         {
-            await binder.OpenAsync(TimeoutHelper.GetCancellationToken(InternalOpenTimeout));
-            return new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
+            await binder.OpenAsync(token);
+            var channel = new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
+            //await channel.OpenAsync(token);
+            return channel;
         }
 
         protected override Task ProcessSequencedItemAsync(IReplySessionChannel channel, RequestContext context, ReliableReplySessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)

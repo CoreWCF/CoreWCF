@@ -121,22 +121,25 @@ namespace CoreWCF.Dispatcher
 
         public ServiceHostBase Host => InnerServiceDispatcher.Host;
 
-        internal void InitializeSecurityDispatcher(ChannelBuilder channelBuilder, Type type)
+        internal void InitializeSecurityDispatcher<TChannel>(ChannelBuilder channelBuilder) where TChannel : class, IChannel
         {
             _channelBuilder = channelBuilder;
 
             if (SessionMode)
             {
                 _sessionServerSettings.ChannelBuilder = ChannelBuilder;
+                channelBuilder.BuildServiceDispatcher<TChannel>(this);
                 //this.InnerChannelListener = this.sessionServerSettings.CreateInnerChannelListener();
                 // this.Acceptor = this.sessionServerSettings.CreateAcceptor<TChannel>();
-                AcceptorChannelType = type;
-                _sessionServerSettings.AcceptorChannelType = type;
+                AcceptorChannelType = typeof(TChannel);
+                _sessionServerSettings.AcceptorChannelType = typeof(TChannel);
             }
             else
             {
-              //  throw new PlatformNotSupportedException();
+                //  throw new PlatformNotSupportedException();
                 //TODO later
+
+                channelBuilder.BuildServiceDispatcher<TChannel>(this);
                 // this.InnerChannelListener = this.ChannelBuilder.BuildChannelListener<TChannel>();
                 // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
                 //     (IChannelListener<TChannel>)InnerChannelListener, this.securityProtocolFactory.CreateListenerSecurityState());

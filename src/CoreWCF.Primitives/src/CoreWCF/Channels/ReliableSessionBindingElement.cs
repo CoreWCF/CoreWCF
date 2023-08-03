@@ -326,19 +326,18 @@ namespace CoreWCF.Channels
 
                 if (context.CanBuildNextServiceDispatcher<IDuplexSessionChannel>())
                 {
-                    throw new PlatformNotSupportedException();
-                    //serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplexSession(this, context);
+                    serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplexSession(this, context, innerDispatcher);
                 }
                 else if (context.CanBuildNextServiceDispatcher<IDuplexChannel>())
                 {
-                    throw new PlatformNotSupportedException();
-                    //serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplex(this, innerDispatcher);
+                    serviceDispatcher = new ReliableDuplexServiceDispatcherOverDuplex(this, context, innerDispatcher);
                 }
 
                 if (serviceDispatcher != null)
                 {
                     serviceDispatcher.LocalAddresses = table;
-                    return serviceDispatcher;
+                    serviceDispatcher.OpenAsync().GetAwaiter().GetResult();
+                    return context.BuildNextServiceDispatcher<IDuplexSessionChannel>(serviceDispatcher);
                 }
             }
             else if (typeof(TChannel) == typeof(IReplySessionChannel))
@@ -357,7 +356,8 @@ namespace CoreWCF.Channels
                 if (serviceDispatcher != null)
                 {
                     serviceDispatcher.LocalAddresses = table;
-                    return serviceDispatcher;
+                    serviceDispatcher.OpenAsync().GetAwaiter().GetResult();
+                    return context.BuildNextServiceDispatcher<IDuplexSessionChannel>(serviceDispatcher);
                 }
             }
 
