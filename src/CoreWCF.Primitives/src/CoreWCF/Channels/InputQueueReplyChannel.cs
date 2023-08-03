@@ -11,15 +11,17 @@ namespace CoreWCF.Channels
     internal abstract class InputQueueReplyChannel : InputQueueServiceChannelDispatcher<RequestContext>, IReplyChannel
     {
         private IServiceChannelDispatcher _serviceChannelDispatcher;
-        private Task<IServiceChannelDispatcher> _serviceChannelDispatcherCreateTask = null;
+        private IServiceDispatcher _serviceDispatcher;
 
         public InputQueueReplyChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress) : base(timeouts)
         {
             LocalAddress = localAddress;
-            _serviceChannelDispatcherCreateTask = serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
+            _serviceDispatcher = serviceDispatcher;
         }
 
         public EndpointAddress LocalAddress { get; }
+
+        protected AsyncLock AsyncLock = new AsyncLock();
 
         public override T GetProperty<T>()
         {
@@ -41,16 +43,16 @@ namespace CoreWCF.Channels
         {
             if (_serviceChannelDispatcher == null)
             {
-                var createDispatcherTask = _serviceChannelDispatcherCreateTask;
-                if (createDispatcherTask != null)
+                await using(await AsyncLock.TakeLockAsync())
                 {
-                    _serviceChannelDispatcher = await createDispatcherTask;
-                    _serviceChannelDispatcherCreateTask = null;
+                    if (_serviceChannelDispatcher == null)
+                    {
+                        _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
+                    }
                 }
-
-                Fx.Assert(_serviceChannelDispatcher != null, "_serviceChannelDispatcher must not be null if _serviceChannelDispatcherCreateTask is null");
             }
 
+            ThrowIfDisposedOrNotOpen();
             await _serviceChannelDispatcher.DispatchAsync(context);
         }
 
@@ -58,24 +60,26 @@ namespace CoreWCF.Channels
         {
             if (_serviceChannelDispatcher == null)
             {
-                var createDispatcherTask = _serviceChannelDispatcherCreateTask;
-                if (createDispatcherTask != null)
+                await using (await AsyncLock.TakeLockAsync())
                 {
-                    _serviceChannelDispatcher = await createDispatcherTask;
-                    _serviceChannelDispatcherCreateTask = null;
+                    if (_serviceChannelDispatcher == null)
+                    {
+                        _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
+                    }
                 }
-
-                Fx.Assert(_serviceChannelDispatcher != null, "_serviceChannelDispatcher must not be null if _serviceChannelDispatcherCreateTask is null");
             }
 
+            ThrowIfDisposedOrNotOpen();
             await _serviceChannelDispatcher.DispatchAsync(message);
         }
 
         protected override void OnAbort() { }
-
         protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
-
         protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
 
+        public void Shutdown()
+        {
+            _ = InnerDispatchAsync((RequestContext)null);
+        }
     }
 }

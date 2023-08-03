@@ -153,6 +153,34 @@ namespace Helpers
             })
             .UseStartup(startupType);
 
+        public static IWebHostBuilder CreateWebHostBuilder(IStartupFilter startupFilter, ITestOutputHelper outputHelper, [CallerMemberName] string callerMethodName = "") =>
+            WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseKestrel(options =>
+            {
+                options.Listen(IPAddress.Any, 0, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
+            .ConfigureServices(services =>
+            {
+                CoreWCF.Configuration.ServiceModelServiceCollectionExtensions.AddServiceModelServices(services);
+                Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, startupFilter);
+            })
+            .Configure(app => { });
+
         public static IWebHostBuilder CreateHttpsWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG

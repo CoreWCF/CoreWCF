@@ -1098,30 +1098,9 @@ namespace CoreWCF.Channels
             }
         }
 
-        //private void StartReceiving(bool canBlock)
-        //{
-        //    while (true)
-        //    {
-        //        IAsyncResult result = _binder.BeginTryReceive(TimeSpan.MaxValue, s_onReceiveCompleted, this);
-
-        //        if (!result.CompletedSynchronously)
-        //        {
-        //            return;
-        //        }
-        //        if (!canBlock)
-        //        {
-        //            ActionItem.Schedule(s_asyncReceiveComplete, result);
-        //            return;
-        //        }
-        //        if (!HandleReceiveComplete(result))
-        //            break;
-        //    }
-        //}
-
         private void ShutdownCallback(object state)
         {
-            // Was used to shutdown input queue
-            // Not needed now as we don't have a concept of readers
+            Shutdown();
         }
 
         private async Task TerminateSequenceAsync(CancellationToken token)
@@ -1369,8 +1348,7 @@ namespace CoreWCF.Channels
 
             public Task SendReplyAsync(RequestContext context, MaskingMode maskingMode)
             {
-                TimeoutHelper timeoutHelper = new TimeoutHelper(DefaultSendTimeout);
-                return SendReplyAsync(context, maskingMode, timeoutHelper.GetCancellationToken());
+                return SendReplyAsync(context, maskingMode, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
             }
 
             private async Task SendReplyAsync(RequestContext context, MaskingMode maskingMode, CancellationToken token)
@@ -1516,6 +1494,7 @@ namespace CoreWCF.Channels
                 }
 
                 await ReplyAsync(_requestContext, _info, token, MaskingMode.Handled);
+                await _requestContext.CloseAsync(token);
             }
         }
 

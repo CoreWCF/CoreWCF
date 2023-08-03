@@ -186,12 +186,11 @@ namespace CoreWCF.Channels
                 securityServiceDispatcher.SecurityProtocolFactory = protocolFactory;
             }
 
-            securityServiceDispatcher.InitializeSecurityDispatcher(channelBuilder, typeof(TChannel));
+            securityServiceDispatcher.InitializeSecurityDispatcher<TChannel>(channelBuilder);
 
             // TODO: I think I may have to make IServiceDispatcher dervive from ICommunicationObject and require OpenAsync to be called
             // through the chain of dispatchers. If that's the case, then that's a big API breaking change so will need to wait for .NET 8
             securityServiceDispatcher.OpenAsync().GetAwaiter().GetResult();
-            channelBuilder.BuildServiceDispatcher<TChannel>(context, securityServiceDispatcher);
             return securityServiceDispatcher;
         }
 

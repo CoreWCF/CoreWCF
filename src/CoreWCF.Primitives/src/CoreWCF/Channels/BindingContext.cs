@@ -84,6 +84,7 @@ namespace CoreWCF.Channels
                 return clone.RemoveNextElement().GetProperty<T>(clone);
             }
         }
+
         public BindingContext Clone()
         {
             return new BindingContext(Binding, RemainingBindingElements, BindingParameters,

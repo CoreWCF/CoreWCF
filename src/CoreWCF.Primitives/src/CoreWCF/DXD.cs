@@ -617,7 +617,7 @@ namespace CoreWCF
         public const string None = "None";
         public const string SequenceAcknowledgementAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/SequenceAcknowledgement";
         public const string SequenceClosed = "SequenceClosed";
-        public const string TerminateSequenceAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/TerminateSequenceAsync";
+        public const string TerminateSequenceAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/TerminateSequence";
         public const string TerminateSequenceResponse = "TerminateSequenceResponse";
         public const string TerminateSequenceResponseAction = "http://docs.oasis-open.org/ws-rx/wsrm/200702/TerminateSequenceResponse";
         public const string UsesSequenceSSL = "UsesSequenceSSL";
