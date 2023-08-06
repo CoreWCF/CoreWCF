@@ -141,6 +141,11 @@ namespace CoreWCF.Primitives.Tests
                     // Wait until the first request stored initial OperationContext.Current .
                     if (!service.FirstRequestStoredOperationContextEvent.Wait(TimeSpan.FromSeconds(10), cancellationToken))
                     {
+                        // In case we don't get the event on time, we want first and foremost to see any exception thrown
+                        // from the request.
+                        await firstRequest;
+
+                        // This is a fallback in case there is no exception from the request.
                         Assert.Fail("An expected context event from the first request did not set in time.");
                     }
 
@@ -151,8 +156,7 @@ namespace CoreWCF.Primitives.Tests
 
                     // The first request is the one that actually asserts for the changed OperationContext.
                     // If there is any assertion failure, this is the one that will throw it.
-                    await firstRequest;
-                    await secondRequest;
+                    await Task.WhenAll(firstRequest, secondRequest);
                 }
                 finally
                 {
