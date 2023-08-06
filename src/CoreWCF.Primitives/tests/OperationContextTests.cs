@@ -17,7 +17,7 @@ using Xunit;
 
 namespace CoreWCF.Primitives.Tests
 {
-    public partial class OperationContextTests
+    public class OperationContextTests
     {
         private static readonly Uri _serviceAddress = new Uri($"http://localhost:8080/Test", UriKind.Absolute);
 
@@ -33,17 +33,63 @@ namespace CoreWCF.Primitives.Tests
         [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
         private class Service : IContract
         {
+            public ManualResetEventSlim FirstRequestStoredOperationContextEvent { get; } = new ManualResetEventSlim(false);
+
+            public ManualResetEventSlim SecondRequestInMidOperationEvent { get; } = new ManualResetEventSlim(false);
+
+            public ManualResetEventSlim OperationContextAssertedEvent { get; } = new ManualResetEventSlim(false);
+
+
             public void Operation()
             {
-                var context = OperationContext.Current;
+                // This operation is expected to be requested exactly twice in parallel.
+                // The goal of the events here is to perfectly synchronize the first and second requests in a way
+                // that they will run in parallel and assert the OperationContext.Current before and while-running second request,
+                // which is the original bug.
 
-                // This sleep is not needed to reproduce the original bug in a real environment,
-                // but is essential to reproduce it in a test environment.
-                Thread.Sleep(100);
-
-                if (context != OperationContext.Current)
+                // If this is the first request
+                if (!FirstRequestStoredOperationContextEvent.IsSet)
                 {
-                    throw new FaultException("OperationContext.Current was replaced in mid-operation.");
+                    var context = OperationContext.Current;
+
+                    // Signal that the first request is running and stored OperationContext.Current .
+                    FirstRequestStoredOperationContextEvent.Set();
+
+                    try
+                    {
+                        // Wait until a second request is running.
+                        if (!SecondRequestInMidOperationEvent.Wait(TimeSpan.FromSeconds(10)))
+                        {
+                            throw new FaultException("An expected event from the second request did not set in time.");
+                        }
+
+                        // Assert
+                        if (context != OperationContext.Current)
+                        {
+                            throw new FaultException("OperationContext.Current was replaced in mid-operation.");
+                        }
+                    }
+                    finally
+                    {
+                        // Release the second request
+                        OperationContextAssertedEvent.Set();
+                    }
+                }
+                // If this is the second request
+                else if (!SecondRequestInMidOperationEvent.IsSet)
+                {
+                    // Signal that the second request is running.
+                    SecondRequestInMidOperationEvent.Set();
+
+                    // Wait until OperationContext assertion happens in the first request
+                    if (!OperationContextAssertedEvent.Wait(TimeSpan.FromSeconds(10)))
+                    {
+                        throw new FaultException("An expected assertion event from the first request did not set in time.");
+                    }
+                }
+                else
+                {
+                    throw new FaultException("The operation was designed for 2 calls only.");
                 }
             }
         }
@@ -53,6 +99,7 @@ namespace CoreWCF.Primitives.Tests
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
+                services.AddSingleton<Service>();
             }
 
             public void Configure(IApplicationBuilder app)
@@ -69,7 +116,8 @@ namespace CoreWCF.Primitives.Tests
         [Fact]
         public async Task AccessingCurrentOperationContextBeforeStartingTheHostSouldNotCauseExceptionsLater()
         {
-            // This single line is what actually caused the original bug to occur
+            // This single line is what actually caused the original bug to occur.
+            // It must be placed before the host started.
             var context = OperationContext.Current;
 
             var builder = WebHost.CreateDefaultBuilder<Startup>(null);
@@ -82,65 +130,94 @@ namespace CoreWCF.Primitives.Tests
             {
                 host.Start();
 
-                CancellationTokenSource cancellationSource = new CancellationTokenSource();
-                CancellationToken cancellationToken = cancellationSource.Token;
+                var cancellationSource = new CancellationTokenSource();
+                var cancellationToken = cancellationSource.Token;
+                var service = host.Services.GetRequiredService<Service>();
 
-                IEnumerable<Task> clientTasks = Enumerable.Range(0, 2).Select(async i =>
+                try
                 {
-                    using (var client = new HttpClient())
+                    Task firstRequest = RequestAndAssert(cancellationSource);
+
+                    // Wait until the first request stored initial OperationContext.Current .
+                    if (!service.FirstRequestStoredOperationContextEvent.Wait(TimeSpan.FromSeconds(10), cancellationToken))
                     {
-                        for (int j = 0; j < 10 && !cancellationToken.IsCancellationRequested; j++)
-                        {
-                            try
-                            {
-                                //
-                                // FIXME:
-                                // - Pre-read buffer breaks message parsing when Transfer-Encoding is set to chunked (removes first byte)
-                                // - When a message is invalid, but no error is thrown, message reply crashes because a null message is passed to the Close channel
-                                //
+                        Assert.Fail("An expected context event from the first request did not set in time.");
+                    }
 
-                                var request = new HttpRequestMessage(HttpMethod.Post, _serviceAddress);
+                    // The first request is not done yet and waiting for a signal from a second request
+                    // that needs to run in parallel to the first request.
+                    // which is been triggered here, the second request will run in parallel to the first.
+                    Task secondRequest = RequestAndAssert(cancellationSource);
 
-                                const string action = "http://tempuri.org/IContract/Operation";
-                                request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
+                    // The first request is the one that actually asserts for the changed OperationContext.
+                    // If there is any assertion failure, this is the one that will throw it.
+                    await firstRequest;
+                    await secondRequest;
+                }
+                finally
+                {
+                    // Unblock any potentially blocked operations in case of any failure or unexpected bugs
+                    service.FirstRequestStoredOperationContextEvent.Set();
+                    service.SecondRequestInMidOperationEvent.Set();
+                    service.OperationContextAssertedEvent.Set();
+                }
+            }
+        }
 
-                                const string requestBody = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
+        private static async Task RequestAndAssert(CancellationTokenSource cancellationSource)
+        {
+            var cancellationToken = cancellationSource.Token;
+
+            using (var client = new HttpClient())
+            {
+                try
+                {
+                    //
+                    // FIXME:
+                    // - Pre-read buffer breaks message parsing when Transfer-Encoding is set to chunked (removes first byte)
+                    // - When a message is invalid, but no error is thrown, message reply crashes because a null message is passed to the Close channel
+                    //
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, _serviceAddress);
+
+                    const string action = "http://tempuri.org/IContract/Operation";
+                    request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
+
+                    const string requestBody = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"">
    <s:Header/>
    <s:Body>
       <Operation xmlns=""http://tempuri.org/"" />
    </s:Body>
 </s:Envelope>";
 
-                                request.Content = new StringContent(requestBody, Encoding.UTF8, "text/xml");
+                    request.Content = new StringContent(requestBody, Encoding.UTF8, "text/xml");
 
-                                // FIXME: Commenting out this line will induce a chunked response, which will break the pre-read message parser
-                                request.Content.Headers.ContentLength = Encoding.UTF8.GetByteCount(requestBody);
+                    // FIXME: Commenting out this line will induce a chunked response, which will break the pre-read message parser
+                    request.Content.Headers.ContentLength = Encoding.UTF8.GetByteCount(requestBody);
 
-                                var response = await client.SendAsync(request);
+                    var response = await client.SendAsync(request, cancellationToken);
 
-                                var responseBody = await response.Content.ReadAsStringAsync();
+#if NET5_0_OR_GREATER
+                    var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+#else
+                    var responseBody = await response.Content.ReadAsStringAsync();
+#endif
 
-                                const string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
-                                                        "<s:Body>" +
-                                                        "<OperationResponse xmlns=\"http://tempuri.org/\"/>" +
-                                                        "</s:Body>" +
-                                                        "</s:Envelope>";
+                    const string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+                                            "<s:Body>" +
+                                            "<OperationResponse xmlns=\"http://tempuri.org/\"/>" +
+                                            "</s:Body>" +
+                                            "</s:Envelope>";
 
-                                // The <object> is a workaround for xUnit to print the whole string in case of a failure
-                                Assert.Equal<object>(expected, responseBody);
-                                Assert.True(response.IsSuccessStatusCode);
-
-                            }
-                            catch
-                            {
-                                cancellationSource.Cancel();
-                                throw;
-                            }
-                        }
-                    }
-                });
-
-                await Task.WhenAll(clientTasks);
+                    // The <object> is a workaround for xUnit to print the whole string in case of a failure
+                    Assert.Equal<object>(expected, responseBody);
+                    Assert.True(response.IsSuccessStatusCode);
+                }
+                catch
+                {
+                    cancellationSource.Cancel();
+                    throw;
+                }
             }
         }
     }
