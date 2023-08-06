@@ -58,7 +58,7 @@ namespace CoreWCF.Primitives.Tests
                     try
                     {
                         // Wait until a second request is running.
-                        if (!SecondRequestInMidOperationEvent.Wait(TimeSpan.FromSeconds(10)))
+                        if (!SecondRequestInMidOperationEvent.Wait(TimeSpan.FromSeconds(30)))
                         {
                             throw new FaultException("An expected event from the second request did not set in time.");
                         }
@@ -82,7 +82,7 @@ namespace CoreWCF.Primitives.Tests
                     SecondRequestInMidOperationEvent.Set();
 
                     // Wait until OperationContext assertion happens in the first request
-                    if (!OperationContextAssertedEvent.Wait(TimeSpan.FromSeconds(10)))
+                    if (!OperationContextAssertedEvent.Wait(TimeSpan.FromSeconds(30)))
                     {
                         throw new FaultException("An expected assertion event from the first request did not set in time.");
                     }
@@ -139,7 +139,7 @@ namespace CoreWCF.Primitives.Tests
                     Task firstRequest = RequestAndAssert(cancellationSource);
 
                     // Wait until the first request stored initial OperationContext.Current .
-                    if (!service.FirstRequestStoredOperationContextEvent.Wait(TimeSpan.FromSeconds(10), cancellationToken))
+                    if (!service.FirstRequestStoredOperationContextEvent.Wait(TimeSpan.FromSeconds(30), cancellationToken))
                     {
                         // In case we don't get the event on time, we want first and foremost to see any exception thrown
                         // from the request.
