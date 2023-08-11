@@ -28,7 +28,10 @@ namespace CoreWCF.Http.Tests
 
         private static async Task<string> RequestAndAssert(string url, string text, string action)
         {
-            using (HttpClient client = new HttpClient())
+            HttpClientHandler clientHandler = new HttpClientHandler();
+            clientHandler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => { return true; };
+
+            using (HttpClient client = new HttpClient(clientHandler))
             using (HttpContent content = new StringContent(text, Encoding.UTF8, "application/soap+xml"))
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url))
             {
@@ -46,7 +49,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task WSHttpRequestReplyWithTransportMessageCertificateWhenSignatureElementWithPrefix()
         {
-            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
+            ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext>(_outputHelper).Build();
             using (host)
             {
@@ -70,14 +73,7 @@ namespace CoreWCF.Http.Tests
                 string requestUri = $"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc";
                 string action = "http://tempuri.org/IEchoService/EchoString";
                 await RequestAndAssert(requestUri, content, action);
-
-                Console.WriteLine("read ");
             }
-        }
-
-        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
-        {
-            return true;
         }
 
         internal class WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext : WSHttpTransportWithMessageCredentialWithCertificate
