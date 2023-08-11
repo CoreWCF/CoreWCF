@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
@@ -43,6 +46,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task WSHttpRequestReplyWithTransportMessageCertificateWhenSignatureElementWithPrefix()
         {
+            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext>(_outputHelper).Build();
             using (host)
             {
@@ -69,6 +73,11 @@ namespace CoreWCF.Http.Tests
 
                 Console.WriteLine("read ");
             }
+        }
+
+        private static bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+        {
+            return true;
         }
 
         internal class WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext : WSHttpTransportWithMessageCredentialWithCertificate
