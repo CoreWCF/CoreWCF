@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +68,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -103,7 +102,66 @@ namespace MyProject
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public async Task BasicTestsWithMatchinSignatureButNonMatchingParemeterNames(string attributeNamespace, string attribute)
+        public async Task BasicTestsWithoutNamespace(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+[{attributeNamespace}.ServiceContract]
+public interface IIdentityService
+{{
+    [{attributeNamespace}.OperationContract]
+    string Echo(string input);
+
+    [{attributeNamespace}.OperationContract]
+    string Echo2(string input);
+}}
+
+public partial class IdentityService : IIdentityService
+{{
+    public string Echo(string input) => input;
+    public string Echo2(string input, [{attribute}] object a) => input;
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "IdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+public partial class IdentityService
+{{
+    public string Echo2(string input)
+    {{
+        var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+        if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+        if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+        {{
+            using (var scope = serviceProvider.CreateScope())
+            {{
+                var d0 = scope.ServiceProvider.GetService<object>();
+                return Echo2(input, d0);
+            }}
+        }}
+        var e0 = serviceProvider.GetService<object>();
+        return Echo2(input, e0);
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task BasicTestsWithMatchingSignatureButNonMatchingParameterNames(string attributeNamespace, string attribute)
         {
             var test = new VerifyGenerator.Test
             {
@@ -134,7 +192,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -200,7 +258,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -266,7 +324,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -291,7 +349,7 @@ namespace MyProject
     }}
 }}
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_EchoString.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_EchoString.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -357,7 +415,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -429,7 +487,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -501,7 +559,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -567,7 +625,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -592,7 +650,7 @@ namespace MyProject
     }}
 }}
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -736,7 +794,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -808,7 +866,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -880,7 +938,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -961,7 +1019,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1084,7 +1142,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1152,7 +1210,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1221,7 +1279,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1289,7 +1347,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1357,7 +1415,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1427,7 +1485,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From($@"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1492,7 +1550,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1561,7 +1619,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1631,7 +1689,136 @@ namespace MyProject.Implementations
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Contracts_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_Implementations_IdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject.Implementations
+{{
+    public partial class IdentityService
+    {{
+        public string Echo2(string input)
+        {{
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+            {{
+                using (var scope = serviceProvider.CreateScope())
+                {{
+                    var d0 = scope.ServiceProvider.GetService<object>();
+                    return Echo2(input, d0);
+                }}
+            }}
+            var e0 = serviceProvider.GetService<object>();
+            return Echo2(input, e0);
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ContractAndServiceWithDifferentNamespacesTests2(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject.Contracts
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+}}
+",
+$@"
+public partial class IdentityService : MyProject.Contracts.IIdentityService
+{{
+    public string Echo(string input) => input;
+    public string Echo2(string input, [{attribute}] object a) => input;
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "IdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+public partial class IdentityService
+{{
+    public string Echo2(string input)
+    {{
+        var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+        if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+        if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+        {{
+            using (var scope = serviceProvider.CreateScope())
+            {{
+                var d0 = scope.ServiceProvider.GetService<object>();
+                return Echo2(input, d0);
+            }}
+        }}
+        var e0 = serviceProvider.GetService<object>();
+        return Echo2(input, e0);
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task ContractAndServiceWithDifferentNamespacesTests3(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+[{attributeNamespace}.ServiceContract]
+public interface IIdentityService
+{{
+    [{attributeNamespace}.OperationContract]
+    string Echo(string input);
+
+    [{attributeNamespace}.OperationContract]
+    string Echo2(string input);
+}}
+",
+$@"
+namespace MyProject.Implementations
+{{
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_Implementations_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Implementations
@@ -1696,7 +1883,7 @@ namespace MyProject.Dummy
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
@@ -1750,8 +1937,6 @@ namespace MyProject.Dummy
         [{attributeNamespace}.OperationContract]
         string Echo2(string input);
     }}
-
-
 }}
 ",
 @$"
@@ -1767,7 +1952,7 @@ namespace MyProject.Dummy
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
@@ -1832,7 +2017,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1898,7 +2083,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1952,7 +2137,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject

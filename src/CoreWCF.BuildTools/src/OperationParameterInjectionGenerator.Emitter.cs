@@ -103,6 +103,9 @@ namespace CoreWCF.BuildTools
                     _ => "internal "
                 };
 
+                bool isGlobalNamespace = operationContractSpec.ServiceContractImplementation.ContainingNamespace
+                    .IsGlobalNamespace;
+
                 string returnType = operationContractSpec.MissingOperationContract.ReturnsVoid
                     ? "void"
                     : $"{operationContractSpec.MissingOperationContract.ReturnType}";
@@ -119,9 +122,14 @@ namespace CoreWCF.BuildTools
                 _builder.Clear();
                 _builder.AppendLine($@"
 using System;
-using Microsoft.Extensions.DependencyInjection;
-namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamespace}
+using Microsoft.Extensions.DependencyInjection;");
+                if (!isGlobalNamespace)
+                {
+                    _builder.AppendLine($@"namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamespace}
 {{");
+                    indentor.Increment();
+                }
+
                 Stack<INamedTypeSymbol> classes = new();
                 INamedTypeSymbol containingType = operationContractSpec.ServiceContractImplementation;
                 while (containingType != null)
@@ -133,12 +141,11 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 while (classes.Count > 0)
                 {
                     containingType = classes.Pop();
-                    indentor.Increment();
                     _builder.AppendLine($@"{indentor}{GetAccessibilityModifier(containingType.DeclaredAccessibility)}partial class {containingType.Name}");
                     _builder.AppendLine($@"{indentor}{{");
+                    indentor.Increment();
                 }
 
-                indentor.Increment();
                 foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
                 {
                     _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
@@ -146,6 +153,7 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                     _builder.Append(")]");
                     _builder.AppendLine();
                 }
+
                 _builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 _builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
@@ -200,7 +208,8 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                     _builder.AppendLine($@"{indentor}}}");
                 }
 
-                _sourceGenerationContext.AddSource(fileName, SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
+                string sourceText = _builder.ToString();
+                _sourceGenerationContext.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
                 string GetFileName()
                 {
@@ -213,7 +222,10 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                             break;
                         }
                     }
-                    return $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractName}.g.cs";
+
+                    return operationContractSpec.ServiceContractImplementation.ContainingNamespace.IsGlobalNamespace
+                        ? $"{operationContractSpec.ServiceContractImplementation.Name}_{operationContractName}.g.cs"
+                        : $"{operationContractSpec.ServiceContractImplementation!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContractImplementation.Name}_{operationContractName}.g.cs";
                 }
 
                 void AppendResolveDependencies()
