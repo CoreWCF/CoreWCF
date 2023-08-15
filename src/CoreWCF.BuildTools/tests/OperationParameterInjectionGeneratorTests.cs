@@ -102,6 +102,81 @@ namespace MyProject
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
+        public async Task BasicTestsWithCustomAttributeContainingArrayParameter(string attributeNamespace, string attribute)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
+    public sealed class DummyAttribute : System.Attribute
+    {{
+        public DummyAttribute(string[] args)
+        {{
+        }}
+    }}
+
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+
+        [{attributeNamespace}.OperationContract]
+        string Echo2(string input);
+    }}
+
+    public partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input) => input;
+        [Dummy(new [] {{""A""}})]
+        public string Echo2(string input, [{attribute}] object a) => input;
+    }}
+}}
+"
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService_Echo2.g.cs", SourceText.From(@$"
+using System;
+using Microsoft.Extensions.DependencyInjection;
+namespace MyProject
+{{
+    public partial class IdentityService
+    {{
+        [MyProject.DummyAttribute(new [] {{""A""}})]
+        public string Echo2(string input)
+        {{
+            var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
+            if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");
+            if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
+            {{
+                using (var scope = serviceProvider.CreateScope())
+                {{
+                    var d0 = scope.ServiceProvider.GetService<object>();
+                    return Echo2(input, d0);
+                }}
+            }}
+            var e0 = serviceProvider.GetService<object>();
+            return Echo2(input, e0);
+        }}
+    }}
+}}
+", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                    },
+                },
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
         public async Task BasicTestsWithoutNamespace(string attributeNamespace, string attribute)
         {
             var test = new VerifyGenerator.Test
@@ -265,7 +340,7 @@ namespace MyProject
 {{
     public partial class IdentityService
     {{
-        [CoreWCF.OpenApi.Attributes.OpenApiResponseAttribute(ContentTypes = {{""application/json"", ""text/xml""}}, Description = ""Success"", StatusCode = System.Net.HttpStatusCode.OK, Type = typeof(string))]
+        [CoreWCF.OpenApi.Attributes.OpenApiResponseAttribute(ContentTypes = new [] {{""application/json"", ""text/xml""}}, Description = ""Success"", StatusCode = System.Net.HttpStatusCode.OK, Type = typeof(string))]
         public string Echo2(string input)
         {{
             var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
@@ -566,7 +641,7 @@ namespace MyProject
 {{
     public partial class IdentityService
     {{
-        [CoreWCF.AuthorizeRoleAttribute({{""Role1"", ""Role2""}})]
+        [CoreWCF.AuthorizeRoleAttribute(new [] {{""Role1"", ""Role2""}})]
         public string Echo2(string input)
         {{
             var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();

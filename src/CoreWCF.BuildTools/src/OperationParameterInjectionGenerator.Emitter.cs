@@ -149,7 +149,7 @@ using Microsoft.Extensions.DependencyInjection;");
                 foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
                 {
                     _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
-                    _builder.Append(string.Join(", ", attributeData.ConstructorArguments.Select(x => x.ToCSharpString()).Union(attributeData.NamedArguments.Select(x => $@"{x.Key} = {x.Value.ToCSharpString()}") )));
+                    _builder.Append(string.Join(", ", attributeData.ConstructorArguments.Select(x => x.ToSafeCSharpString()).Union(attributeData.NamedArguments.Select(x => $@"{x.Key} = {x.Value.ToSafeCSharpString()}") )));
                     _builder.Append(")]");
                     _builder.AppendLine();
                 }
