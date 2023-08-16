@@ -73,7 +73,7 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = GetFileName();
+
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
@@ -103,8 +103,10 @@ namespace CoreWCF.BuildTools
                     _ => "internal "
                 };
 
-                bool isGlobalNamespace = operationContractSpec.ServiceContractImplementation.ContainingNamespace
+                bool isServiceContractImplInGlobalNamespace = operationContractSpec.ServiceContractImplementation.ContainingNamespace
                     .IsGlobalNamespace;
+
+                string fileName = GetFileName();
 
                 string returnType = operationContractSpec.MissingOperationContract.ReturnsVoid
                     ? "void"
@@ -123,7 +125,7 @@ namespace CoreWCF.BuildTools
                 _builder.AppendLine($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;");
-                if (!isGlobalNamespace)
+                if (!isServiceContractImplInGlobalNamespace)
                 {
                     _builder.AppendLine($@"namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamespace}
 {{");
@@ -213,6 +215,13 @@ using Microsoft.Extensions.DependencyInjection;");
 
                 string GetFileName()
                 {
+                    StringBuilder fileNameBuilder = new();
+                    fileNameBuilder.Append(operationContractSpec.ServiceContractImplementation!.ToDisplayString().Replace(".", "_"));
+                    fileNameBuilder.Append("__");
+
+                    fileNameBuilder.Append(operationContractSpec.ServiceContract.ToDisplayString().Replace(".", "_"));
+                    fileNameBuilder.Append("_");
+
                     string operationContractName = operationContractSpec.MissingOperationContract!.Name;
                     foreach (var namedArgument in operationContractSpec.OperationContractAttributeData.NamedArguments)
                     {
@@ -223,9 +232,10 @@ using Microsoft.Extensions.DependencyInjection;");
                         }
                     }
 
-                    return operationContractSpec.ServiceContractImplementation.ContainingNamespace.IsGlobalNamespace
-                        ? $"{operationContractSpec.ServiceContractImplementation.Name}_{operationContractName}.g.cs"
-                        : $"{operationContractSpec.ServiceContractImplementation!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContractImplementation.Name}_{operationContractName}.g.cs";
+                    fileNameBuilder.Append(operationContractName);
+                    fileNameBuilder.Append(".g.cs");
+
+                    return fileNameBuilder.ToString();
                 }
 
                 void AppendResolveDependencies()
