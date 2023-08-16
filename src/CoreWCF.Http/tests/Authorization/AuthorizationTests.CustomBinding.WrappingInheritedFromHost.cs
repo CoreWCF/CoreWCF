@@ -20,9 +20,9 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationTests
 {
     [Fact]
-    public void CustomBindingSupportsAuthorizationData_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    public void CustomBinding_WrappingInheritedFromHost_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingSupportsAuthorizationDataWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -36,9 +36,9 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void CustomBindingSupportsAuthorizationData_UnauthenticatedUser_Test()
+    public void CustomBinding_WrappingInheritedFromHost_UnauthenticatedUser_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingSupportsAuthorizationDataWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -51,9 +51,9 @@ public partial class AuthorizationTests
     }
 
     [Fact]
-    public void CustomBindingSupportsAuthorizationData_AuthenticatedUser_MissingScopeValues_Test()
+    public void CustomBinding_WrappingInheritedFromHost_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingSupportsAuthorizationDataWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -65,7 +65,7 @@ public partial class AuthorizationTests
         }
     }
 
-    private abstract class CustomBindingSupportsAuthorizationDataStartup<TSecuredService> where TSecuredService : class, ISecuredService
+    private abstract class CustomBindingWrappingInheritedFromHostStartup<TSecuredService> where TSecuredService : class, ISecuredService
     {
         public bool IsAuthenticated { get; set; }
         public List<string> ScopeClaimValues { get; set; } = new();
@@ -111,43 +111,41 @@ public partial class AuthorizationTests
             {
                 builder.AddService<TSecuredService>();
                 BasicHttpBinding basicHttpBinding = new BasicHttpBinding(BasicHttpSecurityMode.TransportCredentialOnly);
-                basicHttpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Basic;
+                basicHttpBinding.Security.Transport.ClientCredentialType = HttpClientCredentialType.InheritedFromHost;
                 CustomBinding customBinding = new CustomBinding(basicHttpBinding);
-                HttpTransportBindingElement transportBindingElement = customBinding.Elements.Find<HttpTransportBindingElement>();
-                transportBindingElement.AlwaysUseAuthorizationPolicySupport = true;
                 builder.AddServiceEndpoint<TSecuredService, ISecuredService>(customBinding, "/BasicWcfService/custom.svc");
             });
         }
     }
 
     [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    private class CustomBindingSupportsAuthorizationDataSecuredService : ISecuredService
+    private class CustomBindingWrappingInheritedFromHostSecuredService : ISecuredService
     {
         [Authorize(Policy = Policies.Read)]
         public string Echo(string text) => text;
     }
 
-    private class CustomBindingSupportsAuthorizationDataWithAuthenticatedUserAndRequiredScopeValuesStartup : CustomBindingSupportsAuthorizationDataStartup<CustomBindingSecuredService>
+    private class CustomBindingWrappingInheritedFromHostWithAuthenticatedUserAndRequiredScopeValuesStartup : CustomBindingWrappingInheritedFromHostStartup<CustomBindingWrappingInheritedFromHostSecuredService>
     {
-        public CustomBindingSupportsAuthorizationDataWithAuthenticatedUserAndRequiredScopeValuesStartup()
+        public CustomBindingWrappingInheritedFromHostWithAuthenticatedUserAndRequiredScopeValuesStartup()
         {
             IsAuthenticated = true;
             ScopeClaimValues.Add(DefinedScopeValues.Read);
         }
     }
 
-    private class CustomBindingSupportsAuthorizationDataWithUnauthenticatedUserStartup : CustomBindingSupportsAuthorizationDataStartup<CustomBindingSecuredService>
+    private class CustomBindingWrappingInheritedFromHostWithUnauthenticatedUserStartup : CustomBindingWrappingInheritedFromHostStartup<CustomBindingWrappingInheritedFromHostSecuredService>
     {
-        public CustomBindingSupportsAuthorizationDataWithUnauthenticatedUserStartup()
+        public CustomBindingWrappingInheritedFromHostWithUnauthenticatedUserStartup()
         {
             IsAuthenticated = false;
             ScopeClaimValues.Clear();
         }
     }
 
-    private class CustomBindingSupportsAuthorizationDataWithAuthenticatedUserButMissingScopeValuesStartup : CustomBindingSupportsAuthorizationDataStartup<CustomBindingSecuredService>
+    private class CustomBindingWrappingInheritedFromHostWithAuthenticatedUserButMissingScopeValuesStartup : CustomBindingWrappingInheritedFromHostStartup<CustomBindingWrappingInheritedFromHostSecuredService>
     {
-        public CustomBindingSupportsAuthorizationDataWithAuthenticatedUserButMissingScopeValuesStartup()
+        public CustomBindingWrappingInheritedFromHostWithAuthenticatedUserButMissingScopeValuesStartup()
         {
             IsAuthenticated = true;
             ScopeClaimValues.Clear();

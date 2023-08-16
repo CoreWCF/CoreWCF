@@ -95,5 +95,12 @@ namespace CoreWCF
         {
             _transportSecurity.DisableTransportAuthentication(http);
         }
+
+        internal void ApplyAuthorizationPolicySupport(HttpTransportBindingElement httpTransport)
+        {
+            httpTransport.AlwaysUseAuthorizationPolicySupport =
+                Transport.UseAuthorizationPolicySupport
+                || Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost;
+        }
     }
 }

@@ -57,5 +57,12 @@ namespace CoreWCF
         {
             HttpTransportHelpers.ConfigureTransportProtectionAndAuthentication(https, _transportSecurity);
         }
+
+        internal void ApplyAuthorizationPolicySupport(HttpTransportBindingElement httpTransport)
+        {
+            httpTransport.AlwaysUseAuthorizationPolicySupport =
+                Transport.UseAuthorizationPolicySupport
+                || Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost;
+        }
     }
 }

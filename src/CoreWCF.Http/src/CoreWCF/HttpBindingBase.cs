@@ -137,25 +137,24 @@ namespace CoreWCF
             Fx.Assert(BasicHttpSecurity != null, "this.BasicHttpSecurity should not return null from a derived class.");
 
             BasicHttpSecurity basicHttpSecurity = BasicHttpSecurity;
-            if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Message)
+            switch (basicHttpSecurity.Mode)
             {
-                throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.Message));
-            }
-            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.Transport || basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportWithMessageCredential)
-            {
-                basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
-                return _httpsTransport;
-            }
-            else if (basicHttpSecurity.Mode == BasicHttpSecurityMode.TransportCredentialOnly)
-            {
-                basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
-                return _httpTransport;
-            }
-            else
-            {
-                // ensure that there is no transport security
-                basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
-                return _httpTransport;
+                case BasicHttpSecurityMode.Message:
+                    throw new PlatformNotSupportedException(nameof(BasicHttpSecurityMode.Message));
+                case BasicHttpSecurityMode.Transport:
+                case BasicHttpSecurityMode.TransportWithMessageCredential:
+                    basicHttpSecurity.EnableTransportSecurity(_httpsTransport);
+                    basicHttpSecurity.ApplyAuthorizationPolicySupport(_httpsTransport);
+                    return _httpsTransport;
+                case BasicHttpSecurityMode.TransportCredentialOnly:
+                    basicHttpSecurity.EnableTransportAuthentication(_httpTransport);
+                    basicHttpSecurity.ApplyAuthorizationPolicySupport(_httpTransport);
+                    return _httpTransport;
+                default:
+                    // ensure that there is no transport security
+                    basicHttpSecurity.DisableTransportAuthentication(_httpTransport);
+                    basicHttpSecurity.ApplyAuthorizationPolicySupport(_httpTransport);
+                    return _httpTransport;
             }
         }
 
