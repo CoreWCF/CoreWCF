@@ -73,7 +73,7 @@ namespace CoreWCF.BuildTools
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
-                string fileName = GetFileName();
+
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
                        p.IsMatchingParameter(x))).ToArray();
 
@@ -103,6 +103,11 @@ namespace CoreWCF.BuildTools
                     _ => "internal "
                 };
 
+                bool isServiceContractImplInGlobalNamespace = operationContractSpec.ServiceContractImplementation.ContainingNamespace
+                    .IsGlobalNamespace;
+
+                string fileName = GetFileName();
+
                 string returnType = operationContractSpec.MissingOperationContract.ReturnsVoid
                     ? "void"
                     : $"{operationContractSpec.MissingOperationContract.ReturnType}";
@@ -119,9 +124,14 @@ namespace CoreWCF.BuildTools
                 _builder.Clear();
                 _builder.AppendLine($@"
 using System;
-using Microsoft.Extensions.DependencyInjection;
-namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamespace}
+using Microsoft.Extensions.DependencyInjection;");
+                if (!isServiceContractImplInGlobalNamespace)
+                {
+                    _builder.AppendLine($@"namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamespace}
 {{");
+                    indentor.Increment();
+                }
+
                 Stack<INamedTypeSymbol> classes = new();
                 INamedTypeSymbol containingType = operationContractSpec.ServiceContractImplementation;
                 while (containingType != null)
@@ -133,19 +143,19 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                 while (classes.Count > 0)
                 {
                     containingType = classes.Pop();
-                    indentor.Increment();
                     _builder.AppendLine($@"{indentor}{GetAccessibilityModifier(containingType.DeclaredAccessibility)}partial class {containingType.Name}");
                     _builder.AppendLine($@"{indentor}{{");
+                    indentor.Increment();
                 }
 
-                indentor.Increment();
                 foreach (AttributeData attributeData in operationContractSpec.UserProvidedOperationContractImplementation.GetAttributes())
                 {
                     _builder.Append($"{indentor}[{attributeData.AttributeClass}(");
-                    _builder.Append(string.Join(", ", attributeData.ConstructorArguments.Select(x => x.ToCSharpString()).Union(attributeData.NamedArguments.Select(x => $@"{x.Key} = {x.Value.ToCSharpString()}") )));
+                    _builder.Append(string.Join(", ", attributeData.ConstructorArguments.Select(x => x.ToSafeCSharpString()).Union(attributeData.NamedArguments.Select(x => $@"{x.Key} = {x.Value.ToSafeCSharpString()}") )));
                     _builder.Append(")]");
                     _builder.AppendLine();
                 }
+
                 _builder.AppendLine($@"{indentor}public {@async}{returnType} {operationContractSpec.MissingOperationContract.Name}({parameters})");
                 _builder.AppendLine($@"{indentor}{{");
                 indentor.Increment();
@@ -200,10 +210,18 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                     _builder.AppendLine($@"{indentor}}}");
                 }
 
-                _sourceGenerationContext.AddSource(fileName, SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
+                string sourceText = _builder.ToString();
+                _sourceGenerationContext.AddSource(fileName, SourceText.From(sourceText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
                 string GetFileName()
                 {
+                    StringBuilder fileNameBuilder = new();
+                    fileNameBuilder.Append(operationContractSpec.ServiceContractImplementation!.ToDisplayString().Replace(".", "_"));
+                    fileNameBuilder.Append("__");
+
+                    fileNameBuilder.Append(operationContractSpec.ServiceContract.ToDisplayString().Replace(".", "_"));
+                    fileNameBuilder.Append("_");
+
                     string operationContractName = operationContractSpec.MissingOperationContract!.Name;
                     foreach (var namedArgument in operationContractSpec.OperationContractAttributeData.NamedArguments)
                     {
@@ -213,7 +231,11 @@ namespace {operationContractSpec.ServiceContractImplementation!.ContainingNamesp
                             break;
                         }
                     }
-                    return $"{operationContractSpec.ServiceContract!.ContainingNamespace.ToDisplayString().Replace(".", "_")}_{operationContractSpec.ServiceContract.Name}_{operationContractName}.g.cs";
+
+                    fileNameBuilder.Append(operationContractName);
+                    fileNameBuilder.Append(".g.cs");
+
+                    return fileNameBuilder.ToString();
                 }
 
                 void AppendResolveDependencies()
