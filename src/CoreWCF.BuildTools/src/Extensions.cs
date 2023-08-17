@@ -109,4 +109,18 @@ namespace CoreWCF.BuildTools
             return result;
         }
     }
+
+    internal static class TypedConstantExtensions
+    {
+        public static string ToSafeCSharpString(this TypedConstant typedConstant)
+        {
+            if (typedConstant.Kind == TypedConstantKind.Array)
+            {
+                return $"new [] {typedConstant.ToCSharpString()}";
+            }
+
+            return typedConstant.ToCSharpString();
+
+        }
+    }
 }
