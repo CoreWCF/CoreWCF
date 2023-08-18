@@ -33,9 +33,10 @@ namespace CoreWCF.Channels
 
         //Task DispatchAsync(RequestContext context);
         //Task DispatchAsync(RequestContext context, MaskingMode maskingMode);
-        //Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token);
-        //Task<(bool, RequestContext)> TryReceiveAsync(CancellationToken token, MaskingMode maskingMode);
-
+        Task<bool> StartTryGetChannelAsync();
+        Task OnReceivedMessageAsync();
+        Task<RequestContext> OnReceivedRequestAsync(RequestContext context);
+        Task ReceivedRequestOnChannelAsync(IChannel channel);
         ISession GetInnerSession();
         void HandleException(Exception e);
         bool IsHandleable(Exception e);

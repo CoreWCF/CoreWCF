@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -365,7 +366,7 @@ namespace CoreWCF.Channels
             CreateSequenceInfo createSequenceInfo = info.CreateSequenceInfo;
             EndpointAddress acksTo;
 
-            if (!WsrmUtilities.ValidateCreateSequence<TChannel>(info, this, channel, out acksTo))
+            if (!WsrmUtilities.ValidateCreateSequence(info, this, channel, out acksTo))
                 return (null, newChannel);
 
             await using (await AsyncLock.TakeLockAsync())
@@ -387,8 +388,8 @@ namespace CoreWCF.Channels
 
                 id = WsrmUtilities.NextSequenceId();
 
-                reliableChannel = await CreateChannelAsync(id, createSequenceInfo,
-                    CreateBinder(channel, acksTo, createSequenceInfo.ReplyTo));
+                var binder = CreateBinder(channel, acksTo, createSequenceInfo.ReplyTo);
+                reliableChannel = await CreateChannelAsync(id, createSequenceInfo, binder);
                 _channelsByInput.Add(id, reliableChannel);
                 if (Duplex)
                     _channelsByOutput.Add(createSequenceInfo.OfferIdentifier, reliableChannel);
@@ -750,7 +751,6 @@ namespace CoreWCF.Channels
             else
             {
                 (reliableChannel, newChannel) = await ProcessCreateSequenceAsync(info, channel);
-
                 if (reliableChannel == null)
                     faultReply = info.FaultReply;
             }
@@ -760,6 +760,7 @@ namespace CoreWCF.Channels
                 // reliableChannel derives from InputQueueReplyChannel so ProcessSequencedItem will
                 // call InputQueueReplyChannel.Enqueue which will dispatch the item.
                 await ProcessSequencedItemAsync(channel, item, reliableChannel, info, newChannel);
+                await OnCompleteDispatchAsync(reliableChannel);
             }
             else
             {
@@ -784,6 +785,11 @@ namespace CoreWCF.Channels
                 }
             }
         }
+
+        protected abstract Task OnCompleteDispatchAsync(TReliableChannel channel);
+        //{
+        //    return Task.CompletedTask;
+        //}
 
         protected override void ProcessChannel(TInnerChannel channel) { }
         protected abstract Task ProcessSequencedItemAsync(TInnerChannel channel, TItem item, TReliableChannel reliableChannel, WsrmMessageInfo info, bool newChannel);
@@ -918,7 +924,6 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-            await channel.OpenAsync(token);
             return channel;
         }
 
@@ -945,7 +950,6 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
-            await channel.OpenAsync(token);
             return channel;
         }
 
@@ -972,7 +976,6 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ServerReliableDuplexSessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-            await channel.OpenAsync(token);
             return channel;
         }
 
@@ -980,7 +983,7 @@ namespace CoreWCF.Channels
         {
             if (!newChannel)
             {
-                IServerReliableChannelBinder binder = (IServerReliableChannelBinder)reliableChannel.Binder;
+                ServerReliableChannelBinder<IDuplexSessionChannel> binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)reliableChannel.Binder;
 
                 if (!binder.UseNewChannel(channel))
                 {
@@ -991,6 +994,12 @@ namespace CoreWCF.Channels
             }
 
             await reliableChannel.ProcessDemuxedMessageAsync(info);
+        }
+
+        protected override Task OnCompleteDispatchAsync(ServerReliableDuplexSessionChannel channel)
+        {
+            var binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)channel.Binder;
+            return binder.ReceivedRequestOnChannelAsync(channel);
         }
     }
 
@@ -1012,25 +1021,36 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ReliableInputSessionChannelOverDuplex(this, binder, FaultHelper, id);
-            await channel.OpenAsync(token);
             return channel;
         }
 
-        protected override Task ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ReliableInputSessionChannelOverDuplex reliableChannel, WsrmMessageInfo info, bool newChannel)
+        protected override async Task ProcessSequencedItemAsync(IDuplexSessionChannel channel, Message message, ReliableInputSessionChannelOverDuplex reliableChannel, WsrmMessageInfo info, bool newChannel)
         {
             if (!newChannel)
             {
-                IServerReliableChannelBinder binder = reliableChannel.Binder;
+                ServerReliableChannelBinder<IDuplexSessionChannel> binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)reliableChannel.Binder;
 
                 if (!binder.UseNewChannel(channel))
                 {
                     message.Close();
                     channel.Abort();
-                    return Task.CompletedTask;
+                    return;
                 }
+
+                // On .NET Framework the receive loop waits on TryGetChannel which fixes up some bookkeeping. The UseNewChannel
+                // call sets the channel as pending. If you call UseNewChannel again without clearing the pending channel, it
+                // will abort the pending channel. As we don't have a receive loop, we need to get the channel from the binder
+                // to clear the pending channel and prevent it getting aborted.
+                await binder.TryGetChannelAsync(default);
             }
 
-            return reliableChannel.ProcessDemuxedMessageAsync(info);
+            await reliableChannel.ProcessDemuxedMessageAsync(info);
+        }
+
+        protected override Task OnCompleteDispatchAsync(ReliableInputSessionChannelOverDuplex channel)
+        {
+            var binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)channel.Binder;
+            return binder.ReceivedRequestOnChannelAsync(channel);
         }
     }
 
@@ -1051,7 +1071,6 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ReliableInputSessionChannelOverReply(this, binder, FaultHelper, id);
-            await channel.OpenAsync(token);
             return channel;
         }
 
@@ -1140,26 +1159,37 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-            //await channel.OpenAsync(token);
             return channel;
         }
 
-        protected override Task ProcessSequencedItemAsync(IReplySessionChannel channel, RequestContext context, ReliableReplySessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)
+        protected override async Task ProcessSequencedItemAsync(IReplySessionChannel channel, RequestContext context, ReliableReplySessionChannel reliableChannel, WsrmMessageInfo info, bool newChannel)
         {
             if (!newChannel)
             {
-                IServerReliableChannelBinder binder = reliableChannel.Binder;
+                ServerReliableChannelBinder<IReplySessionChannel> binder = (ServerReliableChannelBinder<IReplySessionChannel>)reliableChannel.Binder;
 
                 if (!binder.UseNewChannel(channel))
                 {
                     context.RequestMessage.Close();
                     context.Abort();
                     channel.Abort();
-                    return Task.CompletedTask;
+                    return;
                 }
+
+                // On .NET Framework the receive loop waits on TryGetChannel which fixes up some bookkeeping. The UseNewChannel
+                // call sets the channel as pending. If you call UseNewChannel again without clearing the pending channel, it
+                // will abort the pending channel. As we don't have a receive loop, we need to get the channel from the binder
+                // to clear the pending channel and prevent it getting aborted.
+                await binder.TryGetChannelAsync(default);
             }
 
-            return reliableChannel.ProcessDemuxedRequestAsync(reliableChannel.Binder.WrapRequestContext(context), info);
+            await reliableChannel.ProcessDemuxedRequestAsync(reliableChannel.Binder.WrapRequestContext(context), info);
+        }
+
+        protected override Task OnCompleteDispatchAsync(ReliableReplySessionChannel channel)
+        {
+            var binder = (ServerReliableChannelBinder<IReplySessionChannel>)channel.Binder;
+            return binder.ReceivedRequestOnChannelAsync(channel);
         }
     }
 }

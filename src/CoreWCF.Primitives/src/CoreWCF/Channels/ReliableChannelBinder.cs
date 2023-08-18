@@ -328,7 +328,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        protected abstract Task<bool> TryGetChannelAsync(CancellationToken token);
+        internal abstract Task<bool> TryGetChannelAsync(CancellationToken token);
 
         // TODO: This method needs to be replaced with an implementation that uses the push dispatch model.
         // Need to add code to deal with not receiving a message for a period of time to EOF the Synchronizer
@@ -675,6 +675,104 @@ namespace CoreWCF.Channels
                 }
 
                 State = CommunicationState.Closed;
+            }
+        }
+
+        public async Task<bool> StartTryGetChannelAsync()
+        {
+            ValidateInputOperation();
+            try
+            {
+                (bool success, TChannel channel) = await Synchronizer.TryGetChannelForInputAsync(
+                            CanGetChannelForReceive, default);
+                return success;
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+
+                if (!HandleException(e, DefaultMaskingMode, autoAborted: false))
+                {
+                    throw;
+                }
+
+                return false;
+            }
+        }
+
+        public virtual async Task OnReceivedMessageAsync()
+        {
+            bool autoAborted = Synchronizer.Aborting;
+            try
+            {
+                await Synchronizer.ReturnChannelAsync();
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+
+                if (!HandleException(e, DefaultMaskingMode, autoAborted))
+                {
+                    throw;
+                }
+            }
+        }
+
+        public virtual async Task<RequestContext> OnReceivedRequestAsync(RequestContext requestContext)
+        {
+            if (requestContext == null)
+            {
+                Synchronizer.OnReadEof();
+            }
+
+            bool autoAborted = Synchronizer.Aborting;
+            try
+            {
+                await Synchronizer.ReturnChannelAsync();
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+
+                if (!HandleException(e, DefaultMaskingMode, autoAborted))
+                {
+                    throw;
+                }
+            }
+
+            return requestContext;
+
+        }
+
+        public async Task ReceivedRequestOnChannelAsync(IChannel channel)
+        {
+            ValidateInputOperation();
+            bool autoAborted = false;
+            try
+            {
+                autoAborted = Synchronizer.Aborting;
+                await Synchronizer.ReturnChannelAsync();
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e))
+                {
+                    throw;
+                }
+
+                if (!HandleException(e, DefaultMaskingMode, autoAborted))
+                {
+                    throw;
+                }
             }
         }
 
@@ -1291,7 +1389,7 @@ namespace CoreWCF.Channels
                 bool drained;
                 bool raiseInnerChannelFaulted = false;
 
-                using (ThisLock.TakeLock())
+                await using (await ThisLock.TakeLockAsync())
                 {
                     if (_count <= 0)
                     {
@@ -1445,7 +1543,10 @@ namespace CoreWCF.Channels
 
                     if (CurrentChannel == null)
                     {
-                        if (!await _binder.TryGetChannelAsync(default))
+                        // TimeoutHelper.GetCancellationToken(TimeSpan.Zero) will return a precancelled token.
+                        // This signals to the binder that we need an answer immediately and not to wait for
+                        // the channel if we don't have it yet.
+                        if (!await _binder.TryGetChannelAsync(TimeoutHelper.GetCancellationToken(TimeSpan.Zero)))
                         {
                             return;
                         }

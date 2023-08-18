@@ -161,7 +161,7 @@ namespace CoreWCF.Channels
                 channel.Abort();
         }
 
-        protected override async Task<bool> TryGetChannelAsync(CancellationToken token)
+        internal override async Task<bool> TryGetChannelAsync(CancellationToken token)
         {
             if (!await _pendingChannelEvent.WaitAsync(token))
                 return false;
@@ -253,6 +253,14 @@ namespace CoreWCF.Channels
                 return localAddress;
             }
 
+            public override Task<RequestContext> OnReceivedRequestAsync(RequestContext requestContext)
+            {
+                Message message = requestContext.RequestMessage;
+                OnMessageReceived(message);
+                requestContext = WrapMessage(message);
+                return base.OnReceivedRequestAsync(requestContext);
+            }
+
             protected override Task OnSendAsync(TDuplexChannel channel, Message message, CancellationToken token)
             {
                 return channel.SendAsync(message, token);
@@ -322,6 +330,16 @@ namespace CoreWCF.Channels
                 IReplyChannel channel = Synchronizer.CurrentChannel;
                 EndpointAddress localAddress = (channel == null) ? null : channel.LocalAddress;
                 return localAddress;
+            }
+
+            public override Task<RequestContext> OnReceivedRequestAsync(RequestContext requestContext)
+            {
+                if (requestContext == null)
+                {
+                    OnReadNullMessage();
+                }
+                requestContext = WrapRequestContext(requestContext);
+                return base.OnReceivedRequestAsync(requestContext);
             }
         }
 

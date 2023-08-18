@@ -10,9 +10,9 @@ using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class InputQueueServiceChannelDispatcher<ItemType> : ServiceChannelBase, IServiceChannelDispatcher where ItemType : class, IDisposable
+    internal abstract class InputQueueServiceChannelDispatcher<TItemType> : ServiceChannelBase where TItemType : class, IDisposable
     {
-        private readonly ConcurrentQueue<(ItemType item, Action callback)> _itemQueue = new ConcurrentQueue<(ItemType item, Action callback)>();
+        private readonly ConcurrentQueue<(TItemType item, Action callback)> _itemQueue = new ConcurrentQueue<(TItemType item, Action callback)>();
         private int _dispatching;
 
         protected InputQueueServiceChannelDispatcher(IDefaultCommunicationTimeouts timeouts) : base(timeouts)
@@ -24,26 +24,16 @@ namespace CoreWCF.Channels
         // DispatchAsync is called by a ReliableServiceDispatcher as part of the regular dispatch layer mechanism
         // Once the message has been processed by the reliable layer, InnerDispatchAsync is called to dispatch
         // to the actual service itself.
-        public abstract Task DispatchAsync(RequestContext context);
-        public abstract Task DispatchAsync(Message message);
+        public abstract Task DispatchAsync(TItemType item);
 
-        public abstract Task InnerDispatchAsync(RequestContext context);
-        public abstract Task InnerDispatchAsync(Message message);
-
+        public abstract Task InnerDispatchAsync(TItemType item);
 
         private async Task DispatchAsync()
         {
             Fx.Assert(_dispatching == 1, "Method should only be called when _dispatching == 1");
             while (_itemQueue.TryDequeue(out var entry))
             {
-                if (entry.item is RequestContext context)
-                {
-                    await InnerDispatchAsync(context);
-                }
-                else if(entry.item is Message message)
-                {
-                    await InnerDispatchAsync(message);
-                }
+                await InnerDispatchAsync(entry.item);
                 if (entry.callback != null)
                 {
                     entry.callback();
@@ -68,7 +58,7 @@ namespace CoreWCF.Channels
             if (dequeueCallback != null) dequeueCallback();
         }
 
-        internal void Enqueue(ItemType item, Action dequeueCallback)
+        internal void Enqueue(TItemType item, Action dequeueCallback)
         {
             _itemQueue.Enqueue((item, dequeueCallback));
             EnsureDispatching();
@@ -79,7 +69,7 @@ namespace CoreWCF.Channels
             // If we weren't already dispatching, start dispatching
             if (_itemQueue.Count > 0 && Interlocked.CompareExchange(ref _dispatching, 1, 0) == 0)
             {
-                Task.Factory.StartNew(s => ((InputQueueServiceChannelDispatcher<ItemType>)s).DispatchAsync(), this, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+                Task.Factory.StartNew(s => ((InputQueueServiceChannelDispatcher<TItemType>)s).DispatchAsync(), this, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
             }
         }
     }

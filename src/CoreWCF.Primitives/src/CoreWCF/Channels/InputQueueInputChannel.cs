@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -16,6 +15,7 @@ namespace CoreWCF.Channels
         public InputQueueInputChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress)
             : base(timeouts)
         {
+            ReliableMessagingHelpers.AssertIsNotReliableServiceDispatcher(serviceDispatcher);
             LocalAddress = localAddress;
             _serviceDispatcher = serviceDispatcher;
         }
@@ -42,20 +42,9 @@ namespace CoreWCF.Channels
 
         protected override void OnAbort() { }
         protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
-
-        protected override async Task OnOpenAsync(CancellationToken token)
-        {
-            _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
-        }
-
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
         public Task<Message> ReceiveAsync(CancellationToken token) => throw new NotImplementedException();
         public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
-
-        public override Task InnerDispatchAsync(RequestContext context)
-        {
-            ThrowIfDisposedOrNotOpen();
-            return _serviceChannelDispatcher.DispatchAsync(context);
-        }
 
         public override Task InnerDispatchAsync(Message message)
         {

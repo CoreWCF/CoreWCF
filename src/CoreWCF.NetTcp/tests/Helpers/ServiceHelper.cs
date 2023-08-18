@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using Xunit;
 
 namespace Helpers
@@ -116,6 +117,32 @@ namespace Helpers
             })
 #endif // DEBUG
             .UseStartup<TStartup>();
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder(IStartupFilter startupFilter, ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "")
+        {
+            if (ipAddress == null)
+            {
+                //using .Any breaks the getaddress method
+                ipAddress = IPAddress.Loopback;
+            }
+            return WebHost.CreateDefaultBuilder(Array.Empty<string>())
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .UseNetTcp(ipAddress, port)
+            .ConfigureServices(services =>
+            {
+                ServiceModelServiceCollectionExtensions.AddServiceModelServices(services);
+                Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, startupFilter);
+            })
+            .Configure(app => { });
         }
 
         public static string GetNetTcpAddressInUse(this IWebHost host)

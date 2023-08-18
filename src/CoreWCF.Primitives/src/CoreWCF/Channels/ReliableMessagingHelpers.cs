@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using static CoreWCF.Runtime.TaskHelpers;
@@ -15,6 +17,31 @@ using static CoreWCF.Runtime.TaskHelpers;
 namespace CoreWCF.Channels
 {
     internal delegate Task AsyncOperationWithCancellationCallback(CancellationToken token);
+
+    internal static class ReliableMessagingHelpers
+    {
+        [Conditional("DEBUG")]
+        public static void AssertIsNotReliableServiceDispatcher(IServiceDispatcher serviceDispatcher)
+        {
+            // Fast path for the common case as it would normally be the next dispatcher in the chain
+            if (serviceDispatcher is ServiceDispatcher) return;
+
+            // We can't presume another IServiceDispatcher hasn't been inserted into the chain so
+            // we need to properly check the type.
+            var reliableServiceDispatcherBaseGenericType = typeof(ReliableServiceDispatcher<,,>);
+            var type = serviceDispatcher.GetType();
+            do
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == reliableServiceDispatcherBaseGenericType)
+                {
+                    Fx.Assert("Passed in service dispatcher must not be a ReliableServiceDispatcher");
+                }
+
+                type = type.BaseType;
+            }
+            while (type != typeof(object));
+        }
+    }
 
     internal sealed class Guard
     {
