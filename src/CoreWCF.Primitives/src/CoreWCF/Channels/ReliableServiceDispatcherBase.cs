@@ -862,13 +862,6 @@ namespace CoreWCF.Channels
 
             return Task.CompletedTask;
         }
-
-        public override async Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherCoreAsync(IChannel channel)
-        {
-            var baseServiceChannelDispatcher = await base.CreateServiceChannelDispatcherCoreAsync(channel);
-            var binder = ((ReliableDuplexSessionChannel)channel).Binder as ServerReliableChannelBinder<IDuplexSessionChannel>;
-            return binder.WrapServiceChannelDispatcher(baseServiceChannelDispatcher);
-        }
     }
 
     // Based on ReliableListenerOverReplySession<TChannel, TReliableChannel>
@@ -1084,7 +1077,6 @@ namespace CoreWCF.Channels
             var token = TimeoutHelper.GetCancellationToken(InternalOpenTimeout);
             await binder.OpenAsync(token);
             var channel = new ReliableReplySessionChannel(this, binder, FaultHelper, id, createSequenceInfo.OfferIdentifier);
-            //await channel.OpenAsync(token);
             return channel;
         }
 
