@@ -23,7 +23,7 @@ namespace CoreWCF.Channels
             IServerReliableChannelBinder binder,
             FaultHelper faultHelper,
             UniqueId inputID)
-            : base(serviceDispatcher, serviceDispatcher, binder.LocalAddress)
+            : base(serviceDispatcher, serviceDispatcher.InnerServiceDispatcher, binder.LocalAddress)
         {
             Binder = binder;
             _serviceDispatcher = serviceDispatcher;
@@ -254,35 +254,35 @@ namespace CoreWCF.Channels
         }
 
         // Based on HandleReceiveComplete
-        public override async Task DispatchAsync(RequestContext context)
-        {
-            if (context == null)
-            {
-                bool terminated = false;
+        //public override async Task DispatchAsync(RequestContext context)
+        //{
+        //    if (context == null)
+        //    {
+        //        bool terminated = false;
 
-                lock (ThisLock)
-                {
-                    terminated = Connection.Terminate();
-                }
+        //        lock (ThisLock)
+        //        {
+        //            terminated = Connection.Terminate();
+        //        }
 
-                if (!terminated && (Binder.State == CommunicationState.Opened))
-                {
-                    Exception e = new CommunicationException(SR.EarlySecurityClose);
-                    ReliableSession.OnLocalFault(e, (Message)null, null);
-                }
+        //        if (!terminated && (Binder.State == CommunicationState.Opened))
+        //        {
+        //            Exception e = new CommunicationException(SR.EarlySecurityClose);
+        //            ReliableSession.OnLocalFault(e, (Message)null, null);
+        //        }
 
-                return;
-            }
+        //        return;
+        //    }
 
-            Message message = context.RequestMessage;
-            await context.CloseAsync();
+        //    Message message = context.RequestMessage;
+        //    await context.CloseAsync();
 
-            WsrmMessageInfo info = WsrmMessageInfo.Get(ServiceDispatcher.MessageVersion,
-                ServiceDispatcher.ReliableMessagingVersion, Binder.Channel, Binder.GetInnerSession(),
-                message);
+        //    WsrmMessageInfo info = WsrmMessageInfo.Get(ServiceDispatcher.MessageVersion,
+        //        ServiceDispatcher.ReliableMessagingVersion, Binder.Channel, Binder.GetInnerSession(),
+        //        message);
 
-            await ProcessMessageAsync(info);
-        }
+        //    await ProcessMessageAsync(info);
+        //}
 
         private void OnAcknowledgementTimeoutElapsed(object state)
         {
@@ -684,38 +684,44 @@ namespace CoreWCF.Channels
 
         }
 
-        public override Task DispatchAsync(Message message)
+        public override Task DispatchAsync(Message message) 
         {
-            throw new NotImplementedException();
+            WsrmMessageInfo info = WsrmMessageInfo.Get(ServiceDispatcher.MessageVersion,
+                ServiceDispatcher.ReliableMessagingVersion, Binder.Channel, Binder.GetInnerSession(),
+                message);
+
+            // TODO: Untangle this
+            return Task.CompletedTask;
+            //return ProcessRequestAsync(context, info);
         }
 
         // Based on HandleReceiveComplete
-        public override Task DispatchAsync(RequestContext context)
-        {
-            // TODO, resolve what to do with the missing information of timeoutOkay that was originally retruend from Binger.EndTryReceive
-            if (context == null)
-            {
-                bool terminated = false;
+        //public override Task DispatchAsync(RequestContext context)
+        //{
+        //    // TODO, resolve what to do with the missing information of timeoutOkay that was originally retruend from Binger.EndTryReceive
+        //    if (context == null)
+        //    {
+        //        bool terminated = false;
 
-                lock (ThisLock)
-                {
-                    terminated = Connection.Terminate();
-                }
+        //        lock (ThisLock)
+        //        {
+        //            terminated = Connection.Terminate();
+        //        }
 
-                if (!terminated && (Binder.State == CommunicationState.Opened))
-                {
-                    Exception e = new CommunicationException(SR.EarlySecurityClose);
-                    ReliableSession.OnLocalFault(e, (Message)null, null);
-                }
-                return Task.CompletedTask;
-            }
+        //        if (!terminated && (Binder.State == CommunicationState.Opened))
+        //        {
+        //            Exception e = new CommunicationException(SR.EarlySecurityClose);
+        //            ReliableSession.OnLocalFault(e, (Message)null, null);
+        //        }
+        //        return Task.CompletedTask;
+        //    }
 
-            WsrmMessageInfo info = WsrmMessageInfo.Get(ServiceDispatcher.MessageVersion,
-                ServiceDispatcher.ReliableMessagingVersion, Binder.Channel, Binder.GetInnerSession(),
-                context.RequestMessage);
+        //    WsrmMessageInfo info = WsrmMessageInfo.Get(ServiceDispatcher.MessageVersion,
+        //        ServiceDispatcher.ReliableMessagingVersion, Binder.Channel, Binder.GetInnerSession(),
+        //        context.RequestMessage);
 
-            return ProcessRequestAsync(context, info);
-        }
+        //    return ProcessRequestAsync(context, info);
+        //}
 
         public async Task ProcessDemuxedRequestAsync(RequestContext context, WsrmMessageInfo info)
         {

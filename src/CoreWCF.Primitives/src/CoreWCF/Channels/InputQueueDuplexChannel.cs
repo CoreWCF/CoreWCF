@@ -16,16 +16,16 @@ namespace CoreWCF.Channels
         private IServiceChannelDispatcher _serviceChannelDispatcher;
         private IServiceDispatcher _serviceDispatcher;
 
-
         protected InputQueueDuplexChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress)
             : base(timeouts)
         {
+            ReliableMessagingHelpers.AssertIsNotReliableServiceDispatcher(serviceDispatcher);
             LocalAddress = localAddress;
             _serviceDispatcher = serviceDispatcher;
         }
 
         public virtual EndpointAddress LocalAddress { get; }
-
+        protected AsyncLock AsyncLock = new AsyncLock();
         public abstract EndpointAddress RemoteAddress { get; }
         public abstract Uri Via { get; }
 
@@ -69,22 +69,29 @@ namespace CoreWCF.Channels
         public Task<(Message message, bool success)> TryReceiveAsync(CancellationToken token) => throw new NotImplementedException();
         protected override void OnAbort() { }
         protected override Task OnCloseAsync(CancellationToken token) => Task.CompletedTask;
+        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
 
-        protected override async Task OnOpenAsync(CancellationToken token)
+        public override async Task InnerDispatchAsync(Message message)
         {
-            _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
+            if (_serviceChannelDispatcher == null)
+            {
+                await using (await AsyncLock.TakeLockAsync())
+                {
+                    if (_serviceChannelDispatcher == null)
+                    {
+                        _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
+                    }
+                }
+            }
+
+            ThrowIfDisposedOrNotOpen();
+            await _serviceChannelDispatcher.DispatchAsync(message);
         }
 
-        public override Task InnerDispatchAsync(RequestContext context)
+        // TODO: Wire this up
+        public void Shutdown()
         {
-            ThrowIfDisposedOrNotOpen();
-            return _serviceChannelDispatcher.DispatchAsync(context);
-        }
-
-        public override Task InnerDispatchAsync(Message message)
-        {
-            ThrowIfDisposedOrNotOpen();
-            return _serviceChannelDispatcher.DispatchAsync(message);
+            _ = InnerDispatchAsync(null);
         }
     }
 }

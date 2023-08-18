@@ -19,10 +19,14 @@ namespace CoreWCF
         private NetTcpSecurity _security = new NetTcpSecurity();
 
         public NetTcpBinding() { Initialize(); }
-        public NetTcpBinding(SecurityMode securityMode)
-            : this()
+        public NetTcpBinding(SecurityMode securityMode) : this()
         {
             _security.Mode = securityMode;
+        }
+
+        public NetTcpBinding(SecurityMode securityMode, bool reliableSessionEnabled) : this(securityMode)
+        {
+            ReliableSession.Enabled = reliableSessionEnabled;
         }
 
         public TransferMode TransferMode
