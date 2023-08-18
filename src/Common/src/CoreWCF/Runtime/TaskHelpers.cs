@@ -189,13 +189,29 @@ namespace CoreWCF.Runtime
             }
         }
 
-        public static async Task<bool> WaitWithCancellationAsync(this Task task, CancellationToken token)
+        // Behavior semantics are that if the task is completed, we don't care about the state of
+        // the CancellationToken and return true. If the task is not completed, we wait on the task
+        // and return true if the task completes or false if the CancellationToken is canceled before
+        // that happens.
+        public static Task<bool> WaitWithCancellationAsync(this Task task, CancellationToken token)
         {
             if (task.IsCompleted)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
+            // If the token is already canceled, no need to await anything, just return false
+            if (token.IsCancellationRequested)
+            {
+                return Task.FromResult(false);
+            }
+
+            // Only if we need to wait asynchronously do we want to allocate an async state machine
+            return WaitWithCancellationCoreAsync(task, token);
+        }
+
+        private static async Task<bool> WaitWithCancellationCoreAsync(this Task task, CancellationToken token)
+        {
             if (!token.CanBeCanceled)
             {
                 await task;

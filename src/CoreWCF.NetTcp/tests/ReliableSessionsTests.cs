@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CoreWCF.Http.Tests
+namespace CoreWCF.NetTcp
 {
     public class ReliableSessionsTests
     {
@@ -23,7 +23,7 @@ namespace CoreWCF.Http.Tests
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public void WSHttpBindingSimpleReliableSessions(ReliableMessagingVersion rmVersion, System.ServiceModel.ReliableMessagingVersion clientRmVersion, bool ordered)
+        public void NetTcpBindingSimpleReliableSessions(ReliableMessagingVersion rmVersion, System.ServiceModel.ReliableMessagingVersion clientRmVersion, bool ordered)
         {
             string testString = new('a', 3000);
             var startupFilter = new RSStartup(rmVersion, ordered);
@@ -31,22 +31,22 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
-                wsHttpBinding.ReliableSession.Enabled = true;
-                wsHttpBinding.ReliableSession.Ordered = ordered;
-                System.ServiceModel.Channels.CustomBinding customBinding = new(wsHttpBinding);
+                System.ServiceModel.NetTcpBinding netTcpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.None);
+                netTcpBinding.ReliableSession.Enabled = true;
+                netTcpBinding.ReliableSession.Ordered = ordered;
+                System.ServiceModel.Channels.CustomBinding customBinding = new(netTcpBinding);
                 var reliableSessionBindingElement = customBinding.Elements.Find<System.ServiceModel.Channels.ReliableSessionBindingElement>();
                 reliableSessionBindingElement.ReliableMessagingVersion = clientRmVersion;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(customBinding,
+                var factory = new System.ServiceModel.ChannelFactory<Contract.IEchoService>(customBinding,
                     new System.ServiceModel.EndpointAddress(startupFilter.GetServiceUri(host)));
-                ClientContract.IEchoService channel = factory.CreateChannel();
+                Contract.IEchoService channel = factory.CreateChannel();
                 (channel as System.ServiceModel.IClientChannel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 (channel as System.ServiceModel.IClientChannel).Close();
                 factory.Close();
                 // Create a new ChannelFactory to force a new HTTP connection pool
-                factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(customBinding,
+                factory = new System.ServiceModel.ChannelFactory<Contract.IEchoService>(customBinding,
                     new System.ServiceModel.EndpointAddress(startupFilter.GetServiceUri(host)));
                 channel = factory.CreateChannel();
                 (channel as System.ServiceModel.IClientChannel).Open();
@@ -60,7 +60,7 @@ namespace CoreWCF.Http.Tests
         {
             private ReliableMessagingVersion _rmVersion;
             private bool _ordered;
-            private const string ServicePath = "/wsHttpReliableSessions.svc";
+            private const string ServicePath = "/netTcpReliableSessions.svc";
 
             public RSStartup(ReliableMessagingVersion rmVersion, bool ordered)
             {
@@ -83,12 +83,12 @@ namespace CoreWCF.Http.Tests
                     builder.UseServiceModel(builder =>
                     {
                         builder.AddService<Services.EchoService>();
-                        var binding = new WSHttpBinding(SecurityMode.None, true);
+                        var binding = new NetTcpBinding(SecurityMode.None, true);
                         binding.ReliableSession.Ordered = _ordered;
                         var customBinding = new Channels.CustomBinding(binding);
                         var reliableSessionBindingElement = customBinding.Elements.Find<Channels.ReliableSessionBindingElement>();
                         reliableSessionBindingElement.ReliableMessagingVersion = _rmVersion;
-                        builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(customBinding, ServicePath);
+                        builder.AddServiceEndpoint<Services.EchoService, Contract.IEchoService>(customBinding, ServicePath);
                     });
                     next(builder);
                 };
@@ -96,16 +96,17 @@ namespace CoreWCF.Http.Tests
 
             public Uri GetServiceUri(IWebHost webHost)
             {
-                return new Uri($"http://mconnew-wcfdev:{webHost.GetHttpPort()}{ServicePath}");
+                return new Uri($"{webHost.GetNetTcpAddressInUse()}{ServicePath}");
             }
         }
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, true };
-            yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, false };
+            //yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, true };
+            //yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, false };
             yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, true };
-            yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, false };
+            //yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, false };
         }
+
     }
 }

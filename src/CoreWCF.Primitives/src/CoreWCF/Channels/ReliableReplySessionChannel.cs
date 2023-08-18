@@ -1170,11 +1170,6 @@ namespace CoreWCF.Channels
             await ProcessRequestAsync(context, info);
         }
 
-        public override Task DispatchAsync(Message message)
-        {
-            throw new NotImplementedException(); // This is for the duplex case
-        }
-
         private class ReliableRequestContext : RequestContextBase
         {
             private MessageBuffer _bufferedReply;

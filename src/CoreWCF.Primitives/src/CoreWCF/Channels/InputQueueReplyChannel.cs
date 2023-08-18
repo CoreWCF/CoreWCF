@@ -15,6 +15,7 @@ namespace CoreWCF.Channels
 
         public InputQueueReplyChannel(IDefaultCommunicationTimeouts timeouts, IServiceDispatcher serviceDispatcher, EndpointAddress localAddress) : base(timeouts)
         {
+            ReliableMessagingHelpers.AssertIsNotReliableServiceDispatcher(serviceDispatcher);
             LocalAddress = localAddress;
             _serviceDispatcher = serviceDispatcher;
         }
@@ -54,23 +55,6 @@ namespace CoreWCF.Channels
 
             ThrowIfDisposedOrNotOpen();
             await _serviceChannelDispatcher.DispatchAsync(context);
-        }
-
-        public override async Task InnerDispatchAsync(Message message)
-        {
-            if (_serviceChannelDispatcher == null)
-            {
-                await using (await AsyncLock.TakeLockAsync())
-                {
-                    if (_serviceChannelDispatcher == null)
-                    {
-                        _serviceChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(this);
-                    }
-                }
-            }
-
-            ThrowIfDisposedOrNotOpen();
-            await _serviceChannelDispatcher.DispatchAsync(message);
         }
 
         protected override void OnAbort() { }

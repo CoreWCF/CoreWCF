@@ -212,6 +212,11 @@ namespace CoreWCF.Runtime
 
         public static TimeSpan GetOriginalTimeout(CancellationToken token)
         {
+            if (token.GetHashCode() == s_precancelledToken.GetHashCode())
+            {
+                return TimeSpan.Zero;
+            }
+
             return RecoverableTimeoutCancellationTokenSource.GetOriginalTimeout(token);
         }
 

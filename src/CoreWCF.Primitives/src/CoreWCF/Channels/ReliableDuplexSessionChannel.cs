@@ -30,11 +30,12 @@ namespace CoreWCF.Channels
         private readonly IReliableFactorySettings _settings;
         private SendWaitReliableRequestor _terminateRequestor;
         private readonly IServiceScope _serviceScope;
+        private Task<bool> _pendingBinderTryGetChannelTask;
 
         protected ReliableDuplexSessionChannel(
             ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher,
             IReliableChannelBinder binder)
-            : base(serviceDispatcher, serviceDispatcher, binder.LocalAddress)
+            : base(serviceDispatcher, serviceDispatcher.InnerServiceDispatcher, binder.LocalAddress)
         {
             _binder = binder;
             _serviceDispatcher = serviceDispatcher;
@@ -43,6 +44,8 @@ namespace CoreWCF.Channels
             _binder.OnException += OnBinderException;
             var serviceScopeFactory = _binder.Channel.GetProperty<IServiceScopeFactory>();
             _serviceScope = serviceScopeFactory.CreateScope();
+            _settings = serviceDispatcher;
+            _pendingBinderTryGetChannelTask = _binder.StartTryGetChannelAsync();
         }
 
         public IReliableChannelBinder Binder => _binder;
@@ -245,6 +248,8 @@ namespace CoreWCF.Channels
 
             try
             {
+                await _pendingBinderTryGetChannelTask;
+                await _binder.OnReceivedMessageAsync();
                 bool wsrmFeb2005 = _settings.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005;
                 bool wsrm11 = _settings.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11;
                 bool final = false;
@@ -601,6 +606,7 @@ namespace CoreWCF.Channels
                 {
                     info.Message.Close();
                 }
+                _pendingBinderTryGetChannelTask = _binder.StartTryGetChannelAsync();
             }
         }
 
@@ -855,9 +861,10 @@ namespace CoreWCF.Channels
             }
         }
 
-        // Based on HandleReceiveComplete
-        public override async Task DispatchAsync(RequestContext context)
+        public async Task HandleReceiveAsync(RequestContext context)
         {
+            await _pendingBinderTryGetChannelTask;
+            context = await _binder.OnReceivedRequestAsync(context);
             if (context == null)
             {
                 bool terminated = false;
@@ -882,8 +889,42 @@ namespace CoreWCF.Channels
                 _settings.ReliableMessagingVersion, _binder.Channel, _binder.GetInnerSession(),
                 message);
 
-            await ProcessMessageAsync(info);
+            _pendingBinderTryGetChannelTask = _binder.StartTryGetChannelAsync();
         }
+
+        // Based on HandleReceiveComplete
+        //public override async Task DispatchAsync(RequestContext context)
+        //{
+
+        //    await _pendingBinderTryGetChannelTask;
+        //    context = await _binder.OnReceivedRequestAsync(context);
+        //    if (context == null)
+        //    {
+        //        bool terminated = false;
+
+        //        lock (ThisLock)
+        //        {
+        //            terminated = _inputConnection.Terminate();
+        //        }
+
+        //        if (!terminated && (Binder.State == CommunicationState.Opened))
+        //        {
+        //            Exception e = new CommunicationException(SR.EarlySecurityClose);
+        //            ReliableSession.OnLocalFault(e, (Message)null, null);
+        //        }
+        //        return;
+        //    }
+
+        //    Message message = context.RequestMessage;
+        //    await context.CloseAsync();
+
+        //    WsrmMessageInfo info = WsrmMessageInfo.Get(_settings.MessageVersion,
+        //        _settings.ReliableMessagingVersion, _binder.Channel, _binder.GetInnerSession(),
+        //        message);
+
+        //    _pendingBinderTryGetChannelTask = _binder.StartTryGetChannelAsync();
+        //    await ProcessMessageAsync(info);
+        //}
 
         public override Task DispatchAsync(Message message)
         {
@@ -1067,9 +1108,6 @@ namespace CoreWCF.Channels
                 ReliableSession.OutputID, token);
         }
 
-
-        protected override Task OnOpenAsync(CancellationToken token) => Task.CompletedTask;
-
         protected override void OnFaulted()
         {
             base.OnFaulted();
@@ -1081,6 +1119,11 @@ namespace CoreWCF.Channels
         {
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //    PerformanceCounters.MessageDropped(perfCounterId);
+        }
+
+        protected override Task OnOpenAsync(CancellationToken token)
+        {
+            return base.OnOpenAsync(token);
         }
 
         public async Task ProcessDemuxedMessageAsync(WsrmMessageInfo info)
@@ -1099,7 +1142,7 @@ namespace CoreWCF.Channels
         }
 
         protected override async Task ProcessMessageAsync(WsrmMessageInfo info)
-        {
+          {
              if (!await ReliableSession.ProcessInfoAsync(info, null))
                 return;
 
