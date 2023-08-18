@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
@@ -14,6 +16,7 @@ namespace CoreWCF.Channels
         private DeliveryStrategy<Message> _deliveryStrategy;
         private ReliableServiceDispatcherBase<IInputSessionChannel> _serviceDispatcher;
         protected string perfCounterId;
+        private readonly IServiceScope _serviceScope;
 
         protected ReliableInputSessionChannel(
             ReliableServiceDispatcherBase<IInputSessionChannel> serviceDispatcher,
@@ -40,6 +43,8 @@ namespace CoreWCF.Channels
             Fx.Assert(sessionOpenTask.IsCompleted, "OpenAsync should be completed synchronously");
             sessionOpenTask.GetAwaiter().GetResult();
 
+            var serviceScopeFactory = Binder.Channel.GetProperty<IServiceScopeFactory>();
+            _serviceScope = serviceScopeFactory.CreateScope();
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //    perfCounterId = _serviceDispatcher.Uri.ToString().ToUpperInvariant();
         }
@@ -112,6 +117,12 @@ namespace CoreWCF.Channels
                 return baseProperty;
             }
 
+            T scopedProperty = _serviceScope.ServiceProvider.GetService<T>();
+            if (scopedProperty != null)
+            {
+                return scopedProperty;
+            }
+
             T innerProperty = Binder.Channel.GetProperty<T>();
             if ((innerProperty == null) && (typeof(T) == typeof(FaultConverter)))
             {
@@ -156,6 +167,7 @@ namespace CoreWCF.Channels
             await CloseGuardsAsync(token);
             await Binder.CloseAsync(token, MaskingMode.Handled);
             await _serviceDispatcher.OnReliableChannelCloseAsync(ReliableSession.InputID, null, token);
+            _serviceScope.Dispose();
             await base.OnCloseAsync(token);
         }
 

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -45,7 +44,15 @@ namespace CoreWCF.Http.Tests
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 (channel as System.ServiceModel.IClientChannel).Close();
-                Thread.Sleep(5000);
+                factory.Close();
+                // Create a new ChannelFactory to force a new HTTP connection queue
+                factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(customBinding,
+                    new System.ServiceModel.EndpointAddress(startupFilter.GetServiceUri(host)));
+                channel = factory.CreateChannel();
+                (channel as System.ServiceModel.IClientChannel).Open();
+                result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                (channel as System.ServiceModel.IClientChannel).Close();
             }
         }
 
