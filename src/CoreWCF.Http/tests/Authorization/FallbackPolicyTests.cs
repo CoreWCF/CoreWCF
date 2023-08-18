@@ -3,15 +3,27 @@
 
 using System;
 using System.ServiceModel.Security;
+using CoreWCF.Http.Tests.Authorization.Utils;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using ServiceContract;
+using Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public partial class AuthorizationTests
+public class FallbackPolicyTests
 {
+    private readonly ITestOutputHelper _output;
+    private const string TestString = nameof(TestString);
+
+    public FallbackPolicyTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void FallbackPolicy_AuthenticatedUser_Test()
     {
@@ -21,7 +33,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             string result = channel.Echo(TestString);
             Assert.Equal(TestString, result);
@@ -37,20 +49,13 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
         }
     }
 
-
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    private class FallbackPolicySecuredService : ISecuredService
-    {
-        public string Echo(string text) => text;
-    }
-
-    private class FallbackPolicyWithAuthenticatedUserStartup : Startup<FallbackPolicySecuredService>
+    private class FallbackPolicyWithAuthenticatedUserStartup : AuthZStartup<FallbackPolicySecuredService>
     {
         public FallbackPolicyWithAuthenticatedUserStartup()
         {
@@ -59,7 +64,7 @@ public partial class AuthorizationTests
         }
     }
 
-    private class FallbackPolicyWithUnauthenticatedUserStartup : Startup<FallbackPolicySecuredService>
+    private class FallbackPolicyWithUnauthenticatedUserStartup : AuthZStartup<FallbackPolicySecuredService>
     {
         public FallbackPolicyWithUnauthenticatedUserStartup()
         {

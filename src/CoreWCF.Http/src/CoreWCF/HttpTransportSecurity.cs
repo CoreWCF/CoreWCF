@@ -35,7 +35,7 @@ namespace CoreWCF
             }
         }
 
-        public bool UseAuthorizationPolicySupport { get; set; }
+        public bool AlwaysUseAuthorizationPolicySupport { get; set; }
 
         public string Realm { get; set; }
 

@@ -3,15 +3,28 @@
 
 using System;
 using System.ServiceModel.Security;
+using CoreWCF.Http.Tests.Authorization.Utils;
+using CoreWCF.Http.Tests.Helpers;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using ServiceContract;
+using Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public partial class AuthorizationTests
+public class MultiplePoliciesTests
 {
+    private readonly ITestOutputHelper _output;
+    private const string TestString = nameof(TestString);
+
+    public MultiplePoliciesTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void MultiplePolicies_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
@@ -21,7 +34,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             string result = channel.Echo(TestString);
             Assert.Equal(TestString, result);
@@ -37,7 +50,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
         }
@@ -54,31 +67,25 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
         }
     }
 
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    private class MultiplePoliciesOnOperationContractSecuredService : ISecuredService
-    {
-        [Authorize(Policy = Policies.Read)]
-        [Authorize(Policy = Policies.Write)]
-        public string Echo(string text) => text;
-    }
 
-    private class MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup : Startup<MultiplePoliciesOnOperationContractSecuredService>
+
+    private class MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup : AuthZStartup<MultiplePoliciesOnMethodSecuredService>
     {
         public MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Read);
-            ScopeClaimValues.Add(DefinedScopeValues.Write);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Read);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Write);
         }
     }
 
-    private class MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup : Startup<MultiplePoliciesOnOperationContractSecuredService>
+    private class MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup : AuthZStartup<MultiplePoliciesOnMethodSecuredService>
     {
         public MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup()
         {
@@ -87,21 +94,21 @@ public partial class AuthorizationTests
         }
     }
 
-    private class MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingWriteScopeValueStartup : Startup<MultiplePoliciesOnOperationContractSecuredService>
+    private class MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingWriteScopeValueStartup : AuthZStartup<MultiplePoliciesOnMethodSecuredService>
     {
         public MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingWriteScopeValueStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Read);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Read);
         }
     }
 
-    private class MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingReadScopeValueStartup : Startup<MultiplePoliciesOnOperationContractSecuredService>
+    private class MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingReadScopeValueStartup : AuthZStartup<MultiplePoliciesOnMethodSecuredService>
     {
         public MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingReadScopeValueStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Write);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Write);
         }
     }
 }

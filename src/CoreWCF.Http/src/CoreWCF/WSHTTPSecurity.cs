@@ -129,7 +129,7 @@ namespace CoreWCF
         internal void ApplyAuthorizationPolicySupport(HttpTransportBindingElement httpTransport)
         {
             httpTransport.AlwaysUseAuthorizationPolicySupport =
-                Transport.UseAuthorizationPolicySupport
+                Transport.AlwaysUseAuthorizationPolicySupport
                 || Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost;
         }
     }
