@@ -96,7 +96,7 @@ namespace CoreWCF.Http.Tests
 
             public Uri GetServiceUri(IWebHost webHost)
             {
-                return new Uri($"http://mconnew-wcfdev:{webHost.GetHttpPort()}{ServicePath}");
+                return new Uri($"http://localhost:{webHost.GetHttpPort()}{ServicePath}");
             }
         }
 
