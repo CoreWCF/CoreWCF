@@ -3,12 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF.Configuration;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
@@ -38,6 +37,7 @@ namespace CoreWCF.Channels
         private readonly Dictionary<long, ReliableRequestContext> _requestsByReplySequenceNumber = new Dictionary<long, ReliableRequestContext>();
         private ServerReliableSession _session;
         private ReplyHelper _terminateSequenceReplyHelper;
+        private readonly IServiceScope _serviceScope;
 
         public ReliableReplySessionChannel(
             ReliableServiceDispatcherBase<IReplySessionChannel> serviceDispatcher,
@@ -70,6 +70,9 @@ namespace CoreWCF.Channels
             var sessionOpenTask = _session.OpenAsync(default);
             Fx.Assert(sessionOpenTask.IsCompleted, "ReliableReplySessionChannel: Session open task is not completed");
             sessionOpenTask.GetAwaiter().GetResult();
+
+            var serviceScopeFactory = _binder.Channel.GetProperty<IServiceScopeFactory>();
+            _serviceScope = serviceScopeFactory.CreateScope();
 
             //if (PerformanceCounters.PerformanceCountersEnabled)
             //    _perfCounterId = _listener.Uri.ToString().ToUpperInvariant();
@@ -141,33 +144,6 @@ namespace CoreWCF.Channels
                 _serviceDispatcher.MaxTransferWindowSize - _deliveryStrategy.EnqueuedCount);
         }
 
-        //private static void AsyncReceiveCompleteStatic(object state)
-        //{
-        //    IAsyncResult result = (IAsyncResult)state;
-        //    ReliableReplySessionChannel channel = (ReliableReplySessionChannel)result.AsyncState;
-        //    try
-        //    {
-        //        if (channel.HandleReceiveComplete(result))
-        //        {
-        //            channel.StartReceiving(true);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        if (Fx.IsFatal(e))
-        //        {
-        //            throw;
-        //        }
-
-        //        channel._session.OnUnknownException(e);
-        //    }
-        //}
-
-        private Task CloseBinderAsync(CancellationToken token)
-        {
-            return _binder.CloseAsync(token);
-        }
-
         private Task CloseOutputAsync(CancellationToken token)
         {
             if (_serviceDispatcher.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
@@ -187,11 +163,6 @@ namespace CoreWCF.Channels
                 }
                 return _closeSequenceReplyHelper.WaitAndReplyAsync(token);
             }
-        }
-
-        private Task UnregisterChannelAsync(CancellationToken token)
-        {
-            return _serviceDispatcher.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
         }
 
         private Message CreateAcknowledgement(SequenceRangeCollection ranges)
@@ -276,6 +247,12 @@ namespace CoreWCF.Channels
             if (baseProperty != null)
             {
                 return baseProperty;
+            }
+
+            T scopedProperty = _serviceScope.ServiceProvider.GetService<T>();
+            if (scopedProperty != null)
+            {
+                return scopedProperty;
             }
 
             T innerProperty = _binder.Channel.GetProperty<T>();
@@ -383,6 +360,7 @@ namespace CoreWCF.Channels
             await _session.CloseAsync(token);
             await _binder.CloseAsync(token, MaskingMode.Handled);
             await _serviceDispatcher.OnReliableChannelCloseAsync(_session.InputID, _session.OutputID, token);
+            _serviceScope.Dispose();
             await base.OnCloseAsync(token);
         }
 

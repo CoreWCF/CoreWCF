@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Channels
 {
@@ -28,6 +29,7 @@ namespace CoreWCF.Channels
         private ChannelReliableSession _session;
         private readonly IReliableFactorySettings _settings;
         private SendWaitReliableRequestor _terminateRequestor;
+        private readonly IServiceScope _serviceScope;
 
         protected ReliableDuplexSessionChannel(
             ReliableServiceDispatcherBase<IDuplexSessionChannel> serviceDispatcher,
@@ -39,6 +41,8 @@ namespace CoreWCF.Channels
             _acknowledgementTimer = new IOThreadTimer(new Action<object>(OnAcknowledgementTimeoutElapsed), null, true);
             _binder.Faulted += OnBinderFaulted;
             _binder.OnException += OnBinderException;
+            var serviceScopeFactory = _binder.Channel.GetProperty<IServiceScopeFactory>();
+            _serviceScope = serviceScopeFactory.CreateScope();
         }
 
         public IReliableChannelBinder Binder => _binder;
@@ -172,6 +176,12 @@ namespace CoreWCF.Channels
             if (baseProperty != null)
             {
                 return baseProperty;
+            }
+
+            T scopedProperty = _serviceScope.ServiceProvider.GetService<T>();
+            if (scopedProperty != null)
+            {
+                return scopedProperty;
             }
 
             T innerProperty = _binder.Channel.GetProperty<T>();
@@ -710,6 +720,7 @@ namespace CoreWCF.Channels
             await _guard.CloseAsync(token);
             await _session.CloseAsync(token);
             await _binder.CloseAsync(token, MaskingMode.Handled);
+            _serviceScope.Dispose();
             await base.OnCloseAsync(token);
         }
 

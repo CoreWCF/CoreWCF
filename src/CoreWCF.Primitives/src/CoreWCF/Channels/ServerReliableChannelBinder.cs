@@ -232,41 +232,6 @@ namespace CoreWCF.Channels
             return true;
         }
 
-        internal virtual IServiceChannelDispatcher WrapServiceChannelDispatcher(IServiceChannelDispatcher serviceChannelDispatcher)
-        {
-            return new MessageRequestContextWrappingServiceChannelDispatcher(serviceChannelDispatcher, this);
-        }
-
-        private class MessageRequestContextWrappingServiceChannelDispatcher : IServiceChannelDispatcher
-        {
-            private IServiceChannelDispatcher _innerServiceChannelDispatcher;
-            private ServerReliableChannelBinder<TChannel> _binder;
-
-            public MessageRequestContextWrappingServiceChannelDispatcher(IServiceChannelDispatcher serviceChannelDispatcher, ServerReliableChannelBinder<TChannel> binder)
-            {
-                _innerServiceChannelDispatcher = serviceChannelDispatcher;
-                _binder = binder;
-            }
-
-            public Task DispatchAsync(RequestContext context)
-            {
-                if (context == null)
-                {
-                    _binder.OnReadNullMessage();
-                }
-
-                context = _binder.WrapRequestContext(context);
-                return _innerServiceChannelDispatcher.DispatchAsync(context);
-            }
-
-            public Task DispatchAsync(Message message)
-            {
-                _binder.OnMessageReceived(message);
-                RequestContext requestContext = _binder.WrapMessage(message);
-                return _innerServiceChannelDispatcher.DispatchAsync(requestContext);
-            }
-        }
-
         private abstract class DuplexServerReliableChannelBinder<TDuplexChannel> : ServerReliableChannelBinder<TDuplexChannel>
             where TDuplexChannel : class, IDuplexChannel
         {
