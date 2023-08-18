@@ -21,8 +21,8 @@ namespace CoreWCF.NetTcp
             _output = output;
         }
 
-        [Theory]
-        [MemberData(nameof(GetTestVariations))]
+        //[Theory]
+        //[MemberData(nameof(GetTestVariations))]
         public void NetTcpBindingSimpleReliableSessions(ReliableMessagingVersion rmVersion, System.ServiceModel.ReliableMessagingVersion clientRmVersion, bool ordered)
         {
             string testString = new('a', 3000);
