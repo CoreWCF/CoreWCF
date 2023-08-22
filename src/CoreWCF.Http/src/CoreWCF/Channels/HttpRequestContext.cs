@@ -18,7 +18,6 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Channels
@@ -231,6 +230,12 @@ namespace CoreWCF.Channels
             return closeOnReceivedEof;
         }
 
+        public override void OnOperationInvoke()
+        {
+            base.OnOperationInvoke();
+            _replySentTcs.TrySetResult(null);
+        }
+
         protected override async Task OnReplyAsync(Message message, CancellationToken token)
         {
             Message responseMessage = message;
@@ -251,8 +256,6 @@ namespace CoreWCF.Channels
                 {
                     responseMessage.Close();
                 }
-
-                _replySentTcs.TrySetResult(null);
             }
         }
 

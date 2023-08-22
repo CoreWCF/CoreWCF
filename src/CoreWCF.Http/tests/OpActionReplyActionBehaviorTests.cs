@@ -3,6 +3,7 @@
 
 using System;
 using System.ServiceModel.Channels;
+using System.Xml.Linq;
 using ClientContract;
 //using CoreWCF.Channels;
 using CoreWCF.Configuration;
@@ -42,6 +43,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
+                var serviceInstance = host.Services.GetService<OpActionReplyActionBehaviorService>();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IOpActionReplyActionBehavior>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/OpActionReplyActionBehaviorService.svc")));
@@ -50,31 +52,31 @@ namespace CoreWCF.Http.Tests
                 switch (variation)
                 {
                     case "defaultaction":
-                        CallCheckDefaultAction(channel);
+                        CallCheckDefaultAction(channel, serviceInstance);
                         break;
                     case "defaultreplyaction":
                         CallCheckDefaultReplyAction(channel);
                         break;
                     case "customaction":
-                        CallCheckCustomAction(channel);
+                        CallCheckCustomAction(channel, serviceInstance);
                         break;
                     case "customreplyaction":
                         CallCheckCustomReplyAction(channel);
                         break;
                     case "uriaction":
-                        CallCheckUriAction(channel);
+                        CallCheckUriAction(channel, serviceInstance);
                         break;
                     case "urireplyaction":
                         CallCheckUriReplyAction(channel);
                         break;
                     case "emptyaction":
-                        CallCheckEmptyAction(channel);
+                        CallCheckEmptyAction(channel, serviceInstance);
                         break;
                     case "emptyreplyaction":
                         CallCheckEmptyReplyAction(channel);
                         break;
                     case "untypedaction":
-                        CallCheckUntypedAction(channel);
+                        CallCheckUntypedAction(channel, serviceInstance);
                         break;
                     case "untypedreplyaction":
                         CallCheckUntypedReplyAction(channel);
@@ -86,12 +88,12 @@ namespace CoreWCF.Http.Tests
         }
 
         #region Test Variations
-        private void CallCheckDefaultAction(IOpActionReplyActionBehavior client)
+        private void CallCheckDefaultAction(IOpActionReplyActionBehavior client, OpActionReplyActionBehaviorService serviceInstance)
         {
             int id = 1;
             string name = "Default Action";
-            client.TestMethodCheckDefaultAction(id, name);
-            Assert.True(ValidateAction(@"http://tempuri.org/IOpActionReplyActionBehavior/TestMethodCheckDefaultAction"));
+            var guid = CallOperationWithTestId(client, (IOpActionReplyActionBehavior c) => c.TestMethodCheckDefaultAction(id, name));
+            Assert.True(ValidateAction(@"http://tempuri.org/IOpActionReplyActionBehavior/TestMethodCheckDefaultAction", serviceInstance, guid));
         }
 
         private void CallCheckDefaultReplyAction(IOpActionReplyActionBehavior client)
@@ -102,12 +104,12 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(id + 1, result);
         }
 
-        private void CallCheckCustomAction(IOpActionReplyActionBehavior client)
+        private void CallCheckCustomAction(IOpActionReplyActionBehavior client, OpActionReplyActionBehaviorService serviceInstance)
         {
             int id = 1;
             string name = "Custom Action";
-            client.TestMethodCheckCustomAction(id, name);
-            Assert.True(ValidateAction("myAction"));
+            var guid = CallOperationWithTestId(client, (IOpActionReplyActionBehavior c) => c.TestMethodCheckCustomAction(id, name));
+            Assert.True(ValidateAction("myAction", serviceInstance, guid));
         }
 
         private void CallCheckCustomReplyAction(IOpActionReplyActionBehavior client)
@@ -118,12 +120,12 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(id + 1, result);
         }
 
-        private void CallCheckUriAction(IOpActionReplyActionBehavior client)
+        private void CallCheckUriAction(IOpActionReplyActionBehavior client, OpActionReplyActionBehaviorService serviceInstance)
         {
             int id = 1;
             string name = "Uri Action";
-            client.TestMethodCheckUriAction(id, name);
-            Assert.True(ValidateAction(@"http://myAction"));
+            var guid = CallOperationWithTestId(client, (IOpActionReplyActionBehavior c) => c.TestMethodCheckUriAction(id, name));
+            Assert.True(ValidateAction(@"http://myAction", serviceInstance, guid));
         }
 
         private void CallCheckUriReplyAction(IOpActionReplyActionBehavior client)
@@ -134,12 +136,12 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(id + 1, result);
         }
 
-        private void CallCheckEmptyAction(IOpActionReplyActionBehavior client)
+        private void CallCheckEmptyAction(IOpActionReplyActionBehavior client, OpActionReplyActionBehaviorService serviceInstance)
         {
             int id = 1;
             string name = "Empty Action";
-            client.TestMethodCheckEmptyAction(id, name);
-            Assert.True(ValidateAction(@"empty action"));
+            var guid = CallOperationWithTestId(client, (IOpActionReplyActionBehavior c) => c.TestMethodCheckEmptyAction(id, name));
+            Assert.True(ValidateAction(@"empty action", serviceInstance, guid));
         }
 
         private void CallCheckEmptyReplyAction(IOpActionReplyActionBehavior client)
@@ -150,11 +152,11 @@ namespace CoreWCF.Http.Tests
             Assert.Equal(id + 1, result);
         }
 
-        private void CallCheckUntypedAction(IOpActionReplyActionBehavior client)
+        private void CallCheckUntypedAction(IOpActionReplyActionBehavior client, OpActionReplyActionBehaviorService serviceInstance)
         {
             Message clientMessage = Message.CreateMessage(MessageVersion.Soap11, "myAction2");
-            client.TestMethodUntypedAction(clientMessage);
-            Assert.True(ValidateAction(@"myAction2"));
+            var guid = CallOperationWithTestId(client, (IOpActionReplyActionBehavior c) => c.TestMethodUntypedAction(clientMessage));
+            Assert.True(ValidateAction(@"myAction2", serviceInstance, guid));
         }
 
         private void CallCheckUntypedReplyAction(IOpActionReplyActionBehavior client)
@@ -163,10 +165,23 @@ namespace CoreWCF.Http.Tests
             Assert.NotNull(result);
         }
 
-        private bool ValidateAction(string expected)
+        private Guid CallOperationWithTestId(IOpActionReplyActionBehavior client, Action<IOpActionReplyActionBehavior> clientCall)
         {
-            string contents = System.IO.File.ReadAllText("resultAction.txt");
-            return contents.Equals(expected);
+            var guid = Guid.NewGuid();
+            using (System.ServiceModel.OperationContextScope scope = new System.ServiceModel.OperationContextScope((System.ServiceModel.IContextChannel)client))
+            {
+                System.ServiceModel.MessageHeader<Guid> header = new System.ServiceModel.MessageHeader<Guid>(guid);
+                System.ServiceModel.OperationContext.Current.OutgoingMessageHeaders.Add(header.GetUntypedHeader("TestId", "http://corewcf.net/"));
+                clientCall(client);
+            }
+
+            return guid;
+        }
+
+        private bool ValidateAction(string expected, OpActionReplyActionBehaviorService serviceInstance, Guid testId)
+        {
+            var result = serviceInstance.GetTestResult(testId);
+            return result.Equals(expected);
         }
 
         #endregion Test Variations
@@ -176,6 +191,7 @@ namespace CoreWCF.Http.Tests
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
+                services.AddSingleton<OpActionReplyActionBehaviorService>();
             }
 
             public void Configure(IApplicationBuilder app)
