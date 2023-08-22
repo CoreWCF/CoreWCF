@@ -232,6 +232,7 @@ namespace CoreWCF.Channels
 
             await OnReplyAsync(message, token);
             _replySent = true;
+            OnOperationInvoke();
         }
 
         // This method is designed for WebSocket only, and will only be used once the WebSocket response was sent.
