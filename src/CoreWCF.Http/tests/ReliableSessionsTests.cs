@@ -35,8 +35,11 @@ namespace CoreWCF.Http.Tests
                 wsHttpBinding.ReliableSession.Enabled = true;
                 wsHttpBinding.ReliableSession.Ordered = ordered;
                 System.ServiceModel.Channels.CustomBinding customBinding = new(wsHttpBinding);
+                customBinding.SendTimeout = TimeSpan.FromMinutes(4);
+                customBinding.OpenTimeout = TimeSpan.FromMinutes(4);
                 var reliableSessionBindingElement = customBinding.Elements.Find<System.ServiceModel.Channels.ReliableSessionBindingElement>();
                 reliableSessionBindingElement.ReliableMessagingVersion = clientRmVersion;
+                reliableSessionBindingElement.AcknowledgementInterval = TimeSpan.FromSeconds(5);
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(customBinding,
                     new System.ServiceModel.EndpointAddress(startupFilter.GetServiceUri(host)));
                 ClientContract.IEchoService channel = factory.CreateChannel();
@@ -86,8 +89,11 @@ namespace CoreWCF.Http.Tests
                         var binding = new WSHttpBinding(SecurityMode.None, true);
                         binding.ReliableSession.Ordered = _ordered;
                         var customBinding = new Channels.CustomBinding(binding);
+                        customBinding.SendTimeout = TimeSpan.FromMinutes(4);
+                        customBinding.OpenTimeout = TimeSpan.FromMinutes(4);
                         var reliableSessionBindingElement = customBinding.Elements.Find<Channels.ReliableSessionBindingElement>();
                         reliableSessionBindingElement.ReliableMessagingVersion = _rmVersion;
+                        reliableSessionBindingElement.AcknowledgementInterval = TimeSpan.FromSeconds(5);
                         builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(customBinding, ServicePath);
                     });
                     next(builder);
