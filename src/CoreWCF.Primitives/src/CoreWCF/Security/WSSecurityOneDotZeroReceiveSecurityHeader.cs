@@ -129,14 +129,18 @@ namespace CoreWCF.Security
             signedXml.LoadXml((XmlElement)nodeList[0]);
             if (signedXml.SignedInfo.CanonicalizationMethodObject is XmlDsigExcC14NTransform xmlDsigExcC14NTransform)
             {
-                var inclusivePrefixes = XmlHelper.TokenizeInclusiveNamespacesPrefixList(xmlDsigExcC14NTransform.InclusiveNamespacesPrefixList);
+                string[] inclusivePrefixes = XmlHelper.TokenizeInclusiveNamespacesPrefixList(xmlDsigExcC14NTransform.InclusiveNamespacesPrefixList);
                 if (inclusivePrefixes != null)
                 {
                     for (int i = 0; i < inclusivePrefixes.Length; i++)
                     {
-                        XmlAttribute nsAttribute = doc.CreateAttribute("xmlns", inclusivePrefixes[i], "http://www.w3.org/2000/xmlns/");
-                        nsAttribute.Value = signatureReader.LookupNamespace(inclusivePrefixes[i]);
-                        doc.DocumentElement.SetAttributeNode(nsAttribute);
+                        string ns = signatureReader.LookupNamespace(inclusivePrefixes[i]);
+                        if (ns != null)
+                        {
+                            XmlAttribute nsAttribute = doc.CreateAttribute("xmlns", inclusivePrefixes[i], "http://www.w3.org/2000/xmlns/");
+                            nsAttribute.Value = ns;
+                            doc.DocumentElement.SetAttributeNode(nsAttribute);
+                        }
                     }
                 }
             }

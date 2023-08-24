@@ -417,34 +417,21 @@ namespace CoreWCF.Security
             if (inclusiveNamespacesPrefixList == null)
                 return null;
 
-            string[] prefixes = inclusiveNamespacesPrefixList.Split(null);
-            int count = 0;
-            for (int i = 0; i < prefixes.Length; i++)
-            {
-                string prefix = prefixes[i];
-                if (prefix == "#default")
-                {
-                    prefixes[count++] = string.Empty;
-                }
-                else if (prefix.Length > 0)
-                {
-                    prefixes[count++] = prefix;
-                }
-            }
-            if (count == 0)
+            string[] prefixes = inclusiveNamespacesPrefixList.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (prefixes.Length == 0)
             {
                 return null;
             }
-            else if (count == prefixes.Length)
+
+            for (int i = 0; i < prefixes.Length; i++)
             {
-                return prefixes;
+                if (prefixes[i] == "#default")
+                {
+                    prefixes[i] = string.Empty;
+                }
             }
-            else
-            {
-                string[] result = new string[count];
-                Array.Copy(prefixes, result, count);
-                return result;
-            }
+
+            return prefixes;
         }
     }
 }
