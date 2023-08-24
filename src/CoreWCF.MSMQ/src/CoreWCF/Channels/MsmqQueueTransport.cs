@@ -19,12 +19,12 @@ namespace CoreWCF.Channels
         private readonly Uri _baseAddress;
         private readonly MessageQueue _messageQueue;
         private readonly TimeSpan _queueReceiveTimeOut;
-        private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
+        private readonly DeadLetterQueueSender _deadLetterQueueSender;
         private readonly ILogger<MsmqQueueTransport> _logger;
 
         public MsmqQueueTransport(IServiceDispatcher serviceDispatcher, IServiceProvider serviceProvider)
         {
-            _deadLetterQueueSender = serviceProvider.GetRequiredService<IDeadLetterQueueMsmqSender>();
+            _deadLetterQueueSender = new DeadLetterQueueSender();
             _baseAddress = serviceDispatcher.BaseAddress;
             string nativeQueueName = MsmqQueueNameConverter.GetMsmqFormatQueueName(_baseAddress);
             _messageQueue = new MessageQueue(nativeQueueName);

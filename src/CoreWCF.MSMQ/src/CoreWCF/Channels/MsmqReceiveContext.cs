@@ -11,9 +11,9 @@ namespace CoreWCF.Channels
     internal class MsmqReceiveContext : ReceiveContext
     {
         private readonly QueueMessageContext _queueMessageContext;
-        private readonly IDeadLetterQueueMsmqSender _deadLetterQueueSender;
+        private readonly DeadLetterQueueSender _deadLetterQueueSender;
 
-        public MsmqReceiveContext(QueueMessageContext queueMessageContext, IDeadLetterQueueMsmqSender deadLetterQueueSender)
+        public MsmqReceiveContext(QueueMessageContext queueMessageContext, DeadLetterQueueSender deadLetterQueueSender)
         {
             _queueMessageContext = queueMessageContext;
             _deadLetterQueueSender = deadLetterQueueSender;

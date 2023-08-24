@@ -24,7 +24,6 @@ namespace Services
 
         public string StringMethod(string s)
         {
-            Console.WriteLine(s);
             return s;
         }
 

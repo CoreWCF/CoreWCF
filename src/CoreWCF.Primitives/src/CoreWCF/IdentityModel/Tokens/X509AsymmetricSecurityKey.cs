@@ -37,7 +37,8 @@ namespace CoreWCF.IdentityModel.Tokens
                         _privateKey = _certificate.GetRSAPrivateKey();
                         if (_privateKey != null)
                         {
-                            // ProviderType == 1 is PROV_RSA_FULL provider type that only supports SHA1. Change it to PROV_RSA_AES=24 that supports SHA2 also.
+                            // ProviderType == 1 is PROV_RSA_FULL provider type that only supports SHA1.
+                            // Change it to PROV_RSA_AES=24 that supports SHA2 also.
                             if (_privateKey is RSACryptoServiceProvider rsaCsp && rsaCsp.CspKeyContainerInfo.ProviderType == 1)
                             {
                                 CspParameters csp = new CspParameters
@@ -89,7 +90,7 @@ namespace CoreWCF.IdentityModel.Tokens
                             if (_publicKey == null)
                             {
                                 // Need DSACertificateExtensions  to support DSA certificate which is in netstandard2.1 and netcore2.0. As we target netstandard2.0, we don't
-                                // have access to DSACertificateExtensions 
+                                // have access to DSACertificateExtensions
                                 DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.PublicKeyNotSupported));
                             }
 

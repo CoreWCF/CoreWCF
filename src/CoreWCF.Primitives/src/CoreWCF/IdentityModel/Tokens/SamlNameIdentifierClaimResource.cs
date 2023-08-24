@@ -5,22 +5,23 @@ using System.Runtime.Serialization;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class SamlNameIdentifierClaimResource
+    [DataContract]
+    public class SamlNameIdentifierClaimResource
     {
         [DataMember]
-        private readonly string _nameQualifier;
+        private readonly string nameQualifier;
 
         [DataMember]
-        private readonly string _format;
+        private readonly string format;
 
         [DataMember]
-        private readonly string _name;
+        private readonly string name;
 
         [OnDeserialized]
         private void OnDeserialized(StreamingContext ctx)
         {
-            if (string.IsNullOrEmpty(_name))
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(_name));
+            if (string.IsNullOrEmpty(name))
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(name));
         }
 
         public SamlNameIdentifierClaimResource(string name, string nameQualifier, string format)
@@ -28,16 +29,16 @@ namespace CoreWCF.IdentityModel.Tokens
             if (string.IsNullOrEmpty(name))
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(name));
 
-            _name = name;
-            _nameQualifier = nameQualifier;
-            _format = format;
+            this.name = name;
+            this.nameQualifier = nameQualifier;
+            this.format = format;
         }
 
-        public string NameQualifier => _nameQualifier;
+        public string NameQualifier => nameQualifier;
 
-        public string Format => _format;
+        public string Format => format;
 
-        public string Name => _name;
+        public string Name => name;
 
         public override bool Equals(object obj)
         {
@@ -51,12 +52,12 @@ namespace CoreWCF.IdentityModel.Tokens
             if (rhs == null)
                 return false;
 
-            return ((_nameQualifier == rhs._nameQualifier) && (_format == rhs._format) && (_name == rhs._name));
+            return ((nameQualifier == rhs.nameQualifier) && (format == rhs.format) && (name == rhs.name));
         }
 
         public override int GetHashCode()
         {
-            return _name.GetHashCode();
+            return name.GetHashCode();
         }
     }
 }

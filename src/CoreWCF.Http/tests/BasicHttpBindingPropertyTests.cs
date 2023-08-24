@@ -9,7 +9,7 @@ namespace CoreWCF.Http.Tests
     public class BasicHttpBindingPropertyTests
     {
         [Fact]
-        void BasicHttpBindingSecurityModeNonePropertiesPropagated()
+        public void BasicHttpBindingSecurityModeNonePropertiesPropagated()
         {
             int expectedMaxBufferSize = 7654321;
             int expectedMaxReceivedMessageSize = 87654321;
@@ -40,7 +40,7 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        void BasicHttpBindingSecurityModeTransportPropertiesPropagated()
+        public void BasicHttpBindingSecurityModeTransportPropertiesPropagated()
         {
             int expectedMaxBufferSize = 7654321;
             int expectedMaxReceivedMessageSize = 87654321;

@@ -28,6 +28,10 @@
       <Visible>true</Visible>
       <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
+    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'ExceptNetFx'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.NoConcurrencyNetFxOnly.cs">
+      <Visible>true</Visible>
+      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
   </ItemGroup>    
 
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />

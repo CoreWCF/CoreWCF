@@ -7,10 +7,10 @@ namespace Helpers
 {
     internal class DataContract
     {
-        static Dictionary<Type, DataContract> cache = new Dictionary<Type, DataContract>();
-        Type underlyingType;
-        bool isValueType;
-        XmlQualifiedName stableName;
+        private static Dictionary<Type, DataContract> cache = new Dictionary<Type, DataContract>();
+        private Type underlyingType;
+        private bool isValueType;
+        private XmlQualifiedName stableName;
 
         internal static DataContract GetDataContract(Type type)
         {
@@ -31,7 +31,7 @@ namespace Helpers
             return dataContract;
         }
 
-        static DataContract CreateDataContract(Type type)
+        private static DataContract CreateDataContract(Type type)
         {
             DataContract primitiveContract = PrimitiveDataContract.GetPrimitiveDataContract(type);
 

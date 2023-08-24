@@ -75,7 +75,6 @@ namespace WSHttp
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
-                Console.WriteLine("read ");
                 ((IChannel)channel).Close();
             }
         }
@@ -101,7 +100,6 @@ namespace WSHttp
                 };
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((IChannel)channel).Open();
-                Thread.Sleep(6000);
                 try
                 {
                     channel.EchoString(testString);
@@ -117,7 +115,6 @@ namespace WSHttp
         [Fact , Description("user-validation-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
         {
-            string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
             using (host)
             {
@@ -169,10 +166,7 @@ namespace WSHttp
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
-                Thread.Sleep(5000);
-
                 ((IChannel)channel).Close();
-                Console.WriteLine("read ");
             }
         }
 
@@ -199,7 +193,6 @@ namespace WSHttp
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 ((IChannel)channel).Close();
-                Console.WriteLine("read ");
             }
         }
 

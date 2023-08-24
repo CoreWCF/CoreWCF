@@ -65,10 +65,7 @@ namespace BasicHttp
                 ((IChannel)channel).Open();
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
-                Thread.Sleep(5000);
-
                 ((IChannel)channel).Close();
-                Console.WriteLine("read ");
             }
         }
 
@@ -154,7 +151,6 @@ namespace BasicHttp
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 ((IChannel)channel).Close();
-                Console.WriteLine("read ");
             }
         }
 

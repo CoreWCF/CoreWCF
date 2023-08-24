@@ -7,7 +7,7 @@ namespace ServiceContract
     [Serializable]
     public class MyISerClass : ISerializable
     {
-        static readonly string Value = "hello";
+        private static readonly string Value = "hello";
         public MyISerClass() { }
 
         public MyISerClass(SerializationInfo info, StreamingContext context)
@@ -28,7 +28,7 @@ namespace ServiceContract
     [Serializable]
     public struct MyISerStruct : ISerializable
     {
-        static readonly string Value = "hello";
+        private static readonly string Value = "hello";
 
         public MyISerStruct(SerializationInfo info, StreamingContext context)
         {
@@ -48,7 +48,7 @@ namespace ServiceContract
     [Serializable]
     public class MyISerClassFromClass : MyISerClass, ISerializable
     {
-        static readonly string Value = "there";
+        private static readonly string Value = "there";
         public MyISerClassFromClass() { }
 
         public MyISerClassFromClass(SerializationInfo info, StreamingContext context)
@@ -75,7 +75,7 @@ namespace ServiceContract
     [Serializable]
     public class MyISerClassFromSerializable : BaseSerializable, ISerializable
     {
-        static readonly string Value = "there";
+        private static readonly string Value = "there";
         public MyISerClassFromSerializable() { }
 
         public MyISerClassFromSerializable(SerializationInfo info, StreamingContext context)
@@ -100,7 +100,8 @@ namespace ServiceContract
         {
             this.o = new object[] { "hello", (object)9, new H() };
         }
-        object[] o;
+
+        private object[] o;
     }
 
     [Serializable]
@@ -110,7 +111,8 @@ namespace ServiceContract
         {
             this.o = new ArrayList(new object[] { "hello", (object)9, new H() });
         }
-        ArrayList o;
+
+        private ArrayList o;
     }
 
     [DataContract(Name = "HP")]
@@ -131,9 +133,9 @@ namespace ServiceContract
     [Serializable]
     public class BoxedStructHolder
     {
-        object o = (object)9;
-        object o2 = (object)new mYStruct();
-        ICloneable clone = (ICloneable)new mYStruct();
+        private object o = (object)9;
+        private object o2 = (object)new mYStruct();
+        private ICloneable clone = (ICloneable)new mYStruct();
     }
 
     [DataContract]

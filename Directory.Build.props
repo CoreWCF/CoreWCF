@@ -19,6 +19,7 @@
     <IsClientProject>$(MSBuildProjectName.Contains(`Client`))</IsClientProject>
     <IsMsmqProject>$(MSBuildProjectName.Contains(`MSMQ`))</IsMsmqProject> 
     <IsMetadataProject>$(MSBuildProjectName.Contains(`Metadata`))</IsMetadataProject>
+    <IsHttpProject>$(MSBuildProjectName.Contains(`.Http`))</IsHttpProject>
     <IsQueueProject>$(MSBuildProjectName.Contains(`Queue`))</IsQueueProject>
     <IsBuildToolsProject>$(MSBuildProjectName.Contains(`BuildTools`))</IsBuildToolsProject>
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
@@ -32,6 +33,9 @@
   </PropertyGroup>  
   <PropertyGroup >
     <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject))">false</RunUnitTestsConcurrently>
+  </PropertyGroup>
+  <PropertyGroup >
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND $(IsHttpProject)">ExceptNetFx</RunUnitTestsConcurrently>
   </PropertyGroup>
 
   <!-- Output directories -->

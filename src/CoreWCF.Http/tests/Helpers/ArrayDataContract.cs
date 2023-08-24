@@ -5,8 +5,8 @@ namespace Helpers
 {
     internal class ArrayDataContract : DataContract
     {
-        DataContract itemContract;
-        int rank;
+        private DataContract itemContract;
+        private int rank;
 
         internal ArrayDataContract() : base()
         {

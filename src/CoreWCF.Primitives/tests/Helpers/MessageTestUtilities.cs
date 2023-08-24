@@ -782,29 +782,16 @@ namespace Helpers
         {
             XmlReader xmlReader = one;
             XmlReader fc = two;
-            try
+
+            if (onlySubtreeOfOne)
             {
-                if (onlySubtreeOfOne)
-                {
-                    one.MoveToContent();
-                    xmlReader = one.ReadSubtree();
-                }
-                if (onlySubtreeOfTwo)
-                {
-                    two.MoveToContent();
-                    fc = two.ReadSubtree();
-                }
+                one.MoveToContent();
+                xmlReader = one.ReadSubtree();
             }
-            catch (InvalidOperationException ex)
+            if (onlySubtreeOfTwo)
             {
-                Console.WriteLine(string.Concat(new object[]
-                {
-            ex,
-            "\noneFocused.NodeType:",
-            xmlReader.NodeType,
-            "oneFocused.Name:",
-            xmlReader.Name
-                }));
+                two.MoveToContent();
+                fc = two.ReadSubtree();
             }
 
             return AreXmlReadersEqual(xmlReader, fc);

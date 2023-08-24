@@ -204,12 +204,12 @@ public partial class AuthorizationTests
 
     private class SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup : SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesStartup
     {
-        class NoOpRequirement : IAuthorizationRequirement
+        private class NoOpRequirement : IAuthorizationRequirement
         {
 
         }
 
-        class NoOpAuthorizationHandler : AuthorizationHandler<NoOpRequirement>
+        private class NoOpAuthorizationHandler : AuthorizationHandler<NoOpRequirement>
         {
             protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, NoOpRequirement requirement) => Task.CompletedTask;
         }

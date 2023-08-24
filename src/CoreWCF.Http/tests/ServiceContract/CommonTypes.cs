@@ -20,7 +20,6 @@ namespace ServiceContract
             {
                 throw new MyException("Could not find the end of WriteAttributes");
             }
-            //Console.WriteLine("After one ReadToDescendant Name = {0}", reader.Name);
 
             if (reader.HasAttributes)
             {
@@ -29,7 +28,7 @@ namespace ServiceContract
                 {
                     attribCount++;
                 }
-                //Console.WriteLine("attribCount = {0}", attribCount);
+             
                 if (attribCount != 3)
                 {
                     throw new MyException(String.Format("XmlReader says this node has no elements {0} {1} and I expect 3", reader.Name, reader.NodeType));
@@ -80,7 +79,7 @@ namespace ServiceContract
             {
                 throw new MyException("Could not find the end of WriteAttributeString");
             }
-            //Console.WriteLine("AFter 1 reader.NodeType, {0} name {1} depth {2}", reader.NodeType, reader.Name, reader.Depth);
+            
             if (reader.HasAttributes)
             {
                 int attribCount = 0;
@@ -124,7 +123,7 @@ namespace ServiceContract
                     }
                     attribCount++;
                 }
-                //Console.WriteLine("attribCount = {0}", attribCount);
+                
                 if (attribCount != 5)
                 {
                     throw new MyException(String.Format("XmlReader says this node {0} {1} has no elements  and I expect 4", reader.Name, reader.NodeType));
@@ -510,7 +509,7 @@ namespace ServiceContract
             {
                 throw new Exception("could not find the start of element WriteStartAttribute");
             }
-            //Console.WriteLine("{0}\r\n{1}", reader.Name, reader.NodeType);
+            
             if (reader.HasAttributes)
             {
                 int attribCount = 0;
@@ -588,7 +587,7 @@ namespace ServiceContract
 
     public class IReadWriteXmlLotsOfData : IXmlSerializable
     {
-        readonly static DateTime Now = new DateTime(2005, 03, 11, 10, 54, 23, 456);
+        private static readonly DateTime Now = new DateTime(2005, 03, 11, 10, 54, 23, 456);
         private const string anotherString = "Yet another string << /> /> -->";
 
         public System.Xml.Schema.XmlSchema GetSchema()

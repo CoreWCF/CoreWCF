@@ -5,10 +5,10 @@ namespace Helpers
 {
     internal class DataMember
     {
-        DataContract memberTypeContract;
-        string name;
-        int versionAdded;
-        MemberInfo memberInfo;
+        private DataContract memberTypeContract;
+        private string name;
+        private int versionAdded;
+        private MemberInfo memberInfo;
 
         internal DataMember()
         {

@@ -62,7 +62,6 @@ namespace CoreWCF.Configuration
                     // Check if this transport service builder type has already been used in this app
                     if (transportServiceBuilder != null && !transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                     {
-                        //Console.WriteLine($"Found ITransportServiceBuilder of type {transportServiceBuilder.GetType().FullName}");
                         logger.LogDebug($"Calling {transportServiceBuilder.GetType().FullName}.Configure");
                         transportServiceBuilder.Configure(app);
                         transportServiceBuilderSeenTypes.Add(transportServiceBuilder.GetType());
