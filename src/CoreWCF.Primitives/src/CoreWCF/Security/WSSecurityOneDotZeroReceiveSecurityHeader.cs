@@ -125,8 +125,25 @@ namespace CoreWCF.Security
                 writer.WriteEndDocument();
             }
             SignedXMLInternal signedXml = new SignedXMLInternal(doc);
-            XmlNodeList nodeList = doc.GetElementsByTagName("Signature");
+            XmlNodeList nodeList = doc.GetElementsByTagName("Signature", SignedXml.XmlDsigNamespaceUrl);
             signedXml.LoadXml((XmlElement)nodeList[0]);
+            if (signedXml.SignedInfo.CanonicalizationMethodObject is XmlDsigExcC14NTransform xmlDsigExcC14NTransform)
+            {
+                string[] inclusivePrefixes = XmlHelper.TokenizeInclusiveNamespacesPrefixList(xmlDsigExcC14NTransform.InclusiveNamespacesPrefixList);
+                if (inclusivePrefixes != null)
+                {
+                    for (int i = 0; i < inclusivePrefixes.Length; i++)
+                    {
+                        string ns = signatureReader.LookupNamespace(inclusivePrefixes[i]);
+                        if (ns != null)
+                        {
+                            XmlAttribute nsAttribute = doc.CreateAttribute("xmlns", inclusivePrefixes[i], "http://www.w3.org/2000/xmlns/");
+                            nsAttribute.Value = ns;
+                            doc.DocumentElement.SetAttributeNode(nsAttribute);
+                        }
+                    }
+                }
+            }
             using (XmlReader tempReader = signatureReader.ReadSubtree())
             {
                 tempReader.Read();//move the reader to next
