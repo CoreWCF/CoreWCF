@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
+using CoreWCF.Http.Tests.Helpers;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 using Helpers;
@@ -17,23 +18,30 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceContract;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public partial class AuthorizationTests
+public class NotSupportedTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public NotSupportedTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
 
     public static IEnumerable<object[]> Get_Authorization_Features_Are_Mutually_Exclusive_TestVariations()
     {
         yield return new object[]
         {
-            typeof(ThrowingStartupWithServiceAuthorizationManager<SinglePolicyOnOperationContractSecuredService>)
+            typeof(ThrowingStartupWithServiceAuthorizationManager<Services.SinglePolicyOnMethodSecuredService>)
         };
         yield return new object[]
         {
-            typeof(ThrowingStartupWithAuthorizationPolicies<SinglePolicyOnOperationContractSecuredService>)
+            typeof(ThrowingStartupWithAuthorizationPolicies<Services.SinglePolicyOnMethodSecuredService>)
         };
     }
 
@@ -55,7 +63,7 @@ public partial class AuthorizationTests
     [Fact]
     public void Authorization_Features_Missing_AuthorizationService_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<SinglePolicyOnOperationContractSecuredService>>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<Services.SinglePolicyOnMethodSecuredService>>(_output).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
         {
             using (host)
@@ -92,13 +100,13 @@ public partial class AuthorizationTests
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.Write,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
-                options.AddPolicy(Policies.Read,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.AddPolicy(AuthorizationUtils.Policies.Write,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Write));
+                options.AddPolicy(AuthorizationUtils.Policies.Read,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read));
                 options.DefaultPolicy =
                     new AuthorizationPolicyBuilder(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
-                        .RequireClaim("scope", DefinedScopeValues.Read)
+                        .RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read)
                         .Build();
 
             });
@@ -167,13 +175,13 @@ public partial class AuthorizationTests
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.Write,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
-                options.AddPolicy(Policies.Read,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.AddPolicy(AuthorizationUtils.Policies.Write,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Write));
+                options.AddPolicy(AuthorizationUtils.Policies.Read,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read));
                 options.DefaultPolicy =
                     new AuthorizationPolicyBuilder(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
-                        .RequireClaim("scope", DefinedScopeValues.Read)
+                        .RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read)
                         .Build();
 
             });
@@ -238,13 +246,13 @@ public partial class AuthorizationTests
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.Write,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
-                options.AddPolicy(Policies.Read,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.AddPolicy(AuthorizationUtils.Policies.Write,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Write));
+                options.AddPolicy(AuthorizationUtils.Policies.Read,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read));
                 options.DefaultPolicy =
                     new AuthorizationPolicyBuilder(FakeJwtBearerAuthenticationHandler.AuthenticationScheme)
-                        .RequireClaim("scope", DefinedScopeValues.Read)
+                        .RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read)
                         .Build();
 
             });

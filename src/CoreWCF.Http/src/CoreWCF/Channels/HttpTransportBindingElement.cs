@@ -3,11 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
-using System.Reflection;
 using System.Security.Authentication.ExtendedProtection;
 using System.Xml;
 using CoreWCF.Configuration;
@@ -29,41 +25,6 @@ namespace CoreWCF.Channels
         private TransferMode _transferMode;
         private WebSocketTransportSettings _webSocketSettings;
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
-
-        private static Func<object, HttpClientCredentialType> WebHttpBindingClientCredentialTypeAccessorFactory()
-        {
-            (Type WebHttpBindingType, Type WebHttpSecurityType) = s_webHttpReflectedTypes.Value;
-            Type httpTransportSecurityType = typeof(HttpTransportBindingElement).Assembly.GetType("CoreWCF.HttpTransportSecurity");
-            ParameterExpression bindingInstance = Expression.Parameter(typeof(object));
-            UnaryExpression typedBindingInstance = Expression.TypeAs(bindingInstance, WebHttpBindingType);
-            PropertyInfo securityProperty = WebHttpBindingType.GetProperty("Security");
-            MemberExpression getSecurityExpression = Expression.Property(typedBindingInstance, securityProperty);
-            PropertyInfo transportProperty = WebHttpSecurityType.GetProperty("Transport");
-            MemberExpression getTransportExpression =
-                Expression.Property(getSecurityExpression, transportProperty);
-            PropertyInfo clientCredentialTypeProperty =
-                httpTransportSecurityType.GetProperty("ClientCredentialType");
-            MemberExpression getClientCredentialTypeExpression =
-                Expression.Property(getTransportExpression, clientCredentialTypeProperty);
-            var expression = Expression.Lambda<Func<object, HttpClientCredentialType>>(
-                getClientCredentialTypeExpression,
-                bindingInstance);
-            return expression.Compile();
-        }
-
-        private static readonly Lazy<Func<object, HttpClientCredentialType>>
-            s_webHttpBindingClientCredentialTypeAccessor = new(WebHttpBindingClientCredentialTypeAccessorFactory);
-
-        private static readonly Lazy<(Type WebHttpBindingType, Type WebHttpSecurityType)>
-            s_webHttpReflectedTypes = new(
-                () =>
-                {
-                    Assembly coreWcfWebHttpAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                        .SingleOrDefault(static x => x.GetName().Name == "CoreWCF.WebHttp");
-                    return coreWcfWebHttpAssembly != null
-                        ? (coreWcfWebHttpAssembly.GetType("CoreWCF.WebHttpBinding"), coreWcfWebHttpAssembly.GetType("CoreWCF.WebHttpSecurity"))
-                        : (null, null);
-                });
 
         //HttpAnonymousUriPrefixMatcher _anonymousUriPrefixMatcher;
 
@@ -88,6 +49,7 @@ namespace CoreWCF.Channels
             KeepAliveEnabled = elementToBeCloned.KeepAliveEnabled;
             TransferMode = elementToBeCloned.TransferMode;
             WebSocketSettings = elementToBeCloned.WebSocketSettings.Clone();
+            AlwaysUseAuthorizationPolicySupport = elementToBeCloned.AlwaysUseAuthorizationPolicySupport;
         }
 
         // public bool AllowCookies { get { return default(bool); } set { } }
@@ -97,6 +59,12 @@ namespace CoreWCF.Channels
         /// </summary>
         /// <value>The authentication scheme.</value>
         public AuthenticationSchemes AuthenticationScheme { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ASP.NET Core Authorization policy support
+        /// </summary>
+        /// <value>A value of true always uses it, a value of false means it might be used if implicitly turned on (InheritFromHost)</value>
+        public bool AlwaysUseAuthorizationPolicySupport { get; set; }
 
         // public System.Net.AuthenticationSchemes AuthenticationScheme { get { return default(System.Net.AuthenticationSchemes); } set { } }
 
@@ -265,24 +233,10 @@ namespace CoreWCF.Channels
             if (typeof(T) == typeof(IAuthorizationCapabilities))
             {
                 var binding = context.BindingParameters.Find<Binding>();
-                if (binding is HttpBindingBase httpBindingBase)
-                {
-                    context.BindingParameters.Remove(httpBindingBase);
-                    return (T)(object)new AuthorizationCapabilities(httpBindingBase.BasicHttpSecurity.Transport.ClientCredentialType ==
-                                                                           HttpClientCredentialType.InheritedFromHost);
-                }
-
-                if (binding is WSHttpBinding wsHttpBinding)
-                {
-                    context.BindingParameters.Remove(wsHttpBinding);
-                    return (T)(object)new AuthorizationCapabilities(wsHttpBinding.Security.Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost);
-                }
-
-                if (s_webHttpReflectedTypes.Value.WebHttpBindingType?.IsInstanceOfType(binding) == true)
+                if (binding is not null)
                 {
                     context.BindingParameters.Remove(binding);
-                    HttpClientCredentialType clientCredentialType = s_webHttpBindingClientCredentialTypeAccessor.Value.Invoke(binding);
-                    return (T)(object)new AuthorizationCapabilities(clientCredentialType == HttpClientCredentialType.InheritedFromHost);
+                    return (T)(object)new AuthorizationCapabilities(AlwaysUseAuthorizationPolicySupport);
                 }
 
                 return null;

@@ -125,5 +125,12 @@ namespace CoreWCF
         {
             return Mode != DefaultMode;
         }
+
+        internal void ApplyAuthorizationPolicySupport(HttpTransportBindingElement httpTransport)
+        {
+            httpTransport.AlwaysUseAuthorizationPolicySupport =
+                Transport.AlwaysUseAuthorizationPolicySupport
+                || Transport.ClientCredentialType == HttpClientCredentialType.InheritedFromHost;
+        }
     }
 }

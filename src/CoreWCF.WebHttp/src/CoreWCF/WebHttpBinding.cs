@@ -147,7 +147,7 @@ namespace CoreWCF
             // return collection of BindingElements
             BindingElementCollection bindingElements = new BindingElementCollection();
             // order of BindingElements is important
-            // add encoding 
+            // add encoding
             bindingElements.Add(_webMessageEncodingBindingElement);
             // add transport (http or https)
             bindingElements.Add(GetTransport());
@@ -160,17 +160,20 @@ namespace CoreWCF
             if (_security.Mode == WebHttpSecurityMode.Transport)
             {
                 _security.EnableTransportSecurity(_httpsTransportBindingElement);
+                _security.ApplyAuthorizationPolicySupport(_httpsTransportBindingElement);
                 return _httpsTransportBindingElement;
             }
             else if (_security.Mode == WebHttpSecurityMode.TransportCredentialOnly)
             {
                 _security.EnableTransportAuthentication(_httpTransportBindingElement);
+                _security.ApplyAuthorizationPolicySupport(_httpTransportBindingElement);
                 return _httpTransportBindingElement;
             }
             else
             {
                 // ensure that there is no transport security
                 _security.DisableTransportAuthentication(_httpTransportBindingElement);
+                _security.ApplyAuthorizationPolicySupport(_httpTransportBindingElement);
                 return _httpTransportBindingElement;
             }
         }
