@@ -471,15 +471,12 @@ namespace CoreWCF.Dispatcher
             // bool completed = true;
 
             OperationContext originalContext;
-            OperationContext.Holder contextHolder;
             if (!isOperationContextSet)
             {
-                contextHolder = OperationContext.CurrentHolder;
-                originalContext = contextHolder.Context;
+                originalContext = OperationContext.Current;
             }
             else
             {
-                contextHolder = null;
                 originalContext = null;
             }
             IncrementBusyCount();
@@ -488,7 +485,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (!isOperationContextSet)
                 {
-                    contextHolder.Context = OperationContext;
+                    OperationContext.Current = OperationContext;
                 }
 
                 await AsyncProcessor(this);
@@ -514,7 +511,7 @@ namespace CoreWCF.Dispatcher
 
                     if (!isOperationContextSet)
                     {
-                        contextHolder.Context = originalContext;
+                        OperationContext.Current = originalContext;
                     }
 
                     OperationContext.ClearClientReplyNoThrow();
