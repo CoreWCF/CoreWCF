@@ -1089,7 +1089,8 @@ namespace CoreWCF
                 }
             }
         }
-        void WriteContentsTo200408(XmlDictionaryWriter writer)
+
+        private void WriteContentsTo200408(XmlDictionaryWriter writer)
         {
             // Address
             writer.WriteStartElement(XD.AddressingDictionary.Address, XD.Addressing200408Dictionary.Namespace);
@@ -1105,6 +1106,7 @@ namespace CoreWCF
             {
                 writer.WriteString(Uri.AbsoluteUri);
             }
+
             writer.WriteEndElement();
 
             // ReferenceProperties
