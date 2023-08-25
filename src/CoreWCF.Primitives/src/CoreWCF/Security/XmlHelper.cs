@@ -417,11 +417,9 @@ namespace CoreWCF.Security
             if (inclusiveNamespacesPrefixList == null)
                 return null;
 
-            string[] prefixes = inclusiveNamespacesPrefixList.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] prefixes = inclusiveNamespacesPrefixList.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries);
             if (prefixes.Length == 0)
-            {
                 return null;
-            }
 
             for (int i = 0; i < prefixes.Length; i++)
             {
