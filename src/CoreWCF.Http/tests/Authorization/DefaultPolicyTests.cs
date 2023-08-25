@@ -3,15 +3,27 @@
 
 using System;
 using System.ServiceModel.Security;
+using CoreWCF.Http.Tests.Authorization.Utils;
+using CoreWCF.Http.Tests.Helpers;
 using Helpers;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using ServiceContract;
+using Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public partial class AuthorizationTests
+public class DefaultPolicyTests
 {
+    private readonly ITestOutputHelper _output;
+    private const string TestString = nameof(TestString);
+
+    public DefaultPolicyTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void DefaultPolicy_AuthenticatedUser_Test()
     {
@@ -21,7 +33,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             string result = channel.Echo(TestString);
             Assert.Equal(TestString, result);
@@ -37,7 +49,7 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
         }
@@ -52,38 +64,31 @@ public partial class AuthorizationTests
             host.Start();
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
             var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(httpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service.svc")));
             ISecuredService channel = factory.CreateChannel();
             Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
         }
     }
 
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    private class DefaultPolicySecuredService : ISecuredService
-    {
-        [Authorize]
-        public string Echo(string text) => text;
-    }
-
-    private class DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup : Startup<DefaultPolicySecuredService>
+    private class DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup : AuthZStartup<DefaultPolicySecuredService>
     {
         public DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Read);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Read);
         }
     }
 
-    private class DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup : Startup<DefaultPolicySecuredService>
+    private class DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup : AuthZStartup<DefaultPolicySecuredService>
     {
         public DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Write);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Write);
         }
     }
 
-    private class DefaultPolicyWithUnauthenticatedUserStartup : Startup<DefaultPolicySecuredService>
+    private class DefaultPolicyWithUnauthenticatedUserStartup : AuthZStartup<DefaultPolicySecuredService>
     {
         public DefaultPolicyWithUnauthenticatedUserStartup()
         {

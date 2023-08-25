@@ -5,17 +5,29 @@ using System;
 using System.Collections.Generic;
 using System.ServiceModel.Security;
 using CoreWCF.Configuration;
+using CoreWCF.Http.Tests.Helpers;
 using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceContract;
+using Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.Authorization;
 
-public partial class AuthorizationTests
+public class WSHttpBindingTests
 {
+    private readonly ITestOutputHelper _output;
+    private const string TestString = nameof(TestString);
+
+    public WSHttpBindingTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
@@ -97,10 +109,10 @@ public partial class AuthorizationTests
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.Write,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Write));
-                options.AddPolicy(Policies.Read,
-                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", DefinedScopeValues.Read));
+                options.AddPolicy(AuthorizationUtils.Policies.Write,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Write));
+                options.AddPolicy(AuthorizationUtils.Policies.Read,
+                    policy => policy.RequireAuthenticatedUser().RequireClaim("scope", AuthorizationUtils.DefinedScopeValues.Read));
             });
             services.AddServiceModelServices();
             services.AddHttpContextAccessor();
@@ -135,23 +147,16 @@ public partial class AuthorizationTests
         }
     }
 
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    private class WSHttpBindingSecuredService : ISecuredService
-    {
-        [Authorize(Policy = Policies.Read)]
-        public string Echo(string text) => text;
-    }
-
-    private class WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup : WSHttpBindingStartup<WSHttpBindingSecuredService>
+    private class WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup : WSHttpBindingStartup<SinglePolicyOnMethodSecuredService>
     {
         public WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup()
         {
             IsAuthenticated = true;
-            ScopeClaimValues.Add(DefinedScopeValues.Read);
+            ScopeClaimValues.Add(AuthorizationUtils.DefinedScopeValues.Read);
         }
     }
 
-    private class WSHttpBindingWithUnauthenticatedUserStartup : WSHttpBindingStartup<WSHttpBindingSecuredService>
+    private class WSHttpBindingWithUnauthenticatedUserStartup : WSHttpBindingStartup<SinglePolicyOnMethodSecuredService>
     {
         public WSHttpBindingWithUnauthenticatedUserStartup()
         {
@@ -160,7 +165,7 @@ public partial class AuthorizationTests
         }
     }
 
-    private class WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup : WSHttpBindingStartup<WSHttpBindingSecuredService>
+    private class WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup : WSHttpBindingStartup<SinglePolicyOnMethodSecuredService>
     {
         public WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup()
         {

@@ -35,6 +35,8 @@ namespace CoreWCF
             }
         }
 
+        public bool AlwaysUseAuthorizationPolicySupport { get; set; }
+
         public string Realm { get; set; }
 
         public ExtendedProtectionPolicy ExtendedProtectionPolicy

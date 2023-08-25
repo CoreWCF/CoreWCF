@@ -50,6 +50,7 @@ namespace CoreWCF
             else
             {
                 _security.ApplyTransportSecurity(HttpsTransport);
+                _security.ApplyAuthorizationPolicySupport(HttpsTransport);
                 return HttpsTransport;
             }
         }
