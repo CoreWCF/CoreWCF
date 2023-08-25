@@ -13,7 +13,7 @@ namespace CoreWCF
 {
     public sealed class OperationContext : IExtensibleObject<OperationContext>
     {
-        private static readonly AsyncLocal<Holder> s_currentContext = new AsyncLocal<Holder>();
+        private static readonly AsyncLocal<OperationContext> s_currentContext = new AsyncLocal<OperationContext>();
         private Message _clientReply;
         private bool _closeClientReply;
         private ExtensionCollection<OperationContext> _extensions;
@@ -79,26 +79,12 @@ namespace CoreWCF
         {
             get
             {
-                return CurrentHolder.Context;
+                return s_currentContext.Value;
             }
 
             set
             {
-                CurrentHolder.Context = value;
-            }
-        }
-
-        internal static Holder CurrentHolder
-        {
-            get
-            {
-                Holder holder = s_currentContext.Value;
-                if (holder == null)
-                {
-                    holder = new Holder();
-                    s_currentContext.Value = holder;
-                }
-                return holder;
+                s_currentContext.Value = value;
             }
         }
 
@@ -353,11 +339,6 @@ namespace CoreWCF
         internal void SetInstanceContext(InstanceContext instanceContext)
         {
             InstanceContext = instanceContext;
-        }
-
-        internal class Holder
-        {
-            public OperationContext Context { get; set; }
         }
     }
 }
