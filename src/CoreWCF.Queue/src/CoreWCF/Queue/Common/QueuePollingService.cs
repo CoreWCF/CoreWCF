@@ -31,7 +31,8 @@ namespace CoreWCF.Queue.Common
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var tasks = _queueTransportContexts.Select(queueTransport => StartFetchingMessage(queueTransport, cancellationToken));
+            var tasks = _queueTransportContexts.Select(queueTransport =>
+                queueTransport.QueuePump.StartPumpAsync(queueTransport, cancellationToken));
             await Task.WhenAll(tasks);
         }
 
@@ -93,11 +94,6 @@ namespace CoreWCF.Queue.Common
                     });
                 }
             }
-        }
-
-        private static async Task StartFetchingMessage(QueueTransportContext queueTransport, CancellationToken token)
-        {
-            await queueTransport.QueuePump.StartPumpAsync(queueTransport, token);
         }
 
         public void Dispose()

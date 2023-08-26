@@ -286,3 +286,6 @@ nbgv.exe
 
 # CoreWCF.Templates.Tests working folder
 TestTemplates/
+
+# docker compose override
+docker-compose.override.yml

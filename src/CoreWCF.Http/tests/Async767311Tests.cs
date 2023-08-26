@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -66,12 +67,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void Variation_PollingMethod()
+        public async Task Variation_PollingMethod()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
@@ -81,6 +82,7 @@ namespace CoreWCF.Http.Tests
                 _output.WriteLine("Start polling for IsCompleted != true");
                 while (!asyncResult.IsCompleted)
                 {
+                    await Task.Delay(100);
                 }
                 _output.WriteLine("IsCompleted == true");
                 string text = clientAsync_.EndEchoString(asyncResult);
