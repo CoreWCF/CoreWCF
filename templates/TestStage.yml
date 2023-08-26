@@ -46,7 +46,7 @@ stages:
       steps:
       - bash: |
           echo 'Starting docker services...'
-          docker-compose up -d
+          docker compose up -d
         name: DockerComposeLinuxServices
         displayName: Start services hosted by linux containers
         condition: eq(variables.imageName, 'ubuntu-latest')

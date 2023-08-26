@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>CoreWCF.Kafka.Client</AssemblyName>
+    <PackageId>CoreWCF.Kafka.Client</PackageId>
+    <RootNamespace />
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.1.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.0-preview1.23060.3" />
+  </ItemGroup>
+
+</Project>
