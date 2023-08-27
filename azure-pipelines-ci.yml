@@ -12,7 +12,7 @@ trigger:
 pr: none
 
 variables:
-  _solution: 'src/CoreWCF.sln'
+  _solutions: 'src/*.sln'
   _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
@@ -21,20 +21,18 @@ variables:
 stages:
 - template: templates/BuildStage.yml
   parameters:
-    buildProjects: $(_libraryProjects)
+    solutions: $(_solutions)
 
 - template: templates/TestStage.yml
   parameters:
     testProjects: $(_testProjects)
 
 - template: templates/TestTemplatesStage.yml
-  parameters:
-    libraryProjects: $(_libraryProjects)
 
 - template: templates/CodeAnalysis.yml
   parameters:
+    solutions: $(_solutions)
     testProjects: $(_testProjects)
-    solution: $(_solution)
 
 - template: templates/PackStage.yml
   parameters:

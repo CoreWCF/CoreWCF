@@ -11,15 +11,13 @@ pr:
     - src/CoreWCF.Templates/
 
 variables:
-  _solution: src/CoreWCF.Templates.sln
+  _solutions: src/CoreWCFTemplates.sln
   _libraryProjects: src/CoreWCF.Templates/src/CoreWCF.Templates.csproj
   _testProjects: src/CoreWCF.Templates.Tests.csproj
 
 stages:
 - template: templates/BuildStage.yml
   parameters:
-    buildProjects: $(_libraryProjects)
+    solutions: $(_solutions)
 
 - template: templates/TestTemplatesStage.yml
-  parameters:
-    libraryProjects: $(_libraryProjects)

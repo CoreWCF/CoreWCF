@@ -98,6 +98,10 @@
       "datatype": "choice",
       "choices": [
         {
+          "choice": "net8.0",
+          "description": "Target net8.0"
+        },
+        {
           "choice": "net7.0",
           "description": "Target net7.0"
         },
@@ -118,7 +122,7 @@
           "description": "Target net462"
         }
       ],
-      "replaces": "net6.0",
+      "replaces": "net8.0",
       "defaultValue": "net6.0"
     },
     "isNetFramework": {
@@ -146,11 +150,11 @@
     },
     "implicitUsings": {
       "type": "computed",
-      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")"
+      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")||(Framework==\"net8.0\")"
     },
     "nullableEnabled": {
       "type": "computed",
-      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")"
+      "value": "(Framework==\"net6.0\")||(Framework==\"net7.0\")||(Framework==\"net8.0\")"
     },
     "NoWsdl": {
       "type": "parameter",
@@ -160,7 +164,7 @@
     },
     "minimal": {
       "type": "computed",
-      "value": "(((Framework==\"net6.0\")||(Framework==\"net7.0\"))&&(!UseProgramMain))"
+      "value": "(((Framework==\"net6.0\")||(Framework==\"net7.0\")||(Framework==\"net8.0\"))&&(!UseProgramMain))"
     }
   },
   "primaryOutputs": [

@@ -6,7 +6,7 @@
     <SourceDir>$(ProjectDir)src/</SourceDir>
     <ConfigPathSegment>Debug</ConfigPathSegment>
     <ConfigPathSegment Condition="'$(Configuration)'!=''">$(Configuration)</ConfigPathSegment>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <!-- Set up some common paths -->
@@ -26,6 +26,13 @@
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
     <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject) OR $(IsClientProject))">true</IncludeCommonCode>
     <ReferenceCommonTestProject Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)) AND !($(IsClientProject)))">true</ReferenceCommonTestProject>
+  </PropertyGroup>
+
+  <!-- UT -->
+  <PropertyGroup>
+    <TestTargetFrameworks>net6.0;net7.0;net8.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
+    <DotNetVersion>$(TargetFramework.Replace('net', ''))</DotNetVersion>
   </PropertyGroup>
 
   <!-- UT concurrency -->

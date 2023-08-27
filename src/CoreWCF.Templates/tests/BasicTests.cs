@@ -23,6 +23,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     public static class Frameworks
     {
+        public const string Net8 = "net8.0";
         public const string Net7 = "net7.0";
         public const string Net6 = "net6.0";
         public const string Net48 = "net48";
@@ -95,27 +96,35 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
     private static IEnumerable<TestVariation> GetTestVariations()
     {
         yield return TestVariation.New();
+        yield return TestVariation.New().Framework(Frameworks.Net8);
         yield return TestVariation.New().Framework(Frameworks.Net7);
         yield return TestVariation.New().Framework(Frameworks.Net6);
         yield return TestVariation.New().NoHttps();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps();
         yield return TestVariation.New().NoWsdl();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl();
         yield return TestVariation.New().NoHttps().NoWsdl();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl();
         yield return TestVariation.New().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net8).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).UseProgramMain();
         yield return TestVariation.New().NoHttps().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().UseProgramMain();
         yield return TestVariation.New().NoWsdl().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl().UseProgramMain();
         yield return TestVariation.New().NoHttps().NoWsdl().UseProgramMain();
+        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net7).NoHttps().NoWsdl().UseProgramMain();
         yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl().UseProgramMain();
 
@@ -163,7 +172,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     private async Task CoreWCFTemplateDefaultCore(string[] args, bool assertMetadataEndpoint, bool useHttps, string expectedListeningUriScheme)
     {
-        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? "net6.0";
+        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? Frameworks.Net6;
         var project = ProjectFactory.GetOrCreateProject($"corewcf-{Guid.NewGuid()}", targetFramework,  _output);
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
