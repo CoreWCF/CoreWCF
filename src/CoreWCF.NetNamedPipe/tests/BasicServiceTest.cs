@@ -64,6 +64,45 @@ public class BasicServiceTest
         }
     }
 
+    [Fact]
+    public void NetPipeStopAndRestartSameAddress()
+    {
+        // Test to validate issue #1117 doesn't regress
+        string testString = new string('a', 3000);
+        var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        var clientBinding = new System.ServiceModel.NetNamedPipeBinding();
+        var customClientBinding = new System.ServiceModel.Channels.CustomBinding(clientBinding);
+        var namedPipeTransport = customClientBinding.Elements.Find<System.ServiceModel.Channels.NamedPipeTransportBindingElement>();
+        // Disable connection pooling as currently the service doesn't cleanly close the pipe on shutdown.
+        namedPipeTransport.ConnectionPoolSettings.MaxOutboundConnectionsPerEndpoint = 0;
+        var factory = new System.ServiceModel.ChannelFactory<IEchoService>(customClientBinding,
+            new System.ServiceModel.EndpointAddress(new Uri($"net.pipe://localhost/{nameof(NetPipeStopAndRestartSameAddress)}/netpipe.svc")));
+
+        using (host)
+        {
+            host.Start();
+            var channel = factory.CreateChannel();
+            System.ServiceModel.Channels.IChannel ichannel = (System.ServiceModel.Channels.IChannel)channel;
+            ichannel.Open();
+            var result = channel.EchoString(testString);
+            Assert.Equal(testString, result);
+            ichannel.Close();
+        }
+
+        //Host is stopped, now restart it again using the same listen address
+        host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        using (host)
+        {
+            host.Start();
+            var channel = factory.CreateChannel();
+            System.ServiceModel.Channels.IChannel ichannel = (System.ServiceModel.Channels.IChannel)channel;
+            ichannel.Open();
+            var result = channel.EchoString(testString);
+            Assert.Equal(testString, result);
+            ichannel.Close();
+        }
+    }
+
     internal class Startup
     {
         public void ConfigureServices(IServiceCollection services)
