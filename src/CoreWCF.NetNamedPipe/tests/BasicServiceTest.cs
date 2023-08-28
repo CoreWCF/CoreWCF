@@ -41,6 +41,29 @@ public class BasicServiceTest
         }
     }
 
+    [Fact]
+    public void NetPipeLongPathHashesCorrectly()
+    {
+        string testString = new string('a', 3000);
+        // Path is hashed if it's longer than 128 bytes
+        string basePath = $"{nameof(NetPipeLongPathHashesCorrectly)}{new string('a', 128)}";
+        var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, basePath).Build();
+
+        using (host)
+        {
+            host.Start();
+            var binding = new System.ServiceModel.NetNamedPipeBinding();
+            var factory = new System.ServiceModel.ChannelFactory<IEchoService>(binding,
+                new System.ServiceModel.EndpointAddress(new Uri($"net.pipe://localhost/{basePath}/netpipe.svc")));
+            var channel = factory.CreateChannel();
+            System.ServiceModel.Channels.IChannel ichannel = (System.ServiceModel.Channels.IChannel)channel;
+            ichannel.Open();
+            var result = channel.EchoString(testString);
+            Assert.Equal(testString, result);
+            ichannel.Close();
+        }
+    }
+
     internal class Startup
     {
         public void ConfigureServices(IServiceCollection services)
