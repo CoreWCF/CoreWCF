@@ -141,6 +141,8 @@ namespace CoreWCF.Channels
             // close the channels. If it doesn't close them in time, we'll close the connection from
             // underneath it to avoid leaking the connection.
             // For now we just close the connection from underneath it.
+            _sharedMemory?.Dispose();
+            _sharedMemory = null;
             return _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken);
         }
     }
