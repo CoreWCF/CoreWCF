@@ -1013,6 +1013,10 @@ namespace CoreWCF
             {
                 WriteContentsTo10(writer);
             }
+            else if (addressingVersion == AddressingVersion.WSAddressingAugust2004)
+            {
+                WriteContentsTo200408(writer);
+            }
             else if (addressingVersion == AddressingVersion.None)
             {
                 WriteContentsToNone(writer);
@@ -1077,6 +1081,79 @@ namespace CoreWCF
                 while (reader.IsStartElement())
                 {
                     if (reader.NamespaceURI == AddressingVersion.WSAddressing10.Namespace)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateXmlException(reader, SR.Format(SR.AddressingExtensionInBadNS, reader.LocalName, reader.NamespaceURI)));
+                    }
+
+                    writer.WriteNode(reader, true);
+                }
+            }
+        }
+
+        private void WriteContentsTo200408(XmlDictionaryWriter writer)
+        {
+            // Address
+            writer.WriteStartElement(XD.AddressingDictionary.Address, XD.Addressing200408Dictionary.Namespace);
+            if (IsAnonymous)
+            {
+                writer.WriteString(XD.Addressing200408Dictionary.Anonymous);
+            }
+            else if (IsNone)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument("addressingVersion", SR.SFxNone2004);
+            }
+            else
+            {
+                writer.WriteString(Uri.AbsoluteUri);
+            }
+
+            writer.WriteEndElement();
+
+            // ReferenceProperties
+            if (Headers != null && Headers.Count > 0)
+            {
+                writer.WriteStartElement(XD.AddressingDictionary.ReferenceProperties, XD.Addressing200408Dictionary.Namespace);
+                Headers.WriteContentsTo(writer);
+                writer.WriteEndElement();
+            }
+
+            // ReferenceParameters
+            if (Headers != null && Headers.Count > 0)
+            {
+                writer.WriteStartElement(XD.AddressingDictionary.ReferenceParameters, XD.Addressing200408Dictionary.Namespace);
+                Headers.WriteContentsTo(writer);
+                writer.WriteEndElement();
+            }
+
+            // PSP (PortType, ServiceName, Policy)
+            XmlDictionaryReader reader = null;
+            if (_pspSection >= 0)
+            {
+                reader = GetReaderAtSection(Buffer, _pspSection);
+                Copy(writer, reader);
+            }
+
+            // Metadata
+            reader = null;
+            if (_metadataSection >= 0)
+            {
+                reader = GetReaderAtSection(Buffer, _metadataSection);
+                Copy(writer, reader);
+            }
+
+            // EndpointIdentity
+            if (Identity != null)
+            {
+                Identity.WriteTo(writer);
+            }
+
+            // Extensions
+            if (_extensionSection >= 0)
+            {
+                reader = GetReaderAtSection(Buffer, _extensionSection);
+                while (reader.IsStartElement())
+                {
+                    if (reader.NamespaceURI == AddressingVersion.WSAddressingAugust2004.Namespace)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateXmlException(reader, SR.Format(SR.AddressingExtensionInBadNS, reader.LocalName, reader.NamespaceURI)));
                     }
