@@ -44,8 +44,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
-    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.0-preview1.23060.3" />
-    <PackageReference Include="System.ServiceModel.NetNamedPipe" Version="6.0.0-preview1.23060.3" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.NetNamedPipe" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
