@@ -116,13 +116,14 @@ namespace CoreWCF.ServiceModel.Channels
             }
         }
 
-        private async Task SendAsync(Message message, CancellationToken token)
+        private async Task SendAsync(Message message, TimeSpan timeout)
         {
             ArraySegment<byte> messageBuffer = EncodeMessage(message);
+            CancellationTokenSource cts = new(timeout);
             try
             {
                 byte[] bytes = new Span<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count).ToArray();
-                await _producer.ProduceAsync(_topic, new Message<Null, byte[]> { Value = bytes }, token);
+                await _producer.ProduceAsync(_topic, new Message<Null, byte[]> { Value = bytes }, cts.Token);
             }
             catch (ProduceException<Null, byte[]> produceException)
             {
@@ -130,6 +131,7 @@ namespace CoreWCF.ServiceModel.Channels
             }
             finally
             {
+                cts.Dispose();
                 _parent.BufferManager.ReturnBuffer(messageBuffer.Array);
             }
         }
@@ -138,13 +140,12 @@ namespace CoreWCF.ServiceModel.Channels
 
         public void Send(Message message, TimeSpan timeout)
         {
-            using CancellationTokenSource cts = new(timeout);
-            SendAsync(message, cts.Token).GetAwaiter().GetResult();
+            SendAsync(message, timeout).GetAwaiter().GetResult();
         }
 
         public IAsyncResult BeginSend(Message message, AsyncCallback callback, object state)
         {
-            return SendAsync(message, CancellationToken.None).ToApm(callback, state);
+            return SendAsync(message, DefaultSendTimeout).ToApm(callback, state);
         }
 
         public IAsyncResult BeginSend(Message message, TimeSpan timeout, AsyncCallback callback, object state)
