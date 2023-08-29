@@ -28,7 +28,7 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(message));
             }
             CommunicationObject.ThrowIfClosedOrNotOpen();
-            string actor = message.Version.Envelope.UltimateDestinationActor;
+            string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
             try
             {
                 if (SecurityProtocolFactory.ActAsInitiator)
