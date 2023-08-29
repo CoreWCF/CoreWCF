@@ -30,5 +30,7 @@
   <data name="InvalidCredentialType" xml:space="preserve">
     <value>This credential type is not directly supported by KafkaBinding yet. However you should be able to configure KafkaTransportBindingElement to achieve your goal</value>
   </data>
-
+  <data name="SecurityModeNotSupportedYet" xml:space="preserve">
+    <value>Security mode not supported yet</value>
+  </data>
 </root>

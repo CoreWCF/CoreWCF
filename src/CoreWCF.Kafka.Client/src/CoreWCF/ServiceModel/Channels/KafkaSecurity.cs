@@ -41,7 +41,7 @@ public sealed class KafkaSecurity
 
             if (!KafkaSecurityModeHelper.IsSupported(value))
             {
-                throw new NotSupportedException("Security mode not supported yet.");
+                throw new NotSupportedException(SR.SecurityModeNotSupportedYet);
             }
 
             _mode = value;
@@ -51,13 +51,13 @@ public sealed class KafkaSecurity
     public KafkaTransportSecurity Transport
     {
         get => _transportSecurity;
-        set => _transportSecurity = value ?? new KafkaTransportSecurity();
+        set => _transportSecurity = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     public KafkaMessageSecurity Message
     {
         get => _messageSecurity;
-        set => _messageSecurity = value ?? new KafkaMessageSecurity();
+        set => _messageSecurity = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     internal SecurityBindingElement CreateMessageSecurity()

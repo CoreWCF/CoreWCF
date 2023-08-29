@@ -4,6 +4,7 @@
 using Confluent.Kafka;
 
 namespace CoreWCF.Channels;
+
 internal static class SecurityProtocolHelper
 {
     public static bool IsDefined(SecurityProtocol value)

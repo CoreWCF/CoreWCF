@@ -135,4 +135,7 @@
   <data name="MissingSaslUsernamePasswordCredential" xml:space="preserve">
     <value>SaslUsernamePasswordCredential is missing</value>
   </data>
+  <data name="SecurityModeNotSupportedYet" xml:space="preserve">
+    <value>Security mode not supported yet</value>
+  </data>
 </root>
