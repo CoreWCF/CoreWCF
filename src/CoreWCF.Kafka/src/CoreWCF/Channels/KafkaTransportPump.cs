@@ -278,6 +278,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                     _producerFlushManualResetEvent.WaitOne();
                     _producerFlushManualResetEvent.Dispose();
                 }
+
+                Producer?.Flush();
                 Producer?.Dispose();
                 Producer = null;
             }
