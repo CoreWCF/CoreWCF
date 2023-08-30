@@ -18,6 +18,7 @@
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
     <IsClientProject>$(MSBuildProjectName.Contains(`Client`))</IsClientProject>
     <IsMsmqProject>$(MSBuildProjectName.Contains(`MSMQ`))</IsMsmqProject> 
+    <IsKafkaProject>$(MSBuildProjectName.Contains(`Kafka`))</IsKafkaProject> 
     <IsMetadataProject>$(MSBuildProjectName.Contains(`Metadata`))</IsMetadataProject>
     <IsHttpProject>$(MSBuildProjectName.Contains(`.Http`))</IsHttpProject>
     <IsQueueProject>$(MSBuildProjectName.Contains(`Queue`))</IsQueueProject>
@@ -32,7 +33,7 @@
     <RunUnitTestsConcurrently Condition="$(IsTestProject)">true</RunUnitTestsConcurrently>
   </PropertyGroup>  
   <PropertyGroup >
-    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject))">false</RunUnitTestsConcurrently>
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject))">false</RunUnitTestsConcurrently>
   </PropertyGroup>
   <PropertyGroup >
     <RunUnitTestsConcurrently Condition="$(IsTestProject) AND $(IsHttpProject)">ExceptNetFx</RunUnitTestsConcurrently>
