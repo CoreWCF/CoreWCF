@@ -121,14 +121,17 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                    options.Listen(IPAddress.Loopback, 0, listenOptions =>
+                // TODO if CI
+                options.Limits.MinRequestBodyDataRate = null;
+
+                options.Listen(IPAddress.Loopback, 0, listenOptions =>
+                {
+                    if (Debugger.IsAttached)
                     {
-                        if (Debugger.IsAttached)
-                        {
-                            listenOptions.UseConnectionLogging();
-                        }
-                    });
-                })
+                        listenOptions.UseConnectionLogging();
+                    }
+                });
+            })
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, [CallerMemberName] string callerMethodName = "") =>
@@ -144,6 +147,9 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
+                // TODO if CI
+                options.Limits.MinRequestBodyDataRate = null;
+
                 options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -168,6 +174,9 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
+                // TODO if CI
+                options.Limits.MinRequestBodyDataRate = null;
+
                 options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>
@@ -249,6 +258,9 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
+                // TODO if CI
+                options.Limits.MinRequestBodyDataRate = null;
+                
                 options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
                     listenOptions.UseHttps(httpsOptions =>

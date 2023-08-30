@@ -96,7 +96,11 @@ stages:
           command: 'test'
           projects: ${{ parameters.testProjects}}
           publishTestResults: true
-          arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
+          arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs) --blame-hang-timeout 90s'
+
+      - publish: $(Agent.TempDirectory)
+        condition: failed()
+        artifact: TempDirectory-${{ configuration }}-$(targetFramework)
         
       - bash: |
           echo 'Cleaning up docker services...'
