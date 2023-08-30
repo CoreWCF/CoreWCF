@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
-using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
@@ -79,7 +78,7 @@ namespace WSHttp
             }
         }
 
-        [Fact , Description("Demuxer-failure")]
+        [Fact, Description("Demuxer-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             string testString = new string('a', 3000);
@@ -104,7 +103,7 @@ namespace WSHttp
                 {
                     channel.EchoString(testString);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
                     Assert.Contains("expired security context token", ex.InnerException.Message);
@@ -112,7 +111,7 @@ namespace WSHttp
             }
         }
 
-        [Fact , Description("user-validation-failure")]
+        [Fact, Description("user-validation-failure")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
         {
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
@@ -135,7 +134,7 @@ namespace WSHttp
                 {
                     ((IChannel)channel).Open();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
                     Assert.Contains("An error occurred when verifying security for the message.", ex.InnerException.Message);
@@ -353,10 +352,10 @@ namespace WSHttp
         {
             public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding binding)
             {
-               CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
-               CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
-               security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
-               return customBinding;
+                CoreWCF.Channels.CustomBinding customBinding = new CoreWCF.Channels.CustomBinding(binding);
+                CoreWCF.Channels.SecurityBindingElement security = customBinding.Elements.Find<CoreWCF.Channels.SecurityBindingElement>();
+                security.LocalServiceSettings.InactivityTimeout = TimeSpan.FromSeconds(3);
+                return customBinding;
             }
         }
 

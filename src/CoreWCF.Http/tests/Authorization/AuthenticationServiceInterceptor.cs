@@ -37,7 +37,7 @@ internal class AuthenticationServiceInterceptor : IAuthenticationService
         _holder.IsChallengeAsyncCalled = true;
         return _authenticationService.ChallengeAsync(context, scheme, properties);
     }
-        
+
 
     public Task ForbidAsync(HttpContext context, string scheme, AuthenticationProperties properties)
         => _authenticationService.ForbidAsync(context, scheme, properties);

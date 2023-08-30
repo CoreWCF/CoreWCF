@@ -76,7 +76,7 @@ namespace Helpers
 
         public static async Task<(HttpStatusCode statusCode, byte[] content)> PostRawAsync(Uri baseAddress, string url, byte[] data)
         {
-            using (HttpClient client = new ())
+            using (HttpClient client = new())
             {
                 client.BaseAddress = baseAddress;
 

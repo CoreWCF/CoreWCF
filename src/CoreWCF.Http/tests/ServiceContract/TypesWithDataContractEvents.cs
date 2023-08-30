@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 
@@ -70,7 +73,7 @@ namespace ServiceContract
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerializing;
         }
-       
+
         public static bool Validate(DataContractEvents_OnSerializing obj1, DataContractEvents_OnSerializing obj2)
         {
             bool value = Helpers.DCDataComparer.Compare((object)obj1, (object)obj2);
@@ -95,13 +98,13 @@ namespace ServiceContract
     public class DataContractEvents_OnSerialized
     {
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
-       
+
         [OnSerialized]
         private void OnSerializedMethod(StreamingContext cxt)
         {
             this.myCallBacksCalled |= CallBacksCalled.OnSerialized;
         }
-       
+
         public static bool Validate(DataContractEvents_OnSerialized obj1, DataContractEvents_OnSerialized obj2)
         {
             bool value = Helpers.DCDataComparer.Compare((object)obj1, (object)obj2);
@@ -132,7 +135,7 @@ namespace ServiceContract
         {
             this.myCallBacksCalled |= CallBacksCalled.OnDeserializing;
         }
-       
+
         public static bool Validate(DataContractEvents_OnDeserializing obj1, DataContractEvents_OnDeserializing obj2)
         {
             bool value = Helpers.DCDataComparer.Compare((object)obj1, (object)obj2);
@@ -158,7 +161,7 @@ namespace ServiceContract
     public class DataContractEvents_OnDeserialized
     {
         public CallBacksCalled myCallBacksCalled = CallBacksCalled.None;
-       
+
         [OnDeserialized]
         private void OnDeserializedMethod(StreamingContext cxt)
         {

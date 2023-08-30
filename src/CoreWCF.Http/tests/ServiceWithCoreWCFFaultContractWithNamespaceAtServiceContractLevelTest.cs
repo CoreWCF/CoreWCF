@@ -80,13 +80,13 @@ namespace BasicHttp
 
             string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                 "<s:Body><s:Fault>"
-                +"<faultcode>s:Client</faultcode>"
-                +"<faultstring"
+                + "<faultcode>s:Client</faultcode>"
+                + "<faultstring"
                 + $"{GetXmlLangAttributeOrNot()}"
                 + ">The creator of this fault did not specify a Reason.</faultstring>"
-                +"<detail>"
-                +"<SSMCompatibilityFault xmlns=\"https://ssm-fault-contract-compatibility.com\" xmlns:a=\"http://schemas.datacontract.org/2004/07/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">"
-                +"<a:Message>An error occured</a:Message></SSMCompatibilityFault></detail></s:Fault></s:Body></s:Envelope>";
+                + "<detail>"
+                + "<SSMCompatibilityFault xmlns=\"https://ssm-fault-contract-compatibility.com\" xmlns:a=\"http://schemas.datacontract.org/2004/07/Services\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\">"
+                + "<a:Message>An error occured</a:Message></SSMCompatibilityFault></detail></s:Fault></s:Body></s:Envelope>";
 
             Assert.Equal(expected, responseBody);
 

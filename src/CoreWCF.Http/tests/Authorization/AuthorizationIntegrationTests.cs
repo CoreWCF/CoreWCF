@@ -151,7 +151,7 @@ namespace CoreWCF.Http.Tests.Authorization
 
         public static IEnumerable<object[]> Get_Return200_WhenUserMatchPolicy_TestVariations()
         {
-            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled)  };
+            yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Read), true, DefinedScopeValues.Read, new Predicate<SecuredServiceHolder>(x => x.IsReadCalled) };
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Generated), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsGeneratedCalled) };
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Write), true, DefinedScopeValues.Write, new Predicate<SecuredServiceHolder>(x => x.IsWriteCalled) };
             yield return new object[] { new Uri("http://localhost:8080"), nameof(SecuredService.Default), true, null, new Predicate<SecuredServiceHolder>(x => x.IsDefaultCalled) };

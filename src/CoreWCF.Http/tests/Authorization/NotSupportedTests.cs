@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.ServiceModel.Security;
-using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Description;

@@ -5,7 +5,6 @@ using System;
 using System.ServiceModel.Security;
 using CoreWCF.Http.Tests.Authorization.Utils;
 using Helpers;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using ServiceContract;
 using Services;

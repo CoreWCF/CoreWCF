@@ -1,12 +1,11 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -869,7 +868,7 @@ namespace CoreWCF.Http.Tests
             output = null;
             output = clientProxy.Method_MyISerClassFromSerializable_ref(ref input);
             _output.WriteLine("Method_MyISerClassFromSerializable_ref objects {0} {1}", input.GetHashCode(), output.GetHashCode());
-            Assert.True(output!=null,"MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");
+            Assert.True(output != null, "MyISerClassFromSerializable Method_MyISerClassFromSerializable_ref output should not be null ");
         }
 
         private void Variation_IReadWriteXmlLotsOfData(ClientContract.IIXMLSerializableService clientProxy)

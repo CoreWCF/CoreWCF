@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
 using Helpers;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;

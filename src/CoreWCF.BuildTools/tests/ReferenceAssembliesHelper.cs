@@ -19,7 +19,7 @@ internal static class ReferenceAssembliesHelper
         var coreWcfWebHttpCsprojPath = Path.GetFullPath(Environment.CurrentDirectory + "../../../../../src/CoreWCF.WebHttp/src/CoreWCF.WebHttp.csproj");
         var packages = ParsePackageReferences(coreWcfPrimitivesCsprojPath)
             .Union(ParsePackageReferences(coreWcfWebHttpCsprojPath))
-            .Union(new []
+            .Union(new[]
             {
                 new PackageIdentity("System.ServiceModel.Primitives", "4.10.0"),
                 new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.1.3"),

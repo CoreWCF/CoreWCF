@@ -50,6 +50,6 @@ namespace CoreWCF.Primitives.Tests.CustomSecurity
 
     public class MyAsyncTestServiceAuthorizationManager : MyTestServiceAuthorizationManagerBase
     {
-        protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new (Logic(operationContext));
+        protected override ValueTask<bool> CheckAccessCoreAsync(OperationContext operationContext) => new(Logic(operationContext));
     }
 }

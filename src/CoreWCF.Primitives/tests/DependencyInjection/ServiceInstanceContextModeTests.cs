@@ -3,13 +3,11 @@
 
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Threading;
 using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Description;
 using DispatcherClient;
-using Extensibility;
 using Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

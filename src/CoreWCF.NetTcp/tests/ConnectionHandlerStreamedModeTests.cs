@@ -283,7 +283,7 @@ namespace ConnectionHandler
                     var incomingStream = await channel.GetStreamAsync(testSize);
                     byte[] readBuffer = new byte[64 * 1024];
                     receivedSize = 0;
-                    while(true)
+                    while (true)
                     {
                         int bytesRead = await incomingStream.ReadAsync(readBuffer, 0, readBuffer.Length);
                         if (bytesRead == 0) break;

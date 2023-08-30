@@ -11,12 +11,12 @@ namespace ServiceContract
         [CoreWCF.OperationContract]
         [CoreWCF.FaultContract(typeof(MathFault))]
         int Divide(int a, int b);
-    }  
+    }
 
     [DataContract]
     public class MathFault
     {
         [DataMember]
         public string Error { get; set; }
-    }  
+    }
 }

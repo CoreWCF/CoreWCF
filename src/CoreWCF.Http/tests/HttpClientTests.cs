@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
@@ -9,7 +12,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace CoreWCF.Http.Tests
 {
@@ -35,7 +37,7 @@ namespace CoreWCF.Http.Tests
 
             var client = _factory.CreateClient();
             const string action = "http://tempuri.org/IEchoService/Echo";
-            
+
             var request = new HttpRequestMessage(HttpMethod.Post, new Uri("http://localhost:8080/BasicWcfService/basichttp.svc", UriKind.Absolute));
             request.Headers.TryAddWithoutValidation("SOAPAction", $"\"{action}\"");
 
@@ -47,7 +49,7 @@ namespace CoreWCF.Http.Tests
       </tem:Echo>
    </s:Body>
 </s:Envelope>";
-            
+
             request.Content = new StringContent(requestBody, Encoding.UTF8, "text/xml");
 
             // FIXME: Commenting out this line will induce a chunked response, which will break the pre-read message parser

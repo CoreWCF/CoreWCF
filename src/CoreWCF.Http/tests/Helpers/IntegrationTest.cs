@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.IO;
 using System.Net.Http;
 using Helpers;
@@ -26,7 +29,7 @@ namespace CoreWCF.Http.Tests.Helpers
             var addresses = new ServerAddressesFeature();
             addresses.Addresses.Add("http://localhost/");
             var features = new FeatureCollection();
-            features.Set<IServerAddressesFeature>(addresses); 
+            features.Set<IServerAddressesFeature>(addresses);
 
             var server = new TestServer(builder, features);
             return server;

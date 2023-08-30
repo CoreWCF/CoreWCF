@@ -180,7 +180,7 @@ namespace CoreWCF.Http.Tests
         private T GetProxy<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<T> channelFactory = new (httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<T> channelFactory = new(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
             T proxy = channelFactory.CreateChannel();
             return proxy;
@@ -238,7 +238,7 @@ namespace CoreWCF.Http.Tests
         {
             // Create the proxy
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new (httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+            System.ServiceModel.ChannelFactory<ClientContract.ISanityAParentB_857419_ContractBase> channelFactory = new(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
 
 
             // var clientProxy = this.GetProxy<ClientContract.ISanityAParentB_857419_ContractBase>();
