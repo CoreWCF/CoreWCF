@@ -11,7 +11,6 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -73,10 +72,10 @@ namespace CoreWCF.Http.Tests
             public void AddBindingParameters(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase, Collection<ServiceEndpoint> endpoints, BindingParameterCollection bindingParameters) { }
             public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
             {
-                foreach(var cdb in serviceHostBase.ChannelDispatchers)
+                foreach (var cdb in serviceHostBase.ChannelDispatchers)
                 {
                     var cd = cdb as Dispatcher.ChannelDispatcher;
-                    foreach(var endpoint in cd.Endpoints)
+                    foreach (var endpoint in cd.Endpoints)
                     {
                         endpoint.DispatchRuntime.OperationSelector = new ThrowingOperationSelector();
                     }

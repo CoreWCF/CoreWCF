@@ -21,7 +21,7 @@ namespace ServiceContract
     public class KeyValueContainingArray
     {
         [DataMember]
-        public KeyValuePair<string,int>[] KeyValueArray { get; set; }
+        public KeyValuePair<string, int>[] KeyValueArray { get; set; }
     }
 
     [DataContract]

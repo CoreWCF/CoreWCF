@@ -10,9 +10,9 @@ namespace CoreWCF.MSMQ.Tests.Helpers
     {
         public static Stream GetTestMessage()
         {
-             string currentDirectory = Environment.CurrentDirectory;
-              string path = Path.Combine(currentDirectory, "Resources/msmqTestMessage.bin");
-              return File.OpenRead(path);
+            string currentDirectory = Environment.CurrentDirectory;
+            string path = Path.Combine(currentDirectory, "Resources/msmqTestMessage.bin");
+            return File.OpenRead(path);
         }
 
         public static Stream GetEmptyTestMessage()

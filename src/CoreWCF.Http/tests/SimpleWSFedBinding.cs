@@ -39,7 +39,7 @@ namespace WSFed
         {
             string testString = new string('a', 3000);
             IWebHost host;
-            if(!isToEstablishSecurityContext)
+            if (!isToEstablishSecurityContext)
             {
                 host = isUserIdentity ? ServiceHelper.CreateHttpsWebHostBuilder<WSFedNoEstablishSecurityContextWithUserIdentity>(_output).Build()
                     : ServiceHelper.CreateHttpsWebHostBuilder<WSFedNoEstablishSecurityContextNoUserIdentity>(_output).Build();

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
@@ -77,7 +76,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 return new System.ServiceModel.Channels.CustomBinding(
                     new System.ServiceModel.Channels.BinaryMessageEncodingBindingElement { MessageVersion = clientMessageVersion },
-                    new System.ServiceModel.Channels.TcpTransportBindingElement() );
+                    new System.ServiceModel.Channels.TcpTransportBindingElement());
             }
         }
     }

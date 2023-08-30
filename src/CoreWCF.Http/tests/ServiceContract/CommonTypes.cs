@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -28,7 +31,7 @@ namespace ServiceContract
                 {
                     attribCount++;
                 }
-             
+
                 if (attribCount != 3)
                 {
                     throw new MyException(String.Format("XmlReader says this node has no elements {0} {1} and I expect 3", reader.Name, reader.NodeType));
@@ -79,7 +82,7 @@ namespace ServiceContract
             {
                 throw new MyException("Could not find the end of WriteAttributeString");
             }
-            
+
             if (reader.HasAttributes)
             {
                 int attribCount = 0;
@@ -123,7 +126,7 @@ namespace ServiceContract
                     }
                     attribCount++;
                 }
-                
+
                 if (attribCount != 5)
                 {
                     throw new MyException(String.Format("XmlReader says this node {0} {1} has no elements  and I expect 4", reader.Name, reader.NodeType));
@@ -509,7 +512,7 @@ namespace ServiceContract
             {
                 throw new Exception("could not find the start of element WriteStartAttribute");
             }
-            
+
             if (reader.HasAttributes)
             {
                 int attribCount = 0;

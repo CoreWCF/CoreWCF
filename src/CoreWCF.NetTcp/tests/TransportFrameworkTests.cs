@@ -8,7 +8,6 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.ServiceModel.Channels;
-using System.Threading;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -81,7 +80,7 @@ namespace CoreWCF.NetTcp.Tests
                 {
                     netstatFileName = "/bin/netstat";
                 }
-                else if(File.Exists("/usr/bin/netstat"))
+                else if (File.Exists("/usr/bin/netstat"))
                 {
                     netstatFileName = "/usr/bin/netstat";
                 }

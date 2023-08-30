@@ -178,10 +178,10 @@ namespace Helpers
         {
             byte[] bytes = new byte[length];
 #if NET472_OR_GREATER
-                using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-                {
-                    rng.GetBytes(bytes);
-                }
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(bytes);
+            }
 #else
             RandomNumberGenerator.Fill(bytes);
 #endif

@@ -29,7 +29,7 @@ namespace CoreWCF.BuildTools.Tests
         public static IEnumerable<object[]> GetTestVariations()
         {
             yield return new object[] { SSMNamespace, CoreWCFInjectedAttribute };
-            yield return new object[] { SSMNamespace, MVCFromServicesAttribute};
+            yield return new object[] { SSMNamespace, MVCFromServicesAttribute };
             yield return new object[] { CoreWCFNamespace, CoreWCFInjectedAttribute };
             yield return new object[] { CoreWCFNamespace, MVCFromServicesAttribute };
         }
@@ -2270,7 +2270,7 @@ namespace MyProject
                     {
                         CSharpSyntaxTree.ParseText(code)
                     },
-                    references.Union(new [] { MetadataReference.CreateFromFile(typeof(CoreWCF.ServiceContractAttribute).Assembly.Location) }),
+                    references.Union(new[] { MetadataReference.CreateFromFile(typeof(CoreWCF.ServiceContractAttribute).Assembly.Location) }),
                     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 );
 

@@ -4,11 +4,9 @@
 using System;
 using System.IO;
 using System.Security.Claims;
-using System.Security.Permissions;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Channels;
 using CoreWCF.Description;

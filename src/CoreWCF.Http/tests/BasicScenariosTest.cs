@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

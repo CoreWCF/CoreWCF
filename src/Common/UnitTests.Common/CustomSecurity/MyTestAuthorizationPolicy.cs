@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Policy;
 

@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ServiceModel.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Description;
-using CoreWCF.IdentityModel.Policy;
-using CoreWCF.Primitives.Tests.CustomSecurity;
 using CoreWCF.Security;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -29,7 +25,7 @@ namespace CoreWCF.NetTcp.Tests
             _output = output;
         }
 
-        [Fact(Skip ="Skipped in pipeline run")]
+        [Fact(Skip = "Skipped in pipeline run")]
         public void AuthorizationBasedonRolesTest()
         {
             string testString = "a" + PrincipalPermissionMode.Always + "test";
@@ -51,7 +47,8 @@ namespace CoreWCF.NetTcp.Tests
                     try
                     {
                         channel.EchoForAuthorizarionNoRole(testString);
-                    }catch(Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         Assert.Contains("Access is denied", ex.Message);
                     }

@@ -3,9 +3,8 @@
 
 using System;
 using System.ServiceModel.Channels;
-using System.Threading.Tasks;
 using System.Threading;
-using Contract;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;

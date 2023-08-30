@@ -49,7 +49,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
 
         internal static async Task RunMultipleWsdlTestAsync<TService1, TService2, TContract1, TContract2>(Binding binding1, Binding binding2, ITestOutputHelper output,
         [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
-        [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService1 : class  where TService2 : class
+        [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService1 : class where TService2 : class
         {
             IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(
                 binding1,

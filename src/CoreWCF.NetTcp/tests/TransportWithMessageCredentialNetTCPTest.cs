@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.ServiceModel.Channels;
-using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.IdentityModel.Selectors;
