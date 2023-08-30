@@ -15,12 +15,15 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal static class KafkaEx
 {
-    private static Lazy<IAdminClient> AdminClient => new(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = "localhost:9092" }).Build());
+    private static Func<IAdminClient> BuildAdminClient = () => new AdminClientBuilder(new AdminClientConfig
+    {
+        BootstrapServers = "localhost:9092",
+    }).Build();
 
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Create topic {name}");
-        await AdminClient.Value.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name } }, new CreateTopicsOptions()
+        await BuildAdminClient().CreateTopicsAsync(new[] { new TopicSpecification() { Name = name } }, new CreateTopicsOptions()
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -29,7 +32,7 @@ internal static class KafkaEx
     public static async Task DeleteTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Delete topic {name}");
-        await AdminClient.Value.DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
+        await BuildAdminClient().DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -43,7 +46,7 @@ internal static class KafkaEx
             GroupId = consumerGroup
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = BuildAdminClient().GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)
@@ -82,7 +85,7 @@ internal static class KafkaEx
             EnablePartitionEof = true
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = BuildAdminClient().GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)
