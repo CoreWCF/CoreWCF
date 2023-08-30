@@ -28,7 +28,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     private object _disposeLock = new();
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
-    private AsyncManualResetEvent _mres;
+    private AsyncManualResetEvent _consumerLoopManualResetEvent;
+    private ManualResetEvent _producerFlushManualResetEvent;
     private bool _isStarted;
     private TimeSpan _closeTimeout;
 
@@ -70,8 +71,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(token);;
-        _mres = new();
-        _mres.Reset();
+        _consumerLoopManualResetEvent = new();
+        _consumerLoopManualResetEvent.Reset();
         _receiveContextCountdownEvent = new(1);
 
         _isStarted = true;
@@ -150,7 +151,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                     break;
                 }
             }
-            _mres.Set();
+            _consumerLoopManualResetEvent.Set();
         }, _cts.Token);
         return Task.CompletedTask;
     }
@@ -161,28 +162,35 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         {
             return;
         }
-
-        _cts.Cancel();
-        await _mres.WaitAsync(token);
-        _cts.Dispose();
-        _receiveContextCountdownEvent.Signal();
-        using CancellationTokenSource closeCts = new (_closeTimeout);
+        _producerFlushManualResetEvent = new ManualResetEvent(false);
         try
         {
-            _receiveContextCountdownEvent.Wait(closeCts.Token);
-        }
-        catch (OperationCanceledException e)
-        {
-            // no-op
-            // Consumer.Close and Producer.Flush will allow to gracefully handle that service stops
-        }
+            _cts.Cancel();
+            await _consumerLoopManualResetEvent.WaitAsync(token);
+            _cts.Dispose();
+            _receiveContextCountdownEvent.Signal();
+            using CancellationTokenSource closeCts = new (_closeTimeout);
+            try
+            {
+                _receiveContextCountdownEvent.Wait(closeCts.Token);
+            }
+            catch (OperationCanceledException e)
+            {
+                // no-op
+                // Consumer.Close and Producer.Flush will allow to gracefully handle that service stops
+            }
 
-        _receiveContextCountdownEvent.Dispose();
-        if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
-        {
-            Producer.Flush(closeCts.Token);
+            _receiveContextCountdownEvent.Dispose();
+            if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
+            {
+                Producer.Flush(closeCts.Token);
+            }
+            Consumer.Close();
         }
-        Consumer.Close();
+        finally
+        {
+            _producerFlushManualResetEvent.Set();
+        }
     }
 
     private static (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) GetCommitStrategyConfigValues(ConsumerConfig consumerConfig, KafkaDeliverySemantics kafkaDeliverySemantics) =>
@@ -265,13 +273,18 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         {
             if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
             {
+                if (_producerFlushManualResetEvent != null)
+                {
+                    _producerFlushManualResetEvent.WaitOne();
+                    _producerFlushManualResetEvent.Dispose();
+                }
                 Producer?.Dispose();
                 Producer = null;
             }
             Consumer?.Dispose();
             Consumer = null;
             _cts?.Dispose();
-            _mres?.Dispose();
+            _consumerLoopManualResetEvent?.Dispose();
         }
     }
 }

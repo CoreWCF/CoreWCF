@@ -61,7 +61,8 @@ public class BasicServiceTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        //await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
     [LinuxWhenCIOnlyFact]
@@ -87,7 +88,7 @@ public class BasicServiceTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        await AssertEx.RetryAsync(() =>Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
     }
 
     private class Startup
