@@ -58,7 +58,7 @@ public class KafkaSemanticsTests : IntegrationTest
             Assert.Equal(expected.Count, testService.Names.Count);
         }
 
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
+        Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
     }
 
     [LinuxWhenCIOnlyTheory]
@@ -94,9 +94,7 @@ public class KafkaSemanticsTests : IntegrationTest
             Assert.Equal(expected.Count, testService.Names.Count);
         }
 
-        await Task.Delay(TimeSpan.FromSeconds(10));
-
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
+        Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
     }
 
     [LinuxWhenCIOnlyTheory]
@@ -132,7 +130,7 @@ public class KafkaSemanticsTests : IntegrationTest
             Assert.Equal(expected.Count, testService.Names.Count);
         }
 
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
+        Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
     }
 
     private class StartupAtLeastOnce

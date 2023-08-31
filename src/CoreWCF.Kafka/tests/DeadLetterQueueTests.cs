@@ -69,8 +69,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Single(testService.Names);
         }
 
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
-        Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic));
+        Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
+        Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));
     }
 
     [LinuxWhenCIOnlyFact]
@@ -98,8 +98,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Contains(name, testService.Names);
         }
 
-        Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic));
-        Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic));
+        Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
+        Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));
     }
 
     private class Startup
