@@ -20,6 +20,9 @@ namespace CoreWCF.Queue.Common
         private readonly IServiceProvider _services;
         private readonly List<QueueTransportContext> _queueTransportContexts;
         private readonly IServiceBuilder _serviceBuilder;
+        private bool _initialized;
+        private bool _pumpsStarted;
+
         public QueuePollingService(IServiceProvider services, QueueMiddleware queueMiddleware)
         {
             _services = services;
@@ -31,9 +34,13 @@ namespace CoreWCF.Queue.Common
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var tasks = _queueTransportContexts.Select(queueTransport =>
-                queueTransport.QueuePump.StartPumpAsync(queueTransport, cancellationToken));
-            await Task.WhenAll(tasks);
+            if (_initialized)
+            {
+                var tasks = _queueTransportContexts.Select(queueTransport =>
+                    queueTransport.QueuePump.StartPumpAsync(queueTransport, cancellationToken));
+                await Task.WhenAll(tasks);
+                _pumpsStarted = true;
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -46,6 +53,11 @@ namespace CoreWCF.Queue.Common
         private void _serviceBuilder_Opened(object sender, EventArgs e)
         {
             Init();
+
+            if (!_pumpsStarted)
+            {
+                StartAsync(default).GetAwaiter().GetResult();
+            }
         }
 
         private void Init()
@@ -94,6 +106,8 @@ namespace CoreWCF.Queue.Common
                     });
                 }
             }
+
+            _initialized = true;
         }
 
         public void Dispose()
