@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Queue.Common
 {
-    internal class QueuePollingService : IHostedService, IDisposable
+    internal class QueuePollingService : IHostedService, IDisposable, IAsyncDisposable
     {
         private readonly QueueMiddleware _queueMiddleware;
         private readonly IServiceProvider _services;
@@ -22,6 +22,10 @@ namespace CoreWCF.Queue.Common
         private readonly IServiceBuilder _serviceBuilder;
         private bool _initialized;
         private bool _pumpsStarted;
+        private readonly object _disposeLock = new();
+        private readonly object _stopLock = new();
+        private bool _disposed;
+        private bool _stopped;
 
         public QueuePollingService(IServiceProvider services, QueueMiddleware queueMiddleware)
         {
@@ -45,9 +49,29 @@ namespace CoreWCF.Queue.Common
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            var tasks = _queueTransportContexts.Select(queueTransport =>
-                queueTransport.QueuePump.StopPumpAsync(cancellationToken));
-            return Task.WhenAll(tasks);
+            if (_stopped)
+            {
+                return Task.CompletedTask;
+            }
+
+            lock (_stopLock)
+            {
+                if (_stopped)
+                {
+                    return Task.CompletedTask;
+                }
+
+                try
+                {
+                    var tasks = _queueTransportContexts.Select(queueTransport =>
+                        queueTransport.QueuePump.StopPumpAsync(cancellationToken));
+                    return Task.WhenAll(tasks);
+                }
+                finally
+                {
+                    _stopped = true;
+                }
+            }
         }
 
         private void _serviceBuilder_Opened(object sender, EventArgs e)
@@ -110,15 +134,51 @@ namespace CoreWCF.Queue.Common
             _initialized = true;
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            foreach (var queueTransportContext in _queueTransportContexts)
+            if (_disposed)
             {
-                if (queueTransportContext.QueuePump is IDisposable disposable)
+                return new ValueTask();
+            }
+
+            lock (_disposeLock)
+            {
+                if (_disposed)
                 {
-                    disposable.Dispose();
+                    return new ValueTask();
+                }
+
+                try
+                {
+                    return DisposeAsyncCore();
+                }
+                finally
+                {
+                    _disposed = true;
                 }
             }
+
+            async ValueTask DisposeAsyncCore()
+            {
+                foreach (var queueTransportContext in _queueTransportContexts)
+                {
+                    if (queueTransportContext.QueuePump is IAsyncDisposable disposable)
+                    {
+                        await disposable.DisposeAsync();
+                        continue;
+                    }
+
+                    if (queueTransportContext.QueuePump is IDisposable syncDisposable)
+                    {
+                        syncDisposable.Dispose();
+                    }
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            DisposeAsync().AsTask().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }
