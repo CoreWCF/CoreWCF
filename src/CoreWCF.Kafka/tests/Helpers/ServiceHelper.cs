@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Helpers;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -68,6 +69,36 @@ public static class ServiceHelper
             .UseUrls($"http://localhost:{GetFreeTcpPort()}")
             .UseStartup<TStartup>();
     }
+
+#if NET6_0_OR_GREATER
+    public static WebApplication CreateWebApplication(ITestOutputHelper outputHelper, string consumerGroup, string topicName,
+        Action<IServiceCollection> configureServices, Action<WebApplication> configurePipeline,
+    [CallerMemberName] string callerMethodName = "")
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(Array.Empty<string>());
+        builder.WebHost
+#if DEBUG
+            .ConfigureLogging((ILoggingBuilder logging) =>
+            {
+                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                logging.AddFilter("Default", LogLevel.Debug);
+                logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
+#endif // DEBUG
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton<TopicNameAccessor>(() => topicName);
+                services.AddSingleton<DeadLetterQueueTopicNameAccessor>(() => $"{topicName}-DLQ");
+                services.AddSingleton<ConsumerGroupAccessor>(() => consumerGroup);
+            })
+            .UseUrls($"http://localhost:{GetFreeTcpPort()}");
+        configureServices(builder.Services);
+        var app = builder.Build();
+        configurePipeline(app);
+        return app;
+    }
+#endif
 
     public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, string consumerGroup, string topicName, [CallerMemberName] string callerMethodName = "")
     {

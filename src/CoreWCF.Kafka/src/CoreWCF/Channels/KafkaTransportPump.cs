@@ -25,13 +25,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal string Topic { get; }
     internal KafkaTransportBindingElement TransportBindingElement { get; }
     private CountdownEvent _receiveContextCountdownEvent;
-    private object _disposeLock = new();
+    private readonly object _disposeLock = new();
+    private readonly object _stopLock = new();
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
-    private AsyncManualResetEvent _consumerLoopManualResetEvent;
-    private ManualResetEvent _producerFlushManualResetEvent;
-    private bool _isStarted;
-    private TimeSpan _closeTimeout;
+    private ManualResetEvent _consumerLoopManualResetEvent;
+    private bool _isStarted, _isStopped, _isDisposed;
 
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
@@ -65,13 +64,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         }
         TransportBindingElement = (KafkaTransportBindingElement)transportBindingElement.Clone();
         _baseAddress = serviceDispatcher.BaseAddress;
-        _closeTimeout = serviceDispatcher.Binding.CloseTimeout;
     }
 
     public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(token);;
-        _consumerLoopManualResetEvent = new();
+        _consumerLoopManualResetEvent = new ManualResetEvent(false);
         _consumerLoopManualResetEvent.Reset();
         _receiveContextCountdownEvent = new(1);
 
@@ -156,40 +154,41 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         return Task.CompletedTask;
     }
 
-    public override async Task StopPumpAsync(CancellationToken token)
+    public override Task StopPumpAsync(CancellationToken token)
     {
-        if (!_isStarted)
+        StopPump();
+        return Task.CompletedTask;
+    }
+
+    private void StopPump()
+    {
+        if (!_isStarted || _isStopped)
         {
             return;
         }
-        _producerFlushManualResetEvent = new ManualResetEvent(false);
-        try
+
+        lock (_stopLock)
         {
-            _cts.Cancel();
-            await _consumerLoopManualResetEvent.WaitAsync(token);
-            _cts.Dispose();
-            _receiveContextCountdownEvent.Signal();
-            using CancellationTokenSource closeCts = new (_closeTimeout);
-            try
+            if (!_isStarted || _isStopped)
             {
-                _receiveContextCountdownEvent.Wait(closeCts.Token);
-            }
-            catch (OperationCanceledException e)
-            {
-                // no-op
-                // Consumer.Close and Producer.Flush will allow to gracefully handle that service stops
+                return;
             }
 
+            _cts.Cancel();
+            _consumerLoopManualResetEvent.WaitOne();
+            _cts.Dispose();
+            _receiveContextCountdownEvent.Signal();
+            _receiveContextCountdownEvent.Wait();
             _receiveContextCountdownEvent.Dispose();
             if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
             {
-                Producer.Flush(closeCts.Token);
+                Producer.Flush();
+                Producer.Dispose();
             }
             Consumer.Close();
-        }
-        finally
-        {
-            _producerFlushManualResetEvent.Set();
+            Consumer.Dispose();
+
+            _isStopped = true;
         }
     }
 
@@ -269,24 +268,24 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     public void Dispose()
     {
+        if (_isDisposed)
+        {
+            return;
+        }
+
         lock (_disposeLock)
         {
-            if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
+            if (_isDisposed)
             {
-                if (_producerFlushManualResetEvent != null)
-                {
-                    _producerFlushManualResetEvent.WaitOne();
-                    _producerFlushManualResetEvent.Dispose();
-                }
-
-                Producer?.Flush();
-                Producer?.Dispose();
-                Producer = null;
+                return;
             }
-            Consumer?.Dispose();
-            Consumer = null;
-            _cts?.Dispose();
-            _consumerLoopManualResetEvent?.Dispose();
+
+            if (!_isStopped)
+            {
+                StopPump();
+            }
+
+            _isDisposed = true;
         }
     }
 }

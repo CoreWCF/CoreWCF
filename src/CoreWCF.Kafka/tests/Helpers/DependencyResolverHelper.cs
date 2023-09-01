@@ -9,6 +9,7 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal class DependencyResolverHelper
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IWebHost _webHost;
 
     public DependencyResolverHelper(IWebHost webHost)
@@ -16,9 +17,23 @@ internal class DependencyResolverHelper
         _webHost = webHost;
     }
 
+#if NET6_0_OR_GREATER
+    public DependencyResolverHelper(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+#endif
+
     public T GetService<T>()
     {
-        using IServiceScope serviceScope = _webHost.Services.CreateScope();
+        if(_serviceProvider != null)
+        {
+            return _serviceProvider.GetRequiredService<T>();
+        }
+
+        using IServiceScope serviceScope = _serviceProvider != null
+            ? _serviceProvider.CreateScope()
+            : _webHost.Services.CreateScope();
         IServiceProvider services = serviceScope.ServiceProvider;
         T scopedService = services.GetRequiredService<T>();
         return scopedService;
