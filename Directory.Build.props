@@ -33,7 +33,7 @@
     <RunUnitTestsConcurrently Condition="$(IsTestProject)">true</RunUnitTestsConcurrently>
   </PropertyGroup>  
   <PropertyGroup >
-    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject))">false</RunUnitTestsConcurrently>
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject))">false</RunUnitTestsConcurrently>
   </PropertyGroup>
   <PropertyGroup >
     <RunUnitTestsConcurrently Condition="$(IsTestProject) AND $(IsHttpProject)">ExceptNetFx</RunUnitTestsConcurrently>
