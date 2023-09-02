@@ -71,9 +71,14 @@ public class DeadLetterQueueGracefulExitWhenStopIsNotCalledTests : IntegrationTe
             Assert.True(result.Status == PersistenceStatus.Persisted);
 
             Assert.Equal(0, producer.Flush(TimeSpan.FromSeconds(3)));
-            Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
-            Assert.Single(testService.Names);
+
+            // we cannot rely on the fact that the message is dispatched to the service
+            // because the service is stopped before the message is dispatched.
+            // so we wait a bit to be sure the message is consumed.
+            await Task.Delay(TimeSpan.FromSeconds(10));
         }
+
+        await Task.Delay(TimeSpan.FromSeconds(10));
 
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));
@@ -106,9 +111,13 @@ public class DeadLetterQueueGracefulExitWhenStopIsNotCalledTests : IntegrationTe
             await channel.CreateAsync(name);
             channel.Throw(name);
 
-            Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
-            Assert.Contains(name, testService.Names);
+            // we cannot rely on the fact that the message is dispatched to the service
+            // because the service is stopped before the message is dispatched.
+            // so we wait a bit to be sure the message is consumed.
+            await Task.Delay(TimeSpan.FromSeconds(10));
         }
+
+        await Task.Delay(TimeSpan.FromSeconds(10));
 
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));

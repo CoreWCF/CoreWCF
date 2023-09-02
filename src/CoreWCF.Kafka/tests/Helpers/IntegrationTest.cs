@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,7 +17,7 @@ public class IntegrationTest : IAsyncLifetime
     protected string ConsumerGroup { get; }
     protected string DeadLetterQueueTopic { get; }
 
-    protected IntegrationTest(ITestOutputHelper output, bool useDlq = false)
+    protected IntegrationTest(ITestOutputHelper output, bool useDlq = false, [CallerMemberName] string callerName = "")
     {
         _useDlq = useDlq;
         Output = output;
@@ -28,11 +29,8 @@ public class IntegrationTest : IAsyncLifetime
         ConsumerGroup = $"cg-{Guid.NewGuid()}";
     }
 
-
-
     public async Task InitializeAsync()
     {
-
         await KafkaEx.CreateTopicAsync(Output, Topic);
         if (_useDlq)
         {

@@ -27,7 +27,7 @@ namespace CoreWCF.Queue.Common
                 inputChannel= _serviceProvider.GetRequiredService<QueueInputChannel>();
             }
             // Queue middleware may be called while the service provider is being disposed by the container
-            // We don't want to dispatch the message in this case
+            // This is a best effort attempt to handle that case where we can't create a channel
             catch (ObjectDisposedException e)
             {
                 return;

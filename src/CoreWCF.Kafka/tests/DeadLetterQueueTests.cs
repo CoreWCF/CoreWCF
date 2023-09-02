@@ -69,6 +69,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Single(testService.Names);
         }
 
+        await Task.Delay(TimeSpan.FromSeconds(10));
+
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));
     }
@@ -97,6 +99,8 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Contains(name, testService.Names);
         }
+
+        await Task.Delay(TimeSpan.FromSeconds(10));
 
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(1, await KafkaEx.GetMessageCountAsync(Output, DeadLetterQueueTopic));

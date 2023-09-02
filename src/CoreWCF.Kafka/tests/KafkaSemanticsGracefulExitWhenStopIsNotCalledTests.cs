@@ -65,6 +65,9 @@ public class KafkaSemanticsGracefulExitWhenStopIsNotCalledTests : IntegrationTes
             Assert.Equal(expected.Count, testService.Names.Count);
         }
 
+        // We need to wait a bit to be sure offsets are committed
+        await Task.Delay(TimeSpan.FromSeconds(10));
+
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, stopCountHolder.Value);
     }
@@ -108,6 +111,9 @@ public class KafkaSemanticsGracefulExitWhenStopIsNotCalledTests : IntegrationTes
             Assert.Equal(expected.Count, testService.Names.Count);
         }
 
+        // We need to wait a bit to be sure offsets are committed
+        await Task.Delay(TimeSpan.FromSeconds(10));
+
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, stopCountHolder.Value);
     }
@@ -150,6 +156,9 @@ public class KafkaSemanticsGracefulExitWhenStopIsNotCalledTests : IntegrationTes
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Equal(expected.Count, testService.Names.Count);
         }
+
+        // We need to wait a bit to be sure offsets are committed
+        await Task.Delay(TimeSpan.FromSeconds(10));
 
         Assert.Equal(0, await KafkaEx.GetConsumerLagAsync(Output, ConsumerGroup, Topic));
         Assert.Equal(0, stopCountHolder.Value);
