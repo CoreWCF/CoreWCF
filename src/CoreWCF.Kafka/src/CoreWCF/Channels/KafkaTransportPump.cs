@@ -10,12 +10,11 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
-using CoreWCF.Runtime;
 using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels;
 
-internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
+internal sealed class KafkaTransportPump : QueueTransportPump
 {
     private readonly ILogger<KafkaTransportPump> _logger;
     private readonly KafkaDeliverySemantics _kafkaDeliverySemantics;
@@ -25,12 +24,10 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal string Topic { get; }
     internal KafkaTransportBindingElement TransportBindingElement { get; }
     private CountdownEvent _receiveContextCountdownEvent;
-    private readonly object _disposeLock = new();
-    private readonly object _stopLock = new();
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
     private ManualResetEvent _consumerLoopManualResetEvent;
-    private bool _isStarted, _isStopped, _isDisposed;
+    private bool _isStarted, _isStopped;
 
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
@@ -167,29 +164,22 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             return;
         }
 
-        lock (_stopLock)
+        _cts.Cancel();
+        _consumerLoopManualResetEvent.WaitOne();
+        _cts.Dispose();
+        _receiveContextCountdownEvent.Signal();
+        _receiveContextCountdownEvent.Wait();
+        _receiveContextCountdownEvent.Dispose();
+        if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
         {
-            if (!_isStarted || _isStopped)
-            {
-                return;
-            }
-
-            _cts.Cancel();
-            _consumerLoopManualResetEvent.WaitOne();
-            _cts.Dispose();
-            _receiveContextCountdownEvent.Signal();
-            _receiveContextCountdownEvent.Wait();
-            _receiveContextCountdownEvent.Dispose();
-            if (TransportBindingElement.ErrorHandlingStrategy == KafkaErrorHandlingStrategy.DeadLetterQueue)
-            {
-                Producer.Flush();
-                Producer.Dispose();
-            }
-            Consumer.Close();
-            Consumer.Dispose();
-
-            _isStopped = true;
+            Producer.Flush();
+            Producer.Dispose();
         }
+
+        Consumer.Close();
+        Consumer.Dispose();
+
+        _isStopped = true;
     }
 
     private static (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) GetCommitStrategyConfigValues(ConsumerConfig consumerConfig, KafkaDeliverySemantics kafkaDeliverySemantics) =>
@@ -264,28 +254,5 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     internal void DecrementReceiveContextCount()
     {
         _receiveContextCountdownEvent.Signal();
-    }
-
-    public void Dispose()
-    {
-        if (_isDisposed)
-        {
-            return;
-        }
-
-        lock (_disposeLock)
-        {
-            if (_isDisposed)
-            {
-                return;
-            }
-
-            if (!_isStopped)
-            {
-                StopPump();
-            }
-
-            _isDisposed = true;
-        }
     }
 }

@@ -54,24 +54,11 @@ namespace CoreWCF.Queue.Common
                 return Task.CompletedTask;
             }
 
-            lock (_stopLock)
-            {
-                if (_stopped)
-                {
-                    return Task.CompletedTask;
-                }
+            _stopped = true;
 
-                try
-                {
-                    var tasks = _queueTransportContexts.Select(queueTransport =>
-                        queueTransport.QueuePump.StopPumpAsync(cancellationToken));
-                    return Task.WhenAll(tasks);
-                }
-                finally
-                {
-                    _stopped = true;
-                }
-            }
+            var tasks = _queueTransportContexts.Select(queueTransport =>
+                queueTransport.QueuePump.StopPumpAsync(cancellationToken));
+            return Task.WhenAll(tasks);
         }
 
         private void _serviceBuilder_Opened(object sender, EventArgs e)
@@ -134,51 +121,28 @@ namespace CoreWCF.Queue.Common
             _initialized = true;
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            if (_disposed)
-            {
-                return new ValueTask();
-            }
+            await StopAsync(default);
 
-            lock (_disposeLock)
+            foreach (var queueTransportContext in _queueTransportContexts)
             {
-                if (_disposed)
+                if (queueTransportContext.QueuePump is IAsyncDisposable disposable)
                 {
-                    return new ValueTask();
+                    await disposable.DisposeAsync();
+                    continue;
                 }
 
-                try
+                if (queueTransportContext.QueuePump is IDisposable syncDisposable)
                 {
-                    return DisposeAsyncCore();
-                }
-                finally
-                {
-                    _disposed = true;
-                }
-            }
-
-            async ValueTask DisposeAsyncCore()
-            {
-                foreach (var queueTransportContext in _queueTransportContexts)
-                {
-                    if (queueTransportContext.QueuePump is IAsyncDisposable disposable)
-                    {
-                        await disposable.DisposeAsync();
-                        continue;
-                    }
-
-                    if (queueTransportContext.QueuePump is IDisposable syncDisposable)
-                    {
-                        syncDisposable.Dispose();
-                    }
+                    syncDisposable.Dispose();
                 }
             }
         }
 
         public void Dispose()
         {
-            DisposeAsync().AsTask().ConfigureAwait(false).GetAwaiter().GetResult();
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
     }
 }
