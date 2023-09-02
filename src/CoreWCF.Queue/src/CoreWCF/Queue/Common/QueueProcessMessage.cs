@@ -21,7 +21,18 @@ namespace CoreWCF.Queue.Common
 
         public async Task InvokeAsync(QueueMessageContext queueMessageContext)
         {
-            QueueInputChannel inputChannel = _serviceProvider.GetRequiredService<QueueInputChannel>();
+            QueueInputChannel inputChannel = null;
+            try
+            {
+                inputChannel= _serviceProvider.GetRequiredService<QueueInputChannel>();
+            }
+            // Queue middleware may be called while the service provider is being disposed by the container
+            // We don't want to dispatch the message in this case
+            catch (ObjectDisposedException e)
+            {
+                return;
+            }
+
             inputChannel.LocalAddress =
                 new EndpointAddress(queueMessageContext.QueueTransportContext.ServiceDispatcher.BaseAddress);
             var channelDispatcher =
