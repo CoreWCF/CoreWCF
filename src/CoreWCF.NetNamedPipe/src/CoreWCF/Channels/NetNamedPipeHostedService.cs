@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace CoreWCF.Channels
 {
     [SupportedOSPlatform("windows")]
-    internal class NetNamedPipeHostedService : IHostedService
+    internal class NetNamedPipeHostedService : IHostedService, IAsyncDisposable, IDisposable
     {
         private NetNamedPipeOptions _serverOptions;
         private ILoggerFactory _loggerFactory;
@@ -37,7 +38,21 @@ namespace CoreWCF.Channels
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            return _namedPipeListener?.StopAsync(cancellationToken) ?? Task.CompletedTask;
+            var pipeListener = _namedPipeListener;
+            _namedPipeListener = null;
+            return pipeListener?.StopAsync(cancellationToken) ?? Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            StopAsync(default).GetAwaiter().GetResult();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            return new ValueTask(StopAsync(default));
         }
     }
 }
