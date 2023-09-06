@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Channels
 {
-    internal class NetTcpHostedService : IHostedService
+    internal class NetTcpHostedService : IHostedService, IAsyncDisposable, IDisposable
     {
         private static bool s_isNetFramework => RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase);
 
@@ -27,6 +27,7 @@ namespace CoreWCF.Channels
         private readonly IServiceProvider _serviceProvider;
         private KestrelServer _kestrel;
         private CancellationTokenRegistration _applicationStartedRegistration;
+        private bool _started;
 
         public NetTcpHostedService(IServiceBuilder serviceBuilder, ILogger<NetTcpHostedService> logger, IServer server, IServiceProvider serviceProvider)
         {
@@ -34,6 +35,7 @@ namespace CoreWCF.Channels
             // is KestrelServer it will run NetTcpFramingOptionsSetup.Configure, which we use to detect the server is Kestrel.
             // We can't just examine the type as we wrap it so we can throw any startup exceptions using WrappingIServer.
             // The IServer will have already been started on asp.net core 2.1, but later versions start it after IHostedService's
+            _ = server;
             _serviceBuilder = serviceBuilder;
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -61,11 +63,12 @@ namespace CoreWCF.Channels
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            _started = true;
             if (KestrelAlreadyInUse) return;
 
             var transportFactory = _serviceProvider.GetRequiredService<SocketTransportFactory>();
             _kestrel = ActivatorUtilities.CreateInstance(_serviceProvider, typeof(KestrelServer), transportFactory) as KestrelServer;
-            
+
             await _kestrel.StartAsync<int>(null, cancellationToken);
 
             // As we don't register the ApplicationStarted callback when running on .NET Framework, and we know that the IServer
@@ -81,6 +84,8 @@ namespace CoreWCF.Channels
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            if (!_started) return Task.CompletedTask;
+            _started = false;
             if (!s_isNetFramework)
             {
                 _applicationStartedRegistration.Dispose();
@@ -88,6 +93,18 @@ namespace CoreWCF.Channels
 
             if (KestrelAlreadyInUse) return Task.CompletedTask;
             return _kestrel.StopAsync(cancellationToken);
+        }
+
+        public void Dispose()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            StopAsync(default).GetAwaiter().GetResult();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            return new ValueTask(StopAsync(default));
         }
 
         private void UpdateServerAddressesFeature()
