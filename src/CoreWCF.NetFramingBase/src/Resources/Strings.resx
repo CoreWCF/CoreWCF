@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+  <!-- 
 		Microsoft ResX Schema
 
 		Version 1.3
@@ -58,203 +58,190 @@
 			: using a System.ComponentModel.TypeConverter
 			: and then encoded with base64 encoding.
 	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-  <data name = "MultipleStreamUpgradeProvidersInParameters" xml:space="preserve">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="MultipleStreamUpgradeProvidersInParameters" xml:space="preserve">
     <value>More than one IStreamUpgradeProviderElement was found in the BindingParameters of the BindingContext.  This usually is caused by having multiple IStreamUpgradeProviderElements in a CustomBinding. Remove all but one of these elements.</value>
   </data>
-  <data name = "StreamDoesNotSupportTimeout" xml:space="preserve">
+  <data name="StreamDoesNotSupportTimeout" xml:space="preserve">
     <value>TimeoutStream requires an inner Stream that supports timeouts; its CanTimeout property must be true.</value>
   </data>
-  <data name = "CloseTimedOut" xml:space="preserve">
+  <data name="CloseTimedOut" xml:space="preserve">
     <value>Close timed out after {0}.  Increase the timeout value passed to the call to Close or increase the CloseTimeout value on the Binding. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-   <data name = "SendToViaTimedOut" xml:space="preserve">
+  <data name="SendToViaTimedOut" xml:space="preserve">
     <value>Sending to via {0} timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "SendCannotBeCalledAfterCloseOutputSession" xml:space="preserve">
+  <data name="SendCannotBeCalledAfterCloseOutputSession" xml:space="preserve">
     <value>You cannot Send messages on a channel after CloseOutputSession has been called.</value>
   </data>
-  <data name = "CommunicationObjectFaulted1" xml:space="preserve">
+  <data name="CommunicationObjectFaulted1" xml:space="preserve">
     <value>The communication object, {0}, cannot be used for communication because it is in the Faulted state.</value>
   </data>
-  <data name = "ReceiveShutdownReturnedFault" xml:space="preserve">
+  <data name="ReceiveShutdownReturnedFault" xml:space="preserve">
     <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
   </data>
-  <data name = "ReceiveShutdownReturnedLargeFault" xml:space="preserve">
+  <data name="ReceiveShutdownReturnedLargeFault" xml:space="preserve">
     <value>The channel received an unexpected fault input message with Action = '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
   </data>
-  <data name = "ReceiveShutdownReturnedMessage" xml:space="preserve">
+  <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
     <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
   </data>
-  <data name = "FramingError" xml:space="preserve">
+  <data name="FramingError" xml:space="preserve">
     <value>Error while reading message framing format at position {0} of stream (state: {1})</value>
   </data>
-  <data name = "FramingPrematureEOF" xml:space="preserve">
+  <data name="FramingPrematureEOF" xml:space="preserve">
     <value>More data was expected, but EOF was reached.</value>
   </data>
-  <data name = "FramingRecordTypeMismatch" xml:space="preserve">
+  <data name="FramingRecordTypeMismatch" xml:space="preserve">
     <value>Expected record type '{0}', found '{1}'.</value>
   </data>
-  <data name = "FramingVersionNotSupported" xml:space="preserve">
+  <data name="FramingVersionNotSupported" xml:space="preserve">
     <value>Framing major version {0} is not supported.</value>
   </data>
-  <data name = "FramingModeNotSupported" xml:space="preserve">
+  <data name="FramingModeNotSupported" xml:space="preserve">
     <value>Framing mode {0} is not supported.</value>
   </data>
-  <data name = "FramingSizeTooLarge" xml:space="preserve">
+  <data name="FramingSizeTooLarge" xml:space="preserve">
     <value>Specified size is too large for this implementation.</value>
   </data>
-  <data name = "FramingViaTooLong" xml:space="preserve">
+  <data name="FramingViaTooLong" xml:space="preserve">
     <value>The framing via size ({0}) exceeds the quota.</value>
   </data>
-  <data name = "FramingViaNotUri" xml:space="preserve">
+  <data name="FramingViaNotUri" xml:space="preserve">
     <value>The framing via ({0}) is not a valid URI.</value>
   </data>
-  <data name = "FramingFaultTooLong" xml:space="preserve">
+  <data name="FramingFaultTooLong" xml:space="preserve">
     <value>The framing fault size ({0}) exceeds the quota.</value>
   </data>
-  <data name = "FramingContentTypeTooLong" xml:space="preserve">
+  <data name="FramingContentTypeTooLong" xml:space="preserve">
     <value>The framing content type size ({0}) exceeds the quota.</value>
   </data>
-  <data name = "FramingValueNotAvailable" xml:space="preserve">
+  <data name="FramingValueNotAvailable" xml:space="preserve">
     <value>The value cannot be accessed because it has not yet been fully decoded.</value>
   </data>
-  <data name = "FramingAtEnd" xml:space="preserve">
+  <data name="FramingAtEnd" xml:space="preserve">
     <value>An attempt was made to decode a value after the framing stream was ended.</value>
   </data>
-  <data name = "RemoteSecurityNotNegotiatedOnStreamUpgrade" xml:space="preserve">
+  <data name="RemoteSecurityNotNegotiatedOnStreamUpgrade" xml:space="preserve">
     <value>Stream Security is required at {0}, but no security context was negotiated. This is likely caused by the remote endpoint missing a StreamSecurityBindingElement from its binding.</value>
   </data>
-  <data name = "InvalidTokenProvided" xml:space="preserve">
+  <data name="InvalidTokenProvided" xml:space="preserve">
     <value>The token provider of type '{0}' did not return a token of type '{1}'. Check the credential configuration.</value>
   </data>
-  <data name = "UriGeneratorSchemeMustNotBeEmpty" xml:space="preserve">
+  <data name="UriGeneratorSchemeMustNotBeEmpty" xml:space="preserve">
     <value>The scheme parameter must not be empty.</value>
   </data>
-  <data name = "InvalidDecoderStateMachine" xml:space="preserve">
+  <data name="InvalidDecoderStateMachine" xml:space="preserve">
     <value>Invalid decoder state machine.</value>
   </data>
-  <data name = "ClientCredentialsUnableToCreateLocalTokenProvider" xml:space="preserve">
+  <data name="ClientCredentialsUnableToCreateLocalTokenProvider" xml:space="preserve">
     <value>ClientCredentials cannot create a local token provider for token requirement {0}.</value>
   </data>
-  <data name = "ContentTypeMismatch" xml:space="preserve">
+  <data name="ContentTypeMismatch" xml:space="preserve">
     <value>Content Type {0} was sent to a service expecting {1}.  The client and service bindings may be mismatched.</value>
   </data>
-  <data name = "ResponseContentTypeMismatch" xml:space="preserve">
-    <value>The content type {0} of the response message does not match the content type of the binding ({1}). If using a custom encoder, be sure that the IsContentTypeSupported method is implemented properly. The first {2} bytes of the response were: '{3}'.</value>
-  </data>
-  <data name = "ResponseContentTypeNotSupported" xml:space="preserve">
+  <data name="ResponseContentTypeNotSupported" xml:space="preserve">
     <value>The content type {0} of the message is not supported by the encoder.</value>
   </data>
-  <data name = "FramingContentTypeMismatch" xml:space="preserve">
+  <data name="FramingContentTypeMismatch" xml:space="preserve">
     <value>Content Type {0} was not supported by service {1}.  The client and service bindings may be mismatched.</value>
   </data>
-  <data name = "FramingFaultUnrecognized" xml:space="preserve">
+  <data name="FramingFaultUnrecognized" xml:space="preserve">
     <value>Server faulted with code '{0}'.</value>
   </data>
-  <data name = "FramingContentTypeTooLongFault" xml:space="preserve">
+  <data name="FramingContentTypeTooLongFault" xml:space="preserve">
     <value>Content type '{0}' is too long to be processed by the remote host. See the server logs for more details.</value>
   </data>
-  <data name = "FramingViaTooLongFault" xml:space="preserve">
+  <data name="FramingViaTooLongFault" xml:space="preserve">
     <value>Via '{0}' is too long to be processed by the remote host. See the server logs for more details.</value>
   </data>
-  <data name = "FramingModeNotSupportedFault" xml:space="preserve">
+  <data name="FramingModeNotSupportedFault" xml:space="preserve">
     <value>The .Net Framing mode being used is not supported by '{0}'. See the server logs for more details.</value>
   </data>
-  <data name = "FramingVersionNotSupportedFault" xml:space="preserve">
+  <data name="FramingVersionNotSupportedFault" xml:space="preserve">
     <value>The .Net Framing version being used is not supported by '{0}'. See the server logs for more details.</value>
   </data>
-  <data name = "FramingUpgradeInvalid" xml:space="preserve">
+  <data name="FramingUpgradeInvalid" xml:space="preserve">
     <value>The requested upgrade is not supported by '{0}'. This could be due to mismatched bindings (for example security enabled on the client and not on the server).</value>
   </data>
-  <data name = "UpgradeProtocolNotSupported" xml:space="preserve">
+  <data name="UpgradeProtocolNotSupported" xml:space="preserve">
     <value>Protocol Type {0} was sent to a service that does not support that type of upgrade.</value>
   </data>
-  <data name = "UpgradeRequestToNonupgradableService" xml:space="preserve">
+  <data name="UpgradeRequestToNonupgradableService" xml:space="preserve">
     <value>.Net Framing upgrade request for {0} was sent to a service that is not setup to receive upgrades.</value>
   </data>
-  <data name = "PreambleAckIncorrect" xml:space="preserve">
+  <data name="PreambleAckIncorrect" xml:space="preserve">
     <value>You have tried to create a channel to a service that does not support .Net Framing. </value>
   </data>
-  <data name = "PreambleAckIncorrectMaybeHttp" xml:space="preserve">
+  <data name="PreambleAckIncorrectMaybeHttp" xml:space="preserve">
     <value>You have tried to create a channel to a service that does not support .Net Framing. It is possible that you are encountering an HTTP endpoint.</value>
   </data>
-  <data name = "ServerRejectedUpgradeRequest" xml:space="preserve">
-    <value>The server rejected the upgrade request.</value>
-  </data>
-  <data name = "ServerRejectedSessionPreamble" xml:space="preserve">
-    <value>The server at {0} rejected the session-establishment request.</value>
-  </data>
-  <data name = "MessageXmlProtocolError" xml:space="preserve">
+  <data name="MessageXmlProtocolError" xml:space="preserve">
     <value>There is a problem with the XML that was received from the network. See inner exception for more details.</value>
   </data>
-  <data name = "NegotiationFailedIO" xml:space="preserve">
+  <data name="NegotiationFailedIO" xml:space="preserve">
     <value>Transport security negotiation failed due to an underlying IO error: {0}.</value>
   </data>
-  <data name = "ReceiveRequestTimedOutNoLocalAddress" xml:space="preserve">
+  <data name="ReceiveRequestTimedOutNoLocalAddress" xml:space="preserve">
     <value>Receive request timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "ReceiveTimedOut" xml:space="preserve">
-    <value>Receive on local address {0} timed out after {1}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name = "ReceiveTimedOut2" xml:space="preserve">
+  <data name="ReceiveTimedOut2" xml:space="preserve">
     <value>Receive timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
-  <data name = "ReadNotSupported" xml:space="preserve">
+  <data name="ReadNotSupported" xml:space="preserve">
     <value>Read is not supported on this stream.</value>
   </data>
-  <data name = "SeekNotSupported" xml:space="preserve">
+  <data name="SeekNotSupported" xml:space="preserve">
     <value>Seek is not supported on this stream.</value>
   </data>
-  <data name = "SpaceNeededExceedsMessageFrameOffset" xml:space="preserve">
+  <data name="SpaceNeededExceedsMessageFrameOffset" xml:space="preserve">
     <value>The space needed for encoding ({0} bytes) exceeds the message frame offset.</value>
   </data>
-  <data name = "UnsupportedUpgradeAcceptor" xml:space="preserve">
+  <data name="UnsupportedUpgradeAcceptor" xml:space="preserve">
     <value>The StreamUpgradeAcceptor specified ({0}) is not supported by this IStreamUpgradeChannelBindingProvider  implementation.  The most likely cause of this is passing a StreamUpgradeAcceptor that was not created by the StreamUpgradeProvider associated with this IStreamUpgradeChannelBindingProvider  implementation.</value>
   </data>
-  <data name = "StreamUpgradeUnsupportedChannelBindingKind" xml:space="preserve">
+  <data name="StreamUpgradeUnsupportedChannelBindingKind" xml:space="preserve">
     <value>The StreamUpgradeProvider {0} does not support the specified ChannelBindingKind ({1}). </value>
   </data>
-  <data name = "WaitForMessageTimedOut" xml:space="preserve">
+  <data name="WaitForMessageTimedOut" xml:space="preserve">
     <value>WaitForMessage timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name="AnonymousLogonsAreNotAllowed" xml:space="preserve">

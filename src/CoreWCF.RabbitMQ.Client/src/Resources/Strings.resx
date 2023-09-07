@@ -120,15 +120,6 @@
   <data name="MaxReceivedMessageSizeExceeded" xml:space="preserve">
     <value>The maximum message size quota for incoming messages ({0}) has been exceeded. To increase the quota, use the MaxReceivedMessageSize property on the appropriate binding element.</value>
   </data>
-  <data name="RequestContextAborted" xml:space="preserve">
-    <value>The requestContext has been aborted.</value>
-  </data>
-  <data name="ReplyAlreadySent" xml:space="preserve">
-    <value>A reply has already been sent from this RequestContext.</value>
-  </data>
-  <data name="DuplicateRegistration" xml:space="preserve">
-    <value>A registration already exists for URI '{0}'.</value>
-  </data>
   <data name="ReceiveShutdownReturnedFault" xml:space="preserve">
     <value>The channel received an unexpected fault input message while closing. The fault reason given is: '{0}'</value>
   </data>
@@ -137,21 +128,6 @@
   </data>
   <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
     <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
-  </data>
-  <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
-    <value>IAsyncResult not provided or of wrong type.</value>
-  </data>
-  <data name="TaskTimedOutError" xml:space="preserve">
-    <value>The task timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name="TimeoutMustBeNonNegative" xml:space="preserve">
-    <value>Argument {0} must be a non-negative timeout value. Provided value was {1}.</value>
-  </data>
-  <data name="TimeoutMustBePositive" xml:space="preserve">
-    <value>Argument {0} must be a positive timeout value. Provided value was {1}.</value>
-  </data>
-  <data name="LockTimeoutExceptionMessage" xml:space="preserve">
-    <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name="ActionItemIsAlreadyScheduled" xml:space="preserve">
     <value>The ActionItem was already scheduled for execution that hasn't been completed yet.</value>
