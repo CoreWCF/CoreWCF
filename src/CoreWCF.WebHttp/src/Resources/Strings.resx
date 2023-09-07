@@ -159,9 +159,6 @@
   <data name="DefaultContentFormatNotAllowedInProperty" xml:space="preserve">
     <value>The default WebContentFormat cannot be used to construct a WebBodyFormatMessageProperty. Specify an explicit format (for example XML, JSON or Raw) instead.</value>
   </data>
-  <data name="DuplicateRegistration" xml:space="preserve">
-    <value>A registration already exists for URI '{0}'.</value>
-  </data>
   <data name="EncoderBadContentType" xml:space="preserve">
     <value>Cannot process contentType.</value>
   </data>
@@ -225,9 +222,6 @@
   <data name="HelpServerErrorProcessingRequestWithLink" xml:space="preserve">
     <value>&amp;lt;p&amp;gt;The server encountered an error processing the request. Please see the &amp;lt;a rel="help-page" href="{0}"&amp;gt;service help page&amp;lt;/a&amp;gt; for constructing valid requests to the service.&amp;lt;/p&amp;gt;</value>
   </data>
-  <data name="HttpClientCredentialTypeInvalid" xml:space="preserve">
-    <value>There is no {0} on the incoming Message.</value>
-  </data>
   <data name="HttpContextNoIncomingMessageProperty" xml:space="preserve">
     <value>There is no {0} on the incoming Message.</value>
   </data>
@@ -249,9 +243,6 @@
   <data name="JsonFormatRequiresDataContract" xml:space="preserve">
     <value>Operation '{0}' (in contract '{1}' with namespace '{2}') specifies the http body format to be JSON but the serialization mechanism for the operation is not DataContract. JSON format is only supported with DataContract serialization. If you have an XmlSerializerFormatAttribute on the operation consider replacing it with DataContractFormatAttribute.</value>
   </data>
-  <data name="JsonFormatterExpectedAttributeNull" xml:space="preserve">
-    <value>OperationFormatter encountered an invalid Message body. Expected to find an attribute with name 'type' and value 'null'. Found value '{0}'.</value>
-  </data>
   <data name="JsonFormatterExpectedAttributeObject" xml:space="preserve">
     <value>OperationFormatter encountered an invalid Message body. Expected to find an attribute with name 'type' and value 'object'. Found value '{0}'.</value>
   </data>
@@ -260,9 +251,6 @@
   </data>
   <data name="JsonValueMustBeInRange" xml:space="preserve">
     <value>The value of this argument must fall within the range {0} to {1}.</value>
-  </data>
-  <data name="LockTimeoutExceptionMessage" xml:space="preserve">
-    <value>Cannot claim lock within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
   </data>
   <data name="ManualAddressingCannotBeFalseWithTransportBindingElement" xml:space="preserve">
     <value>In the endpoint at '{0}', in order to use '{1}', the '{2}' of the binding must have ManualAddressing set to true.</value>
@@ -357,12 +345,6 @@
   <data name="ReceiveShutdownReturnedMessage" xml:space="preserve">
     <value>The channel received an unexpected input message with Action '{0}' while closing. You should only close your channel when you are not expecting any more input messages.</value>
   </data>
-  <data name="ReplyAlreadySent" xml:space="preserve">
-    <value>ReplyAlreadySent</value>
-  </data>
-  <data name="RequestContextAborted" xml:space="preserve">
-    <value>The requestContext has been aborted.</value>
-  </data>
   <data name="RpcEncodedNotSupportedForNoneMessageVersion" xml:space="preserve">
     <value>Operation '{0}', belonging to contract ('{1}', '{2}') has an XmlSerializerFormatAttribute configured with OperationUse Encoded or OperationStyle Rpc. OperationUse Encoded and OperationStyle Rpc are not supported for web bindings. Configure the endpoint with a SOAP binding (like WSHttpBinding) in order to use these options.</value>
   </data>
@@ -378,9 +360,6 @@
   <data name="ServiceModelWebServicesNotRegistered" xml:space="preserve">
     <value>Unable to find the endpoint behavior WebHttpBehavior for endpoint address '{0}'. This is possibly caused by not calling ServiceModelWebServiceCollectionExtensions.AddServiceModelWebServices(IServiceCollection services).</value>
   </data>
-  <data name="SFxInvalidCallbackIAsyncResult" xml:space="preserve">
-    <value>IAsyncResult not provided or of wrong type.</value>
-  </data>
   <data name="SFxInvalidMessageBody" xml:space="preserve">
     <value>OperationFormatter encountered an invalid Message body. Expected to find node type 'Element' with name '{0}' and namespace '{1}'. Found node type '{2}' with name '{3}' and namespace '{4}'</value>
   </data>
@@ -395,15 +374,6 @@
   </data>
   <data name="StreamBodyMemberNotSupported" xml:space="preserve">
     <value>'{0}' does not allow the use of Streams with the MessageContract programming model. The service '{1}' defines an operation '{2}' that uses the MessageContract type '{3}'. '{3}' contains MessageBodyMember '{4}' of type Stream.</value>
-  </data>
-  <data name="TaskTimedOutError" xml:space="preserve">
-    <value>The task timed out after {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
-  </data>
-  <data name="TimeoutMustBeNonNegative" xml:space="preserve">
-    <value>Argument {0} must be a non-negative timeout value. Provided value was {1}.</value>
-  </data>
-  <data name="TimeoutMustBePositive" xml:space="preserve">
-    <value>Argument {0} must be a positive timeout value. Provided value was {1}.</value>
   </data>
   <data name="TypeIsNotParameterTypeAndIsNotPresentInKnownTypes" xml:space="preserve">
     <value>Cannot serialize parameter of type '{0}' (for operation '{1}', contract '{2}') because it is not the exact type '{3}' in the method signature and is not in the known types collection. In order to serialize the parameter, add the type to the known types collection for the operation using ServiceKnownTypeAttribute.</value>
@@ -564,14 +534,8 @@
   <data name="WeakEntityTagsNotSupported" xml:space="preserve">
     <value>he entity tag '{0}' is not a valid ETag header value.  Weak entity tags are not supported.</value>
   </data>
-  <data name="WebBehaviorNotFoundWithEndpoint" xml:space="preserve">
-    <value>The standard endpoint of type '{0}' does not have a behavior of type '{1}'.  The endpoint is initialized with the proper behavior and it should not be removed or replaced.</value>
-  </data>
   <data name="WebBodyFormatPropertyToString" xml:space="preserve">
     <value>WebBodyFormatMessageProperty: WebContentFormat={0}</value>
-  </data>
-  <data name="WebHttpBindingNotFoundWithEndpoint" xml:space="preserve">
-    <value>The standard endpoint of type '{0}' does not have a binding of type '{1}'.  The endpoint is initialized with the proper binding and it should not be removed or replaced.</value>
   </data>
   <data name="WebHttpServiceEndpointCannotHaveMessageHeaders" xml:space="preserve">
     <value>The endpoint address '{0}' has message headers and is being used with a binding that's configured for message version None. Either change the endpoint address to not contain message headers or change the binding to be one that supports SOAP (for example, WSHttpBinding).</value>
