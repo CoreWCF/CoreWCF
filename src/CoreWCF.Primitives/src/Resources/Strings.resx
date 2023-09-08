@@ -636,9 +636,6 @@
   <data name="SecuritySessionNotPending" xml:space="preserve">
     <value>No security session with id '{0}' is pending.</value>
   </data>
-  <data name="ProtocolMustBeRecipient" xml:space="preserve">
-    <value>'{0}' protocol can only be used at the Recipient.</value>
-  </data>
   <data name="OnlyBodyReturnValuesSupported" xml:space="preserve">
     <value>Only body return values are supported currently for protection, MessagePartDescription was specified.</value>
   </data>
@@ -3554,5 +3551,314 @@
   </data>
   <data name="AuthorizationFeaturesAuthorizationServiceIsNotRegistered" xml:space="preserve">
     <value>Invalid configuration. The security of the Binding is configured with ClientCredentialType set to 'InheritedFromHost' which implies that native ASP.NET Core Authorization will be ran. Please see https://learn.microsoft.com/en-us/aspnet/core/security/authorization to configure ASP.NET Core Authorization.</value>
+  </data>
+  <data name="InvalidSequenceNumber" xml:space="preserve">
+    <value>A message was received with a sequence number of {0}. Sequence numbers cannot be less than 1. The reliable session was faulted.</value>
+  </data>
+  <data name="InvalidSequenceRange" xml:space="preserve">
+    <value>An acknowledgement range starting at {0} and ending at {1} was received. This is an invalid acknowledgement range. The reliable session was faulted.</value>
+  </data>
+  <data name="InvalidWsrmResponseSessionFaultedExceptionString" xml:space="preserve">
+    <value>The remote endpoint responded to the {0} request with a response with action {1}. The response must be a {0}Response with action {2}. The channel was faulted.</value>
+  </data>
+  <data name="InvalidWsrmResponseSessionFaultedFaultString" xml:space="preserve">
+    <value>The {0} request's response was a message with action {1}. The response must be a {0}Response with action {2}. The reliable session cannot continue.</value>
+  </data>
+  <data name="LastMessageNumberExceeded" xml:space="preserve">
+    <value>A message was received with a sequence number higher than the sequence number of the last message in this sequence. This is a violation of the sequence number protocol. The reliable session was faulted.</value>
+  </data>
+  <data name="LastMessageNumberExceededFaultReason" xml:space="preserve">
+    <value>The value for wsrm:MessageNumber exceeds the value of the MessageNumber accompanying a LastMessage element in this Sequence.</value>
+  </data>
+  <data name="InvalidBufferRemaining" xml:space="preserve">
+    <value>An acknowledgement was received indicating the remaining buffer space on the remote endpoint is {0}. This number cannot be less than zero. The reliable session was faulted.</value>
+  </data>
+  <data name="MissingFinalAckExceptionString" xml:space="preserve">
+    <value>The remote endpoint did not include a final acknowledgement in the reply to the close sequence request message. This is a violation of the WS-ReliableMessaging protocol. The reliable session was faulted.</value>
+  </data>
+  <data name="MissingMessageIdOnWsrmRequest" xml:space="preserve">
+    <value>The wsa:MessageId header must be present on a wsrm:{0} message.</value>
+  </data>
+  <data name="MissingRelatesToOnWsrmResponseReason" xml:space="preserve">
+    <value>The returned wsrm:{0}Response message was missing the required wsa:RelatesTo header. This is a violation of the WS-Addressing request reply protocol. The reliable session was faulted.</value>
+  </data>
+  <data name="MissingReplyToOnWsrmRequest" xml:space="preserve">
+    <value>The wsa:ReplyTo header must be present on a wsrm:{0} message.</value>
+  </data>
+  <data name="NoActionNoSequenceHeaderReason" xml:space="preserve">
+    <value>The endpoint only processes messages using the WS-ReliableMessaging protocol. The message sent to the endpoint does not have an action or any headers used by the protocol and cannot be processed.</value>
+  </data>
+  <data name="NonEmptyWsrmMessageIsEmpty" xml:space="preserve">
+    <value>A message with action {0} is an empty message. This message cannot be processed because the body of this WS-ReliableMessaging protocol message must carry information pertaining to a reliable session.</value>
+  </data>
+  <data name="NonWsrmFeb2005ActionNotSupported" xml:space="preserve">
+    <value>The action {0} is not supported by this endpoint. Only WS-ReliableMessaging February 2005 messages are processed by this endpoint.</value>
+  </data>
+  <data name="NotAllRepliesAcknowledgedExceptionString" xml:space="preserve">
+    <value>The remote endpoint closed the session before acknowledging all responses. All replies could not be delivered. The reliable session was faulted.</value>
+  </data>
+  <data name="ReceivedResponseBeforeRequestExceptionString" xml:space="preserve">
+    <value>The remote endpoint returned a {0}Response when the {0} request had not been sent. This is a WS-ReliableMessaging protocol violation. The reliable session was faulted.</value>
+  </data>
+  <data name="ReceivedResponseBeforeRequestFaultString" xml:space="preserve">
+    <value>The {0}Response was received when the {0} request had not been sent. This is a WS-ReliableMessaging protocol violation. The reliable session cannot continue.</value>
+  </data>
+  <data name="ReliableRequestContextAborted" xml:space="preserve">
+    <value>Due to a request context abort call, the reliable reply session channel potentially has a gap in its reply sequence. The ExactlyOnce assurance can no longer be satisfied. The reliable session was faulted.</value>
+  </data>
+  <data name="SequenceClosedFaultString" xml:space="preserve">
+    <value>The Sequence is closed and cannot accept new messages.</value>
+  </data>
+  <data name="SequenceTerminatedAddLastToWindowTimedOut" xml:space="preserve">
+    <value>The RM Source could not transfer the last message within the timeout the user specified.</value>
+  </data>
+  <data name="SequenceTerminatedBeforeReplySequenceAcked" xml:space="preserve">
+    <value>The server received a TerminateSequence message before all reply sequence messages were acknowledged. This is a violation of the reply sequence acknowledgement protocol.</value>
+  </data>
+  <data name="SequenceTerminatedEarlyTerminateSequence" xml:space="preserve">
+    <value>The wsrm:TerminateSequence protocol message was transmitted before the sequence was successfully completed.</value>
+  </data>
+  <data name="SequenceTerminatedInactivityTimeoutExceeded" xml:space="preserve">
+    <value>The inactivity timeout of ({0}) has been exceeded.</value>
+  </data>
+  <data name="SequenceTerminatedInconsistentLastMsgNumber" xml:space="preserve">
+    <value>Two different wsrm:LastMsgNumber values were specified. Because of this the reliable session cannot complete.</value>
+  </data>
+  <data name="SequenceTerminatedMaximumRetryCountExceeded" xml:space="preserve">
+    <value>The user specified maximum retry count for a particular message has been exceeded. Because of this the reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedMissingFinalAck" xml:space="preserve">
+    <value>The CloseSequence request's reply message must carry a final acknowledgement. This is a violation of the WS-ReliableMessaging protocol. The reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedOnAbort" xml:space="preserve">
+    <value>Due to a user abort the reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedQuotaExceededException" xml:space="preserve">
+    <value>The necessary size to buffer a sequence message has exceeded the configured buffer quota. Because of this the reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedNotAllRepliesAcknowledged" xml:space="preserve">
+    <value>All of the reply sequence's messages must be acknowledged prior to closing the request sequence. This is a violation of the reply sequence's delivery guarantee. The session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedSessionClosedBeforeDone" xml:space="preserve">
+    <value>The user of the remote endpoint's reliable session expects no more messages and a new message arrived. Due to this the reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedSmallLastMsgNumber" xml:space="preserve">
+    <value>The wsrm:LastMsgNumber value is too small. A message with a larger sequence number has already been received.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedAcknowledgement" xml:space="preserve">
+    <value>The RM destination received an acknowledgement message. The RM destination does not process acknowledgement messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedCloseSequence" xml:space="preserve">
+    <value>The RM source received an CloseSequence message. The RM source does not process CloseSequence messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedCloseSequenceResponse" xml:space="preserve">
+    <value>The RM destination received an CloseSequenceResponse message. The RM destination does not process CloseSequenceResponse messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedCSOfferId" xml:space="preserve">
+    <value>The RM destination received multiple CreateSequence requests with different OfferId values over the same session.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedCSR" xml:space="preserve">
+    <value>The RM destination received a CreateSequenceResponse message. The RM destination does not process CreateSequenceResponse messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedTerminateSequence" xml:space="preserve">
+    <value>The RM source received a TerminateSequence message. The RM source does not process TerminateSequence messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnexpectedTerminateSequenceResponse" xml:space="preserve">
+    <value>The RM destination received a TerminateSequenceResponse message. The RM destination does not process TerminateSequenceResponse messages.</value>
+  </data>
+  <data name="SequenceTerminatedUnsupportedClose" xml:space="preserve">
+    <value>The RM source does not support an RM destination initiated close since messages can be lost. The reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedUnsupportedTerminateSequence" xml:space="preserve">
+    <value>The RM source does not support an RM destination initiated termination since messages can be lost. The reliable session cannot continue.</value>
+  </data>
+  <data name="SequenceTerminatedUnknownAddToWindowError" xml:space="preserve">
+    <value>An unknown error occurred while trying to add a sequence message to the window.</value>
+  </data>
+  <data name="SmallLastMsgNumberExceptionString" xml:space="preserve">
+    <value>The remote endpoint specified a last message number that is smaller than a sequence number that has already been seen. The reliable session is in an inconsistent state since it cannot determine the actual last message. The reliable session was faulted.</value>
+  </data>
+  <data name="TimeoutOnAddToWindow" xml:space="preserve">
+    <value>The message could not be transferred within the allotted timeout of {0}. There was no space available in the reliable channel's transfer window. The time allotted to this operation may have been a portion of a longer timeout.</value>
+  </data>
+  <data name="UnexpectedCSR" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected create sequence response. Servers do not process this message.</value>
+  </data>
+  <data name="UnexpectedCSOfferId" xml:space="preserve">
+    <value>The remote endpoint sent inconsistent requests to create the same sequence. The OfferId values are not identical.</value>
+  </data>
+  <data name="UnexpectedTerminateSequence" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected terminate sequence message. Simplex clients do not process this message.</value>
+  </data>
+  <data name="UnexpectedTerminateSequenceResponse" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected terminate sequence response message. Simplex servers do not process this message.</value>
+  </data>
+  <data name="UnknownSequenceFaultReason" xml:space="preserve">
+    <value>The value of wsrm:Identifier is not a known Sequence identifier.</value>
+  </data>
+  <data name="UnknownSequenceFaultReceived" xml:space="preserve">
+    <value>The remote endpoint no longer recognizes this sequence. This is most likely due to an abort on the remote endpoint. {0} The reliable session was faulted.</value>
+  </data>
+  <data name="UnknownSequenceMessageReceived" xml:space="preserve">
+    <value>The remote endpoint has sent a message containing an unrecognized sequence identifier. The reliable session was faulted.</value>
+  </data>
+  <data name="UnrecognizedFaultReceived" xml:space="preserve">
+    <value>The remote endpoint has sent an unrecognized fault with namespace, {0}, name {1}, and reason {2}. The reliable session was faulted.</value>
+  </data>
+  <data name="UnrecognizedFaultReceivedOnOpen" xml:space="preserve">
+    <value>The remote endpoint has sent an unrecognized fault with namespace, {0}, name {1}, and reason {2}. The channel could not be opened.</value>
+  </data>
+  <data name="UnsupportedCloseExceptionString" xml:space="preserve">
+    <value>The remote endpoint closed the sequence before message transfer was complete. This is not supported since all messages could not be transferred. The reliable session was faulted.</value>
+  </data>
+  <data name="UnsupportedTerminateSequenceExceptionString" xml:space="preserve">
+    <value>The remote endpoint terminated the sequence before message transfer was complete. This is not supported since all messages could not be transferred. The reliable session was faulted.</value>
+  </data>
+  <data name="WrongIdentifierFault" xml:space="preserve">
+    <value>The remote endpoint has sent an fault message with an unexpected sequence identifier over a session. The fault may be intended for a different session. The fault reason is: {0} The reliable session was faulted.</value>
+  </data>
+  <data name="CSRefused" xml:space="preserve">
+    <value>The request to create a reliable session has been refused by the RM Destination. {0} The channel could not be opened.</value>
+  </data>
+  <data name="CSRefusedAcksToMustEqualEndpoint" xml:space="preserve">
+    <value>The endpoint processing requests to create a reliable session only supports sessions in which the AcksTo Uri and the Endpoint Uri are the same.</value>
+  </data>
+  <data name="CSRefusedAcksToMustEqualReplyTo" xml:space="preserve">
+    <value>The endpoint processing requests to create a reliable session only supports sessions in which the AcksTo Uri and the ReplyTo Uri are the same.</value>
+  </data>
+  <data name="CSRefusedDuplexNoOffer" xml:space="preserve">
+    <value>The endpoint at {0} processes duplex sessions. The create sequence request must contain an offer for a return sequence. This is likely caused by a binding mismatch.</value>
+  </data>
+  <data name="CSRefusedInputOffer" xml:space="preserve">
+    <value>The endpoint at {0} processes input sessions. The create sequence request must not contain an offer for a return sequence. This is likely caused by a binding mismatch.</value>
+  </data>
+  <data name="CSRefusedInvalidIncompleteSequenceBehavior" xml:space="preserve">
+    <value>The request to create a reliable session contains an invalid wsrm:IncompleteSequenceBehavior value. This is a WS-ReliableMessaging protocol violation.</value>
+  </data>
+  <data name="CSRefusedNoSTRWSSecurity" xml:space="preserve">
+    <value>The request to create a reliable session contains the wsse:SecurityTokenReference but does not carry a wsrm:UsesSequenceSTR header. This is a WS-ReliableMessaging protocol violation. The session could not be created.</value>
+  </data>
+  <data name="CSRefusedReplyNoOffer" xml:space="preserve">
+    <value>The endpoint at {0} processes reply sessions. The create sequence request must contain an offer for a return sequence. This is likely caused by a binding mismatch.</value>
+  </data>
+  <data name="CSRefusedRequiredSecurityElementMissing" xml:space="preserve">
+    <value>The RM Destination requires the WS-SecureConversation protocol in the binding. This is likely caused by a binding mismatch.</value>
+  </data>
+  <data name="CSRefusedSSLNotSupported" xml:space="preserve">
+    <value>The endpoint processing requests to create a reliable session does not support sessions that use SSL. This is likely caused by a binding mismatch. The session could not be created.</value>
+  </data>
+  <data name="CSRefusedSTRNoWSSecurity" xml:space="preserve">
+    <value>The request to create a reliable session carries a wsrm:UsesSequenceSTR header, but does not contain the wsse:SecurityTokenReference. This is a WS-ReliableMessaging protocol violation. The session could not be created.</value>
+  </data>
+  <data name="CSRefusedUnexpectedElementAtEndOfCSMessage" xml:space="preserve">
+    <value>The message is not a valid SOAP message. The body contains more than 1 root element.</value>
+  </data>
+  <data name="CSResponseWithInvalidIncompleteSequenceBehavior" xml:space="preserve">
+    <value>The response to the request to create a reliable session contains an invalid wsrm:IncompleteSequenceBehavior value. This is a WS-ReliableMessaging protocol violation.</value>
+  </data>
+  <data name="NonceLengthTooShort" xml:space="preserve">
+    <value>The specified nonce is too short. The minimum required nonce length is 4 bytes.</value>
+  </data>
+  <data name="WsrmMessageProcessingError" xml:space="preserve">
+    <value>An error occurred while processing a message. {0}</value>
+  </data>
+  <data name="WsrmMessageWithWrongRelatesToExceptionString" xml:space="preserve">
+    <value>The returned {0}Response was carrying the a wsa:RelatesTo header that does not correlate with the wsa:MessageId header on the {0} request. This is a violation of the WS-Addressing request reply protocol. The reliable session cannot continue.</value>
+  </data>
+  <data name="WsrmMessageWithWrongRelatesToFaultString" xml:space="preserve">
+    <value>The remote endpoint has responded to a {0} request message with an invalid reply. The reply has a wsa:RelatesTo header with an unexpected identifier. The reliable session cannot continue.</value>
+  </data>
+  <data name="WsrmRequestIncorrectReplyToExceptionString" xml:space="preserve">
+    <value>The remote endpoint sent a wsrm:{0} request message with a wsa:ReplyTo address containing a URI which is not equivalent to the remote address. This is not supported. The reliable session was faulted.</value>
+  </data>
+  <data name="WsrmRequestIncorrectReplyToFaultString" xml:space="preserve">
+    <value>The wsrm:{0} request message's wsa:ReplyTo address containing a URI which is not equivalent to the remote address. This is not supported. The reliable session was faulted.</value>
+  </data>
+  <data name="WsrmRequiredExceptionString" xml:space="preserve">
+    <value>The incoming message is not a WS-ReliableMessaging 1.1 message and could not be processed.</value>
+  </data>
+  <data name="WsrmRequiredFaultString" xml:space="preserve">
+    <value>The RM server requires the use of WS-ReliableMessaging 1.1 protocol. This is likely caused by a binding mismatch.</value>
+  </data>
+  <data name="MessageExceptionOccurred" xml:space="preserve">
+    <value>A problem occurred while reading a message. See inner exception for details.</value>
+  </data>
+  <data name="MessageNumberRollover" xml:space="preserve">
+    <value>The maximum message number for this sequence has been exceeded. The reliable session was faulted.</value>
+  </data>
+  <data name="MessageNumberRolloverFaultReason" xml:space="preserve">
+    <value>The maximum value for wsrm:MessageNumber has been exceeded.</value>
+  </data>
+  <data name="InvalidAcknowledgementFaultReason" xml:space="preserve">
+    <value>The SequenceAcknowledgement violates the cumulative acknowledgement invariant.</value>
+  </data>
+  <data name="InvalidAcknowledgementReceived" xml:space="preserve">
+    <value>A violation of acknowledgement protocol has been detected. An InvalidAcknowledgement fault was sent to the remote endpoint and the reliable session was faulted.</value>
+  </data>
+  <data name="UnexpectedAcknowledgement" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected ack. Simplex servers do not process acks.</value>
+  </data>
+  <data name="UnexpectedCloseSequence" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected close sequence message. Simplex clients do not process this message.</value>
+  </data>
+  <data name="UnexpectedCloseSequenceResponse" xml:space="preserve">
+    <value>The remote endpoint sent an unexpected close sequence response message. Simplex servers do not process this message.</value>
+  </data>
+  <data name="CouldNotParseWithAction" xml:space="preserve">
+    <value>A message with action {0} could not be parsed.</value>
+  </data>
+  <data name="CommunicationObjectCloseInterrupted1" xml:space="preserve">
+    <value>The communication object, {0}, cannot be used due to an error that occurred during close.</value>
+  </data>
+  <data name="WsrmFaultReceived" xml:space="preserve">
+    <value>The sequence has been terminated by the remote endpoint. {0} The reliable session was faulted.</value>
+  </data>
+  <data name="TimeoutOnSend" xml:space="preserve">
+    <value>The send operation did not complete within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
+  </data>
+  <data name="TimeoutOnClose" xml:space="preserve">
+    <value>The close operation did not complete within the allotted timeout of {0}. The time allotted to this operation may have been a portion of a longer timeout.</value>
+  </data>
+  <data name="EarlyRequestTerminateSequence" xml:space="preserve">
+    <value>The remote endpoint sent a TerminateSequence protocol message before fully acknowledging all messages in the reply sequence. This is a violation of the reliable request reply protocol. The reliable session was faulted.</value>
+  </data>
+  <data name="EarlySecurityClose" xml:space="preserve">
+    <value>The remote endpoint has closed the underlying secure session before the reliable session fully completed. The reliable session was faulted.</value>
+  </data>
+  <data name="EarlySecurityFaulted" xml:space="preserve">
+    <value>The underlying secure session has faulted before the reliable session fully completed. The reliable session was faulted.</value>
+  </data>
+  <data name="SessionClosedBeforeDone" xml:space="preserve">
+    <value>The session was closed before message transfer was complete.</value>
+  </data>
+  <data name="EarlyTerminateSequence" xml:space="preserve">
+    <value>The remote endpoint has errantly sent a TerminateSequence protocol message before the sequence finished.</value>
+  </data>
+  <data name="InconsistentLastMsgNumberExceptionString" xml:space="preserve">
+    <value>The remote endpoint specified two different last message numbers. The reliable session is in an inconsistent state since it cannot determine the actual last message. The reliable session was faulted.</value>
+  </data>
+  <data name="ConflictingOffer" xml:space="preserve">
+    <value>The remote endpoint sent conflicting requests to create a reliable session. The remote endpoint requested both a one way and a two way session. The reliable session has been faulted.</value>
+  </data>
+  <data name="ConflictingAddress" xml:space="preserve">
+    <value>The remote endpoint sent conflicting requests to create a reliable session. The conflicting requests have inconsistent filter criteria such as address or action. The reliable session has been faulted.</value>
+  </data>
+  <data name="CloseOutputSessionErrorReason" xml:space="preserve">
+    <value>An unexpected error occurred while attempting to close the output half of the duplex reliable session.</value>
+  </data>
+  <data name="ManualAddressingNotSupported" xml:space="preserve">
+    <value>Binding validation failed because the TransportBindingElement's ManualAddressing property was set to true on a binding that is configured to create reliable sessions. This combination is not supported and the channel factory or service host was not opened.</value>
+  </data>
+  <data name="TransferModeNotSupported" xml:space="preserve">
+    <value>Transfer mode {0} is not supported by {1}.</value>
+  </data>
+  <data name="RMEndpointNotFoundReason" xml:space="preserve">
+    <value>The endpoint at {0} has stopped accepting wsrm sessions.</value>
+  </data>
+  <data name="SupportedAddressingModeNotSupported" xml:space="preserve">
+    <value>The '{0}' addressing mode is not supported.</value>
+  </data>
+  <data name="MaximumRetryCountExceeded" xml:space="preserve">
+    <value>The maximum retry count has been exceeded with no response from the remote endpoint. The reliable session was faulted. This is often an indication that the remote endpoint is no longer available.</value>
   </data>
 </root>
