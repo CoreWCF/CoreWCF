@@ -207,35 +207,42 @@ namespace CoreWCF
         protected override void ApplyConfiguration()
         {
             base.ApplyConfiguration();
-            IServer server = _serviceProvider.GetRequiredService<IServer>();
-            IServerAddressesFeature addresses = server.Features.Get<IServerAddressesFeature>();
-            foreach(string address in addresses.Addresses)
-            {
-                if (!address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                {
-                    // IIS hosting can populate Addresses with net.tcp/net.pipe/net.msmq addresses
-                    // if the site has those bindings
-                    continue;
-                }
 
-                var fixedUri = FixUri(address);
-                // ASP.NET Core assumes all listeners are http. Other transports such as NetTcp will already be populated
-                // in the base addresses so filter them out.
-                bool skip = false;
-                foreach(var baseAddress in InternalBaseAddresses)
+            IServer server = _serviceProvider.GetService<IServer>();
+            //For UDS there is no web server.
+            //May be check if specific to UDS or not
+            if(server != null)
+            {
+                IServerAddressesFeature addresses = server.Features.Get<IServerAddressesFeature>();
+                foreach (string address in addresses.Addresses)
                 {
-                    if(baseAddress.Port == fixedUri.Port) // Already added with a different protocol
+                    if (!address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                     {
-                        skip = true;
-                        break;
+                        // IIS hosting can populate Addresses with net.tcp/net.pipe/net.msmq addresses
+                        // if the site has those bindings
+                        continue;
+                    }
+
+                    var fixedUri = FixUri(address);
+                    // ASP.NET Core assumes all listeners are http. Other transports such as NetTcp will already be populated
+                    // in the base addresses so filter them out.
+                    bool skip = false;
+                    foreach (var baseAddress in InternalBaseAddresses)
+                    {
+                        if (baseAddress.Port == fixedUri.Port) // Already added with a different protocol
+                        {
+                            skip = true;
+                            break;
+                        }
+                    }
+
+                    if (!skip)
+                    {
+                        AddBaseAddress(FixUri(address));
                     }
                 }
-
-                if (!skip)
-                {
-                    AddBaseAddress(FixUri(address));
-                }
             }
+           
         }
 
         private static Uri FixUri(string address)

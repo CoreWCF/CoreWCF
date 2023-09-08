@@ -38,6 +38,9 @@ namespace CoreWCF.IdentityModel.Claims
         private const string authentication = claimTypeNamespace + "/authentication";
         private const string authorizationdecision = claimTypeNamespace + "/authorizationdecision";
         private const string role = claimTypeNamespace + "/role";
+        private const string posixGroupId = claimTypeNamespace + "/posixgroupid";
+        private const string posixGroupName = claimTypeNamespace + "/posixgroupname";
+        private const string processId = claimTypeNamespace + "/processid";
 
         public static string Anonymous { get { return anonymous; } }
         public static string DenyOnlySid { get { return denyOnlySid; } }
@@ -57,6 +60,9 @@ namespace CoreWCF.IdentityModel.Claims
         public static string Authentication { get { return authentication; } }
         public static string AuthorizationDecision { get { return authorizationdecision; } }
         public static string Role { get { return role; } }
+        public static string PosixGroupId { get { return posixGroupId; } }
+        public static string PosixGroupName { get { return posixGroupName; } }
+        public static string ProcessId { get { return processId; } }
 
         // used in info card 
         public static string GivenName { get { return givenname; } }

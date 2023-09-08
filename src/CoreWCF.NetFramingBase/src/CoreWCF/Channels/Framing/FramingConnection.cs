@@ -48,6 +48,7 @@ namespace CoreWCF.Channels.Framing
         public Uri Via => FramingDecoder?.Via;
         internal FramingMode FramingMode { get; set; }
         public MessageEncoder MessageEncoder { get; internal set; }
+        public IFeatureCollection ConnectionFeatures => _context.Features;
         public SecurityMessageProperty SecurityMessageProperty
         {
             get;

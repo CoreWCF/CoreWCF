@@ -145,6 +145,10 @@ namespace CoreWCF.Channels.Framing
             {
                 connection.MessageEncoderFactory = mefact;
                 connection.StreamUpgradeAcceptor = streamUpgradeProvider?.CreateUpgradeAcceptor();
+                if(connection.StreamUpgradeAcceptor != null)
+                {
+                    connection.StreamUpgradeAcceptor.Features.Set<FramingConnection>(connection);
+                }
                 connection.SecurityCapabilities = securityCapabilities;
                 connection.ServiceDispatcher = dispatcher;
                 connection.BufferManager = bufferManager;
