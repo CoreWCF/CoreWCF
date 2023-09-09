@@ -51,6 +51,8 @@ stages:
         displayName: Restore
         inputs:
           command: restore
+          feedsToUse: config
+          nugetConfigPath: src/NuGet.config
           projects: ${{ parameters.solutions }}
       
       - task: DotNetCoreCLI@2
