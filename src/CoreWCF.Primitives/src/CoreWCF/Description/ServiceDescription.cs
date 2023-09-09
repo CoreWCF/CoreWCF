@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -17,6 +19,15 @@ namespace CoreWCF.Description
     {
         private string _configurationName;
         private XmlName _serviceName;
+
+        // TODO: use RuntimeFeature.IsDynamicCodeSupported when we target net8
+        private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
+        protected static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
+            // See https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RuntimeFeature.NonNativeAot.cs,14
+            AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
+                ? isDynamicCodeSupported
+                : true
+        );
 
         public ServiceDescription() { }
 
@@ -322,6 +333,13 @@ namespace CoreWCF.Description
             ServiceProvider = services;
             // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
             var behaviors = injectedBehaviors.ToList();
+
+            // TODO: Remove this check and the dynamic assembly load once we target net8
+            if (Environment.Version.Major >= 8 && s_isDynamicCodeSupported.Value)
+            {
+                behaviors.AddRange(s_getKeyedServiceBehaviorsDelegate.Value.Invoke(services));
+            }
+
             for (int i = 0; i < behaviors.Count; i++)
             {
                 if(behaviors[i] is ICloneable cloneable)
@@ -333,5 +351,20 @@ namespace CoreWCF.Description
             AddBehaviors<TService>(this, behaviors);
             SetupSingleton<TService>(this, services);
         }
+
+        private static Lazy<Func<IServiceProvider, IEnumerable<IServiceBehavior>>> s_getKeyedServiceBehaviorsDelegate = new(() =>
+        {
+            Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
+            Type type = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider");
+            ParameterExpression parameter = Expression.Parameter(typeof(IServiceProvider));
+            UnaryExpression cast = Expression.TypeAs(parameter, type);
+            Expression invocation = Expression.Call(
+                cast, "GetKeyedService", new Type[] { },
+                Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
+                Expression.Constant(typeof(TService)));
+            UnaryExpression cast2 = Expression.TypeAs(invocation, typeof(IEnumerable<IServiceBehavior>));
+            var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(cast2, parameter);
+            return lambda.Compile();
+        });
     }
 }
