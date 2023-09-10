@@ -11,7 +11,7 @@ Some integration tests are dependent on external services (e.g. `CoreWCF.RabbitM
 1. [Install docker v19.03.0+](https://docs.docker.com/engine/install/) to your development environment via Docker Desktop or the docker engine
 2. From the root directory of the CoreWCF repo, run the following command to start the service containers:
 
-        docker-compose up -d
+        docker compose up -d
 		
 3. Run the tests as usual, using your IDE or running the following command from the command line:
 
@@ -19,11 +19,11 @@ Some integration tests are dependent on external services (e.g. `CoreWCF.RabbitM
 
 4. After running the tests, run the following command to stop the service containers and clean up all related artifacts (images, networks, volumes, etc):
 
-        docker-compose down --rmi -v
+        docker compose down --rmi -v
 
     Alternatively, the following command will stop the service containers while preserving container artifacts:
 
-        docker-compose stop
+        docker compose stop
 
 ## Platform specific tests
 
