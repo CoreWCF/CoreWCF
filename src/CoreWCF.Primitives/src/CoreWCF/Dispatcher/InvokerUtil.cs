@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using CoreWCF.Description;
 
@@ -20,6 +23,15 @@ namespace CoreWCF.Dispatcher
 
     internal static class InvokerUtil
     {
+        private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
+
+        private static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
+            // See https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RuntimeFeature.NonNativeAot.cs,14
+            AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
+                ? isDynamicCodeSupported
+                : true
+        );
+
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
         // private readonly CriticalHelper _helper;
 
@@ -89,7 +101,7 @@ namespace CoreWCF.Dispatcher
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
                 int paramCount = parameters.Length;
-                
+
                 var inputParamPositions = new List<int>();
                 var outputParamPositions = new List<int>();
                 for (int i = 0; i < parameters.Length; i++)
@@ -104,15 +116,21 @@ namespace CoreWCF.Dispatcher
                         outputParamPositions.Add(i);
                     }
                 }
-                
+
                 int[] inputPos = inputParamPositions.ToArray();
                 int[] outputPos = outputParamPositions.ToArray();
 
                 inputParameterCount = inputPos.Length;
                 outputParameterCount = outputPos.Length;
 
-                // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
-                InvokeDelegate lambda = delegate (object target, object[] inputs, object[] outputs)
+                return s_isDynamicCodeSupported.Value
+                    ? GenerateInvokeDelegateInternalWithExpressions(paramCount, returnsValue, inputPos, outputPos, method)
+                    : GenerateInvokeDelegateInternal(paramCount, returnsValue, inputPos, outputPos, method);
+            }
+
+            private static InvokeDelegate GenerateInvokeDelegateInternal(int paramCount, bool returnsValue, int[] inputPos, int[] outputPos, MethodInfo method)
+            {
+                return delegate (object target, object[] inputs, object[] outputs)
                 {
                     object[] paramsLocal = null;
                     if (paramCount > 0)
@@ -150,8 +168,74 @@ namespace CoreWCF.Dispatcher
 
                     return result;
                 };
+            }
 
-                return lambda;
+            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(int paramCount, bool returnsValue, int[] inputPos, int[] outputPos, MethodInfo method)
+            {
+                var targetParam = Expression.Parameter(typeof(object), "target");
+                var inputsParam = Expression.Parameter(typeof(object[]), "inputs");
+                var outputsParam = Expression.Parameter(typeof(object[]), "outputs");
+                var paramsLocal = Expression.Variable(typeof(object[]), "paramsLocal");
+                var result = Expression.Variable(typeof(object), "result");
+
+                var methodParam = Expression.Constant(method);
+
+                var assignParamsLocal = Expression.Assign(paramsLocal, Expression.Condition(
+                    Expression.GreaterThan(Expression.Constant(paramCount), Expression.Constant(0)),
+                    Expression.NewArrayBounds(typeof(object), Expression.Constant(paramCount)),
+                    Expression.Constant(null, typeof(object[]))));
+
+                var assignParamsLocalValues = inputPos.Length == 0
+                    ? Expression.Block(Expression.Empty())
+                    : Expression.Block(
+                        Enumerable.Range(0, inputPos.Length).Select(i =>
+                            Expression.Assign(
+                                Expression.ArrayAccess(paramsLocal, Expression.Constant(inputPos[i])),
+                                Expression.ArrayIndex(inputsParam, Expression.Constant(i)))));
+
+                var invokeMethod = Expression.Block(
+                    Expression.Assign(result, Expression.Condition(
+                        Expression.Equal(Expression.Constant(returnsValue), Expression.Constant(true)),
+                        Expression.Call(methodParam, nameof(MethodInfo.Invoke), null, targetParam, paramsLocal),
+                        Expression.Block(
+                            Expression.Call(methodParam, nameof(MethodInfo.Invoke), null, targetParam, paramsLocal),
+                            Expression.Constant(null, typeof(object))))),
+                    Expression.Empty());
+
+                var catchParameterExpr = Expression.Parameter(typeof(TargetInvocationException), "tie");
+                var throwCapturedExceptionDispatchInfoExpr = Expression.Call(Expression.Call(typeof(ExceptionDispatchInfo), nameof(ExceptionDispatchInfo.Capture), null,Expression.Property(catchParameterExpr, nameof(Exception.InnerException))), nameof(ExceptionDispatchInfo.Throw), null);
+
+                var tryCatch = Expression.TryCatch(invokeMethod,
+                    Expression.Catch(catchParameterExpr,
+                        Expression.Block(
+                            throwCapturedExceptionDispatchInfoExpr
+                        )));
+
+                var assignOutputs =
+                    outputPos.Length == 0
+                    ? Expression.Block(Expression.Empty())
+                    : Expression.Block(Enumerable.Range(0, outputPos.Length).Select(i =>
+                        Expression.Assign(
+                            Expression.ArrayAccess(outputsParam, Expression.Constant(i)),
+                            Expression.ArrayAccess(paramsLocal, Expression.Constant(outputPos[i])))));
+
+                var returnResult = Expression.Block(
+                    Expression.Empty(),
+                    result);
+
+                var lambda = Expression.Lambda<InvokeDelegate>(
+                    Expression.Block(
+                        new[] { paramsLocal, result },
+                        assignParamsLocal,
+                        assignParamsLocalValues,
+                        tryCatch,
+                        assignOutputs,
+                        returnResult),
+                    targetParam,
+                    inputsParam,
+                    outputsParam);
+
+                return lambda.Compile();
             }
 
             //public InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
