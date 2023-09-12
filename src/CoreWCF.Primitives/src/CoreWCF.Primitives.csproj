@@ -56,10 +56,16 @@
       <PackagePath>build;buildTransitive</PackagePath>
       <Visible>false</Visible>
     </Content>
+    <Content Include="CoreWCF.Primitives.targets">
+      <Pack>true</Pack>
+      <PackagePath>build;buildTransitive</PackagePath>
+      <Visible>false</Visible>
+    </Content>
     <Content Include="CoreWCFWebApplicationExtensions.cs">
       <Pack>true</Pack>
       <PackagePath>contentFiles</PackagePath>
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
+  
 </Project>

@@ -82,13 +82,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.UnixDomainSocket.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests.Common", "Common\UnitTests.Common\UnitTests.Common.csproj", "{357CE1CE-72A8-427A-8163-145588449536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka", "CoreWCF.Kafka\src\CoreWCF.Kafka.csproj", "{B0D747FE-05A0-43F9-8BBD-43A080F20ADB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka", "CoreWCF.Kafka\src\CoreWCF.Kafka.csproj", "{B0D747FE-05A0-43F9-8BBD-43A080F20ADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka.Tests", "CoreWCF.Kafka\tests\CoreWCF.Kafka.Tests.csproj", "{517C27F5-DBF2-4F68-B66F-885F683ED922}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka.Tests", "CoreWCF.Kafka\tests\CoreWCF.Kafka.Tests.csproj", "{517C27F5-DBF2-4F68-B66F-885F683ED922}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka.Client", "CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj", "{DCC20AEC-A912-4CD9-86FC-499BBEC24E90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka.Client", "CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj", "{DCC20AEC-A912-4CD9-86FC-499BBEC24E90}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.UnixDomainSocket", "CoreWCF.UnixDomainSocket\src\CoreWCF.UnixDomainSocket.csproj", "{1967968B-457D-4A1C-A463-1127CAAE2818}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Http.SourceGeneration.Tests", "CoreWCF.Http\tests\CoreWCF.Http.SourceGeneration.Tests.csproj", "{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -472,6 +474,18 @@ Global
 		{1967968B-457D-4A1C-A463-1127CAAE2818}.Release|x64.Build.0 = Release|Any CPU
 		{1967968B-457D-4A1C-A463-1127CAAE2818}.Release|x86.ActiveCfg = Release|Any CPU
 		{1967968B-457D-4A1C-A463-1127CAAE2818}.Release|x86.Build.0 = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|x64.Build.0 = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Debug|x86.Build.0 = Debug|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|x64.ActiveCfg = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|x64.Build.0 = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|x86.ActiveCfg = Release|Any CPU
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -509,6 +523,7 @@ Global
 		{517C27F5-DBF2-4F68-B66F-885F683ED922} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
 		{DCC20AEC-A912-4CD9-86FC-499BBEC24E90} = {0B5D4C83-181F-44AD-8F24-95599BFD66B8}
 		{1967968B-457D-4A1C-A463-1127CAAE2818} = {0B5D4C83-181F-44AD-8F24-95599BFD66B8}
+		{675F7CCB-D4DB-4D29-9A8A-204958EC9F78} = {73CF9B6D-0B40-422E-8F55-9D0C134E9E37}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C86AC5B-B946-48AD-A3A5-0E1A29EDA4CF}
