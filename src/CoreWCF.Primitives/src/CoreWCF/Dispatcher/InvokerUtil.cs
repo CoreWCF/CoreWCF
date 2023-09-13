@@ -96,7 +96,12 @@ namespace CoreWCF.Dispatcher
                 return default(T);
             }
 
-            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount) =>
+                s_isDynamicCodeSupported.Value
+                    ? GenerateInvokeDelegateInternalWithExpressions(method, out inputParameterCount, out outputParameterCount)
+                    : GenerateInvokeDelegateInternal(method, out inputParameterCount, out outputParameterCount);
+
+            private static InvokeDelegate GenerateInvokeDelegateInternal(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
@@ -123,13 +128,6 @@ namespace CoreWCF.Dispatcher
                 inputParameterCount = inputPos.Length;
                 outputParameterCount = outputPos.Length;
 
-                return s_isDynamicCodeSupported.Value
-                    ? GenerateInvokeDelegateInternalWithExpressions(paramCount, returnsValue, inputPos, outputPos, method)
-                    : GenerateInvokeDelegateInternal(paramCount, returnsValue, inputPos, outputPos, method);
-            }
-
-            private static InvokeDelegate GenerateInvokeDelegateInternal(int paramCount, bool returnsValue, int[] inputPos, int[] outputPos, MethodInfo method)
-            {
                 return delegate (object target, object[] inputs, object[] outputs)
                 {
                     object[] paramsLocal = null;
@@ -170,67 +168,74 @@ namespace CoreWCF.Dispatcher
                 };
             }
 
-            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(int paramCount, bool returnsValue, int[] inputPos, int[] outputPos, MethodInfo method)
+            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
+                inputParameterCount = 0;
+                outputParameterCount = 0;
+                ParameterInfo[] parameters = method.GetParameters();
+                bool returnsValue = method.ReturnType != typeof(void);
+
                 var targetParam = Expression.Parameter(typeof(object), "target");
                 var inputsParam = Expression.Parameter(typeof(object[]), "inputs");
                 var outputsParam = Expression.Parameter(typeof(object[]), "outputs");
-                var paramsLocal = Expression.Variable(typeof(object[]), "paramsLocal");
+
+                List<ParameterExpression> variables = new();
                 var result = Expression.Variable(typeof(object), "result");
+                variables.Add(result);
 
-                var methodParam = Expression.Constant(method);
+                List<ParameterExpression> outputVariables = new();
+                List<ParameterExpression> invocationParameters = new();
+                List<Expression> expressions = new();
 
-                var assignParamsLocal = Expression.Assign(paramsLocal, Expression.Condition(
-                    Expression.GreaterThan(Expression.Constant(paramCount), Expression.Constant(0)),
-                    Expression.NewArrayBounds(typeof(object), Expression.Constant(paramCount)),
-                    Expression.Constant(null, typeof(object[]))));
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    Type variableType = parameters[i].ParameterType.IsByRef
+                        ? parameters[i].ParameterType.GetElementType()
+                        : parameters[i].ParameterType;
+                    ParameterExpression variable = Expression.Variable(variableType, $"p{i}");
 
-                var assignParamsLocalValues = inputPos.Length == 0
-                    ? Expression.Block(Expression.Empty())
-                    : Expression.Block(
-                        Enumerable.Range(0, inputPos.Length).Select(i =>
-                            Expression.Assign(
-                                Expression.ArrayAccess(paramsLocal, Expression.Constant(inputPos[i])),
-                                Expression.ArrayIndex(inputsParam, Expression.Constant(i)))));
+                    if (ServiceReflector.FlowsIn(parameters[i]))
+                    {
+                        expressions.Add(Expression.Assign(variable, Expression.Convert(Expression.ArrayIndex(inputsParam, Expression.Constant(inputParameterCount)), variableType)));
+                        inputParameterCount++;
+                    }
 
-                var invokeMethod = Expression.Block(
-                    Expression.Assign(result, Expression.Condition(
-                        Expression.Equal(Expression.Constant(returnsValue), Expression.Constant(true)),
-                        Expression.Call(methodParam, nameof(MethodInfo.Invoke), null, targetParam, paramsLocal),
-                        Expression.Block(
-                            Expression.Call(methodParam, nameof(MethodInfo.Invoke), null, targetParam, paramsLocal),
-                            Expression.Constant(null, typeof(object))))),
-                    Expression.Empty());
+                    if (ServiceReflector.FlowsOut(parameters[i]))
+                    {
+                        outputParameterCount++;
+                        outputVariables.Add(variable);
+                    }
 
-                var catchParameterExpr = Expression.Parameter(typeof(TargetInvocationException), "tie");
-                var throwCapturedExceptionDispatchInfoExpr = Expression.Call(Expression.Call(typeof(ExceptionDispatchInfo), nameof(ExceptionDispatchInfo.Capture), null,Expression.Property(catchParameterExpr, nameof(Exception.InnerException))), nameof(ExceptionDispatchInfo.Throw), null);
+                    variables.Add(variable);
+                    invocationParameters.Add(variable);
+                }
 
-                var tryCatch = Expression.TryCatch(invokeMethod,
-                    Expression.Catch(catchParameterExpr,
-                        Expression.Block(
-                            throwCapturedExceptionDispatchInfoExpr
-                        )));
+                var castTargetParam = Expression.Convert(targetParam, method.DeclaringType);
 
-                var assignOutputs =
-                    outputPos.Length == 0
-                    ? Expression.Block(Expression.Empty())
-                    : Expression.Block(Enumerable.Range(0, outputPos.Length).Select(i =>
-                        Expression.Assign(
-                            Expression.ArrayAccess(outputsParam, Expression.Constant(i)),
-                            Expression.ArrayAccess(paramsLocal, Expression.Constant(outputPos[i])))));
+                expressions.Add(returnsValue
+                    ? Expression.Block(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))))
+                    : Expression.Block(Expression.Call(castTargetParam, method, invocationParameters),
+                            Expression.Assign(result, Expression.Constant(null, typeof(object)))));
 
-                var returnResult = Expression.Block(
+                int j = 0;
+                foreach (var outputVariable in outputVariables)
+                {
+                    expressions.Add(Expression.Assign(
+                        Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
+                        Expression.Convert(outputVariable, typeof(object))));
+                    j++;
+                }
+
+                expressions.Add(Expression.Block(
                     Expression.Empty(),
-                    result);
+                    result));
 
-                var lambda = Expression.Lambda<InvokeDelegate>(
-                    Expression.Block(
-                        new[] { paramsLocal, result },
-                        assignParamsLocal,
-                        assignParamsLocalValues,
-                        tryCatch,
-                        assignOutputs,
-                        returnResult),
+                BlockExpression finalBlock = Expression.Block(
+                        variables: variables,
+                        expressions: expressions);
+
+                Expression<InvokeDelegate> lambda = Expression.Lambda<InvokeDelegate>(
+                    finalBlock,
                     targetParam,
                     inputsParam,
                     outputsParam);
