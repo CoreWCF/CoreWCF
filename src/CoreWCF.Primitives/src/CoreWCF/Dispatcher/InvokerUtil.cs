@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using CoreWCF.Description;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Dispatcher
 {
@@ -23,6 +23,7 @@ namespace CoreWCF.Dispatcher
 
     internal static class InvokerUtil
     {
+        private static readonly string s_useLegacyInvokeDelegateAppContextSwitchKey = "CoreWCF.Dispatcher.UseLegacyInvokeDelegate";
         private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
 
         private static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
@@ -30,6 +31,12 @@ namespace CoreWCF.Dispatcher
             AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
                 ? isDynamicCodeSupported
                 : true
+        );
+
+        private static readonly Lazy<bool> s_useLegacyInvokeDelegate = new Lazy<bool>(() =>
+            AppContext.TryGetSwitch(s_useLegacyInvokeDelegateAppContextSwitchKey, out bool useLegacyInvokeDelegate)
+                ? useLegacyInvokeDelegate
+                : false
         );
 
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
@@ -97,9 +104,9 @@ namespace CoreWCF.Dispatcher
             }
 
             internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount) =>
-                s_isDynamicCodeSupported.Value
-                    ? GenerateInvokeDelegateInternalWithExpressions(method, out inputParameterCount, out outputParameterCount)
-                    : GenerateInvokeDelegateInternal(method, out inputParameterCount, out outputParameterCount);
+                (!s_useLegacyInvokeDelegate.Value && s_isDynamicCodeSupported.Value)
+                ? GenerateInvokeDelegateInternalWithExpressions(method, out inputParameterCount, out outputParameterCount)
+                : GenerateInvokeDelegateInternal(method, out inputParameterCount, out outputParameterCount);
 
             private static InvokeDelegate GenerateInvokeDelegateInternal(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
@@ -212,10 +219,15 @@ namespace CoreWCF.Dispatcher
 
                 var castTargetParam = Expression.Convert(targetParam, method.DeclaringType);
 
-                expressions.Add(returnsValue
-                    ? Expression.Block(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))))
-                    : Expression.Block(Expression.Call(castTargetParam, method, invocationParameters),
-                            Expression.Assign(result, Expression.Constant(null, typeof(object)))));
+                if (returnsValue)
+                {
+                    expressions.Add(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))));
+                }
+                else
+                {
+                    expressions.Add(Expression.Call(castTargetParam, method, invocationParameters));
+                    expressions.Add(Expression.Assign(result, Expression.Constant(null, typeof(object))));
+                }
 
                 int j = 0;
                 foreach (var outputVariable in outputVariables)
@@ -226,13 +238,9 @@ namespace CoreWCF.Dispatcher
                     j++;
                 }
 
-                expressions.Add(Expression.Block(
-                    Expression.Empty(),
-                    result));
+                expressions.Add(result);
 
-                BlockExpression finalBlock = Expression.Block(
-                        variables: variables,
-                        expressions: expressions);
+                BlockExpression finalBlock = Expression.Block(variables: variables, expressions: expressions);
 
                 Expression<InvokeDelegate> lambda = Expression.Lambda<InvokeDelegate>(
                     finalBlock,
@@ -240,7 +248,30 @@ namespace CoreWCF.Dispatcher
                     inputsParam,
                     outputsParam);
 
+                //if (Logger.IsEnabled(LogLevel.Debug))
+                //{
+                //    var expr = GetDebugString(finalBlock);
+                //    Logger.LogDebug("Generated expression for {0}.{1}:{3}{2}", method.DeclaringType, method.Name, expr, Environment.NewLine);
+                //}
+                
                 return lambda.Compile();
+
+                string GetDebugString(Expression expr)
+                {
+                    if (expr is BlockExpression block)
+                    {
+                        StringBuilder sb = new();
+                        foreach (var e in block.Expressions)
+                        {
+                            sb.AppendLine(GetDebugString(e));
+                        }
+                        return sb.ToString();
+                    }
+                    else
+                    {
+                        return expr.ToString();
+                    }
+                }
             }
 
             //public InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
