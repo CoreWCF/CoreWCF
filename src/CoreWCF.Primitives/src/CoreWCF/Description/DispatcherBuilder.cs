@@ -616,6 +616,8 @@ namespace CoreWCF.Description
                     return null;
                 });
             }
+
+            child.ServiceProvider = services;
         }
 
         private static ReadOnlyCollection<IAuthorizeData> BuildAuthorizeData(OperationDescription operation, Type serviceType)

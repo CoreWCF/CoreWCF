@@ -193,6 +193,8 @@ namespace CoreWCF.Dispatcher
 
         internal Lazy<AuthorizationPolicy> AuthorizationPolicy { get; set; }
 
+        internal IServiceProvider ServiceProvider { get; set; }
+
         internal ReceiveContextAcknowledgementMode ReceiveContextAcknowledgementMode { get; set; }
 
         internal bool ReleaseInstanceAfterCall

@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using CoreWCF.Description;
 using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Dispatcher
 {
@@ -21,9 +23,11 @@ namespace CoreWCF.Dispatcher
         private int _outputParameterCount;
         private readonly MethodInfo _taskTResultGetMethod;
         private readonly bool _isGenericTask;
+        private readonly IServiceProvider _serviceProvider;
 
-        public TaskMethodInvoker(MethodInfo taskMethod, Type taskType)
+        public TaskMethodInvoker(IServiceProvider serviceProvider, MethodInfo taskMethod, Type taskType)
         {
+            _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             TaskMethod = taskMethod ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(taskMethod));
 
             if (taskType != ServiceReflector.VoidType)
@@ -270,7 +274,9 @@ namespace CoreWCF.Dispatcher
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
-                InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(TaskMethod, out int inputParameterCount, out int outputParameterCount);
+                using var scope = _serviceProvider.CreateScope();
+                ILogger<InvokeDelegate> logger = scope.ServiceProvider.GetRequiredService<ILogger<InvokeDelegate>>();
+                InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(logger, TaskMethod, out int inputParameterCount, out int outputParameterCount);
                 _inputParameterCount = inputParameterCount;
                 _outputParameterCount = outputParameterCount;
                 _invokeDelegate = invokeDelegate;  // must set this last due to race

@@ -57,10 +57,10 @@ namespace CoreWCF.Dispatcher
             return CriticalHelper.GenerateCreateInstanceDelegate(type);
         }
 
-        internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
+        internal static InvokeDelegate GenerateInvokeDelegate(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return CriticalHelper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return CriticalHelper.GenerateInvokeDelegate(logger, method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -103,9 +103,9 @@ namespace CoreWCF.Dispatcher
                 return default(T);
             }
 
-            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount) =>
+            internal static InvokeDelegate GenerateInvokeDelegate(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount, out int outputParameterCount) =>
                 (!s_useLegacyInvokeDelegate.Value && s_isDynamicCodeSupported.Value)
-                ? GenerateInvokeDelegateInternalWithExpressions(method, out inputParameterCount, out outputParameterCount)
+                ? GenerateInvokeDelegateInternalWithExpressions(logger, method, out inputParameterCount, out outputParameterCount)
                 : GenerateInvokeDelegateInternal(method, out inputParameterCount, out outputParameterCount);
 
             private static InvokeDelegate GenerateInvokeDelegateInternal(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
@@ -175,7 +175,7 @@ namespace CoreWCF.Dispatcher
                 };
             }
 
-            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
                 inputParameterCount = 0;
                 outputParameterCount = 0;
@@ -248,12 +248,12 @@ namespace CoreWCF.Dispatcher
                     inputsParam,
                     outputsParam);
 
-                //if (Logger.IsEnabled(LogLevel.Debug))
-                //{
-                //    var expr = GetDebugString(finalBlock);
-                //    Logger.LogDebug("Generated expression for {0}.{1}:{3}{2}", method.DeclaringType, method.Name, expr, Environment.NewLine);
-                //}
-                
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    var expr = GetDebugString(finalBlock).Trim();
+                    logger.LogDebug("{0}.{1}\n{2}", method.DeclaringType, method.Name, expr) ;
+                }
+
                 return lambda.Compile();
 
                 string GetDebugString(Expression expr)

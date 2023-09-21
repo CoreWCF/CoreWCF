@@ -5,6 +5,9 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
+using CoreWCF.Security;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Dispatcher
 {
@@ -14,9 +17,11 @@ namespace CoreWCF.Dispatcher
         private int _inputParameterCount;
         private int _outputParameterCount;
         private string _methodName;
+        private readonly IServiceProvider _serviceProvider;
 
-        public SyncMethodInvoker(MethodInfo method)
+        public SyncMethodInvoker(IServiceProvider serviceProvider, MethodInfo method)
         {
+            _serviceProvider = serviceProvider ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(serviceProvider));
             Method = method ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(method));
         }
 
@@ -192,7 +197,9 @@ namespace CoreWCF.Dispatcher
         {
             // Only pass locals byref because InvokerUtil may store temporary results in the byref.
             // If two threads both reference this.count, temporary results may interact.
-            InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(Method, out int inputParameterCount, out int outputParameterCount);
+            using var scope = _serviceProvider.CreateScope();
+            ILogger<InvokeDelegate> logger = scope.ServiceProvider.GetRequiredService<ILogger<InvokeDelegate>>();
+            InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(logger, Method, out int inputParameterCount, out int outputParameterCount);
             _outputParameterCount = outputParameterCount;
             _inputParameterCount = inputParameterCount;
             _invokeDelegate = invokeDelegate;  // must set this last due to race
