@@ -10,6 +10,8 @@ namespace CoreWCF.Dispatcher
 {
     public class OperationInvokerBehavior : IOperationBehavior
     {
+        private IServiceProvider _serviceProvider;
+
         public OperationInvokerBehavior()
         {
         }
@@ -20,6 +22,7 @@ namespace CoreWCF.Dispatcher
 
         void IOperationBehavior.AddBindingParameters(OperationDescription description, BindingParameterCollection parameters)
         {
+            _serviceProvider = parameters.Find<IServiceProvider>();
         }
 
         void IOperationBehavior.ApplyDispatchBehavior(OperationDescription description, DispatchOperation dispatch)
@@ -35,7 +38,7 @@ namespace CoreWCF.Dispatcher
 
             if (description.TaskMethod != null)
             {
-                dispatch.Invoker = new TaskMethodInvoker(dispatch.ServiceProvider, description.TaskMethod, description.TaskTResult);
+                dispatch.Invoker = new TaskMethodInvoker(_serviceProvider, description.TaskMethod, description.TaskTResult);
             }
             else if (description.SyncMethod != null)
             {
@@ -49,13 +52,13 @@ namespace CoreWCF.Dispatcher
                     //}
                     //else
                     //{
-                    dispatch.Invoker = new SyncMethodInvoker(dispatch.ServiceProvider, description.SyncMethod);
+                    dispatch.Invoker = new SyncMethodInvoker(_serviceProvider, description.SyncMethod);
                     //}
                 }
                 else
                 {
                     // only sync method is present on the contract
-                    dispatch.Invoker = new SyncMethodInvoker(dispatch.ServiceProvider, description.SyncMethod);
+                    dispatch.Invoker = new SyncMethodInvoker(_serviceProvider, description.SyncMethod);
                 }
             }
             else

@@ -274,8 +274,7 @@ namespace CoreWCF.Dispatcher
             {
                 // Only pass locals byref because InvokerUtil may store temporary results in the byref.
                 // If two threads both reference this.count, temporary results may interact.
-                using var scope = _serviceProvider.CreateScope();
-                ILogger<InvokeDelegate> logger = scope.ServiceProvider.GetRequiredService<ILogger<InvokeDelegate>>();
+                ILogger<InvokeDelegate> logger = _serviceProvider.GetRequiredService<ILogger<InvokeDelegate>>();
                 InvokeDelegate invokeDelegate = InvokerUtil.GenerateInvokeDelegate(logger, TaskMethod, out int inputParameterCount, out int outputParameterCount);
                 _inputParameterCount = inputParameterCount;
                 _outputParameterCount = outputParameterCount;
