@@ -181,6 +181,7 @@ namespace CoreWCF.Dispatcher
                 outputParameterCount = 0;
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
+                bool returnsValueType = method.ReturnType.IsValueType;
 
                 var targetParam = Expression.Parameter(typeof(object), "target");
                 var inputsParam = Expression.Parameter(typeof(object[]), "inputs");
@@ -221,7 +222,14 @@ namespace CoreWCF.Dispatcher
 
                 if (returnsValue)
                 {
-                    expressions.Add(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))));
+                    if (returnsValueType)
+                    {
+                        expressions.Add(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))));
+                    }
+                    else
+                    {
+                        expressions.Add(Expression.Assign(result, Expression.Call(castTargetParam, method, invocationParameters)));
+                    }
                 }
                 else
                 {
