@@ -1,13 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools
@@ -17,42 +13,6 @@ namespace CoreWCF.BuildTools
         private sealed class Emitter
         {
             private readonly StringBuilder _builder;
-
-            private class Indentor
-            {
-                const string ____ = "    ";
-                const string ________ = "        ";
-                const string ____________ = "            ";
-                const string ________________ = "                ";
-                const string ____________________ = "                    ";
-                const string ________________________ = "                        ";
-                const string ____________________________ = "                            ";
-                const string ________________________________ = "                                ";
-                public int Level { get; private set; } = 0;
-                public void Increment()
-                {
-                    Level++;
-                }
-
-                public void Decrement()
-                {
-                    Level--;
-                }
-
-                public override string ToString() => Level switch
-                {
-                    0 => string.Empty,
-                    1 => ____,
-                    2 => ________,
-                    3 => ____________,
-                    4 => ________________,
-                    5 => ____________________,
-                    6 => ________________________,
-                    7 => ____________________________,
-                    8 => ________________________________,
-                    _ => throw new InvalidOperationException(),
-                };
-            }
 
             private readonly OperationInvokerSourceGenerationContext _sourceGenerationContext;
             private readonly SourceGenerationSpec _generationSpec;
@@ -95,7 +55,7 @@ namespace CoreWCF.Dispatcher
                 indentor.Increment();
                 indentor.Increment();
 
-                bool isGenericTaskReturnType = operationContractSpec.Method.ReturnType is INamedTypeSymbol namedTypeSymbol &&
+                bool isGenericTaskReturnType = operationContractSpec.Method!.ReturnType is INamedTypeSymbol namedTypeSymbol &&
                     namedTypeSymbol.IsGenericType &&
                     namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString() == "System.Threading.Tasks.Task<>";
                 bool isTaskReturnType = operationContractSpec.Method.ReturnType.ToDisplayString() == "System.Threading.Tasks.Task";

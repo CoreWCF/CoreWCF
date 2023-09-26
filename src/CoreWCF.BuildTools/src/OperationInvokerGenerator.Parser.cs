@@ -33,12 +33,18 @@ namespace CoreWCF.BuildTools
 
             public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
             {
-                ImmutableArray<IMethodSymbol> methods = (from methodDeclarationSyntax in methodDeclarationSyntaxes
+                var methodSymbols = (from methodDeclarationSyntax in methodDeclarationSyntaxes
                     let semanticModel = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree)
                     let symbol = semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)
                     where symbol is not null
-                    let methodSymbol = symbol as IMethodSymbol
+                    let methodSymbol = symbol
                     select methodSymbol).ToImmutableArray();
+
+                var methods = (from method in methodSymbols
+                    where method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is not null
+                    let @interface = method.ContainingSymbol
+                    where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    select method).ToImmutableArray();
 
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
 
@@ -86,18 +92,6 @@ namespace CoreWCF.BuildTools
 
                 return null;
             }
-        }
-
-        internal readonly record struct OperationContractSpec(IMethodSymbol Method)
-        {
-            public IMethodSymbol Method { get; } = Method;
-        }
-
-        internal readonly record struct SourceGenerationSpec(in ImmutableArray<OperationContractSpec> OperationContractSpecs)
-        {
-            public ImmutableArray<OperationContractSpec> OperationContractSpecs { get; } = OperationContractSpecs;
-
-            public static readonly SourceGenerationSpec None = new();
         }
     }
 }
