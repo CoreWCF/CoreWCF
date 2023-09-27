@@ -11,7 +11,12 @@ namespace CoreWCF.Dispatcher;
 
 public static class DispatchOperationRuntimeHelpers
 {
-    public static readonly Dictionary<string, IOperationInvoker> OperationInvokers = new();
+    internal static Dictionary<string, IOperationInvoker> OperationInvokers { get; } = new();
+
+    public static void RegisterOperationInvoker(string key, IOperationInvoker invoker)
+    {
+        OperationInvokers[key] = invoker;
+    }
 
     internal static string GetKey(MethodInfo method)
     {

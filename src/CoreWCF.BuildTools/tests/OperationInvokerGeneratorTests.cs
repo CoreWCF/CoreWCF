@@ -112,7 +112,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -125,7 +125,7 @@ namespace CoreWCF.Dispatcher
             var outputs = AllocateOutputs();
             outputs[0] = p1;
             outputs[1] = p2;
-            return new ValueTask<(object, object[])>(((object)result, outputs));
+            return new ValueTask<(object, object[])>((result, outputs));
         }
 
         public object[] AllocateInputs() => new object[2];
@@ -133,7 +133,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => new object[2];
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker());
     }
 }
 
@@ -197,7 +197,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -210,7 +210,7 @@ namespace CoreWCF.Dispatcher
             var outputs = AllocateOutputs();
             outputs[0] = p1;
             outputs[1] = p2;
-            return new ValueTask<(object, object[])>(((object)result, outputs));
+            return new ValueTask<(object, object[])>((result, outputs));
         }
 
         public object[] AllocateInputs() => new object[2];
@@ -218,7 +218,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => new object[2];
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker());
     }
 }
 
@@ -281,7 +281,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -289,7 +289,7 @@ namespace CoreWCF.Dispatcher
             p0 = (System.Collections.Generic.List<string>)inputs[0];
             var result = ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
-            return new ValueTask<(object, object[])>(((object)result, outputs));
+            return new ValueTask<(object, object[])>((result, outputs));
         }
 
         public object[] AllocateInputs() => new object[1];
@@ -297,7 +297,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => Array.Empty<object>();
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>)", new OperationInvoker());
     }
 }
 
@@ -360,7 +360,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -368,7 +368,7 @@ namespace CoreWCF.Dispatcher
             p0 = (string[])inputs[0];
             var result = ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
-            return new ValueTask<(object, object[])>(((object)result, outputs));
+            return new ValueTask<(object, object[])>((result, outputs));
         }
 
         public object[] AllocateInputs() => new object[1];
@@ -376,7 +376,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => Array.Empty<object>();
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(params string[])", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(params string[])", new OperationInvoker());
     }
 }
 
@@ -390,7 +390,7 @@ namespace CoreWCF.Dispatcher
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public async Task VoidTest(string attributeNamespace)
+        public async Task ReturnsVoidTest(string attributeNamespace)
         {
             var test = new VerifyGenerator.Test
             {
@@ -412,7 +412,7 @@ namespace MyProject
     {{
         public void Echo(string input)
         {{
-            
+
         }}
     }}
 }}
@@ -439,7 +439,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -447,7 +447,7 @@ namespace CoreWCF.Dispatcher
             p0 = (string)inputs[0];
             ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
-            return new ValueTask<(object, object[])>(((object)null, outputs));
+            return new ValueTask<(object, object[])>((null, outputs));
         }
 
         public object[] AllocateInputs() => new object[1];
@@ -455,7 +455,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => Array.Empty<object>();
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
     }
 }
 
@@ -469,7 +469,7 @@ namespace CoreWCF.Dispatcher
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public async Task TaskTest(string attributeNamespace)
+        public async Task ReturnsTaskTest(string attributeNamespace)
         {
             var test = new VerifyGenerator.Test
             {
@@ -518,7 +518,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -526,7 +526,7 @@ namespace CoreWCF.Dispatcher
             p0 = (string)inputs[0];
             await ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
-            return ((object)null, outputs);
+            return (null, outputs);
         }
 
         public object[] AllocateInputs() => new object[1];
@@ -534,7 +534,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => Array.Empty<object>();
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
     }
 }
 
@@ -548,7 +548,7 @@ namespace CoreWCF.Dispatcher
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
-        public async Task GenericTaskTest(string attributeNamespace)
+        public async Task ReturnsGenericTaskTest(string attributeNamespace)
         {
             var test = new VerifyGenerator.Test
             {
@@ -597,7 +597,7 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -605,7 +605,7 @@ namespace CoreWCF.Dispatcher
             p0 = (string)inputs[0];
             var result = await ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
-            return ((object)result, outputs);
+            return (result, outputs);
         }
 
         public object[] AllocateInputs() => new object[1];
@@ -613,7 +613,7 @@ namespace CoreWCF.Dispatcher
         private object[] AllocateOutputs() => Array.Empty<object>();
 
         [System.Runtime.CompilerServices.ModuleInitializer]
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker());
     }
 }
 

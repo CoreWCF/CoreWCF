@@ -49,15 +49,16 @@ namespace System.Runtime.CompilerServices
 
 namespace CoreWCF.Dispatcher
 {
-    file class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    file sealed class OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
     {
 """);
                 indentor.Increment();
                 indentor.Increment();
 
-                bool isGenericTaskReturnType = operationContractSpec.Method!.ReturnType is INamedTypeSymbol namedTypeSymbol &&
-                    namedTypeSymbol.IsGenericType &&
-                    namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString() == "System.Threading.Tasks.Task<>";
+                INamedTypeSymbol? returnTypeSymbol = operationContractSpec.Method!.ReturnType as INamedTypeSymbol;
+                bool isGenericTaskReturnType = returnTypeSymbol != null &&
+                    returnTypeSymbol.IsGenericType &&
+                    returnTypeSymbol.ConstructUnboundGenericType().ToDisplayString() == "System.Threading.Tasks.Task<>";
                 bool isTaskReturnType = operationContractSpec.Method.ReturnType.ToDisplayString() == "System.Threading.Tasks.Task";
                 bool isAsync = isGenericTaskReturnType || isTaskReturnType;
 
@@ -70,7 +71,7 @@ namespace CoreWCF.Dispatcher
                 int outputParameterCount = 0;
 
                 List<(int, int, IParameterSymbol)> outputParams = new();
-                int i = 0, j = 0;
+                int i = 0;
                 List<string> invocationParams = new();
                 foreach (var parameter in operationContractSpec.Method.Parameters)
                 {
@@ -83,15 +84,14 @@ namespace CoreWCF.Dispatcher
 
                     if (FlowOut(parameter))
                     {
+
+                        outputParams.Add((outputParameterCount, i, parameter));
                         outputParameterCount++;
-                        outputParams.Add((j, i, parameter));
-                        j++;
                     }
 
                     invocationParams.Add($"{GetRefKind(parameter)}p{i}");
                     i++;
                 }
-
 
                 if (isAsync)
                 {
@@ -127,22 +127,22 @@ namespace CoreWCF.Dispatcher
                 {
                     if (isTaskReturnType)
                     {
-                        _builder.AppendLine($"{indentor}return ((object)null, outputs);");
+                        _builder.AppendLine($"{indentor}return (null, outputs);");
                     }
                     else
                     {
-                        _builder.AppendLine($"{indentor}return ((object)result, outputs);");
+                        _builder.AppendLine($"{indentor}return (result, outputs);");
                     }
                 }
                 else
                 {
                     if (operationContractSpec.Method.ReturnsVoid)
                     {
-                        _builder.AppendLine($"{indentor}return new ValueTask<(object, object[])>(((object)null, outputs));");
+                        _builder.AppendLine($"{indentor}return new ValueTask<(object, object[])>((null, outputs));");
                     }
                     else
                     {
-                        _builder.AppendLine($"{indentor}return new ValueTask<(object, object[])>(((object)result, outputs));");
+                        _builder.AppendLine($"{indentor}return new ValueTask<(object, object[])>((result, outputs));");
                     }
                 }
 
@@ -172,7 +172,7 @@ namespace CoreWCF.Dispatcher
 
                 _builder.AppendLine($"{indentor}[System.Runtime.CompilerServices.ModuleInitializer]");
                 _builder.Append($"{indentor}internal static void RegisterOperationInvoker() => ");
-                _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.OperationInvokers.Add(\"{operationContractSpec.Method.ToDisplayString()}\", new OperationInvoker());");
+                _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker(\"{operationContractSpec.Method.ToDisplayString()}\", new OperationInvoker());");
 
                 indentor.Decrement();
                 _builder.AppendLine($"{indentor}}}");
