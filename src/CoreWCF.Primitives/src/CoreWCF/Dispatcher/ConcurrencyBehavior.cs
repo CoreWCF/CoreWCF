@@ -112,7 +112,8 @@ namespace CoreWCF.Dispatcher
                 // TODO: Throw this on setup
                 if (_concurrencyMode == ConcurrencyMode.Reentrant)
                 {
-                    throw new NotSupportedException(nameof(ConcurrencyMode.Reentrant));
+                    //throw new NotSupportedException(nameof(ConcurrencyMode.Reentrant));
+                    throw new Exception($"ConcurrencyMode {nameof(ConcurrencyMode.Reentrant)} is not yet supported by current version" );
                 }
             }
         }
