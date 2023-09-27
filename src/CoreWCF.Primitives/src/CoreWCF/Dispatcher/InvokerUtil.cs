@@ -191,7 +191,7 @@ namespace CoreWCF.Dispatcher
                 var result = Expression.Variable(typeof(object), "result");
                 variables.Add(result);
 
-                List<ParameterExpression> outputVariables = new();
+                List<(Type ParameterType, ParameterExpression OutputExpression)> outputVariables = new();
                 List<ParameterExpression> invocationParameters = new();
                 List<Expression> expressions = new();
 
@@ -211,7 +211,7 @@ namespace CoreWCF.Dispatcher
                     if (ServiceReflector.FlowsOut(parameters[i]))
                     {
                         outputParameterCount++;
-                        outputVariables.Add(variable);
+                        outputVariables.Add((variableType, variable));
                     }
 
                     variables.Add(variable);
@@ -240,9 +240,18 @@ namespace CoreWCF.Dispatcher
                 int j = 0;
                 foreach (var outputVariable in outputVariables)
                 {
-                    expressions.Add(Expression.Assign(
-                        Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
-                        Expression.Convert(outputVariable, typeof(object))));
+                    if (outputVariable.ParameterType.IsValueType)
+                    {
+                        expressions.Add(Expression.Assign(
+                            Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
+                            Expression.Convert(outputVariable.OutputExpression, typeof(object))));
+                    }
+                    else
+                    {
+                        expressions.Add(Expression.Assign(
+                            Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
+                            outputVariable.OutputExpression));
+                    }
                     j++;
                 }
 
