@@ -67,7 +67,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -141,7 +141,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -204,7 +204,7 @@ public partial class IdentityService : IIdentityService
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "IdentityService__IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 public partial class IdentityService
@@ -266,7 +266,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -332,7 +332,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -398,7 +398,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -422,10 +422,6 @@ namespace MyProject
         }}
     }}
 }}
-", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_EchoString.g.cs", SourceText.From(@$"
-using System;
-using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {{
     public partial class IdentityService
@@ -489,7 +485,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -561,7 +557,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -633,7 +629,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -699,7 +695,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -723,10 +719,6 @@ namespace MyProject
         }}
     }}
 }}
-", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
-using System;
-using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
 {{
     public partial class IdentityService
@@ -868,7 +860,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -940,7 +932,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1012,7 +1004,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1093,7 +1085,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_ContainerA_ContainerB_ContainerC_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1216,7 +1208,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Container_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1284,7 +1276,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1353,7 +1345,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1421,7 +1413,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1489,7 +1481,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1559,7 +1551,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From($@"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From($@"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1624,7 +1616,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1693,7 +1685,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -1763,7 +1755,7 @@ namespace MyProject.Implementations
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Implementations_IdentityService__MyProject_Contracts_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Implementations
@@ -1829,7 +1821,7 @@ public partial class IdentityService : MyProject.Contracts.IIdentityService
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "IdentityService__MyProject_Contracts_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 public partial class IdentityService
@@ -1892,7 +1884,7 @@ namespace MyProject.Implementations
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Implementations_IdentityService__IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Implementations
@@ -1957,7 +1949,7 @@ namespace MyProject.Dummy
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IdentityService__MyProject_Dummy_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
@@ -2026,7 +2018,7 @@ namespace MyProject.Dummy
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_Dummy_IdentityService__MyProject_Dummy_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject.Dummy
@@ -2091,7 +2083,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -2157,7 +2149,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
@@ -2211,7 +2203,7 @@ namespace MyProject
                     },
                     GeneratedSources =
                     {
-                        (typeof(OperationParameterInjectionGenerator), "MyProject_IdentityService__MyProject_IIdentityService_Echo2.g.cs", SourceText.From(@$"
+                        (typeof(OperationParameterInjectionGenerator), "OperationParameterInjection.g.cs", SourceText.From(@$"
 using System;
 using Microsoft.Extensions.DependencyInjection;
 namespace MyProject
