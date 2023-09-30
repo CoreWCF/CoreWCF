@@ -65,7 +65,15 @@
     <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
-  <Import Project="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.props" />
-  <Import Project="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.targets" />
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator at runtime -->
+    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
 
 </Project>
