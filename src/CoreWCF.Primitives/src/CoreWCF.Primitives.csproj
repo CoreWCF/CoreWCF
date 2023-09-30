@@ -38,6 +38,9 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn3.11.csproj" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="CoreWCFWebApplicationExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn4.0.dll">
       <Pack>true</Pack>
       <PackagePath>analyzers/dotnet/roslyn4.0/cs</PackagePath>
@@ -46,6 +49,16 @@
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn3.11.dll">
       <Pack>true</Pack>
       <PackagePath>analyzers/dotnet/roslyn3.11/cs</PackagePath>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="CoreWCF.Primitives.props">
+      <Pack>true</Pack>
+      <PackagePath>build;buildTransitive</PackagePath>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="CoreWCFWebApplicationExtensions.cs">
+      <Pack>true</Pack>
+      <PackagePath>contentFiles</PackagePath>
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
