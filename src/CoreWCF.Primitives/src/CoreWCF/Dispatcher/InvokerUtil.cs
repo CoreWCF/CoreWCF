@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using CoreWCF.Description;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Dispatcher
 {
@@ -20,6 +23,22 @@ namespace CoreWCF.Dispatcher
 
     internal static class InvokerUtil
     {
+        private static readonly string s_useLegacyInvokeDelegateAppContextSwitchKey = "CoreWCF.Dispatcher.UseLegacyInvokeDelegate";
+        private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
+
+        private static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
+            // See https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RuntimeFeature.NonNativeAot.cs,14
+            AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
+                ? isDynamicCodeSupported
+                : true
+        );
+
+        private static readonly Lazy<bool> s_useLegacyInvokeDelegate = new Lazy<bool>(() =>
+            AppContext.TryGetSwitch(s_useLegacyInvokeDelegateAppContextSwitchKey, out bool useLegacyInvokeDelegate)
+                ? useLegacyInvokeDelegate
+                : false
+        );
+
         private const BindingFlags DefaultBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
         // private readonly CriticalHelper _helper;
 
@@ -38,10 +57,10 @@ namespace CoreWCF.Dispatcher
             return CriticalHelper.GenerateCreateInstanceDelegate(type);
         }
 
-        internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount,
+        internal static InvokeDelegate GenerateInvokeDelegate(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount,
             out int outputParameterCount)
         {
-            return CriticalHelper.GenerateInvokeDelegate(method, out inputParameterCount, out outputParameterCount);
+            return CriticalHelper.GenerateInvokeDelegate(logger, method, out inputParameterCount, out outputParameterCount);
         }
 
         //internal InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
@@ -84,12 +103,17 @@ namespace CoreWCF.Dispatcher
                 return default(T);
             }
 
-            internal static InvokeDelegate GenerateInvokeDelegate(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            internal static InvokeDelegate GenerateInvokeDelegate(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount, out int outputParameterCount) =>
+                (!s_useLegacyInvokeDelegate.Value && s_isDynamicCodeSupported.Value)
+                ? GenerateInvokeDelegateInternalWithExpressions(logger, method, out inputParameterCount, out outputParameterCount)
+                : GenerateInvokeDelegateInternal(method, out inputParameterCount, out outputParameterCount);
+
+            private static InvokeDelegate GenerateInvokeDelegateInternal(MethodInfo method, out int inputParameterCount, out int outputParameterCount)
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 bool returnsValue = method.ReturnType != typeof(void);
                 int paramCount = parameters.Length;
-                
+
                 var inputParamPositions = new List<int>();
                 var outputParamPositions = new List<int>();
                 for (int i = 0; i < parameters.Length; i++)
@@ -104,15 +128,14 @@ namespace CoreWCF.Dispatcher
                         outputParamPositions.Add(i);
                     }
                 }
-                
+
                 int[] inputPos = inputParamPositions.ToArray();
                 int[] outputPos = outputParamPositions.ToArray();
 
                 inputParameterCount = inputPos.Length;
                 outputParameterCount = outputPos.Length;
 
-                // TODO: Replace with expression to remove performance cost of calling delegate.Invoke.
-                InvokeDelegate lambda = delegate (object target, object[] inputs, object[] outputs)
+                return delegate (object target, object[] inputs, object[] outputs)
                 {
                     object[] paramsLocal = null;
                     if (paramCount > 0)
@@ -150,8 +173,122 @@ namespace CoreWCF.Dispatcher
 
                     return result;
                 };
+            }
 
-                return lambda;
+            private static InvokeDelegate GenerateInvokeDelegateInternalWithExpressions(ILogger<InvokeDelegate> logger, MethodInfo method, out int inputParameterCount, out int outputParameterCount)
+            {
+                inputParameterCount = 0;
+                outputParameterCount = 0;
+                ParameterInfo[] parameters = method.GetParameters();
+                bool returnsValue = method.ReturnType != typeof(void);
+                bool returnsValueType = method.ReturnType.IsValueType;
+
+                var targetParam = Expression.Parameter(typeof(object), "target");
+                var inputsParam = Expression.Parameter(typeof(object[]), "inputs");
+                var outputsParam = Expression.Parameter(typeof(object[]), "outputs");
+
+                List<ParameterExpression> variables = new();
+                var result = Expression.Variable(typeof(object), "result");
+                variables.Add(result);
+
+                List<(Type ParameterType, ParameterExpression OutputExpression)> outputVariables = new();
+                List<ParameterExpression> invocationParameters = new();
+                List<Expression> expressions = new();
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    Type variableType = parameters[i].ParameterType.IsByRef
+                        ? parameters[i].ParameterType.GetElementType()
+                        : parameters[i].ParameterType;
+                    ParameterExpression variable = Expression.Variable(variableType, $"p{i}");
+
+                    if (ServiceReflector.FlowsIn(parameters[i]))
+                    {
+                        expressions.Add(Expression.Assign(variable, Expression.Convert(Expression.ArrayIndex(inputsParam, Expression.Constant(inputParameterCount)), variableType)));
+                        inputParameterCount++;
+                    }
+
+                    if (ServiceReflector.FlowsOut(parameters[i]))
+                    {
+                        outputParameterCount++;
+                        outputVariables.Add((variableType, variable));
+                    }
+
+                    variables.Add(variable);
+                    invocationParameters.Add(variable);
+                }
+
+                var castTargetParam = Expression.Convert(targetParam, method.DeclaringType);
+
+                if (returnsValue)
+                {
+                    if (returnsValueType)
+                    {
+                        expressions.Add(Expression.Assign(result, Expression.Convert(Expression.Call(castTargetParam, method, invocationParameters), typeof(object))));
+                    }
+                    else
+                    {
+                        expressions.Add(Expression.Assign(result, Expression.Call(castTargetParam, method, invocationParameters)));
+                    }
+                }
+                else
+                {
+                    expressions.Add(Expression.Call(castTargetParam, method, invocationParameters));
+                    expressions.Add(Expression.Assign(result, Expression.Constant(null, typeof(object))));
+                }
+
+                int j = 0;
+                foreach (var outputVariable in outputVariables)
+                {
+                    if (outputVariable.ParameterType.IsValueType)
+                    {
+                        expressions.Add(Expression.Assign(
+                            Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
+                            Expression.Convert(outputVariable.OutputExpression, typeof(object))));
+                    }
+                    else
+                    {
+                        expressions.Add(Expression.Assign(
+                            Expression.ArrayAccess(outputsParam, Expression.Constant(j)),
+                            outputVariable.OutputExpression));
+                    }
+                    j++;
+                }
+
+                expressions.Add(result);
+
+                BlockExpression finalBlock = Expression.Block(variables: variables, expressions: expressions);
+
+                Expression<InvokeDelegate> lambda = Expression.Lambda<InvokeDelegate>(
+                    finalBlock,
+                    targetParam,
+                    inputsParam,
+                    outputsParam);
+
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    var expr = GetDebugString(finalBlock).Trim();
+                    logger.LogDebug("{0} {1}\n{2}", method.DeclaringType, method.ToString(), expr) ;
+                }
+
+                return lambda.Compile();
+
+                string GetDebugString(Expression expr)
+                {
+                    if (expr is BlockExpression block)
+                    {
+                        StringBuilder sb = new();
+                        foreach (var e in block.Expressions)
+                        {
+                            sb.AppendLine(GetDebugString(e));
+                        }
+                        return sb.ToString();
+                    }
+                    else
+                    {
+                        return expr.ToString();
+                    }
+                }
             }
 
             //public InvokeBeginDelegate GenerateInvokeBeginDelegate(MethodInfo method, out int inputParameterCount)
