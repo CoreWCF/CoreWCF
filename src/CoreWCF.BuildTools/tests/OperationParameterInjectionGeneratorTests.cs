@@ -92,6 +92,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -168,6 +169,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -228,6 +230,7 @@ public partial class IdentityService
         return Echo2(input, e0);
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -294,6 +297,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -362,6 +366,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -449,6 +454,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256))
                     },
                 },
@@ -517,6 +523,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -590,6 +597,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -663,6 +671,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -750,6 +759,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -902,6 +912,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -975,6 +986,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1048,6 +1060,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1132,6 +1145,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1250,6 +1264,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1316,6 +1331,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1386,6 +1402,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1455,6 +1472,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1524,6 +1542,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1595,6 +1614,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1663,6 +1683,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1732,6 +1753,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1802,6 +1824,7 @@ namespace MyProject.Implementations
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1866,6 +1889,7 @@ public partial class IdentityService
         return Echo2(input, e0);
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1933,6 +1957,7 @@ namespace MyProject.Implementations
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -1999,6 +2024,7 @@ namespace MyProject.Dummy
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -2069,6 +2095,7 @@ namespace MyProject.Dummy
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -2136,6 +2163,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -2202,6 +2230,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
@@ -2257,6 +2286,7 @@ namespace MyProject
         }}
     }}
 }}
+#nullable restore
 ", Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },

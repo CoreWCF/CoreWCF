@@ -78,6 +78,7 @@ using Microsoft.Extensions.DependencyInjection;");
 
                 if(_generationSpec.OperationContractSpecs.Length > 0)
                 {
+                    _builder.AppendLine("#nullable restore");
                     _sourceGenerationContext.AddSource("OperationParameterInjection.g.cs", SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
                 }
             }
