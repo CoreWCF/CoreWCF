@@ -4,7 +4,7 @@ CoreWCF is a port of the service side of Windows Communication Foundation (WCF) 
 
 ### Package Status
 
-The latest released packages can be found at Nuget.org:
+The latest released packages can be found at NuGet.org:
 
 | Package                                                                                      | NuGet Stable                                                                                     | Downloads                                                                                     |
 |:---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
@@ -23,6 +23,13 @@ The latest released packages can be found at Nuget.org:
 | [CoreWCF.WebHttp](https://www.nuget.org/packages/CoreWCF.WebHttp/) | [![CoreWCF.WebHttp](https://img.shields.io/nuget/v/CoreWCF.WebHttp.svg)](https://www.nuget.org/packages/CoreWCF.WebHttp/) | [![CoreWCF.WebHttp](https://img.shields.io/nuget/dt/CoreWCF.WebHttp)](https://www.nuget.org/packages/CoreWCF.WebHttp/) |
 
 
+### Community Packages
+The latest CoreWCF extension released packages from community can be found at NuGet.org:
+
+| Package                                                                                      | NuGet Stable                                                                                     | Downloads                                                                                     |
+|:---------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
+| [AWS.CoreWCF.Extensions](https://www.nuget.org/packages/AWS.CoreWCF.Extensions/) | [![AWS.CoreWCF.Extensions](https://img.shields.io/nuget/v/AWS.CoreWCF.Extensions.svg)](https://www.nuget.org/packages/AWS.CoreWCF.Extensions/) | [![AWS.CoreWCF.Extensions](https://img.shields.io/nuget/dt/AWS.CoreWCF.Extensions)](https://www.nuget.org/packages/AWS.CoreWCF.Extensions/) |
+| [AWS.WCF.Extensions](https://www.nuget.org/packages/AWS.WCF.Extensions/)                                 | [![AWS.WCF.Extensions](https://img.shields.io/nuget/v/AWS.WCF.Extensions.svg)](https://www.nuget.org/packages/AWS.WCF.Extensions/)                                 | [![AWS.WCF.Extensions](https://img.shields.io/nuget/dt/AWS.WCF.Extensions)](https://www.nuget.org/packages/AWS.WCF.Extensions/)                                |
 
 ### Code Quality
 
