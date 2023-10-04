@@ -136,6 +136,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -221,6 +222,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -300,6 +302,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>)", new MyProject_IIdentityService_Echo_System_Collections_Generic_List_string__OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -379,6 +382,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(params string[])", new MyProject_IIdentityService_Echo_params_string___OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -458,6 +462,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -537,6 +542,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
@@ -616,6 +622,7 @@ namespace CoreWCF.Dispatcher
         internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
     }
 }
+#nullable restore
 
 """, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },

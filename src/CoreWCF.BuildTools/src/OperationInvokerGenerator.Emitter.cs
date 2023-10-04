@@ -45,6 +45,7 @@ namespace System.Runtime.CompilerServices
 
                 if (_generationSpec.OperationContractSpecs.Length > 0)
                 {
+                    _builder.AppendLine("#nullable restore");
                     string sourceText = _builder.ToString();
                     _sourceGenerationContext.AddSource("OperationInvoker.g.cs", SourceText.From(sourceText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
                 }
