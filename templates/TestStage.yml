@@ -60,7 +60,7 @@ stages:
             targetFramework: 'net8.0'
             testArgs: ''
             dotnetSdk: '8.0.x'
-            continueOnError: 'true'            
+            continueOnError: 'false'            
             artifactName: 'Linux${{ configuration }}Build'
       displayName: Test ${{ configuration }}
       pool:
