@@ -18,49 +18,42 @@ stages:
             targetFramework: 'net6.0'
             testArgs: ''
             dotnetSdk: '6.0.x'
-            continueOnError: 'false'
             artifactName: 'Windows${{ configuration }}Build'
           Windows_net7.0:
             imageName: 'windows-latest'
             targetFramework: 'net7.0'
             testArgs: ''
             dotnetSdk: '7.0.x'
-            continueOnError: 'false'
             artifactName: 'Windows${{ configuration }}Build'
           Windows_net8.0:
             imageName: 'windows-latest'
             targetFramework: 'net8.0'
             testArgs: ''
             dotnetSdk: '8.0.x'
-            continueOnError: 'true'            
             artifactName: 'Windows${{ configuration }}Build'
           Windows_netfx:
             imageName: 'windows-latest'
             targetFramework: 'net472'
             testArgs: ''
             dotnetSdk: '8.0.x'
-            continueOnError: 'false'
             artifactName: 'Windows${{ configuration }}Build'
           Linux_net6.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net6.0'
             testArgs: ''
             dotnetSdk: '6.0.x'
-            continueOnError: 'false'
             artifactName: 'Linux${{ configuration }}Build'
           Linux_net7.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net7.0'
             testArgs: ''
             dotnetSdk: '7.0.x'
-            continueOnError: 'false'
             artifactName: 'Linux${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net8.0'
             testArgs: ''
             dotnetSdk: '8.0.x'
-            continueOnError: 'false'            
             artifactName: 'Linux${{ configuration }}Build'
       displayName: Test ${{ configuration }}
       pool:
@@ -95,17 +88,12 @@ stages:
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 20
-        continueOnError: true
         inputs:
           command: 'test'
           projects: ${{ parameters.testProjects }}
           publishTestResults: true
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
 
-      # fail the build if any tests failed
-      - bash: echo "##vso[task.complete result=Failed;]DONE"
-        condition: and(in(variables['Agent.JobStatus'], 'Failed', 'SucceededWithIssues'), eq(variables.continueOnError, 'false'))
-       
       - bash: |
           echo 'Cleaning up docker services...'
           docker compose down --rmi all
