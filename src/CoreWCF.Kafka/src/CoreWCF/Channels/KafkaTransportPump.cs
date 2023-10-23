@@ -3,6 +3,8 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,6 +14,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
 using CoreWCF.Runtime;
 using Microsoft.Extensions.Logging;
+using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace CoreWCF.Channels;
 
@@ -31,6 +34,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     private AsyncManualResetEvent _mres;
     private bool _isStarted;
     private TimeSpan _closeTimeout;
+    internal TopicPartitionOffsetTracker OffsetTracker { get; private set; }
 
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
@@ -91,6 +95,9 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             .SetLogHandler(OnLog)
             .SetErrorHandler(OnError)
             .Build();
+        OffsetTracker = _kafkaDeliverySemantics == KafkaDeliverySemantics.AtLeastOnce
+            ? new TopicPartitionOffsetTracker(Consumer, ConsumerConfig)
+            : null;
 
         Consumer.Subscribe(Topic);
 
@@ -125,6 +132,10 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                     if (_kafkaDeliverySemantics == KafkaDeliverySemantics.AtMostOnce)
                     {
                         Consumer.Commit(consumeResult);
+                    }
+                    else if (_kafkaDeliverySemantics == KafkaDeliverySemantics.AtLeastOnce)
+                    {
+                        OffsetTracker.Received(consumeResult.TopicPartitionOffset);
                     }
 
                     await OnConsumeMessage(consumeResult, queueTransportContext);
@@ -182,6 +193,15 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         {
             Producer.Flush(closeCts.Token);
         }
+
+        if (ConsumerConfig.EnableAutoCommit == true)
+        {
+            // When EnableAutoCommit is true, offset are either manually stored locally or automatically (if EnableAutoOffsetStore is true).
+            // Then a background librdkafka thread will commit them at AutoCommitIntervalMs frequency which defaults to 5000ms
+            // Thus we should give AutoCommitIntervalMs time before closing the consumer
+            await Task.Delay(TimeSpan.FromMilliseconds(ConsumerConfig.AutoCommitIntervalMs ?? 5000));
+        }
+
         Consumer.Close();
     }
 
@@ -272,6 +292,93 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             Consumer = null;
             _cts?.Dispose();
             _mres?.Dispose();
+        }
+    }
+
+    internal class TopicPartitionOffsetTracker
+    {
+        private Action<IEnumerable<TopicPartitionOffset>> _ackAction;
+
+        public TopicPartitionOffsetTracker(IConsumer<Null, byte[]> consumer, ConsumerConfig config)
+        {
+            _consumer = consumer;
+            _config = config;
+        }
+
+        private readonly ConcurrentDictionary<TopicPartition, SortedList<TopicPartitionOffset, bool>> _topicPartitionOffsets = new();
+        private readonly IConsumer<Null, byte[]> _consumer;
+        private readonly ConsumerConfig _config;
+        private object _lock = new();
+
+        public void Received(TopicPartitionOffset topicPartitionOffset)
+        {
+            _topicPartitionOffsets.AddOrUpdate(topicPartitionOffset.TopicPartition, Add, Update);
+
+            SortedList<TopicPartitionOffset, bool> Add(TopicPartition topicPartition)
+            {
+                var sortedSet = NewTopicPartitionOffset();
+                sortedSet.Add(topicPartitionOffset, false);
+                return sortedSet;
+            }
+
+            SortedList<TopicPartitionOffset, bool> Update(TopicPartition topicPartition, SortedList<TopicPartitionOffset, bool> sortedList)
+            {
+                lock (_lock)
+                {
+                    sortedList.Add(topicPartitionOffset, false);
+                }
+                return sortedList;
+            }
+        }
+
+        public void MarkAsProcessed(TopicPartitionOffset topicPartitionOffset)
+        {
+            SortedList<TopicPartitionOffset, bool> sortedList = _topicPartitionOffsets[topicPartitionOffset.TopicPartition];
+            TopicPartitionOffset highestProcessedOffset = null;
+            lock (_lock)
+            {
+                sortedList[topicPartitionOffset] = true;
+                while (sortedList.Count > 0 && sortedList.Values[0])
+                {
+                    TopicPartitionOffset first = sortedList.Keys[0];
+                    highestProcessedOffset = first;
+                    sortedList.RemoveAt(0);
+                }
+            }
+            // consumer instance methods are thread safe thus we can Commit or StoreOffset with no lock
+            if (highestProcessedOffset != null)
+            {
+                // when committing TopicPartitionOffset instead of ConsumeResult we need to increment the offset by 1
+                // https://github.com/confluentinc/confluent-kafka-dotnet/blob/25f320a672b4324d732304cb4efa2288867b320c/src/Confluent.Kafka/Consumer.cs#L369
+                // When storing offset we need to increment the offset by 1
+                // https://github.com/confluentinc/confluent-kafka-dotnet/blob/25f320a672b4324d732304cb4efa2288867b320c/src/Confluent.Kafka/Consumer.cs#L338
+                if (_config.EnableAutoCommit == false)
+                {
+                    _consumer.Commit(new TopicPartitionOffset[] { new(highestProcessedOffset.TopicPartition, new Offset(highestProcessedOffset.Offset + 1)) });
+                }
+                else if (_config.EnableAutoOffsetStore == false)
+                {
+                    _consumer.StoreOffset(new TopicPartitionOffset(highestProcessedOffset.TopicPartition, new Offset(highestProcessedOffset.Offset + 1)));
+                }
+            }
+        }
+
+        private SortedList<TopicPartitionOffset, bool> NewTopicPartitionOffset() => new SortedList<TopicPartitionOffset, bool>(TopicPartitionOffsetComparer.Default);
+
+        private class TopicPartitionOffsetComparer : IComparer<TopicPartitionOffset>
+        {
+            public static TopicPartitionOffsetComparer Default { get; }
+
+            public int Compare(TopicPartitionOffset x, TopicPartitionOffset y)
+            {
+                Fx.AssertAndThrow(x.TopicPartition == y.TopicPartition, "TopicPartitionOffset instances must be from the same TopicPartition");
+                return x.Offset.Value.CompareTo(y.Offset.Value);
+            }
+
+            static TopicPartitionOffsetComparer()
+            {
+                Default = new TopicPartitionOffsetComparer();
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ internal static class KafkaEx
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Create topic {name}");
-        await AdminClient.Value.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name } }, new CreateTopicsOptions()
+        await AdminClient.Value.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name, NumPartitions = 4 } }, new CreateTopicsOptions()
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -61,8 +61,7 @@ internal static class KafkaEx
             long committed = tpo.Offset.Value;
             if (committed == Offset.Unset)
             {
-                throw new NotSupportedException(
-                    $"Invalid offset, no message of this partition have been consumed by the consumer '{consumerGroup}'");
+                continue;
             }
             long logEndOffset = watermarkOffsets.High.Value;
             lag += logEndOffset - committed;

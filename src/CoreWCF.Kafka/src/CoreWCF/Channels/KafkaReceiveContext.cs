@@ -31,14 +31,7 @@ internal class KafkaReceiveContext : ReceiveContext
 
             if (_kafkaTransportPump.TransportBindingElement.DeliverySemantics == KafkaDeliverySemantics.AtLeastOnce)
             {
-                if (_kafkaTransportPump.ConsumerConfig.EnableAutoCommit == false)
-                {
-                    _kafkaTransportPump.Consumer.Commit(_consumeResult);
-                }
-                else if (_kafkaTransportPump.ConsumerConfig.EnableAutoOffsetStore == false)
-                {
-                    _kafkaTransportPump.Consumer.StoreOffset(_consumeResult);
-                }
+                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult.TopicPartitionOffset);
             }
         }
         finally
@@ -53,14 +46,7 @@ internal class KafkaReceiveContext : ReceiveContext
         {
             if (_kafkaTransportPump.TransportBindingElement.DeliverySemantics == KafkaDeliverySemantics.AtLeastOnce)
             {
-                if (_kafkaTransportPump.ConsumerConfig.EnableAutoCommit == false)
-                {
-                    _kafkaTransportPump.Consumer.Commit(_consumeResult);
-                }
-                else if (_kafkaTransportPump.ConsumerConfig.EnableAutoOffsetStore == false)
-                {
-                    _kafkaTransportPump.Consumer.StoreOffset(_consumeResult);
-                }
+                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult.TopicPartitionOffset);
             }
         }
         finally

@@ -32,7 +32,6 @@ public class IntegrationTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-
         await KafkaEx.CreateTopicAsync(Output, Topic);
         if (_useDlq)
         {
