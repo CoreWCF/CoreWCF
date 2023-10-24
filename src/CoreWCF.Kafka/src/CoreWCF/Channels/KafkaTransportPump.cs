@@ -14,7 +14,6 @@ using CoreWCF.Configuration;
 using CoreWCF.Queue.Common;
 using CoreWCF.Runtime;
 using Microsoft.Extensions.Logging;
-using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace CoreWCF.Channels;
 
@@ -297,18 +296,16 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     internal class TopicPartitionOffsetTracker
     {
-        private Action<IEnumerable<TopicPartitionOffset>> _ackAction;
+        private readonly ConcurrentDictionary<TopicPartition, SortedList<TopicPartitionOffset, bool>> _topicPartitionOffsets = new();
+        private readonly IConsumer<Null, byte[]> _consumer;
+        private readonly ConsumerConfig _config;
+        private readonly object _lock = new();
 
         public TopicPartitionOffsetTracker(IConsumer<Null, byte[]> consumer, ConsumerConfig config)
         {
             _consumer = consumer;
             _config = config;
         }
-
-        private readonly ConcurrentDictionary<TopicPartition, SortedList<TopicPartitionOffset, bool>> _topicPartitionOffsets = new();
-        private readonly IConsumer<Null, byte[]> _consumer;
-        private readonly ConsumerConfig _config;
-        private object _lock = new();
 
         public void Received(TopicPartitionOffset topicPartitionOffset)
         {
@@ -363,7 +360,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             }
         }
 
-        private SortedList<TopicPartitionOffset, bool> NewTopicPartitionOffset() => new SortedList<TopicPartitionOffset, bool>(TopicPartitionOffsetComparer.Default);
+        private SortedList<TopicPartitionOffset, bool> NewTopicPartitionOffset() => new(TopicPartitionOffsetComparer.Default);
 
         private class TopicPartitionOffsetComparer : IComparer<TopicPartitionOffset>
         {
