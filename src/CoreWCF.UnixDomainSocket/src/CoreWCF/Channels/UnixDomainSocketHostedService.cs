@@ -35,13 +35,6 @@ namespace CoreWCF.Channels
             _logger = logger;
             _serviceProvider = serviceProvider;
             IApplicationLifetime appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
-            Init();
-        }
-
-        private void Init()
-        {
-            // Check if Kestrel is already being used and if it is, it was already configured so there's nothing to do.
-            var unixDomainSocketFramingOptionsSetup = _serviceProvider.GetServices<IConfigureOptions<KestrelServerOptions>>().SingleOrDefault(options => options is UnixDomainSocketFramingOptionsSetup) as UnixDomainSocketFramingOptionsSetup;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)

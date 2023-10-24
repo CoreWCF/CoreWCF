@@ -11,7 +11,7 @@ namespace CoreWCF
         Default,
         Certificate,
         Windows,
-        IdentityOnly,
+        PosixIdentity,
     }
 
     internal static class UnixDomainSocketClientCredentialTypeHelper
@@ -22,7 +22,7 @@ namespace CoreWCF
                 value == UnixDomainSocketClientCredentialType.Certificate ||
                 value == UnixDomainSocketClientCredentialType.Default ||
                 value == UnixDomainSocketClientCredentialType.Windows ||
-                value == UnixDomainSocketClientCredentialType.IdentityOnly 
+                value == UnixDomainSocketClientCredentialType.PosixIdentity 
                 );
         }
     }
