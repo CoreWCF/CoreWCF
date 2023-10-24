@@ -165,4 +165,7 @@
       <data name = "AuthenticationFailed" xml:space="preserve">
     <value>Authentication Failed.</value>
   </data>
+     <data name = "UnsupportedSecuritySetting" xml:space="preserve">
+   <value>The value '{1}' is not supported in this context for the binding security property '{0}'.</value>
+ </data>
 </root>

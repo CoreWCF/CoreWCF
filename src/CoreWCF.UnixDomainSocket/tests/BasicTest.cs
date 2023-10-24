@@ -185,6 +185,27 @@ namespace CoreWCF.UnixDomainSocket.Tests
             }
         }
 
+        [Theory]
+        [InlineData(UnixDomainSocketSecurityMode.Transport, UnixDomainSocketClientCredentialType.PosixIdentity)]
+        [InlineData(UnixDomainSocketSecurityMode.TransportCredentialOnly, UnixDomainSocketClientCredentialType.Windows)]
+        [InlineData(UnixDomainSocketSecurityMode.TransportCredentialOnly, UnixDomainSocketClientCredentialType.Certificate)]
+        private void CheckForSecurityModeCompatibility(UnixDomainSocketSecurityMode securityMode, UnixDomainSocketClientCredentialType clientCredType)
+        {
+            
+            var udsBinding = new UnixDomainSocketBinding
+            {
+                Security = new UnixDomainSocketSecurity
+                {
+                    Mode = securityMode,
+                    Transport = new UnixDomainSocketTransportSecurity
+                    {
+                        ClientCredentialType = clientCredType,
+                    },
+                },
+            };
+            Assert.Throws<NotSupportedException>(() => udsBinding.CreateBindingElements());
+        }
+
         public class UDS
         {
             public string GetUDSFilePath()
@@ -202,7 +223,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
 
             public void Configure(IHost host)
             {
-                CoreWCF.UnixDomainSocketBinding serverBinding = new CoreWCF.UnixDomainSocketBinding(SecurityMode.None);
+                CoreWCF.UnixDomainSocketBinding serverBinding = new CoreWCF.UnixDomainSocketBinding(UnixDomainSocketSecurityMode.None);
                 host.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
@@ -227,7 +248,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
                     {
                         Security = new UnixDomainSocketSecurity
                         {
-                            Mode = SecurityMode.Transport,
+                            Mode = UnixDomainSocketSecurityMode.Transport,
                             Transport = new UnixDomainSocketTransportSecurity
                             {
                                 ClientCredentialType = UnixDomainSocketClientCredentialType.Certificate,
@@ -266,10 +287,10 @@ namespace CoreWCF.UnixDomainSocket.Tests
                     {
                         Security = new UnixDomainSocketSecurity
                         {
-                            Mode = SecurityMode.Transport,
+                            Mode = UnixDomainSocketSecurityMode.TransportCredentialOnly,
                             Transport = new UnixDomainSocketTransportSecurity
                             {
-                                ClientCredentialType = UnixDomainSocketClientCredentialType.IdentityOnly,
+                                ClientCredentialType = UnixDomainSocketClientCredentialType.PosixIdentity,
                             },
                         },
                     };
@@ -295,7 +316,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
                     {
                         Security = new UnixDomainSocketSecurity
                         {
-                            Mode = SecurityMode.Transport,
+                            Mode = UnixDomainSocketSecurityMode.Transport,
                             Transport = new UnixDomainSocketTransportSecurity
                             {
                                 ClientCredentialType = UnixDomainSocketClientCredentialType.Windows,

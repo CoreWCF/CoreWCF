@@ -44,20 +44,6 @@ namespace CoreWCF
             }
         }
 
-        [DefaultValue(DefaultProtectionLevel)]
-        public ProtectionLevel ProtectionLevel
-        {
-            get { return _protectionLevel; }
-            set
-            {
-                if (!ProtectionLevelHelper.IsDefined(value))
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
-                }
-                _protectionLevel = value;
-            }
-        }
-
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
             get
@@ -133,18 +119,19 @@ namespace CoreWCF
                 {
                     return CreatePosixIdentityOnlyBinding();
                 }
-            }else if (_clientCredentialType == UnixDomainSocketClientCredentialType.Certificate)
+            }
+            else if (_clientCredentialType == UnixDomainSocketClientCredentialType.Certificate)
             {
                 return CreateSslBindingElement(true);
-
-            }else if(_clientCredentialType == UnixDomainSocketClientCredentialType.Windows)
+            }
+            else if (_clientCredentialType == UnixDomainSocketClientCredentialType.Windows)
             {
                 return new WindowsStreamSecurityBindingElement
                 {
                     ProtectionLevel = _protectionLevel
                 };
-
-            }else if (_clientCredentialType == UnixDomainSocketClientCredentialType.IdentityOnly)
+            }
+            else if (_clientCredentialType == UnixDomainSocketClientCredentialType.PosixIdentity)
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
@@ -152,10 +139,15 @@ namespace CoreWCF
                 }
                 return CreatePosixIdentityOnlyBinding();
             }
+            else if (_clientCredentialType == UnixDomainSocketClientCredentialType.None)
+            {
+                return CreateTransportProtectionOnly();
+            }
             else
             {
                 return null;
             }
         }
+
     }
 }
