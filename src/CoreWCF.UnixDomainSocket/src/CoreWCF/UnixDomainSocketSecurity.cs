@@ -3,36 +3,48 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
 
 namespace CoreWCF
 {
-    public sealed partial class UnixDomainSocketSecurity
+    public sealed class UnixDomainSocketSecurity
     {
-        internal const SecurityMode DefaultMode = SecurityMode.Transport;
-        private SecurityMode _mode;
+        private static UnixDomainSocketSecurityMode s_defaultMode =
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                UnixDomainSocketSecurityMode.Transport : UnixDomainSocketSecurityMode.TransportCredentialOnly;
+
+
+        private UnixDomainSocketSecurityMode _mode;
 
         public UnixDomainSocketSecurity()
-            : this(DefaultMode, new UnixDomainSocketTransportSecurity())//, new MessageSecurityOverTcp())
         {
+            _mode = s_defaultMode;
+            Transport = new UnixDomainSocketTransportSecurity();
         }
 
-        private UnixDomainSocketSecurity(SecurityMode mode, UnixDomainSocketTransportSecurity transportSecurity)
+        private UnixDomainSocketSecurity(UnixDomainSocketSecurityMode mode, UnixDomainSocketTransportSecurity transportSecurity)
         {
-            Fx.Assert(SecurityModeHelper.IsDefined(mode), string.Format("Invalid SecurityMode value: {0}.", mode.ToString()));
+            Fx.Assert(UnixDomainSocketSecurityModeHelper.IsDefined(mode),
+                            string.Format("Invalid SecurityMode value: {0} = {1} (default is {2} = {3}).",
+                                            (int)mode,
+                                            mode.ToString(),
+                                            (int)s_defaultMode,
+                                            s_defaultMode.ToString()));
 
             _mode = mode;
             Transport = transportSecurity ?? new UnixDomainSocketTransportSecurity();
         }
 
-        [DefaultValue(DefaultMode)]
-        public SecurityMode Mode
+
+        public UnixDomainSocketSecurityMode Mode
         {
             get { return _mode; }
             set
             {
-                if (!SecurityModeHelper.IsDefined(value))
+                if (!UnixDomainSocketSecurityModeHelper.IsDefined(value))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
                 }
@@ -44,11 +56,17 @@ namespace CoreWCF
 
         internal BindingElement CreateTransportSecurity()
         {
-            if (_mode == SecurityMode.Transport)
+            if (_mode == UnixDomainSocketSecurityMode.Transport || _mode == UnixDomainSocketSecurityMode.TransportCredentialOnly)
             {
+                if ((_mode == UnixDomainSocketSecurityMode.TransportCredentialOnly && Transport.ClientCredentialType != UnixDomainSocketClientCredentialType.PosixIdentity)
+                    ||
+                    (_mode == UnixDomainSocketSecurityMode.Transport && Transport.ClientCredentialType == UnixDomainSocketClientCredentialType.PosixIdentity))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedSecuritySetting, "Mode", _mode)));
+                }
                 return Transport.CreateTransportProtectionAndAuthentication();
             }
-            else if(_mode == SecurityMode.None)
+            else if (_mode == UnixDomainSocketSecurityMode.None)
             {
                 return null;
             }
@@ -57,5 +75,6 @@ namespace CoreWCF
                 throw new NotSupportedException();
             }
         }
+
     }
 }
