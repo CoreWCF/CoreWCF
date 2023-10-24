@@ -15,7 +15,7 @@ namespace CoreWCF
         private UnixDomainSocketSecurity _security = new UnixDomainSocketSecurity();
 
         public UnixDomainSocketBinding() { Initialize(); }
-        public UnixDomainSocketBinding(SecurityMode securityMode)
+        public UnixDomainSocketBinding(UnixDomainSocketSecurityMode securityMode)
             : this()
         {
             _security.Mode = securityMode;
