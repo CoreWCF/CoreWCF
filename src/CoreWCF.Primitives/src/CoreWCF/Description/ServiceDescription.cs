@@ -327,6 +327,9 @@ namespace CoreWCF.Description
 
     internal class ServiceDescription<TService> : ServiceDescription where TService : class
     {
+        private static readonly Lazy<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>
+            s_getKeyedServiceBehaviorsDelegate = new(BuildGetKeyedServiceBehaviors);
+
         public ServiceDescription(IEnumerable<IServiceBehavior> injectedBehaviors, IServiceProvider services)
         {
             ServiceType = typeof(TService);
@@ -352,19 +355,34 @@ namespace CoreWCF.Description
             SetupSingleton<TService>(this, services);
         }
 
-        private static Lazy<Func<IServiceProvider, IEnumerable<IServiceBehavior>>> s_getKeyedServiceBehaviorsDelegate = new(() =>
+        private static Func<IServiceProvider, IEnumerable<IServiceBehavior>> BuildGetKeyedServiceBehaviors()
         {
-            Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
-            Type type = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider");
+            IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
+
+            Type keyedServiceProviderType;
+            try
+            {
+                Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
+                keyedServiceProviderType = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider");
+            }
+            catch
+            {
+                return NoOp;
+            }
+
             ParameterExpression parameter = Expression.Parameter(typeof(IServiceProvider));
-            UnaryExpression cast = Expression.TypeAs(parameter, type);
-            Expression invocation = Expression.Call(
-                cast, "GetKeyedService", new Type[] { },
-                Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
-                Expression.Constant(typeof(TService)));
-            UnaryExpression cast2 = Expression.TypeAs(invocation, typeof(IEnumerable<IServiceBehavior>));
-            var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(cast2, parameter);
+            UnaryExpression castAsIKeyedServiceProvider = Expression.TypeAs(parameter, keyedServiceProviderType);
+            var serviceProviderIsNotNullExpr = Expression.NotEqual(Expression.Constant(null), castAsIKeyedServiceProvider);
+            var serviceBehaviors = Expression.Condition(
+                serviceProviderIsNotNullExpr,
+                Expression.Convert(Expression.Call(castAsIKeyedServiceProvider, "GetKeyedService", new Type[] { },
+                    Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
+                    Expression.Constant(typeof(TService))), typeof(IEnumerable<IServiceBehavior>)),
+                 Expression.Convert(
+                     Expression.Constant(Enumerable.Empty<IServiceBehavior>()), typeof(IEnumerable<IServiceBehavior>)) );
+
+            var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(serviceBehaviors, parameter);
             return lambda.Compile();
-        });
+        }
     }
 }
