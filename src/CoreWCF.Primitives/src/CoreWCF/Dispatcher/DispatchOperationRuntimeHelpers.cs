@@ -20,30 +20,28 @@ public static class DispatchOperationRuntimeHelpers
 
     internal static string GetKey(MethodInfo method)
     {
-        StringBuilder stringBuilder = new StringBuilder($"{method.DeclaringType.FullName}.{method.Name}(");
+        StringBuilder stringBuilder = new($"{method.DeclaringType.FullName}.{method.Name}(");
         stringBuilder.Append(string.Join(", ", method.GetParameters().Select(GetParameterString)));
-        foreach (var keyValuePair in s_IntegratedTypesMap)
-        {
-            stringBuilder.Replace(keyValuePair.Key, keyValuePair.Value);
-        }
         stringBuilder.Replace("+", ".");
         stringBuilder.Append(")");
-        return stringBuilder.ToString();
+        var result = stringBuilder.ToString();
+        return result;
     }
 
     private static string GetParameterString(ParameterInfo p)
     {
-        StringBuilder sb = new StringBuilder();
-        bool removeLastChar = false;
+        StringBuilder sb = new();
+        //bool removeLastChar = false;
+        Type parameterType = p.ParameterType;
         if (p.IsOut)
         {
             sb.Append("out ");
-            removeLastChar = true;
+            parameterType = p.ParameterType.GetElementType();
         }
         else if (p.ParameterType.IsByRef)
         {
             sb.Append("ref ");
-            removeLastChar = true;
+            parameterType = p.ParameterType.GetElementType();
         }
 
         if (p.IsDefined(typeof(ParamArrayAttribute)))
@@ -51,15 +49,8 @@ public static class DispatchOperationRuntimeHelpers
             sb.Append("params ");
         }
 
-        string parameterName = GetParameterFullName(p.ParameterType);
-        if (removeLastChar)
-        {
-            sb.Append(parameterName.Substring(0, parameterName.Length - 1));
-        }
-        else
-        {
-            sb.Append(parameterName);
-        }
+        string parameterName = GetParameterFullName(parameterType);
+        sb.Append(parameterName);
         return sb.ToString();
     }
 
@@ -67,8 +58,7 @@ public static class DispatchOperationRuntimeHelpers
     {
         if (type.IsGenericType)
         {
-            type.GetGenericTypeDefinition();
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.Append(type.FullName.Substring(0, type.FullName.IndexOf('`')));
             sb.Append("<");
             sb.Append(string.Join(", ", type.GetGenericArguments().Select(GetParameterFullName)));
@@ -76,27 +66,58 @@ public static class DispatchOperationRuntimeHelpers
             return sb.ToString();
         }
 
-        return type.FullName;
+        if (type.IsArray)
+        {
+            return GetParameterFullName(type.GetElementType()) + "[]";
+        }
+
+        string result;
+        if (s_isDynamicCodeSupported.Value)
+        {
+            result = s_runtimeIntegratedTypesMap.TryGetValue(type.TypeHandle.Value, out result)
+                ? result
+                : type.FullName;
+        }
+        else
+        {
+            result = s_integratedTypesMap.TryGetValue(type, out result)
+                ? result
+                : type.FullName;
+        }
+
+        return result;
     }
 
-    private static Dictionary<string, string> s_IntegratedTypesMap = new Dictionary<string, string>()
+    private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
+
+    private static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
+        // See https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RuntimeFeature.NonNativeAot.cs,14
+        AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
+            ? isDynamicCodeSupported
+            : true
+    );
+
+    private static readonly Dictionary<Type, string> s_integratedTypesMap = new()
     {
-        { "System.Boolean", "bool" },
-        { "System.Byte", "byte" },
-        { "System.SByte", "sbyte" },
-        { "System.Char", "char" },
-        { "System.Decimal", "decimal" },
-        { "System.Double", "double" },
-        { "System.Single", "single" },
-        { "System.Int32", "int" },
-        { "System.UInt32", "uint" },
-        { "System.IntPtr", "nint" },
-        { "System.UIntPtr", "nuint" },
-        { "System.Int64", "long" },
-        { "System.UInt64", "ulong" },
-        { "System.Int16", "short" },
-        { "System.UInt16", "ushort" },
-        { "System.Object", "object" },
-        { "System.String", "string" }
+        { typeof(bool), "bool" },
+        { typeof(byte), "byte" },
+        { typeof(sbyte), "sbyte" },
+        { typeof(char), "char" },
+        { typeof(decimal), "decimal" },
+        { typeof(double), "double" },
+        { typeof(float), "float" },
+        { typeof(int), "int" },
+        { typeof(uint), "uint" },
+        { typeof(nint), "nint" },
+        { typeof(nuint), "nuint" },
+        { typeof(long), "long" },
+        { typeof(ulong), "ulong" },
+        { typeof(short), "short" },
+        { typeof(ushort), "ushort" },
+        { typeof(object), "object" },
+        { typeof(string), "string" }
     };
+
+    private static readonly Dictionary<IntPtr, string> s_runtimeIntegratedTypesMap = s_integratedTypesMap
+        .ToDictionary(kvp => kvp.Key.TypeHandle.Value, kvp => kvp.Value);
 }
