@@ -31,7 +31,7 @@ internal class KafkaReceiveContext : ReceiveContext
 
             if (_kafkaTransportPump.TransportBindingElement.DeliverySemantics == KafkaDeliverySemantics.AtLeastOnce)
             {
-                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult.TopicPartitionOffset);
+                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult);
             }
         }
         finally
@@ -46,7 +46,7 @@ internal class KafkaReceiveContext : ReceiveContext
         {
             if (_kafkaTransportPump.TransportBindingElement.DeliverySemantics == KafkaDeliverySemantics.AtLeastOnce)
             {
-                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult.TopicPartitionOffset);
+                _kafkaTransportPump.OffsetTracker.MarkAsProcessed(_consumeResult);
             }
         }
         finally

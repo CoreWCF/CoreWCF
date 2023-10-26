@@ -28,8 +28,6 @@ public class IntegrationTest : IAsyncLifetime
         ConsumerGroup = $"cg-{Guid.NewGuid()}";
     }
 
-
-
     public async Task InitializeAsync()
     {
         await KafkaEx.CreateTopicAsync(Output, Topic);

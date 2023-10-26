@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
@@ -58,13 +56,25 @@ internal static class KafkaEx
         foreach (var tpo in tpos)
         {
             WatermarkOffsets watermarkOffsets = consumer.QueryWatermarkOffsets(tpo.TopicPartition, TimeSpan.FromSeconds(30));
-            long committed = tpo.Offset.Value;
-            if (committed == Offset.Unset)
+            long committed;
+
+            long logEndOffset = watermarkOffsets.High.Value;
+
+            if (tpo.Offset != Offset.Beginning && tpo.Offset != Offset.End && tpo.Offset != Offset.Stored && tpo.Offset != Offset.Unset)
             {
+                committed = tpo.Offset.Value;
+                lag += logEndOffset - committed;
                 continue;
             }
-            long logEndOffset = watermarkOffsets.High.Value;
-            lag += logEndOffset - committed;
+
+            if (tpo.Offset == Offset.Unset)
+            {
+                var partitionLag = watermarkOffsets.High.Value - watermarkOffsets.Low.Value;
+                lag += partitionLag;
+                continue;
+            }
+
+            throw new NotSupportedException("Offset type not supported");
         }
 
         output.WriteLine($"{consumerGroup} has a lag of {lag} messages on topic {topicName}");
