@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text.RegularExpressions;
@@ -20,18 +21,18 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 {
     private readonly ILogger<KafkaTransportPump> _logger;
     private readonly KafkaDeliverySemantics _kafkaDeliverySemantics;
-    internal IConsumer<Null, byte[]> Consumer { get; private set; }
-    internal ConsumerConfig ConsumerConfig { get; private set; }
+    private IConsumer<Null, byte[]> Consumer { get; set; }
+    private ConsumerConfig ConsumerConfig { get; set; }
     internal IProducer<Null, byte[]> Producer { get; private set; }
-    internal string Topic { get; }
+    private string Topic { get; }
     internal KafkaTransportBindingElement TransportBindingElement { get; }
     private CountdownEvent _receiveContextCountdownEvent;
-    private object _disposeLock = new();
+    private readonly object _disposeLock = new();
     private readonly Uri _baseAddress;
     private CancellationTokenSource _cts;
     private AsyncManualResetEvent _mres;
     private bool _isStarted;
-    private TimeSpan _closeTimeout;
+    private readonly TimeSpan _closeTimeout;
     internal TopicPartitionOffsetTracker OffsetTracker { get; private set; }
 
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atMostOnceConfigValues = (false, null);
@@ -71,7 +72,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     public override Task StartPumpAsync(QueueTransportContext queueTransportContext, CancellationToken token)
     {
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(token);;
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(token);
         _mres = new();
         _mres.Reset();
         _receiveContextCountdownEvent = new(1);
@@ -265,7 +266,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             ReceiveContext = receiveContext
         };
 
-        return queueTransportContext.QueueMessageDispatcher(context);;
+        return queueTransportContext.QueueMessageDispatcher(context);
     }
 
     internal void IncrementReceiveContextCount()
@@ -296,11 +297,10 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     internal class TopicPartitionOffsetTracker
     {
-        private readonly Dictionary<TopicPartition, SortedList<ConsumeResult<Null, byte[]>, bool>> _topicPartitions = new();
+        private readonly ConcurrentDictionary<TopicPartition, SortedList<ConsumeResult<Null, byte[]>, bool>> _topicPartitions = new();
         private readonly IConsumer<Null, byte[]> _consumer;
         private readonly ConsumerConfig _config;
         private readonly ILogger<KafkaTransportPump> _logger;
-        private readonly object _lock = new();
 
         public TopicPartitionOffsetTracker(IConsumer<Null, byte[]> consumer, ConsumerConfig config, ILogger<KafkaTransportPump> logger)
         {
@@ -311,28 +311,20 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         public void Received(ConsumeResult<Null, byte[]> consumeResult)
         {
-            lock (_lock)
+            SortedList<ConsumeResult<Null, byte[]>, bool> sortedList =
+                _topicPartitions.GetOrAdd(consumeResult.TopicPartition, new SortedList<ConsumeResult<Null, byte[]>, bool>(ConsumeResultComparer.Default));
+            lock (sortedList)
             {
-                SortedList<ConsumeResult<Null, byte[]>, bool> sortedList;
-                if (_topicPartitions.TryGetValue(consumeResult.TopicPartition, out sortedList))
-                {
-                    sortedList.Add(consumeResult, false);
-                }
-                else
-                {
-                    _topicPartitions[consumeResult.TopicPartition] = sortedList = new(ConsumeResultComparer.Default);
-                    sortedList.Add(consumeResult, false);
-                }
+                sortedList.Add(consumeResult, false);
             }
         }
 
         public void MarkAsProcessed(ConsumeResult<Null, byte[]> consumeResult)
         {
-            lock (_lock)
+            ConsumeResult<Null, byte[]> highestConsumeResult = null;
+            SortedList<ConsumeResult<Null, byte[]>, bool> sortedList = _topicPartitions[consumeResult.TopicPartition];
+            lock (sortedList)
             {
-                SortedList<ConsumeResult<Null, byte[]>, bool> sortedList;
-                ConsumeResult<Null, byte[]> highestConsumeResult = null;
-                sortedList = _topicPartitions[consumeResult.TopicPartition];
                 sortedList[consumeResult] = true;
                 while (sortedList.Count > 0 && sortedList.Values[0])
                 {
@@ -346,7 +338,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                     if (_config.EnableAutoCommit == false)
                     {
                         _consumer.Commit(highestConsumeResult);
-                        _logger.LogDebug("Commit {topicPartitionOffset}", highestConsumeResult.TopicPartitionOffset);
+                        _logger.LogDebug("Commit {topicPartitionOffset}",
+                            highestConsumeResult.TopicPartitionOffset);
                     }
                     else if (_config.EnableAutoOffsetStore == false)
                     {
@@ -360,17 +353,12 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         private class ConsumeResultComparer : IComparer<ConsumeResult<Null, byte[]>>
         {
-            public static ConsumeResultComparer Default { get; }
+            public static ConsumeResultComparer Default { get; } = new();
 
             public int Compare(ConsumeResult<Null, byte[]> x, ConsumeResult<Null, byte[]> y)
             {
                 Fx.AssertAndThrow(x.TopicPartition == y.TopicPartition, "ConsumeResult instances must be from the same TopicPartition");
                 return x.Offset.Value.CompareTo(y.Offset.Value);
-            }
-
-            static ConsumeResultComparer()
-            {
-                Default = new ConsumeResultComparer();
             }
         }
     }
