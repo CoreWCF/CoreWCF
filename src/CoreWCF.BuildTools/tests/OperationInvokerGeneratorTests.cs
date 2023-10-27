@@ -114,7 +114,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string, ref bool, out int).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -134,7 +135,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => new object[2];
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -144,7 +145,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -219,7 +220,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string, ref bool, out int).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -239,12 +241,13 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => new object[2];
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo2_string_ref_bool_out_int_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo2(string, ref bool, out int).
+    file sealed class OperationInvoker1 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -264,7 +267,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => new object[2];
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo2(string, ref bool, out int)", new MyProject_IIdentityService_Echo2_string_ref_bool_out_int_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo2(string, ref bool, out int)", new OperationInvoker1());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -274,8 +277,8 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker.RegisterOperationInvoker();
-            MyProject_IIdentityService_Echo2_string_ref_bool_out_int_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
+            OperationInvoker1.RegisterOperationInvoker();
         }
     }
 }
@@ -343,7 +346,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string, ref bool, out int).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -363,7 +367,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => new object[2];
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string, ref bool, out int)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -373,7 +377,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_ref_bool_out_int_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -440,7 +444,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_System_Collections_Generic_List_string__OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -455,7 +460,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => Array.Empty<object>();
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>)", new MyProject_IIdentityService_Echo_System_Collections_Generic_List_string__OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(System.Collections.Generic.List<string>)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -465,7 +470,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_System_Collections_Generic_List_string__OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -532,7 +537,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_params_string___OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(params string[]).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -547,7 +553,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => Array.Empty<object>();
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(params string[])", new MyProject_IIdentityService_Echo_params_string___OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(params string[])", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -557,7 +563,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_params_string___OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -624,7 +630,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -639,7 +646,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => Array.Empty<object>();
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -649,7 +656,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -716,7 +723,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -731,7 +739,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => Array.Empty<object>();
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -741,7 +749,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
@@ -808,7 +816,8 @@ namespace System.Runtime.CompilerServices
 }
 namespace CoreWCF.Dispatcher
 {
-    file sealed class MyProject_IIdentityService_Echo_string_OperationInvoker : CoreWCF.Dispatcher.IOperationInvoker
+    // This class is used to invoke the method MyProject.IIdentityService.Echo(string).
+    file sealed class OperationInvoker0 : CoreWCF.Dispatcher.IOperationInvoker
     {
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
@@ -823,7 +832,7 @@ namespace CoreWCF.Dispatcher
 
         private object[] AllocateOutputs() => Array.Empty<object>();
 
-        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new MyProject_IIdentityService_Echo_string_OperationInvoker());
+        internal static void RegisterOperationInvoker() => CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker("MyProject.IIdentityService.Echo(string)", new OperationInvoker0());
     }
 }
 namespace CoreWCF.Dispatcher
@@ -833,7 +842,7 @@ namespace CoreWCF.Dispatcher
         [System.Runtime.CompilerServices.ModuleInitializer]
         internal static void RegisterOperationInvokers()
         {
-            MyProject_IIdentityService_Echo_string_OperationInvoker.RegisterOperationInvoker();
+            OperationInvoker0.RegisterOperationInvoker();
         }
     }
 }
