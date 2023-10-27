@@ -24,6 +24,14 @@ public interface ITestContract
     [System.ServiceModel.OperationContract(IsOneWay = true, Name = "CreateAsync")]
     [OperationContract(IsOneWay = true, Name = "CreateAsync")]
     Task CreateAsync(string name);
+
+    [System.ServiceModel.OperationContract(IsOneWay = true)]
+    [OperationContract(IsOneWay = true)]
+    void DoSomethingBlocking();
+
+    [System.ServiceModel.OperationContract(IsOneWay = true)]
+    [OperationContract(IsOneWay = true)]
+    void DoSomething();
 }
 
 public class TestService : ITestContract
@@ -46,6 +54,18 @@ public class TestService : ITestContract
         return Task.CompletedTask;
     }
 
+    public void DoSomething()
+    {
+        CountdownEvent.Signal(1);
+    }
+
+    public void DoSomethingBlocking()
+    {
+        BlockingManualResetEvent.Wait();
+        CountdownEvent.Signal(1);
+    }
+
     public CountdownEvent CountdownEvent { get; } = new(0);
     public ConcurrentBag<string> Names { get; } = new();
+    public ManualResetEventSlim BlockingManualResetEvent { get; set; } = new(false);
 }

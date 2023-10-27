@@ -62,6 +62,60 @@ public class KafkaSemanticsTests : IntegrationTest
     }
 
     [LinuxWhenCIOnlyTheory]
+    [InlineData(10)]
+    [InlineData(100)]
+    public async Task AtLeastOnceCommitOrderTests(int messageCount)
+    {
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic).Build();
+        using (host)
+        {
+            await host.StartAsync();
+            var resolver = new DependencyResolverHelper(host);
+            var testService = resolver.GetService<TestService>();
+            testService.CountdownEvent.Reset(messageCount - 1);
+
+            ServiceModel.Channels.KafkaBinding kafkaBinding = new();
+            var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+            ITestContract channel = factory.CreateChannel();
+
+            for (int i = 0; i < messageCount; i++)
+            {
+                if (i == 0)
+                {
+                    channel.DoSomethingBlocking();
+                }
+                else
+                {
+                    channel.DoSomething();
+                }
+            }
+
+            factory.Close(TimeSpan.FromSeconds(10));
+
+            await AssertEx.RetryAsync(() => Assert.Equal(messageCount, KafkaEx.GetMessageCount(Output, Topic)));
+
+            // Wait until all non blocking messages have been processed by the consumer
+            Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
+
+            testService.CountdownEvent.Reset(1);
+
+            // Wait AutoCommitIntervalMs
+            await Task.Delay(5000);
+
+            await AssertEx.RetryAsync(() => Assert.NotEqual(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+
+            // Unblock the consumer
+            testService.BlockingManualResetEvent.Set();
+
+            // Wait until all messages have been processed by the consumer
+            Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
+        }
+
+        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+    }
+
+    [LinuxWhenCIOnlyTheory]
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(100)]
@@ -133,6 +187,38 @@ public class KafkaSemanticsTests : IntegrationTest
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
     }
 
+    private class StartupAtLeastOnceCommitOrder
+    {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<TestService>();
+            services.AddServiceModelServices();
+            services.AddQueueTransport();
+        }
+
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            app.UseServiceModel(services =>
+            {
+                var topicNameAccessor = app.ApplicationServices.GetService<TopicNameAccessor>();
+                var consumerGroupAccessor = app.ApplicationServices.GetService<ConsumerGroupAccessor>();
+                services.AddService<TestService>();
+                var binding = new KafkaBinding
+                {
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    DeliverySemantics = KafkaDeliverySemantics.AtLeastOnce,
+                    GroupId = consumerGroupAccessor.Invoke(),
+                };
+                // use a custom binding to configure the AutoCommitIntervalMs and Debug properties
+                CustomBinding customBinding = new(binding);
+                var transport = customBinding.Elements.Find<KafkaTransportBindingElement>();
+                // transport.AutoCommitIntervalMs = 5000;
+                // transport.Debug = "consumer";
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+            });
+        }
+    }
+
     private class StartupAtLeastOnce
     {
         public void ConfigureServices(IServiceCollection services)
@@ -153,7 +239,7 @@ public class KafkaSemanticsTests : IntegrationTest
                 {
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtLeastOnce,
-                    GroupId = consumerGroupAccessor.Invoke()
+                    GroupId = consumerGroupAccessor.Invoke(),
                 }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
             });
         }
