@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
-    <PackageReference Include="System.ServiceModel.Http" Version="4.10.2" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.2" />
-    <PackageReference Include="xunit" Version="2.5.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
+    <PackageReference Include="System.ServiceModel.Http" Version="4.10.3" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.3" />
+    <PackageReference Include="xunit" Version="2.6.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -31,12 +31,12 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.21" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.24" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.13" />
   </ItemGroup>
 
   <ItemGroup>
