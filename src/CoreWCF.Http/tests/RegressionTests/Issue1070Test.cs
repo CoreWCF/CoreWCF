@@ -47,7 +47,7 @@ namespace CoreWCF.Http.Tests.RegressionTests
                 clientCredentials.UserName.Password = "Password";
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 ((System.ServiceModel.Channels.IChannel)channel).Open();
-                await Assert.ThrowsAsync<System.ServiceModel.Security.MessageSecurityException>(async () => await channel.EchoStringAsync("test"));
+                await Assert.ThrowsAsync<System.ServiceModel.Security.MessageSecurityException>(() => channel.EchoStringAsync("test"));
                 ServiceHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
                 factory.Close();
             }

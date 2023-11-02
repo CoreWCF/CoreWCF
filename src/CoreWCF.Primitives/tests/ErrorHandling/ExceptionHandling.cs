@@ -46,10 +46,7 @@ namespace ErrorHandling
             factory.Open();
             ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
-            {
-                _ = await channel.EchoAsync("hello");
-            });
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(() => channel.EchoAsync("hello"));
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
@@ -69,10 +66,7 @@ namespace ErrorHandling
             factory.Open();
             ISimpleAsyncService channel = factory.CreateChannel();
             ((System.ServiceModel.IClientChannel)channel).Open();
-            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(async () =>
-            {
-                _ = await channel.EchoAsync("hello");
-            });
+            System.ServiceModel.FaultException exceptionThrown = await Assert.ThrowsAsync<System.ServiceModel.FaultException>(() => channel.EchoAsync("hello"));
             Assert.NotNull(exceptionThrown);
             Assert.True(exceptionThrown.Code.IsReceiverFault);
             Assert.Equal("InternalServiceFault", exceptionThrown.Code.SubCode.Name);
