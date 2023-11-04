@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 public static class CSharpGeneratorVerifier<TSourceGenerator>
 #if ROSLYN4_0_OR_GREATER
@@ -18,7 +17,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
     where TSourceGenerator : ISourceGenerator, new()
 #endif
 {
-    public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, XUnitVerifier>
+    public class Test : CSharpSourceGeneratorTest<EmptySourceGeneratorProvider, DefaultVerifier>
     {
         public Test()
         {
