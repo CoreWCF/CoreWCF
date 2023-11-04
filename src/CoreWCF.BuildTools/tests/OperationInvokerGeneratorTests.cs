@@ -161,6 +161,97 @@ namespace CoreWCF.Dispatcher
 
         [Theory]
         [MemberData(nameof(GetTestVariations))]
+        public async Task PrivateInterfaceTest(string attributeNamespace)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    private interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input, ref bool b, out int i);
+    }}
+
+    partial class IdentityService : IIdentityService
+    {{
+        public string Echo(string input, ref bool b, out int i)
+        {{
+            i = 10;
+            return input;
+        }}
+    }}
+}}
+"
+                    },
+                    AnalyzerConfigFiles =
+                    {
+                        (typeof(OperationInvokerGenerator),"/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                    }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
+        public async Task NestedPrivateInterfaceTest(string attributeNamespace)
+        {
+            var test = new VerifyGenerator.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @$"
+namespace MyProject
+{{
+    private partial class Container
+    {{
+        [{attributeNamespace}.ServiceContract]
+        interface IIdentityService
+        {{
+            [{attributeNamespace}.OperationContract]
+            string Echo(string input, ref bool b, out int i);
+        }}
+
+        partial class IdentityService : IIdentityService
+        {{
+            public string Echo(string input, ref bool b, out int i)
+            {{
+                i = 10;
+                return input;
+            }}
+        }}
+    }}
+}}
+"
+                    },
+                    AnalyzerConfigFiles =
+                    {
+                        (typeof(OperationInvokerGenerator),"/.globalconfig", """
+                                                                             is_global = true
+                                                                             build_property.EnableCoreWCFOperationInvokerGenerator = true
+                                                                             """)
+                    }
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
         public async Task MultipleOperationTest(string attributeNamespace)
         {
             var test = new VerifyGenerator.Test

@@ -44,6 +44,7 @@ namespace CoreWCF.BuildTools
                     where method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is not null
                     let @interface = method.ContainingSymbol
                     where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    where !@interface.IsPrivate()
                     select method).ToImmutableArray();
 
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
