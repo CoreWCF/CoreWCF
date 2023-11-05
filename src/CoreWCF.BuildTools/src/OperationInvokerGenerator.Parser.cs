@@ -44,7 +44,7 @@ namespace CoreWCF.BuildTools
                     where method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is not null
                     let @interface = method.ContainingSymbol
                     where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
-                    where !@interface.IsPrivate()
+                    where !method.IsPrivate()
                     select method).ToImmutableArray();
 
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
@@ -65,8 +65,8 @@ namespace CoreWCF.BuildTools
             }
 
             internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
-                && methodDeclarationSyntax.AttributeLists.Count > 0
-                && methodDeclarationSyntax.Ancestors().Any(static ancestor => ancestor.IsKind(SyntaxKind.InterfaceDeclaration) && ((InterfaceDeclarationSyntax)ancestor).AttributeLists.Count > 0);
+                                                                                 && methodDeclarationSyntax.AttributeLists.Count > 0
+                                                                                 && methodDeclarationSyntax.Ancestors().Any(static ancestor => ancestor.IsKind(SyntaxKind.InterfaceDeclaration) && ((InterfaceDeclarationSyntax)ancestor).AttributeLists.Count > 0);
 
             internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
             {
