@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
+using CoreWCF.Channels;
 
 namespace Contracts;
 
@@ -32,6 +33,10 @@ public interface ITestContract
     [System.ServiceModel.OperationContract(IsOneWay = true)]
     [OperationContract(IsOneWay = true)]
     void DoSomething();
+
+    [System.ServiceModel.OperationContract(IsOneWay = true)]
+    [OperationContract(IsOneWay = true)]
+    void StoreKafkaMessageProperty();
 }
 
 public class TestService : ITestContract
@@ -65,7 +70,17 @@ public class TestService : ITestContract
         CountdownEvent.Signal(1);
     }
 
+    public void StoreKafkaMessageProperty()
+    {
+        KafkaMessageProperty = CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(KafkaMessageProperty.Name, out var kafkaMessageProperty)
+            ? kafkaMessageProperty as KafkaMessageProperty
+            : null;
+        CountdownEvent.Signal(1);
+    }
+
     public CountdownEvent CountdownEvent { get; } = new(0);
     public ConcurrentBag<string> Names { get; } = new();
     public ManualResetEventSlim BlockingManualResetEvent { get; set; } = new(false);
+
+    public KafkaMessageProperty KafkaMessageProperty { get; set; }
 }

@@ -33,6 +33,10 @@ namespace CoreWCF.Queue.Common
                 {
                     message.Headers.To = queueMessageContext.LocalAddress.Uri;
                 }
+                foreach (var property in queueMessageContext.Properties)
+                {
+                    message.Properties.Add(property.Key, property.Value);
+                }
 
                 queueMessageContext.SetRequestMessage(message);
             }

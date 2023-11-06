@@ -18,7 +18,7 @@ namespace CoreWCF.Queue.Common
         private Message _requestMessage;
         private Exception _requestMessageException;
         private ReceiveContext _receiveContext;
-        private readonly Lazy<IDictionary<string, object>> _properties = new();
+        private readonly Lazy<IDictionary<string, object>> _properties = new(() => new Dictionary<string, object>());
 
         public override Message RequestMessage
         {
