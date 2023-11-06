@@ -70,6 +70,7 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             Assert.NotNull(property);
             Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value) == "header1Value");
             Assert.Equivalent(Encoding.UTF8.GetBytes("key"), property.PartitionKey);
+            Assert.Equal(Topic, property.Topic);
         }
 
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
@@ -107,6 +108,7 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             Assert.NotNull(property);
             Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value) == "header1Value");
             Assert.Equivalent( Encoding.UTF8.GetBytes("key"), property.PartitionKey);
+            Assert.Equal(Topic, property.Topic);
         }
 
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));

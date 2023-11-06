@@ -20,10 +20,13 @@ public sealed class KafkaMessageProperty : IMessageProperty
         }
 
         PartitionKey = consumeResult.Message.Key;
+        Topic = consumeResult.Topic;
     }
 
     public IMessageProperty CreateCopy() => this;
 
     public IReadOnlyCollection<KafkaMessageHeader> Headers => _headers as IReadOnlyCollection<KafkaMessageHeader>;
     public byte[] PartitionKey { get; }
+
+    public string Topic { get; }
 }
