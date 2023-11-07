@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -81,6 +81,5 @@ public class TestService : ITestContract
     public CountdownEvent CountdownEvent { get; } = new(0);
     public ConcurrentBag<string> Names { get; } = new();
     public ManualResetEventSlim BlockingManualResetEvent { get; set; } = new(false);
-
     public KafkaMessageProperty KafkaMessageProperty { get; set; }
 }
