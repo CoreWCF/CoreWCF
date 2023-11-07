@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' != 'net'">
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND !$(TargetFramework.StartsWith('netstandard'))">
     <Compile Include="$(MSBuildThisFileDirectory)/../contentFiles/CoreWCFWebApplicationExtensions.cs">
       <Visible>false</Visible>
     </Compile>
