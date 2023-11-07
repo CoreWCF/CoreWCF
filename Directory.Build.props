@@ -6,7 +6,7 @@
     <SourceDir>$(ProjectDir)src/</SourceDir>
     <ConfigPathSegment>Debug</ConfigPathSegment>
     <ConfigPathSegment Condition="'$(Configuration)'!=''">$(Configuration)</ConfigPathSegment>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <!-- Set up some common paths -->

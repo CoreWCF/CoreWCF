@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ItemGroup>
+      <!-- Exposes EnableCoreWCFOperationInvokerGenerator at runtime -->
+    	<AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+	      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+	    </AssemblyAttribute>
+  </ItemGroup>
+</Project>
