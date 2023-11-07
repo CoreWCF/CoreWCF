@@ -9,7 +9,7 @@ using System;
 
 namespace CoreWCF.Configuration
 {
-    public static class WebApplicationExtensions
+    internal static class WebApplicationExtensions
     {
         public static Microsoft.Extensions.Hosting.IHost UseServiceModel(this Microsoft.AspNetCore.Builder.WebApplication app, Action<IServiceBuilder> configureServices)
         {

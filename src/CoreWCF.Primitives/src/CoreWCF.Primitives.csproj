@@ -39,6 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="CoreWCFWebApplicationExtensions.cs" />
+    <None Include="CoreWCFWebApplicationExtensions.cs" Link="PackageFiles/CoreWCFWebApplicationExtensions.cs" />
+    <None Include="CoreWCF.Primitives.props" Link="PackageFiles/CoreWCF.Primitives.props"/>
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn4.0.dll">
