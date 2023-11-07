@@ -258,7 +258,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         QueueTransportContext queueTransportContext)
     {
         var receiveContext = new KafkaReceiveContext(consumeResult, this);
-        var context = new KafkaQueueMessageContext
+        var context = new QueueMessageContext
         {
             ReceiveContext = receiveContext,
             QueueTransportContext = queueTransportContext,

@@ -1,16 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using Confluent.Kafka;
 
 namespace CoreWCF.Channels;
 
-public sealed class KafkaMessageProperty : IMessageProperty
+public sealed class KafkaMessageProperty
 {
     private readonly IList<KafkaMessageHeader> _headers = new List<KafkaMessageHeader>();
 
-    public static readonly string Name = "kafkaMessage";
+    public static readonly string Name = "CoreWCF.Channels.KafkaMessageProperty";
 
     internal KafkaMessageProperty(ConsumeResult<byte[], byte[]> consumeResult)
     {
@@ -23,10 +24,7 @@ public sealed class KafkaMessageProperty : IMessageProperty
         Topic = consumeResult.Topic;
     }
 
-    public IMessageProperty CreateCopy() => this;
-
     public IReadOnlyCollection<KafkaMessageHeader> Headers => _headers as IReadOnlyCollection<KafkaMessageHeader>;
-    public byte[] PartitionKey { get; }
-
+    public ReadOnlyMemory<byte> PartitionKey { get; }
     public string Topic { get; }
 }

@@ -68,8 +68,8 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             KafkaMessageProperty property = testService.KafkaMessageProperty;
             Assert.NotNull(property);
-            Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value) == "header1Value");
-            Assert.Equivalent(Encoding.UTF8.GetBytes("key"), property.PartitionKey);
+            Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value.Span) == "header1Value");
+            Assert.Equal(Encoding.UTF8.GetBytes("key").AsMemory(), property.PartitionKey);
             Assert.Equal(Topic, property.Topic);
         }
 
@@ -106,8 +106,8 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             KafkaMessageProperty property = testService.KafkaMessageProperty;
             Assert.NotNull(property);
-            Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value) == "header1Value");
-            Assert.Equivalent( Encoding.UTF8.GetBytes("key"), property.PartitionKey);
+            Assert.Contains(property.Headers, x => x.Key == "header1" && Encoding.UTF8.GetString(x.Value.Span) == "header1Value");
+            Assert.Equal( Encoding.UTF8.GetBytes("key").AsMemory(), property.PartitionKey);
             Assert.Equal(Topic, property.Topic);
         }
 
