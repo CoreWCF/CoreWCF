@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -91,7 +91,6 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
                 new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
             ITestContract channel = factory.CreateChannel();
-
 
             using (var scope = new System.ServiceModel.OperationContextScope((System.ServiceModel.IContextChannel)channel))
             {
