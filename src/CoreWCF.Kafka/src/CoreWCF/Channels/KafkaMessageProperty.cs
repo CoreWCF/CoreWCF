@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -11,7 +11,7 @@ public sealed class KafkaMessageProperty
 {
     private readonly IList<KafkaMessageHeader> _headers = new List<KafkaMessageHeader>();
 
-    public static readonly string Name = "CoreWCF.Channels.KafkaMessageProperty";
+    public const string Name = "CoreWCF.Channels.KafkaMessageProperty";
 
     internal KafkaMessageProperty(ConsumeResult<byte[], byte[]> consumeResult)
     {
