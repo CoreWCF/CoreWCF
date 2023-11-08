@@ -17,10 +17,10 @@ namespace CoreWCF.ServiceModel.Channels
         private readonly MessageEncoder _encoder;
         private readonly KafkaChannelFactory _parent;
         private readonly string _topic;
-        private readonly ProducerBuilder<Null, byte[]> _producerBuilder;
+        private readonly ProducerBuilder<byte[], byte[]> _producerBuilder;
         private static readonly Regex s_topicNameRegex =
             new(@"^[a-zA-Z0-9\.\-_]{1,255}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
-        private IProducer<Null, byte[]> _producer;
+        private IProducer<byte[], byte[]> _producer;
 
         public KafkaOutputChannel(KafkaChannelFactory factory, EndpointAddress address, Uri via, MessageEncoder encoder,
             KafkaTransportBindingElement transportBindingElement) : base(factory)
@@ -44,7 +44,7 @@ namespace CoreWCF.ServiceModel.Channels
             ProducerConfig producerConfig = transportBindingElement.Config;
             producerConfig.BootstrapServers = bootstrapServer;
 
-            _producerBuilder = new ProducerBuilder<Null, byte[]>(producerConfig);
+            _producerBuilder = new ProducerBuilder<byte[], byte[]>(producerConfig);
         }
 
         protected override void OnOpen(TimeSpan timeout)
@@ -118,12 +118,14 @@ namespace CoreWCF.ServiceModel.Channels
 
         private async Task SendAsync(Message message, TimeSpan timeout)
         {
+            Message<byte[], byte[]> kafkaMessage = new();
+            ApplyKafkaMessageProperty(message, kafkaMessage);
             ArraySegment<byte> messageBuffer = EncodeMessage(message);
             CancellationTokenSource cts = new(timeout);
             try
             {
-                byte[] bytes = new Span<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count).ToArray();
-                await _producer.ProduceAsync(_topic, new Message<Null, byte[]> { Value = bytes }, cts.Token);
+                kafkaMessage.Value = new Span<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count).ToArray();
+                await _producer.ProduceAsync(_topic, kafkaMessage, cts.Token);
             }
             catch (ProduceException<Null, byte[]> produceException)
             {
@@ -134,6 +136,22 @@ namespace CoreWCF.ServiceModel.Channels
                 cts.Dispose();
                 _parent.BufferManager.ReturnBuffer(messageBuffer.Array);
             }
+        }
+
+        private static void ApplyKafkaMessageProperty(Message message, Message<byte[], byte[]> kafkaMessage)
+        {
+            KafkaMessageProperty kafkaMessageProperty =
+                message.Properties.TryGetValue(KafkaMessageProperty.Name, out object value) &&
+                value is KafkaMessageProperty property
+                    ? property
+                    : new KafkaMessageProperty();
+            kafkaMessage.Headers = new();
+            foreach (KafkaMessageHeader kafkaMessageHeader in kafkaMessageProperty.Headers)
+            {
+                kafkaMessage.Headers.Add(kafkaMessageHeader.Key, kafkaMessageHeader.Value);
+            }
+
+            kafkaMessage.Key = kafkaMessageProperty.PartitionKey;
         }
 
         public void Send(Message message) => Send(message, DefaultSendTimeout);
@@ -179,3 +197,4 @@ namespace CoreWCF.ServiceModel.Channels
         }
     }
 }
+

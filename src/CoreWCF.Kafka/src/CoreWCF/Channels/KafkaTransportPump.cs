@@ -21,7 +21,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 {
     private readonly ILogger<KafkaTransportPump> _logger;
     private readonly KafkaDeliverySemantics _kafkaDeliverySemantics;
-    private IConsumer<Null, byte[]> Consumer { get; set; }
+    private IConsumer<byte[], byte[]> Consumer { get; set; }
     private ConsumerConfig ConsumerConfig { get; set; }
     internal IProducer<Null, byte[]> Producer { get; private set; }
     private string Topic { get; }
@@ -88,8 +88,8 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         var (enableAutoCommit, enableAutoOffsetStore) = GetCommitStrategyConfigValues(ConsumerConfig, _kafkaDeliverySemantics);
         ConsumerConfig.EnableAutoCommit = enableAutoCommit;
         ConsumerConfig.EnableAutoOffsetStore = enableAutoOffsetStore;
-        Consumer = new ConsumerBuilder<Null, byte[]>(ConsumerConfig)
-            .SetKeyDeserializer(Deserializers.Null)
+        Consumer = new ConsumerBuilder<byte[], byte[]>(ConsumerConfig)
+            .SetKeyDeserializer(Deserializers.ByteArray)
             .SetValueDeserializer(Deserializers.ByteArray)
             .SetLogHandler(OnLog)
             .SetErrorHandler(OnError)
@@ -218,7 +218,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             _ => throw new NotSupportedException(string.Format(SR.InvalidKafkaConfiguration, kafkaDeliverySemantics, consumerConfig.EnableAutoCommit, consumerConfig.EnableAutoOffsetStore))
         };
 
-    private void OnLog(IConsumer<Null, byte[]> consumer, LogMessage logMessage)
+    private void OnLog(IConsumer<byte[], byte[]> consumer, LogMessage logMessage)
     {
         const string format = "{0}:{1}";
         switch (logMessage.Level)
@@ -246,7 +246,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         }
     }
 
-    private void OnError(IConsumer<Null, byte[]> consumer, Error error)
+    private void OnError(IConsumer<byte[], byte[]> consumer, Error error)
     {
         if (error.IsFatal)
         {
@@ -254,16 +254,20 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         }
     }
 
-    private Task OnConsumeMessage(ConsumeResult<Null, byte[]> consumeResult,
+    private Task OnConsumeMessage(ConsumeResult<byte[], byte[]> consumeResult,
         QueueTransportContext queueTransportContext)
     {
         var receiveContext = new KafkaReceiveContext(consumeResult, this);
         var context = new QueueMessageContext
         {
-            QueueMessageReader = PipeReader.Create(new ReadOnlySequence<byte>(consumeResult.Message.Value)),
-            LocalAddress = new EndpointAddress(queueTransportContext.ServiceDispatcher.BaseAddress),
+            ReceiveContext = receiveContext,
             QueueTransportContext = queueTransportContext,
-            ReceiveContext = receiveContext
+            LocalAddress = new EndpointAddress(queueTransportContext.ServiceDispatcher.BaseAddress),
+            QueueMessageReader = PipeReader.Create(new ReadOnlySequence<byte>(consumeResult.Message.Value)),
+            Properties =
+            {
+                [KafkaMessageProperty.Name] = new KafkaMessageProperty(consumeResult)
+            }
         };
 
         return queueTransportContext.QueueMessageDispatcher(context);
@@ -297,38 +301,38 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     internal class TopicPartitionOffsetTracker
     {
-        private readonly ConcurrentDictionary<TopicPartition, SortedList<ConsumeResult<Null, byte[]>, bool>> _topicPartitions = new();
-        private readonly IConsumer<Null, byte[]> _consumer;
+        private readonly ConcurrentDictionary<TopicPartition, SortedList<ConsumeResult<byte[], byte[]>, bool>> _topicPartitions = new();
+        private readonly IConsumer<byte[], byte[]> _consumer;
         private readonly ConsumerConfig _config;
         private readonly ILogger<KafkaTransportPump> _logger;
 
-        public TopicPartitionOffsetTracker(IConsumer<Null, byte[]> consumer, ConsumerConfig config, ILogger<KafkaTransportPump> logger)
+        public TopicPartitionOffsetTracker(IConsumer<byte[], byte[]> consumer, ConsumerConfig config, ILogger<KafkaTransportPump> logger)
         {
             _consumer = consumer;
             _config = config;
             _logger = logger;
         }
 
-        public void Received(ConsumeResult<Null, byte[]> consumeResult)
+        public void Received(ConsumeResult<byte[], byte[]> consumeResult)
         {
-            SortedList<ConsumeResult<Null, byte[]>, bool> sortedList =
-                _topicPartitions.GetOrAdd(consumeResult.TopicPartition, new SortedList<ConsumeResult<Null, byte[]>, bool>(ConsumeResultComparer.Default));
+            SortedList<ConsumeResult<byte[], byte[]>, bool> sortedList =
+                _topicPartitions.GetOrAdd(consumeResult.TopicPartition, new SortedList<ConsumeResult<byte[], byte[]>, bool>(ConsumeResultComparer.Default));
             lock (sortedList)
             {
                 sortedList.Add(consumeResult, false);
             }
         }
 
-        public void MarkAsProcessed(ConsumeResult<Null, byte[]> consumeResult)
+        public void MarkAsProcessed(ConsumeResult<byte[], byte[]> consumeResult)
         {
-            ConsumeResult<Null, byte[]> highestConsumeResult = null;
-            SortedList<ConsumeResult<Null, byte[]>, bool> sortedList = _topicPartitions[consumeResult.TopicPartition];
+            ConsumeResult<byte[], byte[]> highestConsumeResult = null;
+            SortedList<ConsumeResult<byte[], byte[]>, bool> sortedList = _topicPartitions[consumeResult.TopicPartition];
             lock (sortedList)
             {
                 sortedList[consumeResult] = true;
                 while (sortedList.Count > 0 && sortedList.Values[0])
                 {
-                    ConsumeResult<Null, byte[]> first = sortedList.Keys[0];
+                    ConsumeResult<byte[], byte[]> first = sortedList.Keys[0];
                     highestConsumeResult = first;
                     sortedList.RemoveAt(0);
                 }
@@ -351,11 +355,11 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             }
         }
 
-        private class ConsumeResultComparer : IComparer<ConsumeResult<Null, byte[]>>
+        private class ConsumeResultComparer : IComparer<ConsumeResult<byte[], byte[]>>
         {
             public static ConsumeResultComparer Default { get; } = new();
 
-            public int Compare(ConsumeResult<Null, byte[]> x, ConsumeResult<Null, byte[]> y)
+            public int Compare(ConsumeResult<byte[], byte[]> x, ConsumeResult<byte[], byte[]> y)
             {
                 Fx.AssertAndThrow(x.TopicPartition == y.TopicPartition, "ConsumeResult instances must be from the same TopicPartition");
                 return x.Offset.Value.CompareTo(y.Offset.Value);

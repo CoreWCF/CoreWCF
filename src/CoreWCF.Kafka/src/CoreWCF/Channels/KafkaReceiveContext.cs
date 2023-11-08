@@ -10,10 +10,10 @@ namespace CoreWCF.Channels;
 
 internal class KafkaReceiveContext : ReceiveContext
 {
-    private readonly ConsumeResult<Null, byte[]> _consumeResult;
+    private readonly ConsumeResult<byte[], byte[]> _consumeResult;
     private readonly KafkaTransportPump _kafkaTransportPump;
 
-    public KafkaReceiveContext(ConsumeResult<Null, byte[]> consumeResult, KafkaTransportPump kafkaTransportPump)
+    public KafkaReceiveContext(ConsumeResult<byte[], byte[]> consumeResult, KafkaTransportPump kafkaTransportPump)
     {
         _consumeResult = consumeResult;
         _kafkaTransportPump = kafkaTransportPump;
