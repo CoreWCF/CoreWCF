@@ -37,9 +37,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\CoreWCF.NetTcp.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
+
 </Project>

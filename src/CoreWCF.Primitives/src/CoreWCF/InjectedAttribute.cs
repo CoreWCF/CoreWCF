@@ -8,5 +8,6 @@ namespace CoreWCF
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class InjectedAttribute : Attribute
     {
+        public string PropertyName { get; set; }
     }
 }

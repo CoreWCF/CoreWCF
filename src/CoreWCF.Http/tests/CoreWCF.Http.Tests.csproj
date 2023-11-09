@@ -47,6 +47,7 @@
   <ItemGroup>
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="..\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

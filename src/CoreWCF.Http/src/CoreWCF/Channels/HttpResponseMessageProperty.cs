@@ -34,10 +34,7 @@ namespace CoreWCF.Channels
             StatusDescription = DefaultStatusDescription;
         }
 
-        public static string Name
-        {
-            get { return "httpResponse"; }
-        }
+        public const string Name = "httpResponse";
 
         /// <summary>
         /// Gets a mutable list of headers.

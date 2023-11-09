@@ -37,9 +37,13 @@ public interface ITestContract
     [System.ServiceModel.OperationContract(IsOneWay = true)]
     [OperationContract(IsOneWay = true)]
     void StoreKafkaMessageProperty();
+
+    [System.ServiceModel.OperationContract(IsOneWay = true)]
+    [OperationContract(IsOneWay = true)]
+    void StoreInjectedKafkaMessageProperty();
 }
 
-public class TestService : ITestContract
+public partial class TestService : ITestContract
 {
     public void Create(string name)
     {
@@ -75,6 +79,12 @@ public class TestService : ITestContract
         KafkaMessageProperty = CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(KafkaMessageProperty.Name, out var kafkaMessageProperty)
             ? kafkaMessageProperty as KafkaMessageProperty
             : null;
+        CountdownEvent.Signal(1);
+    }
+
+    public void StoreInjectedKafkaMessageProperty([Injected(PropertyName = KafkaMessageProperty.Name)] KafkaMessageProperty kafkaMessageProperty)
+    {
+        KafkaMessageProperty = kafkaMessageProperty;
         CountdownEvent.Signal(1);
     }
 

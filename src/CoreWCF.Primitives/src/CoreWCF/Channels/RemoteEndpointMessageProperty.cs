@@ -42,10 +42,7 @@ namespace CoreWCF.Channels
             _remoteEndPoint = remoteEndPoint;
         }
 
-        public static string Name
-        {
-            get { return typeof(RemoteEndpointMessageProperty).FullName; }
-        }
+        public const string Name = "CoreWCF.Channels.RemoteEndpointMessageProperty";
 
         public string Address
         {

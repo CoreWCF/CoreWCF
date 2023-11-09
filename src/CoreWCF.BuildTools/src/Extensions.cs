@@ -46,6 +46,22 @@ namespace CoreWCF.BuildTools
     {
         public static bool IsMatchingParameter(this IParameterSymbol symbol, IParameterSymbol parameterSymbol)
             => SymbolEqualityComparer.Default.Equals(symbol.Type, parameterSymbol.Type);
+
+        public static string? GetInjectedPropertyNameValue(this IParameterSymbol symbol, INamedTypeSymbol? coreWcfInjectedAttributeSymbol)
+        {
+            foreach (AttributeData attributeData in symbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, coreWcfInjectedAttributeSymbol))
+                {
+                    if (attributeData.NamedArguments.Length > 0 && attributeData.NamedArguments[0].Key == "PropertyName")
+                    {
+                        return attributeData.NamedArguments[0].Value.Value!.ToString();
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 
     internal static class SymbolExtensions
