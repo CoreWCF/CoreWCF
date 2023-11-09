@@ -13,6 +13,7 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal static class KafkaEx
 {
+    private static readonly string s_brokerContainerName = "broker";
     private static Lazy<IAdminClient> AdminClient => new(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = "localhost:9092" }).Build());
 
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
@@ -113,4 +114,8 @@ internal static class KafkaEx
         output.WriteLine($"{messageCount} messages found in topic {topicName}");
         return messageCount;
     }
+
+    public static Task PauseAsync(ITestOutputHelper output) => DockerEx.PauseAsync(output, s_brokerContainerName);
+    public static Task UnpauseAsync(ITestOutputHelper output) => DockerEx.UnpauseAsync(output, s_brokerContainerName);
+
 }

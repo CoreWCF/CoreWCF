@@ -33,4 +33,10 @@
   <data name="SecurityModeNotSupportedYet" xml:space="preserve">
     <value>Security mode not supported yet</value>
   </data>
+  <data name="KafkaSendTimeoutExceeded" xml:space="preserve">
+    <value>The Kafka host failed to confirm message was published within the timeout limit of {0}ms.</value>
+  </data>
+  <data name="KafkaSendTimeout" xml:space="preserve">
+    <value>The Kafka host failed to confirm message was published.</value>
+  </data>
 </root>

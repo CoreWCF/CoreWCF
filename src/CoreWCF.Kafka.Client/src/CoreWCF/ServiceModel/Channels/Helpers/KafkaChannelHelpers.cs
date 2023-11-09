@@ -10,18 +10,16 @@ namespace CoreWCF.ServiceModel.Channels;
 
 internal static class KafkaChannelHelpers
 {
-    public static Exception ConvertProduceException(ProduceException<Null, byte[]> produceException)
+    public static Exception ConvertProduceException(ProduceException<byte[], byte[]> produceException)
     {
+        if (produceException.Error.IsLocalError && produceException.Error.Code == ErrorCode.Local_MsgTimedOut)
+        {
+            throw new TimeoutException(SR.KafkaSendTimeout, produceException);
+        }
+
         return new CommunicationException(
             string.Format(CultureInfo.CurrentCulture,
                 "An error ({0}: {1}) occurred while transmitting data.", produceException.Error.Code, produceException.Error.Reason),
             produceException);
-    }
-
-    public static Exception ConvertError(Error error)
-    {
-        return new CommunicationException(
-            string.Format(CultureInfo.InvariantCulture,
-                "An error ({0}: {1}) occurred while transmitting data.", error.Code, error.Reason));
     }
 }
