@@ -20,6 +20,10 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _httpContextSymbol;
             private readonly INamedTypeSymbol? _httpRequestSymbol;
             private readonly INamedTypeSymbol? _httpResponseSymbol;
+            private readonly INamedTypeSymbol? _remoteEndpointMessagePropertySymbol;
+            private readonly INamedTypeSymbol? _kafkaMessagePropertySymbol;
+            private readonly INamedTypeSymbol? _httpRequestMessagePropertySymbol;
+            private readonly INamedTypeSymbol? _httpResponseMessagePropertySymbol;
             private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFInjectedSymbol;
@@ -102,7 +106,12 @@ namespace CoreWCF.BuildTools
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
                     _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"));
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.RemoteEndpointMessageProperty"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.KafkaMessageProperty"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.HttpRequestMessageProperty"),
+                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.HttpResponseMessageProperty")
+                );
             }
 
             internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax

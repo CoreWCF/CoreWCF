@@ -15,7 +15,7 @@ using ServiceContract;
 namespace Services
 {
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, InstanceContextMode = InstanceContextMode.Single)]
-    public class TestService : ServiceContract.ITestService
+    public partial class TestService : ServiceContract.ITestService
     {
         private readonly ManualResetEvent _mre = new ManualResetEvent(false);
 
@@ -45,6 +45,9 @@ namespace Services
 
             throw new Exception("Remote endpoint message property not found");
         }
+
+        public string GetClientIpEndpointInjected([Injected(PropertyName = RemoteEndpointMessageProperty.Name)] RemoteEndpointMessageProperty remoteEndpointMessageProperty) =>
+            remoteEndpointMessageProperty.Address + ":" + remoteEndpointMessageProperty.Port;
 
         public TestMessage TestMessageContract(TestMessage testMessage)
         {

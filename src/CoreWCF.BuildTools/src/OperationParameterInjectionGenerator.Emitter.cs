@@ -55,11 +55,29 @@ namespace CoreWCF.BuildTools
 
             private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
             private readonly SourceGenerationSpec _generationSpec;
+            private readonly List<(INamedTypeSymbol PropertySymbol, string PropertyName, string PropertyTypeFullName, string outputVarName)> _properties = new();
 
             public Emitter(in OperationParameterInjectionSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
             {
                 _sourceGenerationContext = sourceGenerationContext;
                 _generationSpec = generationSpec;
+                if (_generationSpec.RemoteEndpointMessagePropertySymbol is not null)
+                {
+                    _properties.Add((_generationSpec.RemoteEndpointMessagePropertySymbol, "CoreWCF.Channels.RemoteEndpointMessageProperty", "CoreWCF.Channels.RemoteEndpointMessageProperty", "remoteEndpointMessageProperty"));
+                }
+                if (_generationSpec.KafkaMessagePropertySymbol is not null)
+                {
+                    _properties.Add((_generationSpec.KafkaMessagePropertySymbol, "CoreWCF.Channels.KafkaMessageProperty", "CoreWCF.Channels.KafkaMessageProperty", "kafkaMessageProperty"));
+                }
+                if (_generationSpec.HttpRequestMessagePropertySymbol is not null)
+                {
+                    _properties.Add((_generationSpec.HttpRequestMessagePropertySymbol, "httpRequest", "CoreWCF.Channels.HttpRequestMessageProperty", "httpRequestMessageProperty"));
+                }
+                if (_generationSpec.HttpResponseMessagePropertySymbol is not null)
+                {
+                    _properties.Add((_generationSpec.HttpResponseMessagePropertySymbol, "httpResponse", "CoreWCF.Channels.HttpResponseMessageProperty", "httpResponseMessageProperty"));
+                }
+
                 _builder = new StringBuilder();
             }
 
@@ -171,17 +189,36 @@ using Microsoft.Extensions.DependencyInjection;");
                 _builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
                 _builder.AppendLine($@"{indentor}if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");");
 
+                int objectIndex = 0;
                 if (dependencies.Any(x => SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpContextSymbol)
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpRequestSymbol)
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpResponseSymbol)))
                 {
-                    _builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)");
+                    _builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var o{objectIndex})");
                     indentor.Increment();
-                    _builder.AppendLine($@"{indentor}&& @object is Microsoft.AspNetCore.Http.HttpContext context)");
-                    _builder.AppendLine($@"{indentor}? context");
+                    _builder.AppendLine($@"{indentor}&& o{objectIndex} is Microsoft.AspNetCore.Http.HttpContext p{objectIndex})");
+                    _builder.AppendLine($@"{indentor}? p{objectIndex}");
                     _builder.AppendLine($@"{indentor}: null;");
                     indentor.Decrement();
                     _builder.AppendLine($@"{indentor}if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");");
+                    objectIndex++;
+                }
+
+                foreach ((INamedTypeSymbol propertySymbol, string PropertyName, string PropertyTypeFullName, string outputVar) property in _properties)
+                {
+                    var propertyDependency = dependencies.FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.Type, property.propertySymbol)
+                        && x.GetInjectedPropertyNameValue(_generationSpec.CoreWCFInjectedSymbol) == property.PropertyName);
+                    if (propertyDependency != null)
+                    {
+                        _builder.AppendLine($@"{indentor}var {property.outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{property.PropertyName}"", out var o{objectIndex})");
+                        indentor.Increment();
+                        _builder.AppendLine($@"{indentor}&& o{objectIndex} is {property.PropertyTypeFullName} p{objectIndex})");
+                        _builder.AppendLine($@"{indentor}? p{objectIndex}");
+                        _builder.AppendLine($@"{indentor}: null;");
+                        indentor.Decrement();
+                        _builder.AppendLine($@"{indentor}if ({property.outputVar} == null) throw new InvalidOperationException(""Missing {property.PropertyName} in IncomingMessageProperties properties"");");
+                        objectIndex++;
+                    }
                 }
 
                 _builder.AppendLine($@"{indentor}if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)");
@@ -235,6 +272,22 @@ using Microsoft.Extensions.DependencyInjection;");
                         else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpResponseSymbol, dependencies[i].Type))
                         {
                             _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.RemoteEndpointMessagePropertySymbol, dependencies[i].Type))
+                        {
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = remoteEndpointMessageProperty;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.KafkaMessagePropertySymbol, dependencies[i].Type))
+                        {
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = kafkaMessageProperty;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.HttpRequestMessagePropertySymbol, dependencies[i].Type))
+                        {
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpRequestMessageProperty;");
+                        }
+                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.HttpResponseMessagePropertySymbol, dependencies[i].Type))
+                        {
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpResponseMessageProperty;");
                         }
                         else
                         {

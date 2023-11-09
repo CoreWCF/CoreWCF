@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
             _httpContextBackedProperty = new HttpContextBackedProperty(httpContext);
         }
 
-        public static string Name => "httpRequest";
+        public const string Name = "httpRequest";
 
         /// <summary>
         /// Gets the headers from the underlying HTTP Request.
