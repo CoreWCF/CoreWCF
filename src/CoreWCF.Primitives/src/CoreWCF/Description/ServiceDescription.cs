@@ -20,15 +20,6 @@ namespace CoreWCF.Description
         private string _configurationName;
         private XmlName _serviceName;
 
-        // TODO: use RuntimeFeature.IsDynamicCodeSupported when we target net8
-        private static readonly string s_isDynamicCodeSupportedAppContextSwitchKey = "System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported";
-        protected static readonly Lazy<bool> s_isDynamicCodeSupported = new Lazy<bool>(() =>
-            // See https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/RuntimeFeature.NonNativeAot.cs,14
-            AppContext.TryGetSwitch(s_isDynamicCodeSupportedAppContextSwitchKey, out bool isDynamicCodeSupported)
-                ? isDynamicCodeSupported
-                : true
-        );
-
         public ServiceDescription() { }
 
         public ServiceDescription(IEnumerable<ServiceEndpoint> endpoints) : this()
@@ -337,8 +328,7 @@ namespace CoreWCF.Description
             // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
             var behaviors = injectedBehaviors.ToList();
 
-            // TODO: Remove this check and the dynamic assembly load once we target net8
-            if (Environment.Version.Major >= 8 && s_isDynamicCodeSupported.Value)
+            if (Environment.Version.Major >= 8)
             {
                 behaviors.AddRange(s_getKeyedServiceBehaviorsDelegate.Value.Invoke(services));
             }
@@ -358,18 +348,11 @@ namespace CoreWCF.Description
         private static Func<IServiceProvider, IEnumerable<IServiceBehavior>> BuildGetKeyedServiceBehaviors()
         {
             IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
-
-            Type keyedServiceProviderType;
-            try
-            {
-                Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
-                keyedServiceProviderType = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider");
-            }
-            catch
+            Type keyedServiceProviderType = Type.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider", false);
+            if (keyedServiceProviderType == null)
             {
                 return NoOp;
             }
-
             ParameterExpression parameter = Expression.Parameter(typeof(IServiceProvider));
             UnaryExpression castAsIKeyedServiceProvider = Expression.TypeAs(parameter, keyedServiceProviderType);
             var serviceProviderIsNotNullExpr = Expression.NotEqual(Expression.Constant(null), castAsIKeyedServiceProvider);
@@ -378,9 +361,8 @@ namespace CoreWCF.Description
                 Expression.Convert(Expression.Call(castAsIKeyedServiceProvider, "GetKeyedService", new Type[] { },
                     Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
                     Expression.Constant(typeof(TService))), typeof(IEnumerable<IServiceBehavior>)),
-                 Expression.Convert(
-                     Expression.Constant(Enumerable.Empty<IServiceBehavior>()), typeof(IEnumerable<IServiceBehavior>)) );
-
+                Expression.Convert(
+                    Expression.Constant(Enumerable.Empty<IServiceBehavior>()), typeof(IEnumerable<IServiceBehavior>)) );
             var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(serviceBehaviors, parameter);
             return lambda.Compile();
         }
