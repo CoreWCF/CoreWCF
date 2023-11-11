@@ -347,38 +347,46 @@ namespace CoreWCF.Description
 
         private static Func<IServiceProvider, IEnumerable<IServiceBehavior>> BuildGetKeyedServiceBehaviors()
         {
-            IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
-
-            Type keyedServiceProviderType;
-            try
-            {
-                Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
-                if (assembly == null)
-                {
-                    return NoOp;
-                }
-                keyedServiceProviderType = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider", false);
-            }
-            catch
-            {
-                return NoOp;
-            }
+            Type keyedServiceProviderType = GetIKeyedServiceProviderType();
             if (keyedServiceProviderType == null)
             {
                 return NoOp;
             }
+
+            const string methodName = "GetKeyedService";
             ParameterExpression parameter = Expression.Parameter(typeof(IServiceProvider));
             UnaryExpression castAsIKeyedServiceProvider = Expression.TypeAs(parameter, keyedServiceProviderType);
             var serviceProviderIsNotNullExpr = Expression.NotEqual(Expression.Constant(null), castAsIKeyedServiceProvider);
             var serviceBehaviors = Expression.Condition(
                 serviceProviderIsNotNullExpr,
-                Expression.Convert(Expression.Call(castAsIKeyedServiceProvider, "GetKeyedService", new Type[] { },
+                Expression.Convert(Expression.Call(castAsIKeyedServiceProvider, methodName, new Type[] { },
                     Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
                     Expression.Constant(typeof(TService))), typeof(IEnumerable<IServiceBehavior>)),
                 Expression.Convert(
                     Expression.Constant(Enumerable.Empty<IServiceBehavior>()), typeof(IEnumerable<IServiceBehavior>)) );
             var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(serviceBehaviors, parameter);
             return lambda.Compile();
+
+            IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
+
+            Type GetIKeyedServiceProviderType()
+            {
+                const string assemblyName = "Microsoft.Extensions.DependencyInjection.Abstractions";
+                const string typeName = "Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider";
+                try
+                {
+                    Assembly assembly = Assembly.Load(assemblyName);
+                    if (assembly == null)
+                    {
+                        return null;
+                    }
+                    return assembly.GetType(typeName, false);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
     }
 }
