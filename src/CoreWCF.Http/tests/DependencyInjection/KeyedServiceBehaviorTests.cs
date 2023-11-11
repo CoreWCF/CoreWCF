@@ -42,9 +42,9 @@ public class KeyedServiceBehaviorTests
                 new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service")));
             IReverseEchoService channel = factory.CreateChannel();
             string result = channel.Reverse(testString);
-            
+
             System.ServiceModel.BasicHttpBinding httpBinding2 = ClientHelper.GetBufferedModeBinding();
-            var factory2 = new System.ServiceModel.ChannelFactory<IReverseEchoService>(httpBinding,
+            var factory2 = new System.ServiceModel.ChannelFactory<IReverseEchoService>(httpBinding2,
                 new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/service2")));
             IReverseEchoService channel2 = factory2.CreateChannel();
             string result2 = channel2.Reverse(testString);

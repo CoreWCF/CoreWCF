@@ -348,7 +348,21 @@ namespace CoreWCF.Description
         private static Func<IServiceProvider, IEnumerable<IServiceBehavior>> BuildGetKeyedServiceBehaviors()
         {
             IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
-            Type keyedServiceProviderType = Type.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider", false);
+
+            Type keyedServiceProviderType;
+            try
+            {
+                Assembly assembly = Assembly.Load("Microsoft.Extensions.DependencyInjection.Abstractions");
+                if (assembly == null)
+                {
+                    return NoOp;
+                }
+                keyedServiceProviderType = assembly.GetType("Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider", false);
+            }
+            catch
+            {
+                return NoOp;
+            }
             if (keyedServiceProviderType == null)
             {
                 return NoOp;
