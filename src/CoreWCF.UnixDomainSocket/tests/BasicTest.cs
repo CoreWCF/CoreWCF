@@ -27,7 +27,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
             _output = output;
             LinuxSocketFilepath = Path.Combine(Path.GetTempPath(), "unix1.txt");
         }
-        
+
         [Fact]
         public void NoAuthUnixDomainSocket()
         {
@@ -78,8 +78,8 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 host.Start();
                 try
                 {
-                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
-                    binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.IdentityOnly;
+                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
+                    binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.PosixIdentity;
 
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(new Uri("net.uds://" + LinuxSocketFilepath)));
@@ -98,7 +98,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
-                
+
             }
         }
 
@@ -114,7 +114,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 host.Start();
                 try
                 {
-                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
                     binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.Windows;
 
                     var uriBuilder = new UriBuilder()
@@ -128,7 +128,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
-                    ((IChannel)channel).Close();    
+                    ((IChannel)channel).Close();
                     factory.Close();
                 }
                 catch (Exception ex)
@@ -151,7 +151,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
             using (host)
             {
                 host.Start();
-                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.Transport);
+                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
                 binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.Certificate;
                 var uriBuilder = new UriBuilder()
                 {
@@ -191,7 +191,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
         [InlineData(UnixDomainSocketSecurityMode.TransportCredentialOnly, UnixDomainSocketClientCredentialType.Certificate)]
         private void CheckForSecurityModeCompatibility(UnixDomainSocketSecurityMode securityMode, UnixDomainSocketClientCredentialType clientCredType)
         {
-            
+
             var udsBinding = new UnixDomainSocketBinding
             {
                 Security = new UnixDomainSocketSecurity

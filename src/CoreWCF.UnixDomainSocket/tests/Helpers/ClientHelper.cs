@@ -12,14 +12,14 @@ namespace Helpers
     {
         private static readonly TimeSpan s_debugTimeout = TimeSpan.FromMinutes(20);
 
-        public static UnixDomainSocketBinding GetBufferedModeBinding(SecurityMode securityMode = SecurityMode.None)
+        public static UnixDomainSocketBinding GetBufferedModeBinding(UnixDomainSocketSecurityMode securityMode = UnixDomainSocketSecurityMode.None)
         {
             var binding = new UnixDomainSocketBinding(securityMode);
             ApplyDebugTimeouts(binding);
             return binding;
         }
 
-        public static UnixDomainSocketBinding GetStreamedModeBinding(SecurityMode securityMode = SecurityMode.None)
+        public static UnixDomainSocketBinding GetStreamedModeBinding(UnixDomainSocketSecurityMode securityMode = UnixDomainSocketSecurityMode.None)
         {
             var binding = new UnixDomainSocketBinding(securityMode)
             {
