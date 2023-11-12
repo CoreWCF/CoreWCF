@@ -127,7 +127,7 @@ namespace CoreWCF.ServiceModel.Channels
                 kafkaMessage.Value = new Span<byte>(messageBuffer.Array, messageBuffer.Offset, messageBuffer.Count).ToArray();
                 await _producer.ProduceAsync(_topic, kafkaMessage, cts.Token);
             }
-            catch (ProduceException<Null, byte[]> produceException)
+            catch (ProduceException<byte[], byte[]> produceException)
             {
                 throw KafkaChannelHelpers.ConvertProduceException(produceException);
             }

@@ -10,7 +10,7 @@ namespace CoreWCF.ServiceModel.Channels;
 
 internal static class KafkaChannelHelpers
 {
-    public static Exception ConvertProduceException(ProduceException<Null, byte[]> produceException)
+    public static Exception ConvertProduceException(ProduceException<byte[], byte[]> produceException)
     {
         return new CommunicationException(
             string.Format(CultureInfo.CurrentCulture,
