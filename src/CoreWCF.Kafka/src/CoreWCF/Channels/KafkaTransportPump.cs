@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Pipelines;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     private CancellationTokenSource _cts;
     private AsyncManualResetEvent _mres;
     private bool _isStarted;
+    private bool _isRegexSubscription;
     private readonly TimeSpan _closeTimeout;
     internal TopicPartitionOffsetTracker OffsetTracker { get; private set; }
 
@@ -39,7 +41,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOncePerMessageCommitConfigValues = (false, null);
     private static readonly (bool? EnableAutoCommit, bool? EnableAutoOffsetStore) s_atLeastOnceBatchCommitConfigValues = (true, false);
     private static readonly Regex s_topicNameRegex =
-        new(@"^[a-zA-Z0-9\.\-_]{1,255}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+        new(@"^[a-zA-Z0-9\.\-_\*\^]{1,255}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
 
     public KafkaTransportPump(KafkaTransportBindingElement transportBindingElement,
         ILogger<KafkaTransportPump> logger,
@@ -47,7 +49,9 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
     {
         _logger = logger;
         _kafkaDeliverySemantics = kafkaDeliverySemantics;
-        Topic = serviceDispatcher.BaseAddress.PathAndQuery.TrimStart('/');
+        Topic = WebUtility.UrlDecode(serviceDispatcher.BaseAddress.PathAndQuery.TrimStart('/'));
+        _isRegexSubscription = Topic.StartsWith("^");
+
         if (string.IsNullOrEmpty(Topic) || !s_topicNameRegex.IsMatch(Topic))
         {
             throw new NotSupportedException(string.Format(SR.InvalidTopicName, Topic));
@@ -258,8 +262,9 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
         QueueTransportContext queueTransportContext)
     {
         var receiveContext = new KafkaReceiveContext(consumeResult, this);
-        var context = new QueueMessageContext
+        var context = new KafkaMessageContext
         {
+            IsRegexSubscription = _isRegexSubscription,
             ReceiveContext = receiveContext,
             QueueTransportContext = queueTransportContext,
             LocalAddress = new EndpointAddress(queueTransportContext.ServiceDispatcher.BaseAddress),
