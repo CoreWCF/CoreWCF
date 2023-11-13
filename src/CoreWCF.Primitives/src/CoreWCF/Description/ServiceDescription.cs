@@ -373,19 +373,8 @@ namespace CoreWCF.Description
             {
                 const string assemblyName = "Microsoft.Extensions.DependencyInjection.Abstractions";
                 const string typeName = "Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider";
-                try
-                {
-                    Assembly assembly = Assembly.Load(assemblyName);
-                    if (assembly == null)
-                    {
-                        return null;
-                    }
-                    return assembly.GetType(typeName, false);
-                }
-                catch
-                {
-                    return null;
-                }
+                const string fullName = typeName + ", " + assemblyName;
+                return Type.GetType(fullName, false);
             }
         }
     }
