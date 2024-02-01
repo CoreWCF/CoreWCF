@@ -330,7 +330,8 @@ namespace CoreWCF.Description
 
             oca.AsyncPattern = GetProperty<bool>(attr, nameof(OperationContractAttribute.AsyncPattern));
             oca.IsOneWay = GetProperty<bool>(attr, nameof(OperationContractAttribute.IsOneWay));
-            // TODO: IsInitiating and IsTerminating
+            oca.IsInitiating = GetProperty<bool>(attr, nameof(OperationContractAttribute.IsInitiating));
+            oca.IsTerminating = GetProperty<bool>(attr, nameof(OperationContractAttribute.IsTerminating));
             return oca;
         }
 

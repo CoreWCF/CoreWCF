@@ -57,6 +57,10 @@ namespace CoreWCF
 
         public bool IsOneWay { get; set; }
 
+        public bool IsInitiating { get; set; } = true;
+        
+        public bool IsTerminating { get; set; }
+
         internal bool IsSessionOpenNotificationEnabled
         {
             get
