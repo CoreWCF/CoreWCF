@@ -996,10 +996,9 @@ namespace CoreWCF.Description
 
             OperationDescription operationDescription = new OperationDescription(operationName.EncodedName, declaringContract)
             {
-                //operationDescription.IsInitiating = opAttr.IsInitiating;
-                //operationDescription.IsTerminating = opAttr.IsTerminating;
+                IsInitiating = opAttr.IsInitiating,
+                IsTerminating = opAttr.IsTerminating,
                 IsSessionOpenNotificationEnabled = opAttr.IsSessionOpenNotificationEnabled,
-
                 HasNoDisposableParameters = ServiceReflector.HasNoDisposableParameters(methodInfo)
             };
 
