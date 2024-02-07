@@ -1571,6 +1571,21 @@ namespace CoreWCF.Security
 
             return false;
         }
+
+        internal static void EnsureExpectedSymmetricMatch(SecurityToken t1, SecurityToken t2, Message message)
+        {
+            if (t1 == null || t2 == null || ReferenceEquals(t1, t2))
+            {
+                return;
+            }
+            // check for interop flexibility
+            SymmetricSecurityKey c1 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t1);
+            SymmetricSecurityKey c2 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t2);
+            if (c1 == null || c2 == null || !CryptoHelper.IsEqual(c1.GetSymmetricKey(), c2.GetSymmetricKey()))
+            {
+                throw CoreWCF.Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenNotExpectedInSecurityHeader, t2)), message);
+            }
+        }
     }
 
     internal static class EmptyReadOnlyCollection<T>

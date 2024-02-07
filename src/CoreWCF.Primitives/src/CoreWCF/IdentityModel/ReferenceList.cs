@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml;
+using CoreWCF.IdentityModel;
 using DictionaryManager = CoreWCF.IdentityModel.DictionaryManager;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 
@@ -100,15 +101,14 @@ namespace CoreWCF.Security
 
             public static string ReadFrom(XmlDictionaryReader reader)
             {
-                throw new NotImplementedException();
-                //string prefix;
-                //string uri = XmlHelper.ReadEmptyElementAndRequiredAttribute(reader, ElementName, NamespaceUri, ReferenceList.UriAttribute, out prefix);
-                //if (uri.Length < 2 || uri[0] != '#')
-                //{
-                //    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                //        new SecurityMessageSerializationException(SR.GetString(SR.InvalidDataReferenceInReferenceList, uri)));
-                //}
-                //return uri.Substring(1);
+                string prefix;
+                string uri = XmlHelper.ReadEmptyElementAndRequiredAttribute(reader, ElementName, NamespaceUri, ReferenceList.UriAttribute, out prefix);
+                if (uri.Length < 2 || uri[0] != '#')
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new SecurityMessageSerializationException("InvalidDataReferenceInReferenceList"));
+                }
+                return uri.Substring(1);
             }
 
             public static void WriteTo(XmlDictionaryWriter writer, string referredId)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Security.Cryptography;
@@ -10,10 +11,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
+using CoreWCF.Diagnostics;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
 
 namespace CoreWCF.Security
@@ -21,6 +24,10 @@ namespace CoreWCF.Security
     internal class WSSecurityOneDotZeroReceiveSecurityHeader : ReceiveSecurityHeader
     {
         private KeyedHashAlgorithm _signingKey;
+        private ReferenceList _pendingReferenceList;
+        private WrappedKeySecurityToken _pendingDecryptionToken;
+        private List<string> _earlyDecryptedDataReferences;
+        private SignedXml _pendingSignature;
         private const string SIGNED_XML_HEADER = "signed_xml_header";
         public WSSecurityOneDotZeroReceiveSecurityHeader(Message message, string actor, bool mustUnderstand, bool relay,
             SecurityStandardsManager standardsManager,
@@ -43,7 +50,26 @@ namespace CoreWCF.Security
 
         protected override void EnsureDecryptionComplete()
         {
-            // noop
+            if (_earlyDecryptedDataReferences != null)
+            {
+                for (int i = 0; i < _earlyDecryptedDataReferences.Count; i++)
+                {
+                    if (!TryDeleteReferenceListEntry(_earlyDecryptedDataReferences[i]))
+                    {
+                        throw TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.UnexpectedEncryptedElementInSecurityHeader)), this.Message);
+                    }
+                }
+            }
+            if (HasPendingDecryptionItem())
+            {
+                throw TraceUtility.ThrowHelperError(
+                    new MessageSecurityException(SR.Format(SR.UnableToResolveDataReference, _pendingReferenceList.GetReferredId(0))), this.Message);
+            }
+        }
+
+        protected bool HasPendingDecryptionItem()
+        {
+            return _pendingReferenceList != null && _pendingReferenceList.DataReferenceCount > 0;
         }
 
         protected override bool IsReaderAtEncryptedKey(XmlDictionaryReader reader)
@@ -57,7 +83,7 @@ namespace CoreWCF.Security
 
             if (encrypted == true)
             {
-                throw new PlatformNotSupportedException();
+                HasAtLeastOneItemInsideSecurityHeaderEncrypted = true;
             }
 
             return encrypted;
@@ -70,47 +96,327 @@ namespace CoreWCF.Security
 
         protected override EncryptedData ReadSecurityHeaderEncryptedItem(XmlDictionaryReader reader, bool readXmlreferenceKeyInfoClause)
         {
-            throw new PlatformNotSupportedException();
+            EncryptedData encryptedData = new EncryptedData();
+            encryptedData.ShouldReadXmlReferenceKeyInfoClause = readXmlreferenceKeyInfoClause;
+            encryptedData.SecurityTokenSerializer = StandardsManager.SecurityTokenSerializer;
+            encryptedData.ReadFrom(reader);
+            return encryptedData;
         }
 
         protected override byte[] DecryptSecurityHeaderElement(EncryptedData encryptedData, WrappedKeySecurityToken wrappedKeyToken, out SecurityToken encryptionToken)
         {
-            throw new PlatformNotSupportedException();
+            if ((encryptedData.KeyIdentifier != null) || (wrappedKeyToken == null))
+            {
+                // The EncryptedData might have a KeyInfo inside it. Try resolving the SecurityKeyIdentifier. 
+                encryptionToken = ResolveKeyIdentifier(encryptedData.KeyIdentifier, this.CombinedPrimaryTokenResolver, false);
+                if (wrappedKeyToken != null && wrappedKeyToken.ReferenceList != null && encryptedData.HasId && wrappedKeyToken.ReferenceList.ContainsReferredId(encryptedData.Id) && (wrappedKeyToken != encryptionToken))
+                {
+                    // We have a EncryptedKey with a ReferenceList inside it. This would mean that 
+                    // all the EncryptedData pointed by the ReferenceList should be encrypted only
+                    // by this key. The individual EncryptedData elements if containing a KeyInfo
+                    // clause should point back to the same EncryptedKey token.
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.EncryptedKeyWasNotEncryptedWithTheRequiredEncryptingToken, wrappedKeyToken)));
+                }
+            }
+            else
+            {
+                encryptionToken = wrappedKeyToken;
+            }
+            using (SymmetricAlgorithm algorithm = CreateDecryptionAlgorithm(encryptionToken, encryptedData.EncryptionMethod, this.AlgorithmSuite))
+            {
+                encryptedData.SetUpDecryption(algorithm);
+                return encryptedData.GetDecryptedBuffer();
+            }
         }
 
         protected override WrappedKeySecurityToken DecryptWrappedKey(XmlDictionaryReader reader)
         {
-            throw new PlatformNotSupportedException();
+            WrappedKeySecurityToken token = (WrappedKeySecurityToken)StandardsManager.SecurityTokenSerializer.ReadToken(
+                reader, PrimaryTokenResolver);
+            AlgorithmSuite.EnsureAcceptableKeyWrapAlgorithm(token.WrappingAlgorithm, token.WrappingSecurityKey is AsymmetricSecurityKey);
+            return token;
+        }
+
+        protected static SymmetricAlgorithm CreateDecryptionAlgorithm(SecurityToken token, string encryptionMethod, SecurityAlgorithmSuite suite)
+        {
+            if (encryptionMethod == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.EncryptionMethodMissingInEncryptedData)));
+            }
+            suite.EnsureAcceptableEncryptionAlgorithm(encryptionMethod);
+            SymmetricSecurityKey symmetricSecurityKey = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(token);
+            if (symmetricSecurityKey == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.TokenCannotCreateSymmetricCrypto, token)));
+            }
+            suite.EnsureAcceptableDecryptionSymmetricKeySize(symmetricSecurityKey, token);
+            SymmetricAlgorithm algorithm = symmetricSecurityKey.GetSymmetricAlgorithm(encryptionMethod);
+            if (algorithm == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.UnableToCreateSymmetricAlgorithmFromToken, encryptionMethod)));
+            }
+
+            return algorithm;
         }
 
         protected override void OnDecryptionOfSecurityHeaderItemRequiringReferenceListEntry(string id)
         {
-            throw new PlatformNotSupportedException();
+            if (!TryDeleteReferenceListEntry(id))
+            {
+                if (_earlyDecryptedDataReferences == null)
+                {
+                    _earlyDecryptedDataReferences = new List<string>(4);
+                }
+                _earlyDecryptedDataReferences.Add(id);
+            }
         }
 
         protected override void ExecuteMessageProtectionPass(bool hasAtLeastOneSupportingTokenExpectedToBeSigned)
         {
-            throw new PlatformNotSupportedException();
+            SignatureTargetIdManager idManager = this.StandardsManager.IdManager;
+            MessagePartSpecification encryptionParts = this.RequiredEncryptionParts ?? MessagePartSpecification.NoParts;
+            MessagePartSpecification signatureParts = this.RequiredSignatureParts ?? MessagePartSpecification.NoParts;
+
+            bool checkForTokensAtHeaders = hasAtLeastOneSupportingTokenExpectedToBeSigned;
+            bool doSoapAttributeChecks = !signatureParts.IsBodyIncluded;
+            bool encryptBeforeSign = this.EncryptBeforeSignMode;
+            SignedInfo signedInfo = _pendingSignature != null ? _pendingSignature.Signature.SignedInfo : null;
+
+            SignatureConfirmations signatureConfirmations = this.GetSentSignatureConfirmations();
+            if (signatureConfirmations != null && signatureConfirmations.Count > 0 && signatureConfirmations.IsMarkedForEncryption)
+            {
+                // If Signature Confirmations are encrypted then the signature should
+                // be encrypted as well.
+                this.VerifySignatureEncryption();
+            }
+
+            MessageHeaders headers = this.SecurityVerifiedMessage.Headers;
+            XmlDictionaryReader reader = this.SecurityVerifiedMessage.GetReaderAtFirstHeader();
+
+            bool atLeastOneHeaderOrBodyEncrypted = false;
+
+            for (int i = 0; i < headers.Count; i++)
+            {
+                if (reader.NodeType != XmlNodeType.Element)
+                {
+                    reader.MoveToContent();
+                }
+
+                if (i == this.HeaderIndex)
+                {
+                    reader.Skip();
+                    continue;
+                }
+
+                bool isHeaderEncrypted = false;
+
+                string id = idManager.ExtractId(reader);
+
+                if (id != null)
+                {
+                    isHeaderEncrypted = TryDeleteReferenceListEntry(id);
+                }
+
+                if (!isHeaderEncrypted && reader.IsStartElement(SecurityXXX2005Strings.EncryptedHeader, SecurityXXX2005Strings.Namespace))
+                {
+                    XmlDictionaryReader localreader = headers.GetReaderAtHeader(i);
+                    localreader.ReadStartElement(SecurityXXX2005Strings.EncryptedHeader, SecurityXXX2005Strings.Namespace);
+
+                    if (localreader.IsStartElement(EncryptedData.ElementName, XD.XmlEncryptionDictionary.Namespace))
+                    {
+                        string encryptedDataId = localreader.GetAttribute(XD.XmlEncryptionDictionary.Id, null);
+
+                        if (encryptedDataId != null && TryDeleteReferenceListEntry(encryptedDataId))
+                        {
+                            isHeaderEncrypted = true;
+                        }
+                    }
+                }
+
+                this.ElementManager.VerifyUniquenessAndSetHeaderId(id, i);
+
+                MessageHeaderInfo info = headers[i];
+
+                if (!isHeaderEncrypted && encryptionParts.IsHeaderIncluded(info.Name, info.Namespace))
+                {
+                    this.SecurityVerifiedMessage.OnUnencryptedPart(info.Name, info.Namespace);
+                }
+
+                bool headerSigned;
+                if ((!isHeaderEncrypted || encryptBeforeSign) && id != null)
+                {
+                    headerSigned = EnsureDigestValidityIfIdMatches(signedInfo, id, reader, doSoapAttributeChecks, signatureParts, info, checkForTokensAtHeaders);
+                }
+                else
+                {
+                    headerSigned = false;
+                }
+
+                if (isHeaderEncrypted)
+                {
+                    XmlDictionaryReader decryptionReader = headerSigned ? headers.GetReaderAtHeader(i) : reader;
+                    DecryptedHeader decryptedHeader = DecryptHeader(decryptionReader, this.pendingDecryptionToken);
+                    info = decryptedHeader;
+                    id = decryptedHeader.Id;
+                    this.ElementManager.VerifyUniquenessAndSetDecryptedHeaderId(id, i);
+                    headers.ReplaceAt(i, decryptedHeader);
+                    if (!ReferenceEquals(decryptionReader, reader))
+                    {
+                        decryptionReader.Close();
+                    }
+
+                    if (!encryptBeforeSign && id != null)
+                    {
+                        XmlDictionaryReader decryptedHeaderReader = decryptedHeader.GetHeaderReader();
+                        headerSigned = EnsureDigestValidityIfIdMatches(signedInfo, id, decryptedHeaderReader, doSoapAttributeChecks, signatureParts, info, checkForTokensAtHeaders);
+                        decryptedHeaderReader.Close();
+                    }
+                }
+
+                if (!headerSigned && signatureParts.IsHeaderIncluded(info.Name, info.Namespace))
+                {
+                    this.SecurityVerifiedMessage.OnUnsignedPart(info.Name, info.Namespace);
+                }
+
+                if (headerSigned && isHeaderEncrypted)
+                {
+                    // We have a header that is signed and encrypted. So the accompanying primary signature
+                    // should be encrypted as well.
+                    this.VerifySignatureEncryption();
+                }
+
+                if (isHeaderEncrypted && !headerSigned)
+                {
+                    // We require all encrypted headers (outside the security header) to be signed.
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.GetString(SR.EncryptedHeaderNotSigned, info.Name, info.Namespace)));
+                }
+
+                if (!headerSigned && !isHeaderEncrypted)
+                {
+                    reader.Skip();
+                }
+
+                atLeastOneHeaderOrBodyEncrypted |= isHeaderEncrypted;
+            }
+
+            reader.ReadEndElement();
+
+            if (reader.NodeType != XmlNodeType.Element)
+            {
+                reader.MoveToContent();
+            }
+
+            string bodyId = idManager.ExtractId(reader);
+            this.ElementManager.VerifyUniquenessAndSetBodyId(bodyId);
+            this.SecurityVerifiedMessage.SetBodyPrefixAndAttributes(reader);
+
+            bool expectBodyEncryption = encryptionParts.IsBodyIncluded || HasPendingDecryptionItem();
+
+            bool bodySigned;
+            if ((!expectBodyEncryption || encryptBeforeSign) && bodyId != null)
+            {
+                bodySigned = EnsureDigestValidityIfIdMatches(signedInfo, bodyId, reader, false, null, null, false);
+            }
+            else
+            {
+                bodySigned = false;
+            }
+
+            bool bodyEncrypted;
+            if (expectBodyEncryption)
+            {
+                XmlDictionaryReader bodyReader = bodySigned ? this.SecurityVerifiedMessage.CreateFullBodyReader() : reader;
+                bodyReader.ReadStartElement();
+                string bodyContentId = idManager.ExtractId(bodyReader);
+                this.ElementManager.VerifyUniquenessAndSetBodyContentId(bodyContentId);
+                bodyEncrypted = bodyContentId != null && TryDeleteReferenceListEntry(bodyContentId);
+                if (bodyEncrypted)
+                {
+                    DecryptBody(bodyReader, this.pendingDecryptionToken);
+                }
+                if (!ReferenceEquals(bodyReader, reader))
+                {
+                    bodyReader.Close();
+                }
+                if (!encryptBeforeSign && signedInfo != null && signedInfo.HasUnverifiedReference(bodyId))
+                {
+                    bodyReader = this.SecurityVerifiedMessage.CreateFullBodyReader();
+                    bodySigned = EnsureDigestValidityIfIdMatches(signedInfo, bodyId, bodyReader, false, null, null, false);
+                    bodyReader.Close();
+                }
+            }
+            else
+            {
+                bodyEncrypted = false;
+            }
+
+            if (bodySigned && bodyEncrypted)
+            {
+                this.VerifySignatureEncryption();
+            }
+
+            reader.Close();
+
+            if (_pendingSignature != null)
+            {
+                _pendingSignature.CompleteSignatureVerification();
+                _pendingSignature = null;
+            }
+            this.pendingDecryptionToken = null;
+            atLeastOneHeaderOrBodyEncrypted |= bodyEncrypted;
+
+            if (!bodySigned && signatureParts.IsBodyIncluded)
+            {
+                this.SecurityVerifiedMessage.OnUnsignedPart(XD.MessageDictionary.Body.Value, this.Version.Envelope.Namespace);
+            }
+
+            if (!bodyEncrypted && encryptionParts.IsBodyIncluded)
+            {
+                this.SecurityVerifiedMessage.OnUnencryptedPart(XD.MessageDictionary.Body.Value, this.Version.Envelope.Namespace);
+            }
+
+            this.SecurityVerifiedMessage.OnMessageProtectionPassComplete(atLeastOneHeaderOrBodyEncrypted);
         }
+
+        private bool EnsureDigestValidityIfIdMatches(SignedInfo signedInfo, string id, XmlDictionaryReader reader, bool doSoapAttributeChecks, MessagePartSpecification signatureParts, MessageHeaderInfo info, bool checkForTokensAtHeaders) => throw new NotImplementedException();
 
         protected override ReferenceList ReadReferenceListCore(XmlDictionaryReader reader)
         {
-            throw new PlatformNotSupportedException();
+            ReferenceList referenceList = new ReferenceList();
+            referenceList.ReadFrom(reader);
+            return referenceList;
         }
 
         protected override void ProcessReferenceListCore(ReferenceList referenceList, WrappedKeySecurityToken wrappedKeyToken)
         {
-            throw new PlatformNotSupportedException();
+            _pendingReferenceList = referenceList;
+            _pendingDecryptionToken = wrappedKeyToken;
         }
 
         protected override void ReadSecurityTokenReference(XmlDictionaryReader reader)
         {
-            throw new PlatformNotSupportedException();
+            string strId = reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
+            SecurityKeyIdentifierClause strClause = this.StandardsManager.SecurityTokenSerializer.ReadKeyIdentifierClause(reader);
+            if (string.IsNullOrEmpty(strClause.Id))
+            {
+                strClause.Id = strId;
+            }
+
+            if (!string.IsNullOrEmpty(strClause.Id))
+            {
+               ElementManager.AppendSecurityTokenReference(strClause, strClause.Id);
+            }
         }
 
         protected override SignedXml ReadSignatureCore(XmlDictionaryReader signatureReader)
         {
+            XmlDocument doc1 = new XmlDocument();
             XmlDocument doc = new XmlDocument();
+          //  doc1.Load(signatureReader);
+           // string result = doc1.OuterXml;
             using (XmlWriter writer = doc.CreateNavigator().AppendChild())
             {
                 writer.WriteStartDocument();
@@ -120,7 +426,12 @@ namespace CoreWCF.Security
                 {
                     headers.WriteHeader(i, writer);
                 }
+                writer.WriteNode(signatureReader.ReadSubtree(),true);
+               // doc1.FirstChild
+              //  writer.WriteStartElement("Signature", "http://www.w3.org/2000/09/xmldsig#");
 
+               // writer.WriteString(doc1.InnerXml);
+                //writer.WriteEndElement();
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
             }
@@ -144,10 +455,10 @@ namespace CoreWCF.Security
                     }
                 }
             }
-            using (XmlReader tempReader = signatureReader.ReadSubtree())
+           /* using (XmlReader tempReader = signatureReader.ReadSubtree())
             {
-                tempReader.Read();//move the reader to next
-            }
+               // tempReader.Read();//move the reader to next
+            }*/
             return signedXml;
         }
 
@@ -181,8 +492,7 @@ namespace CoreWCF.Security
 
             // signedXml.StartSignatureVerification(securityKey);
             // StandardSignedInfo signedInfo = (StandardSignedInfo)signedXml.Signature.SignedInfo;
-
-            // ValidateDigestsOfTargetsInSecurityHeader(signedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
+            ValidateDigestsOfTargetsInSecurityHeader(signedXml.SignedInfo, this.Timestamp, isPrimarySignature, signatureTarget, id);
 
             if (!isPrimarySignature)
             {
@@ -241,12 +551,110 @@ namespace CoreWCF.Security
                     }
                 }
             }
-            // this.pendingSignature = signedXml;
+            _pendingSignature = signedXml;
 
             //if (TD.SignatureVerificationSuccessIsEnabled())
             //{
             //    TD.SignatureVerificationSuccess(this.EventTraceActivity);
             //}
+
+            return token;
+        }
+
+        
+        void ValidateDigestsOfTargetsInSecurityHeader(SignedInfo signedInfo, SecurityTimestamp timestamp, bool isPrimarySignature, object signatureTarget, string id)
+        {
+            Fx.Assert(!isPrimarySignature || (isPrimarySignature && (signatureTarget == null)), "For primary signature we try to validate all the references.");
+
+            for (int i = 0; i < signedInfo.References.Count; i++)
+            {
+                InternalReferenceWrapper reference = new InternalReferenceWrapper((Reference)signedInfo.References[i], ResourcePool);
+                this.AlgorithmSuite.EnsureAcceptableDigestAlgorithm(reference.DigestMethod);
+                string referredId = reference.ExtractReferredId();
+                if (isPrimarySignature || (id == referredId))
+                {
+                    if (timestamp != null && timestamp.Id == referredId && !reference.NeedsInclusiveContext() &&
+                        timestamp.DigestAlgorithm == reference.DigestMethod && timestamp.GetDigest() != null)
+                    {
+                        reference.EnsureDigestValidity(referredId, timestamp.GetDigest());
+                        this.ElementManager.SetTimestampSigned(referredId);
+                    }
+                    else
+                    {
+                        if (signatureTarget != null)
+                            reference.EnsureDigestValidity(id, signatureTarget);
+                        else
+                        {
+                            int tokenIndex = -1;
+                            XmlDictionaryReader reader = null;
+                            if (reference.IsStrTranform())
+                            {
+                                if (this.ElementManager.TryGetTokenElementIndexFromStrId(referredId, out tokenIndex))
+                                {
+                                    ReceiveSecurityHeaderEntry entry;
+                                    this.ElementManager.GetElementEntry(tokenIndex, out entry);
+                                    bool isSignedToken = (entry.bindingMode == ReceiveSecurityHeaderBindingModes.Signed)
+                                                       || (entry.bindingMode == ReceiveSecurityHeaderBindingModes.SignedEndorsing);
+                                    // This means it is a protected(signed)primary token.
+                                    if (!this.ElementManager.IsPrimaryTokenSigned)
+                                    {
+                                        this.ElementManager.IsPrimaryTokenSigned = entry.bindingMode == ReceiveSecurityHeaderBindingModes.Primary &&
+                                                                                   entry.elementCategory == ReceiveSecurityHeaderElementCategory.Token;
+                                    }
+                                    this.ElementManager.SetSigned(tokenIndex);
+                                    // We pass true if it is a signed supporting token, signed primary token or a SignedEndorsing token. We pass false if it is a SignedEncrypted Token. 
+                                    reader = this.ElementManager.GetReader(tokenIndex, isSignedToken);
+                                }
+                            }
+                            else
+                                reader = this.ElementManager.GetSignatureVerificationReader(referredId, this.EncryptBeforeSignMode);
+
+                            if (reader != null)
+                            {
+                                reference.EnsureDigestValidity(referredId, reader);
+                                reader.Close();
+                            }
+                        }
+                    }
+
+                    if (!isPrimarySignature)
+                    {
+                        // We were given an id to verify and we have verified it. So just break out
+                        // of the loop.
+                        break;
+                    }
+                }
+            }
+
+            // This check makes sure that if RequireSignedPrimaryToken is true (ProtectTokens is enabled on sbe) then the incoming message 
+            // should have the primary signature over the primary(signing)token.
+            if (isPrimarySignature && this.RequireSignedPrimaryToken && !this.ElementManager.IsPrimaryTokenSigned)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SupportingTokenIsNotSigned, new IssuedSecurityTokenParameters())));
+            }
+
+            // NOTE: On both client and server side, WCF quietly consumes protected tokens even if protect token is not enabled on sbe. 
+            // To change this behaviour add another check below and throw appropriate exception message.
+        }
+
+
+
+        protected static SecurityToken ResolveKeyIdentifier(SecurityKeyIdentifier keyIdentifier, SecurityTokenResolver resolver, bool isFromSignature)
+        {
+            SecurityToken token;
+            if (!TryResolveKeyIdentifier(keyIdentifier, resolver, isFromSignature, out token))
+            {
+                if (isFromSignature)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.UnableToResolveKeyInfoForVerifyingSignature, keyIdentifier, resolver)));
+                }
+                else
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.UnableToResolveKeyInfoForDecryption, keyIdentifier, resolver)));
+                }
+            }
 
             return token;
         }
@@ -335,7 +743,7 @@ namespace CoreWCF.Security
         }
         protected override bool TryDeleteReferenceListEntry(string id)
         {
-            throw new NotImplementedException();
+            return _pendingReferenceList != null && _pendingReferenceList.TryRemoveReferredId(id);
         }
     }
 }
