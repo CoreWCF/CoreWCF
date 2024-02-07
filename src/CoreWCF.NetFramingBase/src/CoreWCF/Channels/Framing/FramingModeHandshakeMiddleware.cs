@@ -73,7 +73,15 @@ namespace CoreWCF.Channels.Framing
                     // Unwrap the connection.
                     // TODO: Investigate calling Dispose on the wrapping stream to improve cleanup. nb: .NET Framework does not call Dispose.
                     connection.Transport = connection.RawTransport;
+
                     // connection.ServiceDispatcher is null until later middleware layers are executed.
+                    if (connection.ServiceDispatcher == null)
+                    {
+                        await connection.SendFaultAsync(FramingEncodingString.EndpointNotFoundFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,
+                            ConnectionOrientedTransportDefaults.MaxViaSize + ConnectionOrientedTransportDefaults.MaxContentTypeSize);
+                        return;
+                    }
+
                     if (reuseHandler == null)
                     {
                         reuseHandler = connection.ServiceDispatcher.Binding.GetProperty<IConnectionReuseHandler>(new BindingParameterCollection());

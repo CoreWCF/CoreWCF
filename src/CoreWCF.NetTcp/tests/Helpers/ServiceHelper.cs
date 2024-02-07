@@ -12,8 +12,9 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Helpers
@@ -92,11 +93,21 @@ namespace Helpers
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
             {
-                logging.AddProvider(new XunitLoggerProvider(outputHelper, callerMethodName));
+                // Create logger provider that captures exceptions and logs to xunit test output as well
+                logging.AddProvider(new ExceptionCapturingLoggerProvider(new XunitLoggerProvider(outputHelper, callerMethodName)));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
+#else
+            // Create logger provider that only captures exceptions
+            .ConfigureLogging(logging =>
+            {
+                logging.AddProvider(new ExceptionCapturingLoggerProvider(null));
+                logging.AddFilter("Default", LogLevel.Information);
+                logging.AddFilter("Microsoft", LogLevel.Information);
+                logging.SetMinimumLevel(LogLevel.Information);
+            })         
 #endif // DEBUG
             .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
@@ -115,6 +126,14 @@ namespace Helpers
             var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
             return addressInUse.Port;
         }
+
+        public static void AssertNoExceptionsLogged<TException>(this IWebHost host) where TException : Exception
+        {
+            var provider = host.Services.GetService<ILoggerProvider>() as ExceptionCapturingLoggerProvider;
+            Assert.NotNull(provider);
+            Assert.Empty(provider.GetExceptionsLogged<TException>());
+        }
+
 
         //only for test, don't use in production code
         public static X509Certificate2 GetServiceCertificate()
