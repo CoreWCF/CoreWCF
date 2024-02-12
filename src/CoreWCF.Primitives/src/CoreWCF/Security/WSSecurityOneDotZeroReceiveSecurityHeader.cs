@@ -291,7 +291,7 @@ namespace CoreWCF.Security
                 if (isHeaderEncrypted && !headerSigned)
                 {
                     // We require all encrypted headers (outside the security header) to be signed.
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.GetString(SR.EncryptedHeaderNotSigned, info.Name, info.Namespace)));
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.EncryptedHeaderNotSigned, info.Name, info.Namespace)));
                 }
 
                 if (!headerSigned && !isHeaderEncrypted)
