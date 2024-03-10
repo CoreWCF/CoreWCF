@@ -30,7 +30,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)'!='net472'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(DotNetVersion).*-*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(DotNetVersion).*" />
   </ItemGroup>
 
   <ItemGroup>
