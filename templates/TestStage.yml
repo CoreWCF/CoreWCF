@@ -17,27 +17,44 @@ stages:
             imageName: 'windows-latest'
             targetFramework: 'net6.0'
             testArgs: ''
-            additionalDotNetCoreSdk: '6.0.x'
+            dotnetSdk: '6.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_net7.0:
             imageName: 'windows-latest'
             targetFramework: 'net7.0'
             testArgs: ''
-            additionalDotNetCoreSdk: ''
+            dotnetSdk: '7.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
+          Windows_net8.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net8.0'
+            testArgs: ''
+            dotnetSdk: '8.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_netfx:
             imageName: 'windows-latest'
             targetFramework: 'net472'
             testArgs: ''
-            additionalDotNetCoreSdk: ''
+            dotnetSdk: '8.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
           Linux_net6.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net6.0'
             testArgs: ''
-            additionalDotNetCoreSdk: '6.0.x'
+            dotnetSdk: '6.0.x'
+            artifactName: 'Linux${{ configuration }}Build'
           Linux_net7.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net7.0'
             testArgs: ''
-            additionalDotNetCoreSdk: ''
+            dotnetSdk: '7.0.x'
+            artifactName: 'Linux${{ configuration }}Build'
+          Linux_net8.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net8.0'
+            testArgs: ''
+            dotnetSdk: '8.0.x'
+            artifactName: 'Linux${{ configuration }}Build'
       displayName: Test ${{ configuration }}
       pool:
         vmImage: $(imageName)
@@ -57,47 +74,26 @@ stages:
         displayName: Download build artifacts
         inputs:
           source: current
-          artifact: ReleaseBuild
+          artifact: $(artifactName)
           path: $(System.DefaultWorkingDirectory)/bin
 
       - task: UseDotNet@2
-        displayName: 'Use .NET 7.0 sdk'
+        displayName: 'Use .NET sdk $(dotnetSdk)'
         inputs:
           packageType: sdk
-          version: '7.0.x'
+          version: $(dotnetSdk)
           installationPath: $(Agent.ToolsDirectory)/dotnet
-
-      - task: UseDotNet@2
-        displayName: 'Use additional .NET Core sdk'
-        inputs:
-          packageType: sdk
-          version: $(additionalDotNetCoreSdk)
-          installationPath: $(Agent.ToolsDirectory)/dotnet
-        condition: not(eq(variables.additionalDotNetCoreSdk, ''))
-
-      - task: DotNetCoreCLI@2
-        displayName: Restore packages
-        inputs:
-          command: 'build'
-          projects: ${{ parameters.testProjects}}
-          arguments: '-c ${{ configuration }} /t:restore'
-
-      - task: DotNetCoreCLI@2
-        displayName: Build test projects
-        inputs:
-          command: 'build'
-          projects: ${{ parameters.testProjects}}
-          arguments: '-c ${{ configuration }} -f $(targetFramework)'
+          includePreviewVersions: true
 
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 20
         inputs:
           command: 'test'
-          projects: ${{ parameters.testProjects}}
+          projects: ${{ parameters.testProjects }}
           publishTestResults: true
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
-        
+
       - bash: |
           echo 'Cleaning up docker services...'
           docker compose down --rmi all

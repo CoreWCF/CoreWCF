@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -316,12 +318,21 @@ namespace CoreWCF.Description
 
     internal class ServiceDescription<TService> : ServiceDescription where TService : class
     {
+        private static readonly Lazy<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>
+            s_getKeyedServiceBehaviorsDelegate = new(BuildGetKeyedServiceBehaviors);
+
         public ServiceDescription(IEnumerable<IServiceBehavior> injectedBehaviors, IServiceProvider services)
         {
             ServiceType = typeof(TService);
             ServiceProvider = services;
             // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
             var behaviors = injectedBehaviors.ToList();
+
+            if (Environment.Version.Major >= 8)
+            {
+                behaviors.AddRange(s_getKeyedServiceBehaviorsDelegate.Value.Invoke(services));
+            }
+
             for (int i = 0; i < behaviors.Count; i++)
             {
                 if(behaviors[i] is ICloneable cloneable)
@@ -332,6 +343,39 @@ namespace CoreWCF.Description
 
             AddBehaviors<TService>(this, behaviors);
             SetupSingleton<TService>(this, services);
+        }
+
+        private static Func<IServiceProvider, IEnumerable<IServiceBehavior>> BuildGetKeyedServiceBehaviors()
+        {
+            Type keyedServiceProviderType = GetIKeyedServiceProviderType();
+            if (keyedServiceProviderType == null)
+            {
+                return NoOp;
+            }
+
+            const string methodName = "GetKeyedService";
+            ParameterExpression parameter = Expression.Parameter(typeof(IServiceProvider));
+            UnaryExpression castAsIKeyedServiceProvider = Expression.TypeAs(parameter, keyedServiceProviderType);
+            var serviceProviderIsNotNullExpr = Expression.NotEqual(Expression.Constant(null), castAsIKeyedServiceProvider);
+            var serviceBehaviors = Expression.Condition(
+                serviceProviderIsNotNullExpr,
+                Expression.Convert(Expression.Call(castAsIKeyedServiceProvider, methodName, new Type[] { },
+                    Expression.Constant(typeof(IEnumerable<IServiceBehavior>)),
+                    Expression.Constant(typeof(TService))), typeof(IEnumerable<IServiceBehavior>)),
+                Expression.Convert(
+                    Expression.Constant(Enumerable.Empty<IServiceBehavior>()), typeof(IEnumerable<IServiceBehavior>)) );
+            var lambda = Expression.Lambda<Func<IServiceProvider, IEnumerable<IServiceBehavior>>>(serviceBehaviors, parameter);
+            return lambda.Compile();
+
+            IEnumerable<IServiceBehavior> NoOp(IServiceProvider _) => Enumerable.Empty<IServiceBehavior>();
+
+            Type GetIKeyedServiceProviderType()
+            {
+                const string assemblyName = "Microsoft.Extensions.DependencyInjection.Abstractions";
+                const string typeName = "Microsoft.Extensions.DependencyInjection.IKeyedServiceProvider";
+                const string fullName = typeName + ", " + assemblyName;
+                return Type.GetType(fullName, false);
+            }
         }
     }
 }

@@ -1,9 +1,3 @@
-parameters:
-- name: libraryProjects
-  default: ''
-- name: templateTestProjects
-  default: '**/CoreWCF.Templates.Tests.csproj'
-
 stages:
 - stage: 'TestTemplates'
   displayName: Run Templates Tests
@@ -15,9 +9,11 @@ stages:
         Windows:
           imageName: 'windows-latest'
           testArgs: '--filter Category=Templates'
+          artifactName: 'WindowsReleaseBuild'
         Linux:
           imageName: 'ubuntu-latest'
           testArgs: '--filter Category=Templates'
+          artifactName: 'LinuxReleaseBuild'
     displayName: Test Templates Release
     pool:
       vmImage: $(imageName)
@@ -26,7 +22,7 @@ stages:
       displayName: Download build artifacts
       inputs:
         source: current
-        artifact: ReleaseBuild
+        artifact: $(artifactName)
         path: $(System.DefaultWorkingDirectory)/bin
 
     - task: UseDotNet@2
@@ -42,7 +38,14 @@ stages:
         packageType: sdk
         version: '7.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        includePreviewVersions: true       
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8 sdk'
+      inputs:
+        packageType: sdk
+        version: '8.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+        includePreviewVersions: true               
 
     - task: PowerShell@2
       inputs:

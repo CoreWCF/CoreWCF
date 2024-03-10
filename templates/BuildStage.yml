@@ -1,5 +1,5 @@
 parameters:
-- name: buildProjects
+- name: solutions
   default: ''
 
 stages:
@@ -9,19 +9,32 @@ stages:
   - job: Build
     strategy:
       matrix:
-        Release:
-          _buildConfig: 'Release'
-        Debug:
-          _buildConfig: 'Debug'
+        WindowsRelease:
+          configuration: 'Release'
+          imageName: 'windows-latest'
+          artifactName: 'WindowsReleaseBuild'
+        WindowsDebug:
+          configuration: 'Debug'
+          imageName: 'windows-latest'
+          artifactName: 'WindowsDebugBuild'
+        LinuxRelease:
+          configuration: 'Release'
+          imageName: 'ubuntu-latest'
+          artifactName: 'LinuxReleaseBuild'
+        LinuxDebug:
+          configuration: 'Debug'     
+          imageName: 'ubuntu-latest'     
+          artifactName: 'LinuxDebugBuild'
     pool:
-      vmImage: 'windows-latest'
+      vmImage: $(imageName)
     steps:
       - task: UseDotNet@2
-        displayName: 'Use .NET Core sdk'
+        displayName: 'Use .NET 8 sdk'
         inputs:
           packageType: sdk
-          version: 7.0.x
+          version: 8.0.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
+          includePreviewVersions: true
 
       # NGBV project at https://github.com/dotnet/Nerdbank.GitVersioning
       - task: DotNetCoreCLI@2
@@ -37,15 +50,16 @@ stages:
       - task: DotNetCoreCLI@2
         displayName: Restore
         inputs:
-          command: 'build'
-          projects: ${{ parameters.buildProjects}}
-          arguments: '--configuration $(_buildConfig) /t:restore'
+          command: restore
+          feedsToUse: config
+          nugetConfigPath: src/NuGet.config
+          projects: ${{ parameters.solutions }}
       
       - task: DotNetCoreCLI@2
-        displayName: Build $(_buildConfig)
+        displayName: Build $(configuration)
         inputs:
           command: 'build'
-          projects: ${{ parameters.buildProjects}}
-          arguments: '--no-restore --configuration $(_buildConfig)'
+          projects: ${{ parameters.solutions }}
+          arguments: '--no-restore -c $(configuration)'
       - publish: $(System.DefaultWorkingDirectory)/bin
-        artifact: $(_buildConfig)Build
+        artifact: $(artifactName)

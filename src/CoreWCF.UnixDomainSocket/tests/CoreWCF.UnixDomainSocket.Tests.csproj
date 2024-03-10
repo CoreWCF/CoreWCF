@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -39,12 +38,8 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
-    <PackageReference Include="System.ServiceModel.UnixDomainSocket">
-      <Version>6.0.0-dev.23371.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.ServiceModel.Primitives">
-      <Version>6.0.0-dev.23371.1</Version>
-    </PackageReference>
+    <PackageReference Include="System.ServiceModel.UnixDomainSocket" Version="6.2.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="6.2.0" />
   </ItemGroup>
-  
+
 </Project>

@@ -1,7 +1,7 @@
 parameters:
 - name: testProjects
   default: ''
-- name: solution
+- name: solutions
   default: ''
 
 stages:
@@ -24,10 +24,11 @@ stages:
       retryCountOnTaskFailure: 2
 
     - task: UseDotNet@2
-      displayName: 'Use .NET Core 7 sdk'
+      displayName: 'Use .NET 8 sdk'
       inputs:
         packageType: sdk
-        version: '7.0.x'
+        version: '8.0.x'
+        includePreviewVersions: true
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
@@ -36,7 +37,7 @@ stages:
         command: restore
         feedsToUse: config
         nugetConfigPath: src/NuGet.config
-        projects: src/CoreWCF.sln
+        projects: ${{ parameters.solutions }}
 
     - task: SonarCloudPrepare@1
       displayName: 'Prepare analysis on SonarCloud'
@@ -55,7 +56,7 @@ stages:
       displayName: Build
       inputs:
         command: build
-        projects: ${{ parameters.solution }}
+        projects: ${{ parameters.solutions }}
         arguments: '--no-restore -c Release'
 
     - task: DotNetCoreCLI@2
@@ -63,8 +64,8 @@ stages:
       timeoutInMinutes: 20
       inputs:
         command: test
-        projects: ${{ parameters.testProjects}}
-        arguments: '--no-restore --no-build -c Release -f net7.0 --filter Category!=WindowsOnly --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
+        projects: ${{ parameters.testProjects }}
+        arguments: '--no-restore --no-build -c Release -f net8.0 --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
 
     - task: PublishCodeCoverageResults@1
       displayName: Publish Code Coverage report

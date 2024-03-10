@@ -28,9 +28,9 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}""
                          openTimeout=""{expectedDefaultTimeout:g}""
@@ -38,8 +38,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                          sendTimeout=""{expectedDefaultTimeout:g}""
                          receiveTimeout=""{expectedReceiveTimeout:g}"">
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -69,14 +69,14 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -122,9 +122,9 @@ namespace CoreWCF.ConfigurationManager.Tests
             MessageVersion expectedMessageVersion = MessageVersion.Soap11;
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <textMessageEncoding maxReadPoolSize=""{expectedMaxReadPoolSize}""
@@ -134,8 +134,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                         <readerQuotas maxDepth=""{expectedMaxDepth}"" />
                     </textMessageEncoding>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -169,15 +169,15 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <textMessageEncoding />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -215,9 +215,9 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <binaryMessageEncoding maxReadPoolSize=""{expectedMaxReadPoolSize}""
@@ -227,8 +227,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                         <readerQuotas maxDepth=""{expectedMaxDepth}"" />
                     </binaryMessageEncoding>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -262,15 +262,15 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <binaryMessageEncoding />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -308,9 +308,9 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <mtomMessageEncoding maxReadPoolSize=""{expectedMaxReadPoolSize}""
@@ -320,8 +320,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                         <readerQuotas maxDepth=""{expectedMaxDepth}"" />
                     </mtomMessageEncoding>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -355,15 +355,15 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <mtomMessageEncoding />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -403,16 +403,16 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <httpTransport maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                                    maxBufferSize=""{expectedMaxBufferSize}""/>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -444,15 +444,15 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <httpTransport />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -489,17 +489,17 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <httpsTransport maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
                                     maxBufferSize=""{expectedMaxBufferSize}""
                                     requireClientCertificate=""{expectedRequireClientCertificate}""/>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -533,15 +533,15 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <httpsTransport />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -584,15 +584,15 @@ namespace CoreWCF.ConfigurationManager.Tests
             TransferMode expectedTransferMode = TransferMode.Streamed;
             int expectedListenBacklog = 96 * 2;
             string expectedServiceName = "expectedServiceName";
-            PolicyEnforcement expectedPolicyEnforcement = PolicyEnforcement.Always;
+            PolicyEnforcement expectedPolicyEnforcement = PolicyEnforcement.WhenSupported;
             ProtectionScenario expectedProtectionScenario = ProtectionScenario.TrustedProxy;
             TimeSpan expectedIdleTimeout = TimeSpan.FromMinutes(4);
             int expectedMaxOutboundConnectionsPerEndpoint = 20;
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <tcpTransport maxReceivedMessageSize=""{expectedMaxReceivedMessageSize}""
@@ -616,8 +616,8 @@ namespace CoreWCF.ConfigurationManager.Tests
                         </extendedProtectionPolicy>
                     </tcpTransport>
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -666,15 +666,15 @@ namespace CoreWCF.ConfigurationManager.Tests
             PolicyEnforcement expectedPolicyEnforcement = PolicyEnforcement.Never;
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <tcpTransport />
                 </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -720,9 +720,9 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <security defaultAlgorithmSuite=""Basic256Rsa15""
@@ -738,11 +738,11 @@ namespace CoreWCF.ConfigurationManager.Tests
                                 negotiationTimeout=""00:02:00"" replayWindow=""00:06:00"" inactivityTimeout=""00:03:00""
                                 sessionKeyRenewalInterval=""15:10:00"" sessionKeyRolloverInterval=""00:06:00""
                                 reconnectTransportOnFailure=""false"" maxPendingSessions=""256""
-                                maxCachedCookies=""2000"" timestampValidityDuration=""00:06:00"" />  
-                    </security>  
+                                maxCachedCookies=""2000"" timestampValidityDuration=""00:06:00"" />
+                    </security>
                   </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -775,19 +775,19 @@ namespace CoreWCF.ConfigurationManager.Tests
 
 
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <security authenticationMode=""IssuedTokenForCertificate"">
                         <issuedTokenParameters>
                             <issuer address=""https://github.com/CoreWCF/CoreWCF"" binding=""basicHttpBinding"" bindingConfiguration=""basicHttpBinding""/>
-                        </issuedTokenParameters> 
+                        </issuedTokenParameters>
                     </security>
                  </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
@@ -805,19 +805,19 @@ namespace CoreWCF.ConfigurationManager.Tests
         {
             string expectedName = "customBinding";
             string xml = $@"
-<configuration> 
-    <system.serviceModel>         
-        <bindings>         
+<configuration>
+    <system.serviceModel>
+        <bindings>
             <customBinding>
                 <binding name=""{expectedName}"">
                     <security authenticationMode=""IssuedTokenForCertificate"">
                         <issuedTokenParameters>
-                            <issuerMetadata address=""https://github.com/CoreWCF/CoreWCF""/> 
-                        </issuedTokenParameters> 
+                            <issuerMetadata address=""https://github.com/CoreWCF/CoreWCF""/>
+                        </issuedTokenParameters>
                     </security>
                  </binding>
-            </customBinding>                             
-        </bindings>                             
+            </customBinding>
+        </bindings>
    </system.serviceModel>
 </configuration>";
 
