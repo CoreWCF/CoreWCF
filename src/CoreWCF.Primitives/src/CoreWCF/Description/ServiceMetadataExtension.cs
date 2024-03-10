@@ -94,17 +94,20 @@ namespace CoreWCF.Description
 
         public IMetadataEndpointAddressProvider DynamicMetadataEndpointAddressProvider { get; internal set; }
 
-        internal bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port, out string scheme)
+        internal bool TryGetHttpHostAndPort(Uri listenUri, HttpRequest httpRequest, out string host, out int port, out string scheme, out string path)
         {
             host = null;
             port = 0;
             scheme = null;
+            path = null;
 
             Uri customUri = DynamicMetadataEndpointAddressProvider?.GetEndpointAddress(httpRequest);
             if (customUri != null)
             {
+
                 host = customUri.Host;
                 port = customUri.Port;
+                path = customUri.LocalPath != "/" ? customUri.LocalPath : null;
                 scheme = DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider
                     ? listenUri.Scheme
                     : customUri.Scheme;
@@ -275,7 +278,7 @@ namespace CoreWCF.Description
 
         private DynamicAddressUpdateWriter GetDynamicAddressWriter(HttpRequest httpRequest, Uri listenUri, bool removeBaseAddress)
         {
-            if (!TryGetHttpHostAndPort(listenUri, httpRequest, out string requestHost, out int requestPort, out string requestScheme))
+            if (!TryGetHttpHostAndPort(listenUri, httpRequest, out string requestHost, out int requestPort, out string requestScheme, out string path))
             {
                 return null;
             }
@@ -293,10 +296,10 @@ namespace CoreWCF.Description
 
             if (DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider)
             {
-                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, path, UpdatePortsByScheme, removeBaseAddress);
             }
 
-            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort, path);
         }
 
         private DynamicAddressUpdateWriter GetDynamicAddressWriter(Message request, Uri listenUri, bool removeBaseAddress)
@@ -307,7 +310,7 @@ namespace CoreWCF.Description
                 context = contextObj as HttpContext;
             }
 
-            if (context==null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort, out string requestScheme))
+            if (context==null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort, out string requestScheme, out string requestPath))
             {
                 if (request.Headers.To == null)
                 {
@@ -316,6 +319,7 @@ namespace CoreWCF.Description
                 requestHost = request.Headers.To.Host;
                 requestPort = request.Headers.To.Port;
                 requestScheme = request.Headers.To.Scheme;
+                requestPath = request.Headers.To.LocalPath;
             }
 
             // Perf optimization: don't do dynamic update if it would be a no-op.
@@ -331,10 +335,10 @@ namespace CoreWCF.Description
 
             if (DynamicMetadataEndpointAddressProvider is UseRequestHeadersForMetadataAddressBehavior.UseHostHeaderMetadataEndpointAddressProvider)
             {
-                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, UpdatePortsByScheme, removeBaseAddress);
+                return new RequestHeadersDynamicAddressUpdateWriter(listenUri, requestHost, requestPort, requestPath, UpdatePortsByScheme, removeBaseAddress);
             }
 
-            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort);
+            return new CustomDynamicAddressUpdateWriter(listenUri, requestScheme, requestHost, requestPort, requestPath);
         }
 
         internal class WSMexImpl : IMetadataExchange
@@ -1648,24 +1652,26 @@ SR.SFxDocExt_NoMetadataSection5        ));
             private readonly string _scheme;
             private readonly string _host;
             private readonly int _port;
+            private readonly string _path;
             private readonly string _newBaseAddress;
 
-            internal CustomDynamicAddressUpdateWriter(Uri listenUri, string scheme, string host, int port)
+            internal CustomDynamicAddressUpdateWriter(Uri listenUri, string scheme, string host, int port, string path)
             {
                 _listenUri = listenUri;
                 _scheme = scheme;
                 _host = host;
                 _port = port;
+                _path = path;
                 _newBaseAddress = UpdateUri(listenUri).ToString();
             }
 
             protected override string NewBaseAddress => _newBaseAddress;
 
-            protected override bool RemoveBaseAddress => true;
+            protected override bool RemoveBaseAddress => false;
 
             public override WriteFilter CloneWriteFilter()
             {
-                return new CustomDynamicAddressUpdateWriter(_listenUri, _scheme, _host, _port);
+                return new CustomDynamicAddressUpdateWriter(_listenUri, _scheme, _host, _port, _path);
             }
 
             protected override Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false)
@@ -1679,7 +1685,8 @@ SR.SFxDocExt_NoMetadataSection5        ));
                 {
                     Host = _host,
                     Port = _port,
-                    Scheme = _scheme
+                    Scheme = _scheme,
+                    Path = _path ?? uri.LocalPath
                 };
                 return result.Uri;
             }
@@ -1733,27 +1740,28 @@ SR.SFxDocExt_NoMetadataSection5        ));
             private readonly bool _removeBaseAddress;
             private readonly string _requestScheme;
             private readonly int _requestPort;
+            private readonly string _path;
             private readonly IDictionary<string, int> _updatePortsByScheme;
 
             protected override string NewBaseAddress => _newBaseAddress;
             protected override bool RemoveBaseAddress => _removeBaseAddress;
 
-            internal RequestHeadersDynamicAddressUpdateWriter(Uri listenUri, string requestHost, int requestPort,
+            internal RequestHeadersDynamicAddressUpdateWriter(Uri listenUri, string requestHost, int requestPort, string path,
                 IDictionary<string, int> updatePortsByScheme, bool removeBaseAddress)
-                : this(listenUri.Host, requestHost, removeBaseAddress, listenUri.Scheme, requestPort, updatePortsByScheme)
+                : this(listenUri.Host, requestHost, removeBaseAddress, listenUri.Scheme, requestPort, updatePortsByScheme, path)
             {
                 _newBaseAddress = UpdateUri(listenUri).ToString();
             }
 
             private RequestHeadersDynamicAddressUpdateWriter(string oldHostName, string newHostName, string newBaseAddress, bool removeBaseAddress, string requestScheme,
-                int requestPort, IDictionary<string, int> updatePortsByScheme)
-                : this(oldHostName, newHostName, removeBaseAddress, requestScheme, requestPort, updatePortsByScheme)
+                int requestPort, IDictionary<string, int> updatePortsByScheme, string path)
+                : this(oldHostName, newHostName, removeBaseAddress, requestScheme, requestPort, updatePortsByScheme, path)
             {
                 _newBaseAddress = newBaseAddress;
             }
 
             private RequestHeadersDynamicAddressUpdateWriter(string oldHostName, string newHostName, bool removeBaseAddress, string requestScheme,
-                int requestPort, IDictionary<string, int> updatePortsByScheme)
+                int requestPort, IDictionary<string, int> updatePortsByScheme, string path)
             {
                 _oldHostName = oldHostName;
                 _newHostName = newHostName;
@@ -1761,12 +1769,13 @@ SR.SFxDocExt_NoMetadataSection5        ));
                 _requestScheme = requestScheme;
                 _requestPort = requestPort;
                 _updatePortsByScheme = updatePortsByScheme;
+                _path = path;
             }
 
             public override WriteFilter CloneWriteFilter()
             {
                 return new RequestHeadersDynamicAddressUpdateWriter(_oldHostName, _newHostName, _newBaseAddress, _removeBaseAddress,
-                    _requestScheme, _requestPort, _updatePortsByScheme);
+                    _requestScheme, _requestPort, _updatePortsByScheme, _path);
             }
 
             protected override Uri UpdateUri(Uri uri, bool updateBaseAddressOnly = false)
