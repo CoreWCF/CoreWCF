@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Http;
 using System.Xml;
@@ -33,7 +34,7 @@ namespace CoreWCF.Channels
                 throw Fx.Exception.ArgumentNull("buffer.Array", SR.Format(SR.ArgumentPropertyShouldNotBeNullError, "buffer.Array"));
             }
 
-            ByteStreamBufferedMessageData data = new ByteStreamBufferedMessageData(buffer, bufferManager);
+            ByteStreamBufferedMessageData data = new(new ReadOnlySequence<byte>(buffer.Array, buffer.Offset, buffer.Count));
 
             return CreateMessage(data, XmlDictionaryReaderQuotas.Max);
         }
@@ -63,7 +64,7 @@ namespace CoreWCF.Channels
             {
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write. 
+                // preventing both a read/write.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -77,7 +78,7 @@ namespace CoreWCF.Channels
             {
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -93,7 +94,7 @@ namespace CoreWCF.Channels
 
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -109,7 +110,7 @@ namespace CoreWCF.Channels
 
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -271,7 +272,7 @@ namespace CoreWCF.Channels
                 BufferedBodyWriter bufferedBodyWriter;
                 if (_bodyWriter.IsBuffered)
                 {
-                    // Can hand this off in buffered case without making a new one. 
+                    // Can hand this off in buffered case without making a new one.
                     bufferedBodyWriter = (BufferedBodyWriter)_bodyWriter;
                 }
                 else
@@ -279,7 +280,7 @@ namespace CoreWCF.Channels
                     bufferedBodyWriter = (BufferedBodyWriter)_bodyWriter.CreateBufferedCopy(maxBufferSize);
                 }
 
-                // Protected by Message state to be called only once. 
+                // Protected by Message state to be called only once.
                 _bodyWriter = null;
                 return new ByteStreamMessageBuffer(bufferedBodyWriter.MessageData, _headers, _properties, _reader.Quotas);
             }
@@ -340,7 +341,7 @@ namespace CoreWCF.Channels
 
                 protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
                 {
-                    // Never called because when copying a Buffered message, we simply hand off the existing BodyWriter 
+                    // Never called because when copying a Buffered message, we simply hand off the existing BodyWriter
                     // to the new message.
                     Fx.Assert(false, "This is never called");
                     return null;
@@ -349,7 +350,13 @@ namespace CoreWCF.Channels
                 protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
                 {
                     writer.WriteStartElement(ByteStreamMessageUtility.StreamElementName, string.Empty);
-                    writer.WriteBase64(MessageData.Buffer.Array, MessageData.Buffer.Offset, MessageData.Buffer.Count);
+                    if (writer is XmlByteStreamWriter xmlByteStreamWriter)
+                    {
+                        foreach (ReadOnlyMemory<byte> memory in MessageData.ReadOnlyBuffer)
+                        {
+                            xmlByteStreamWriter.WriteBase64(memory);
+                        }
+                    }
                     writer.WriteEndElement();
                 }
             }
@@ -370,17 +377,13 @@ namespace CoreWCF.Channels
                 // OnCreateBufferedCopy / OnWriteBodyContents can only be called once - protected by state on Message (either copied or written once)
                 protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
                 {
-                    using (BufferManagerOutputStream bufferedStream = new BufferManagerOutputStream(SR.Format(SR.MaxReceivedMessageSizeExceeded, maxBufferSize)))
-                    {
-                        using (XmlDictionaryWriter writer = new XmlByteStreamWriter(bufferedStream, true))
-                        {
-                            OnWriteBodyContents(writer);
-                            writer.Flush();
-                            byte[] bytesArray = bufferedStream.ToArray(out int size);
-                            ByteStreamBufferedMessageData bufferedMessageData = new ByteStreamBufferedMessageData(new ArraySegment<byte>(bytesArray, 0, size));
-                            return new BufferedBodyWriter(bufferedMessageData);
-                        }
-                    }
+                    using BufferManagerOutputStream bufferedStream = new(SR.Format(SR.MaxReceivedMessageSizeExceeded, maxBufferSize));
+                    using XmlDictionaryWriter writer = new XmlByteStreamWriter(bufferedStream, true);
+                    OnWriteBodyContents(writer);
+                    writer.Flush();
+                    byte[] bytesArray = bufferedStream.ToArray(out int size);
+                    ByteStreamBufferedMessageData bufferedMessageData = new(new ReadOnlySequence<byte>(bytesArray, 0, size));
+                    return new BufferedBodyWriter(bufferedMessageData);
                 }
 
                 // OnCreateBufferedCopy / OnWriteBodyContents can only be called once - protected by state on Message (either copied or written once)
@@ -512,7 +515,7 @@ namespace CoreWCF.Channels
                     _messageData.Open();
                 }
 
-                public override int BufferSize => _messageData.Buffer.Count;
+                public override int BufferSize => (int)_messageData.ReadOnlyBuffer.Length;
 
                 private object ThisLock { get; } = new object();
 
