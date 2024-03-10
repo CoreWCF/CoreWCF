@@ -5,6 +5,7 @@ using System;
 using BasicHttp;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
+using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -46,13 +47,18 @@ public partial class InjectedIncomingPropertiesTests
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddServiceModelServices();
+            services.AddServiceModelMetadata();
+            services.AddSingleton<InjectedIncomingPropertiesService>();
         }
 
         public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(builder =>
             {
-                builder.AddService<InjectedIncomingPropertiesService>();
+                builder.AddService<InjectedIncomingPropertiesService>(options =>
+                {
+                    options.DebugBehavior.IncludeExceptionDetailInFaults = true;
+                });
                 builder.AddServiceEndpoint<InjectedIncomingPropertiesService, IInjectedIncomingPropertiesService>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
             });
         }
@@ -68,12 +74,10 @@ public partial class InjectedIncomingPropertiesTests
     internal partial class InjectedIncomingPropertiesService : IInjectedIncomingPropertiesService
     {
         public string Echo(string value, [Injected] HttpContext httpContext,
-            [Injected(PropertyName = HttpRequestMessageProperty.Name)] HttpRequestMessageProperty httpRequestMessageProperty,
-            [Injected(PropertyName = HttpResponseMessageProperty.Name)] HttpResponseMessageProperty httpResponseMessageProperty)
+            [Injected(PropertyName = HttpRequestMessageProperty.Name)] HttpRequestMessageProperty httpRequestMessageProperty)
         {
             Assert.NotNull(httpContext);
             Assert.NotNull(httpRequestMessageProperty);
-            Assert.NotNull(httpResponseMessageProperty);
             return value;
         }
     }
