@@ -27,7 +27,7 @@ namespace CoreWCF.Runtime
             }
         }
 
-        // Helper method when implementing an APM wrapper around a Task based async method which returns a result. 
+        // Helper method when implementing an APM wrapper around a Task based async method which returns a result.
         // In the BeginMethod method, you would call use ToApm to wrap a call to MethodAsync:
         //     return MethodAsync(params).ToApm(callback, state);
         // In the EndMethod, you would use ToApmEnd<TResult> to ensure the correct exception handling
@@ -49,7 +49,7 @@ namespace CoreWCF.Runtime
             else if (callback != null)
             {
                 // We use OnCompleted rather than ContinueWith in order to avoid running synchronously
-                // if the task has already completed by the time we get here. 
+                // if the task has already completed by the time we get here.
                 // This will allocate a delegate and some extra data to add it as a TaskContinuation
                 valueTask.ConfigureAwait(false)
                     .GetAwaiter()
@@ -72,7 +72,7 @@ namespace CoreWCF.Runtime
             else if (callback != null)
             {
                 // We use OnCompleted rather than ContinueWith in order to avoid running synchronously
-                // if the task has already completed by the time we get here. 
+                // if the task has already completed by the time we get here.
                 // This will allocate a delegate and some extra data to add it as a TaskContinuation
                 task.ConfigureAwait(false)
                     .GetAwaiter()
@@ -161,6 +161,7 @@ namespace CoreWCF.Runtime
         // complete in the specified amount of time, returns false. This does not modify the state of the
         // passed in class, but instead is a mechanism to allow interrupting awaiting a task if a timeout
         // period passes.
+        // TODO: When we move away from netstandard, we can switch to the new Task.WaitAsync method
         public static async Task<bool> AwaitWithTimeout(this Task task, TimeSpan timeout)
         {
             if (task.IsCompleted)
