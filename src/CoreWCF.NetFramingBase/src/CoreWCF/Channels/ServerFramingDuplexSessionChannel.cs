@@ -31,6 +31,10 @@ namespace CoreWCF.Channels
 
         protected override void ReturnConnectionIfNecessary(bool abort, CancellationToken token)
         {
+            if (abort)
+            {
+                Connection.Abort(SR.ContentTypeMismatch);
+            }
             // TODO: Put connection back into the beginning of the middleware stack
             //    IConnection localConnection = null;
             //    if (this.sessionReader != null)

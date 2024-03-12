@@ -90,7 +90,7 @@ namespace CoreWCF.Channels.Framing
             RawStream = null;
         }
 
-        public void Abort() { _context.Abort(); }
+        public void Abort() { _context.Abort(new ConnectionAbortedException()); }
         public void Abort(Exception e) { _context.Abort(new ConnectionAbortedException(e.Message, e)); }
         public void Abort(string reason) { _context.Abort(new ConnectionAbortedException(reason)); }
 
