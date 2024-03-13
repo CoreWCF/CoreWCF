@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Runtime;
 using Microsoft.Extensions.Logging;
@@ -435,7 +436,7 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    // Pattern: 
+    // Pattern:
     //   Done
     internal class ServerModeDecoder : FramingDecoder
     {
@@ -505,12 +506,12 @@ namespace CoreWCF.Channels.Framing
             CurrentState = State.ReadingVersionRecord;
         }
 
-        internal async Task<bool> ReadModeAsync(PipeReader inputPipe)
+        internal async Task<bool> ReadModeAsync(PipeReader inputPipe, CancellationToken cancelToken)
         {
             ReadOnlySequence<byte> buffer;
             while (true)
             {
-                ReadResult readResult = await inputPipe.ReadAsync();
+                ReadResult readResult = await inputPipe.ReadAsync(cancelToken);
                 if (readResult.IsCompleted)
                 {
                     return false;
@@ -611,10 +612,10 @@ namespace CoreWCF.Channels.Framing
     }
 
     // Used for Duplex/Simplex
-    // Pattern: 
-    //   Start, 
-    //   (UpgradeRequest, upgrade-content-type)*, 
-    //   (EnvelopeStart, ReadingEnvelopeBytes*, EnvelopeEnd)*, 
+    // Pattern:
+    //   Start,
+    //   (UpgradeRequest, upgrade-content-type)*,
+    //   (EnvelopeStart, ReadingEnvelopeBytes*, EnvelopeEnd)*,
     //   End
     internal class ServerSessionDecoder : FramingDecoder
     {
@@ -994,9 +995,9 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    // Pattern: 
-    //   Start, 
-    //   (UpgradeRequest, upgrade-bytes)*, 
+    // Pattern:
+    //   Start,
+    //   (UpgradeRequest, upgrade-bytes)*,
     //   EnvelopeStart,
     internal class ServerSingletonDecoder : FramingDecoder
     {
@@ -1198,8 +1199,8 @@ namespace CoreWCF.Channels.Framing
         }
     }
 
-    // Pattern: 
-    //   Start, 
+    // Pattern:
+    //   Start,
     //   EnvelopeStart,
     internal class ServerSingletonSizedDecoder : FramingDecoder
     {
