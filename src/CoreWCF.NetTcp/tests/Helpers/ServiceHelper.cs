@@ -89,6 +89,12 @@ namespace Helpers
                 //using .Any breaks the getaddress method
                 ipAddress = IPAddress.Loopback;
             }
+            return CreateWebHostBuilderWithoutNetTcp<TStartup>(outputHelper, callerMethodName)
+                .UseNetTcp(ipAddress, port);
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilderWithoutNetTcp<TStartup>(ITestOutputHelper outputHelper, [CallerMemberName] string callerMethodName = "") where TStartup : class
+        {
             return WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
@@ -107,9 +113,8 @@ namespace Helpers
                 logging.AddFilter("Default", LogLevel.Information);
                 logging.AddFilter("Microsoft", LogLevel.Information);
                 logging.SetMinimumLevel(LogLevel.Information);
-            })         
+            })
 #endif // DEBUG
-            .UseNetTcp(ipAddress, port)
             .UseStartup<TStartup>();
         }
 

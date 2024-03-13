@@ -12,39 +12,11 @@ namespace CoreWCF.Channels
 {
     internal class ConnectionReuseHandler : IConnectionReuseHandler
     {
-        private readonly ConnectionOrientedTransportBindingElement _bindingElement;
-        private int _maxPooledConnections;
-        private TimeSpan _idleTimeout;
         private readonly SemaphoreSlim _connectionPoolSemaphore;
 
-        public ConnectionReuseHandler(ConnectionOrientedTransportBindingElement bindingElement)
+        public ConnectionReuseHandler(ConnectionPoolSettings connectionPoolSettings)
         {
-            _bindingElement = bindingElement;
-            Initialize(_bindingElement);
-            _connectionPoolSemaphore = new SemaphoreSlim(_maxPooledConnections);
-        }
-
-        private void Initialize(ConnectionOrientedTransportBindingElement bindingElement)
-        {
-            ConnectionPoolSettings poolSettings = bindingElement.GetProperty<ConnectionPoolSettings>(new BindingContext(new CustomBinding(), new BindingParameterCollection()));
-            if (poolSettings == null)
-            {
-                _maxPooledConnections = ConnectionOrientedTransportDefaults.GetMaxConnections();
-                _idleTimeout  = ConnectionOrientedTransportDefaults.IdleTimeout;
-                return;
-            }
-
-            int maxOutboundConnectionsPerEndpoint = poolSettings.MaxOutboundConnectionsPerEndpoint;
-            if (maxOutboundConnectionsPerEndpoint == ConnectionOrientedTransportDefaults.MaxOutboundConnectionsPerEndpoint)
-            {
-                _maxPooledConnections = ConnectionOrientedTransportDefaults.GetMaxConnections();
-            }
-            else
-            {
-                _maxPooledConnections = maxOutboundConnectionsPerEndpoint;
-            }
-
-            _idleTimeout = poolSettings.IdleTimeout;
+            _connectionPoolSemaphore = new SemaphoreSlim(connectionPoolSettings.MaxOutboundConnectionsPerEndpoint);
         }
 
         public async Task<bool> ReuseConnectionAsync(FramingConnection connection, CancellationToken cancellationToken)
@@ -78,9 +50,8 @@ namespace CoreWCF.Channels
             {
                 connection.Reset();
 
-                CancellationToken ct = new TimeoutHelper(_idleTimeout).GetCancellationToken();
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    new TimeoutHelper(_idleTimeout).GetCancellationToken(),
+                    connection.ChannelInitializationCancellationToken,
                     cancellationToken))
                 {
                     connection.Logger.StartPendingReadOnIdleSocket();
@@ -98,6 +69,11 @@ namespace CoreWCF.Channels
                 }
 
                 return true;
+            }
+            catch(OperationCanceledException)
+            {
+                connection.Logger.IdleConnectionClosed();
+                return false;
             }
             catch (Exception e)
             {
