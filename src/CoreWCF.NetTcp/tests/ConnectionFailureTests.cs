@@ -3,6 +3,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Net.Sockets;
+using System.Net;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
+using System.Threading;
 
 namespace CoreWCF.NetTcp.Tests
 {
@@ -25,7 +28,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
-        public async Task ServiceReceiveTimeoutAbortsChannelAsync()
+        public async Task ServiceReceiveTimeoutAbortsChannel()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<ReceiveTimeoutStartup>(_output).Build();
@@ -37,7 +40,6 @@ namespace CoreWCF.NetTcp.Tests
                 try
                 {
                     System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
-                    var addressInUse = host.GetNetTcpAddressInUse();
                     factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + ReceiveTimeoutStartup.BufferedRelatveAddress));
                     channel = factory.CreateChannel();
@@ -63,10 +65,39 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
+        [Fact]
+        public async Task ServiceChannelInitializationTimeoutTest()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilderWithoutNetTcp<ReceiveTimeoutStartup>(_output)
+                .UseNetTcp(options =>
+                {
+                    options.Listen("net.tcp://localhost:0/", listenOptions =>
+                    {
+                        listenOptions.ConnectionPoolSettings.ChannelInitializationTimeout = TimeSpan.FromSeconds(5);
+                    });
+                })
+                .Build();
+            using (host)
+            {
+                host.Start();
+                var addressInUse = host.GetNetTcpAddressInUse();
+                var serviceUri = new Uri(addressInUse);
+                int port = serviceUri.Port;
+                var ipEndPoint = new IPEndPoint(IPAddress.Loopback, port);
+                using var client = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.ReceiveTimeout = 10_000;
+                await client.ConnectAsync(ipEndPoint);
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                var socketException = Assert.Throws<SocketException>(() => _ = client.Receive(new byte[1]));
+                stopwatch.Stop();
+                Assert.InRange(stopwatch.Elapsed, TimeSpan.FromSeconds(1.5), TimeSpan.FromSeconds(10));
+            }
+        }
+
         public class ReceiveTimeoutStartup
         {
             public const string BufferedRelatveAddress = "/nettcp.svc/Buffered";
-            public const string StreamedRelatveAddress = "/nettcp.svc/Streamed";
 
             public void ConfigureServices(IServiceCollection services)
             {
