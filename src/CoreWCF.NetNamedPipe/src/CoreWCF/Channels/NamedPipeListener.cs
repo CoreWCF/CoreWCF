@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -45,6 +46,18 @@ namespace CoreWCF.Channels
             _inputOptions = new PipeOptions(null, PipeScheduler.ThreadPool, PipeScheduler.Inline, options.ConnectionBufferSize, options.ConnectionBufferSize / 2, useSynchronizationContext: false);
             _outputOptions = new PipeOptions(null, PipeScheduler.Inline, PipeScheduler.ThreadPool, options.ConnectionBufferSize, options.ConnectionBufferSize / 2, useSynchronizationContext: false);
             _connectionBufferSize = (int)_inputOptions.PauseWriterThreshold;
+        }
+
+        private void AddNamedPipeListenOptionsToConnectionContext(NamedPipeListenOptions options)
+        {
+            options.Use(next =>
+            {
+                return (ConnectionContext context) =>
+                {
+                    context.Features.Set<NetFramingListenOptions>(options);
+                    return next(context);
+                };
+            });
         }
 
         // Creates the memory mapped file and the first named pipe instance.

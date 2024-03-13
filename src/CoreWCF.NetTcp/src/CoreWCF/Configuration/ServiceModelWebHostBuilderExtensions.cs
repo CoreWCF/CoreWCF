@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
+using System.Web.Services.Description;
 using CoreWCF.Channels;
 using CoreWCF.Channels.Framing;
 using Microsoft.AspNetCore.Connections;
@@ -39,17 +41,41 @@ namespace CoreWCF.Configuration
 
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress, int port)
         {
+            webHostBuilder.AddNetTcpRequiredServices()
+                          .ConfigureNetTcp(options =>
+                          {
+                              options.Listen($"net.tcp://{ipAddress}:{port}");
+                          });
+            return webHostBuilder;
+        }
+
+        private static IWebHostBuilder AddNetTcpRequiredServices(this IWebHostBuilder webHostBuilder)
+        {
             webHostBuilder.ConfigureServices(services =>
             {
                 services.AddNetFramingServices();
                 services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, NetTcpHostedService>());
                 services.TryAddSingleton<NetTcpFramingOptionsSetup>();
                 services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<KestrelServerOptions>, NetTcpFramingOptionsSetup>(provider => provider.GetRequiredService<NetTcpFramingOptionsSetup>()));
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<NetTcpOptions>, NetTcpServerOptionsSetup>());
                 services.TryAddSingleton<SocketTransportFactory>();
-                services.AddNetTcpServices(new IPEndPoint(ipAddress, port));
             });
-
             return webHostBuilder;
+        }
+
+        public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, Action<NetTcpOptions> options)
+        {
+            webHostBuilder.AddNetTcpRequiredServices()
+                          .ConfigureNetTcp(options);
+            return webHostBuilder;
+        }
+
+        public static IWebHostBuilder ConfigureNetTcp(this IWebHostBuilder webHostBuilder, Action<NetTcpOptions> options)
+        {
+            return webHostBuilder.ConfigureServices(services =>
+            {
+                services.Configure(options);
+            });
         }
 
         private static IServiceCollection AddNetTcpServices(this IServiceCollection services, IPEndPoint endPoint)
@@ -74,12 +100,12 @@ namespace CoreWCF.Configuration
         private readonly ILogger<NetTcpFramingOptions> _logger;
         private readonly ILogger<FramingConnection> _framingConnectionLogger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly NetTcpFramingOptions _options;
+        private readonly NetTcpOptions _options;
         private readonly IServiceBuilder _serviceBuilder;
 
-        public NetTcpFramingOptionsSetup(IOptions<NetTcpFramingOptions> options, IServiceBuilder serviceBuilder, ILogger<NetTcpFramingOptions> logger, ILogger<FramingConnection> framingConnectionLogger, IServiceProvider serviceProvider)
+        public NetTcpFramingOptionsSetup(IOptions<NetTcpOptions> options, IServiceBuilder serviceBuilder, ILogger<NetTcpFramingOptions> logger, ILogger<FramingConnection> framingConnectionLogger, IServiceProvider serviceProvider)
         {
-            _options = options.Value ?? new NetTcpFramingOptions();
+            _options = options.Value ?? new NetTcpOptions();
             _serviceBuilder = serviceBuilder;
             _logger = logger;
             _framingConnectionLogger = framingConnectionLogger;
@@ -94,18 +120,77 @@ namespace CoreWCF.Configuration
         {
             ConfigureCalled = true;
             options.ApplicationServices = _serviceProvider;
-            foreach (IPEndPoint endpoint in _options.EndPoints)
+            foreach(var tcpListenOptions in _options.CodeBackedListenOptions)
             {
+                var baseAddress = tcpListenOptions.BaseAddress;
+                IPAddress listenAddress = null;
+                if (baseAddress.HostNameType == UriHostNameType.IPv4 || baseAddress.HostNameType == UriHostNameType.IPv6)
+                {
+                    if (IPAddress.TryParse(baseAddress.DnsSafeHost, out listenAddress))
+                    {
+                        if (listenAddress.AddressFamily == AddressFamily.InterNetwork && !Socket.OSSupportsIPv4)
+                        {
+                            _logger.LogError("NetTcp listen uri specified the IPv4 hostname \"{HostName}\" and the OS doesn't support IPv4", baseAddress.DnsSafeHost);
+                            continue;
+                        }
+                        if (listenAddress.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+                        {
+                            _logger.LogError("NetTcp listen uri specified the IPv6 hostname \"{HostName}\" and the OS doesn't support IPv6", baseAddress.DnsSafeHost);
+                            continue;
+                        }
+                    }
+                }
+                else if (baseAddress.HostNameType == UriHostNameType.Dns)
+                {
+                    if (Socket.OSSupportsIPv6)
+                    {
+                        listenAddress = IPAddress.IPv6Any;
+                    }
+                    else
+                    {
+                        listenAddress = IPAddress.Any;
+                    }
+                }
+                else
+                {
+                    _logger.LogError("NetTcp listen uri specified an unusable hostname \"{HostName}\"", baseAddress.DnsSafeHost);
+                    continue;
+                }
+
+                IPEndPoint endpoint = new IPEndPoint(listenAddress, baseAddress.Port);
                 options.Listen(endpoint, builder =>
                 {
+                    AddTcpListenOptionsToConnectionContext(builder, tcpListenOptions);
                     builder.Use(ConvertExceptionsAndAddLogging);
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
                     // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
                     ListenOptions.Add(builder);
                 });
             }
+            //foreach (IPEndPoint endpoint in _options.EndPoints)
+            //{
+            //    options.Listen(endpoint, builder =>
+            //    {
+            //        builder.Use(ConvertExceptionsAndAddLogging);
+            //        builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
+            //        // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
+            //        ListenOptions.Add(builder);
+            //    });
+            //}
 
             _serviceBuilder.Opening += OnServiceBuilderOpening;
+        }
+
+        private void AddTcpListenOptionsToConnectionContext(ListenOptions builder, TcpListenOptions tcpListenOptions)
+        {
+            builder.Use(next =>
+            {
+                return (ConnectionContext context) =>
+                {
+                    context.Features.Set<NetFramingListenOptions>(tcpListenOptions);
+                    return next(context);
+                };
+            });
         }
 
         private ConnectionDelegate ConvertExceptionsAndAddLogging(ConnectionDelegate next)

@@ -10,22 +10,24 @@ namespace CoreWCF.Channels
     public class TcpTransportBindingElement : ConnectionOrientedTransportBindingElement
     {
         private int _listenBacklog;
+        private TcpConnectionPoolSettings _connectionPoolSettings;
         private ExtendedProtectionPolicy _extendedProtectionPolicy;
 
         public TcpTransportBindingElement() : base()
         {
             _listenBacklog = TcpTransportDefaults.GetListenBacklog();
-            ConnectionPoolSettings = new TcpConnectionPoolSettings();
+            _connectionPoolSettings = new TcpConnectionPoolSettings();
             _extendedProtectionPolicy = ChannelBindingUtility.DefaultPolicy;
         }
         protected TcpTransportBindingElement(TcpTransportBindingElement elementToBeCloned) : base(elementToBeCloned)
         {
             _listenBacklog = elementToBeCloned._listenBacklog;
-            ConnectionPoolSettings = elementToBeCloned.ConnectionPoolSettings.Clone();
+            _connectionPoolSettings = elementToBeCloned._connectionPoolSettings.Clone();
             _extendedProtectionPolicy = elementToBeCloned.ExtendedProtectionPolicy;
         }
 
-        public TcpConnectionPoolSettings ConnectionPoolSettings { get; }
+        [Obsolete("ConnectionPoolSettings now set on TcpListenOptions which is modifiable via a configuration delegate when calling UseNetTcp")]
+        public TcpConnectionPoolSettings ConnectionPoolSettings => _connectionPoolSettings;
 
         public int ListenBacklog
         {
@@ -103,7 +105,7 @@ namespace CoreWCF.Channels
             }
             else if (typeof(T) == typeof(ConnectionPoolSettings))
             {
-                return (T)(object)ConnectionPoolSettings;
+                return (T)(object)_connectionPoolSettings;
             }
             else
             {

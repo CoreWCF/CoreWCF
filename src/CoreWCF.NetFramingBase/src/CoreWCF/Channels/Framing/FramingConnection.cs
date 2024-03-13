@@ -8,6 +8,7 @@ using System.IO.Pipelines;
 using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
@@ -34,8 +35,10 @@ namespace CoreWCF.Channels.Framing
 
             Transport = RawTransport = _context.Transport;
             RemoteEndpoint = GetRemoteEndPoint(context);
+            SetInitializationToken(true);
         }
 
+        internal CancellationToken ChannelInitializationCancellationToken { get; private set; }
         public MessageEncoderFactory MessageEncoderFactory { get; internal set; }
         public StreamUpgradeAcceptor StreamUpgradeAcceptor { get; internal set; }
         public ISecurityCapabilities SecurityCapabilities { get; internal set; }
@@ -69,25 +72,26 @@ namespace CoreWCF.Channels.Framing
 
         internal void Reset()
         {
-            MessageEncoderFactory = null;
-            StreamUpgradeAcceptor = null;
-            SecurityCapabilities = null;
-            ServiceDispatcher = null;
+            SetInitializationToken(false);
+            MessageEncoderFactory = default;
+            StreamUpgradeAcceptor = default;
+            SecurityCapabilities = default;
+            ServiceDispatcher = default;
             Transport = RawTransport;
-            FramingDecoder = null;
+            FramingDecoder = default;
             FramingMode = default;
-            MessageEncoder = null;
-            SecurityMessageProperty = null;
-            EOF = false;
-            EnvelopeBuffer = null;
-            EnvelopeOffset = 0;
-            BufferManager = null;
-            EnvelopeSize = 0;
-            MaxReceivedMessageSize = 0;
-            MaxBufferSize = 0;
-            ConnectionBufferSize = 0;
+            MessageEncoder = default;
+            SecurityMessageProperty = default;
+            EOF = default;
+            EnvelopeBuffer = default;
+            EnvelopeOffset = default;
+            BufferManager = default;
+            EnvelopeSize = default;
+            MaxReceivedMessageSize = default;
+            MaxBufferSize = default;
+            ConnectionBufferSize = default;
             TransferMode = default;
-            RawStream = null;
+            RawStream = default;
         }
 
         public void Abort() { _context.Abort(new ConnectionAbortedException()); }
@@ -100,6 +104,98 @@ namespace CoreWCF.Channels.Framing
             Input.Complete();
             Output.Complete();
             return Task.CompletedTask;
+        }
+
+        internal async Task SendFaultAsync(string faultString, int maxRead, CancellationToken cancellationToken)
+        {
+            //if (TD.ConnectionReaderSendFaultIsEnabled())
+            //{
+            //    TD.ConnectionReaderSendFault(faultString);
+            //}
+            var encodedFault = new EncodedFault(faultString);
+            try
+            {
+                await Output.WriteAsync(encodedFault.EncodedBytes, cancellationToken);
+                await Output.FlushAsync();
+                // Connection will be closed on completion of Task returned from NetMessageFramingConnectionHandler.OnConnectedAsync
+            }
+            catch (CommunicationException e) // TODO: Consider exception filters to remvoe duplicate code
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+            catch (OperationCanceledException e)
+            {
+                //if (TD.SendTimeoutIsEnabled())
+                //{
+                //    TD.SendTimeout(e.Message);
+                //}
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+            catch (TimeoutException e)
+            {
+                //if (TD.SendTimeoutIsEnabled())
+                //{
+                //    TD.SendTimeout(e.Message);
+                //}
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                Abort(e);
+                return;
+            }
+
+            // make sure we read until EOF or a quota is hit
+            ReadResult readResult;
+            long readTotal = 0;
+            for (; ; )
+            {
+                try
+                {
+                    readResult = await Input.ReadAsync(cancellationToken);
+                }
+                catch (CommunicationException e) // TODO: Exception filters?
+                {
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+                // TODO: Standardize handling of OperationCanceledException/TimeoutException
+                catch (OperationCanceledException e)
+                {
+                    //if (TD.SendTimeoutIsEnabled())
+                    //{
+                    //    TD.SendTimeout(e.Message);
+                    //}
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+                catch (TimeoutException e)
+                {
+                    //if (TD.SendTimeoutIsEnabled())
+                    //{
+                    //    TD.SendTimeout(e.Message);
+                    //}
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+                    Abort(e);
+                    return;
+                }
+
+                if (readResult.IsCompleted)
+                {
+                    break;
+                }
+
+                readTotal += readResult.Buffer.Length;
+                Input.AdvanceTo(readResult.Buffer.End);
+                if (readTotal > maxRead || cancellationToken.IsCancellationRequested)
+                {
+                    Abort();
+                    return;
+                }
+            }
         }
 
         public async Task SendFaultAsync(string faultString, TimeSpan sendTimeout, int maxRead)
@@ -245,6 +341,20 @@ namespace CoreWCF.Channels.Framing
                  Expression.TypeAs(Expression.Property(contextParam, property),  typeof(IPEndPoint)),
                 contextParam
             ).Compile();
+        }
+
+        internal void SetInitializationToken(bool isFirstChannel)
+        {
+            // The first time the ChannelInitializationToken token is used, we use the ChannelInitializationTimeout. On subsequent times
+            // we are reusing the connection, and the IdleTimeout will get used instead.
+            var listenOptions = ConnectionFeatures.Get<NetFramingListenOptions>();
+            TimeSpan connectionInitializationTimeout = isFirstChannel ? TimeSpan.FromSeconds(30) : TimeSpan.FromMinutes(2);
+            if (listenOptions != null)
+            {
+                connectionInitializationTimeout = isFirstChannel ? listenOptions.ConnectionPoolSettings.ChannelInitializationTimeout : listenOptions.ConnectionPoolSettings.IdleTimeout;
+            }
+
+            ChannelInitializationCancellationToken = new TimeoutHelper(connectionInitializationTimeout).GetCancellationToken();
         }
     }
 }

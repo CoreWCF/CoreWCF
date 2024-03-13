@@ -303,10 +303,6 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
-            if (typeof(T) == typeof(IConnectionReuseHandler))
-            {
-                return (T)(object)new ConnectionReuseHandler((ConnectionOrientedTransportBindingElement)Clone());
-            }
             if (typeof(T) == typeof(TransferMode))
             {
                 return (T)(object)TransferMode;

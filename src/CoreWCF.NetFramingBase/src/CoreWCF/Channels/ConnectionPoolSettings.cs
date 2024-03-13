@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
@@ -12,17 +10,41 @@ namespace CoreWCF.Channels
     {
         private TimeSpan _idleTimeout;
         private int _maxOutboundConnectionsPerEndpoint;
+        private TimeSpan _channelInitializationTimeout;
 
-        protected ConnectionPoolSettings()
+        internal protected ConnectionPoolSettings()
         {
+            _channelInitializationTimeout = ConnectionOrientedTransportDefaults.ChannelInitializationTimeout;
             _idleTimeout = ConnectionOrientedTransportDefaults.IdleTimeout;
             _maxOutboundConnectionsPerEndpoint = ConnectionOrientedTransportDefaults.MaxOutboundConnectionsPerEndpoint;
         }
 
-        protected ConnectionPoolSettings(ConnectionPoolSettings other)
+        internal protected ConnectionPoolSettings(ConnectionPoolSettings other)
         {
+            _channelInitializationTimeout = other._channelInitializationTimeout;
             _idleTimeout = other._idleTimeout;
             _maxOutboundConnectionsPerEndpoint = other._maxOutboundConnectionsPerEndpoint;
+        }
+
+        public TimeSpan ChannelInitializationTimeout
+        {
+            get => _channelInitializationTimeout;
+            set
+            {
+                if (value <= TimeSpan.Zero)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
+                        SRCommon.TimeSpanMustBeGreaterThanTimeSpanZero));
+                }
+
+                if (TimeoutHelper.IsTooLarge(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
+                        SRCommon.SFxTimeoutOutOfRangeTooBig));
+                }
+
+                _channelInitializationTimeout = value;
+            }
         }
 
         public TimeSpan IdleTimeout
@@ -69,6 +91,11 @@ namespace CoreWCF.Channels
             }
 
             if (_maxOutboundConnectionsPerEndpoint != connectionPool._maxOutboundConnectionsPerEndpoint)
+            {
+                return false;
+            }
+
+            if (_channelInitializationTimeout != connectionPool._channelInitializationTimeout)
             {
                 return false;
             }

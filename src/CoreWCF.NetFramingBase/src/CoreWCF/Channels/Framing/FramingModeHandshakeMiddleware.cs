@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -49,7 +50,7 @@ namespace CoreWCF.Channels.Framing
                     var modeDecoder = new ServerModeDecoder(connection.Logger);
                     try
                     {
-                        if (!await modeDecoder.ReadModeAsync(inputPipe))
+                        if (!await modeDecoder.ReadModeAsync(inputPipe, connection.ChannelInitializationCancellationToken))
                         {
                             break; // Input pipe closed
                         }
@@ -65,6 +66,13 @@ namespace CoreWCF.Channels.Framing
                         }
 
                         return; // Completing the returned Task causes the connection to be closed if needed and cleans everything up.
+                    }
+                    catch (OperationCanceledException oce)
+                    {
+                        // Need to Abort (RST) the connection as aspnetcore on .NET Framework doesn't correctly close the socket
+                        // In the case of connection establishment timeout, this is a change in behavior as WCF will close (FIN) the socket.
+                        connection.Abort(oce);
+                        throw;
                     }
 
                     connection.FramingMode = modeDecoder.Mode;
@@ -84,7 +92,8 @@ namespace CoreWCF.Channels.Framing
 
                     if (reuseHandler == null)
                     {
-                        reuseHandler = connection.ServiceDispatcher.Binding.GetProperty<IConnectionReuseHandler>(new BindingParameterCollection());
+                        var listenOptions = connection.ConnectionFeatures.Get<NetFramingListenOptions>();
+                        reuseHandler = listenOptions.ConnectionReuseHandler;
                     }
                 } while (await reuseHandler.ReuseConnectionAsync(connection, _appLifetime.ApplicationStopping));
 
