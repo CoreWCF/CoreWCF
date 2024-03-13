@@ -31,6 +31,14 @@ namespace CoreWCF.Channels
 
         protected override void ReturnConnectionIfNecessary(bool abort, CancellationToken token)
         {
+            if (abort)
+            {
+                // Need to use an overload of Connection.Abort which takes a parameter as
+                // ConnectionContext.Abort() does a clean socket shutdown and we need
+                // to abort the socket and send a RST as we are working with the assumption
+                // the client is no longer reachable.
+                Connection.Abort(string.Format(SR.ReceiveTimedOut2, DefaultReceiveTimeout));
+            }
             // TODO: Put connection back into the beginning of the middleware stack
             //    IConnection localConnection = null;
             //    if (this.sessionReader != null)

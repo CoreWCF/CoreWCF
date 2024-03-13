@@ -1,9 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Channels.Framing
@@ -49,7 +51,8 @@ namespace CoreWCF.Channels.Framing
                     var modeDecoder = new ServerModeDecoder(connection.Logger);
                     try
                     {
-                        if (!await modeDecoder.ReadModeAsync(inputPipe))
+                        var connectionTimeoutToken = new TimeoutHelper(ConnectionOrientedTransportDefaults.ChannelInitializationTimeout).GetCancellationToken();
+                        if (!await modeDecoder.ReadModeAsync(inputPipe, connectionTimeoutToken))
                         {
                             break; // Input pipe closed
                         }
@@ -65,6 +68,13 @@ namespace CoreWCF.Channels.Framing
                         }
 
                         return; // Completing the returned Task causes the connection to be closed if needed and cleans everything up.
+                    }
+                    catch (OperationCanceledException oce)
+                    {
+                        // Need to Abort (RST) the connection as aspnetcore on .NET Framework doesn't correctly close the socket
+                        // In the case of connection establishment timeout, this is a change in behavior as WCF will close (FIN) the socket.
+                        connection.Abort(oce);
+                        throw;
                     }
 
                     connection.FramingMode = modeDecoder.Mode;
