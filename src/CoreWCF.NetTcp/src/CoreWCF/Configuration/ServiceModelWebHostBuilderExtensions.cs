@@ -44,7 +44,8 @@ namespace CoreWCF.Configuration
             webHostBuilder.AddNetTcpRequiredServices()
                           .ConfigureNetTcp(options =>
                           {
-                              options.Listen($"net.tcp://{ipAddress}:{port}");
+                              var uriBuilder = new UriBuilder("net.tcp", ipAddress.ToString(), port);
+                              options.Listen(uriBuilder.Uri);
                           });
             return webHostBuilder;
         }
