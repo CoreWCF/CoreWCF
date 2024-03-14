@@ -11,7 +11,19 @@ namespace CoreWCF.Channels
         internal List<TcpListenOptions> CodeBackedListenOptions { get; } = new List<TcpListenOptions>();
         public IServiceProvider ApplicationServices { get; internal set; }
 
-        public void Listen(string baseAddress) => Listen(new Uri(baseAddress));
+        public void Listen(string baseAddress)
+        {
+            try
+            {
+                var baseAddressUri = new Uri(baseAddress);
+                Listen(new Uri(baseAddress));
+            }
+            catch(UriFormatException ufe)
+            {
+                throw new CommunicationException($"Unable to parse base address {baseAddress}", ufe);
+            }
+        }
+
         public void Listen(Uri baseAddress) => Listen(baseAddress, _ => { });
 
         public void Listen(string baseAddress, Action<TcpListenOptions> configure) => Listen(new Uri(baseAddress), configure);
