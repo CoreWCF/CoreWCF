@@ -22,6 +22,7 @@ namespace CoreWCF.Channels
     {
         private static bool s_isNetFramework => RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase);
 
+        private readonly NetTcpOptions _serverOptions;
         private readonly IServiceBuilder _serviceBuilder;
         private readonly ILogger<NetTcpHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -29,13 +30,14 @@ namespace CoreWCF.Channels
         private CancellationTokenRegistration _applicationStartedRegistration;
         private bool _started;
 
-        public NetTcpHostedService(IServiceBuilder serviceBuilder, ILogger<NetTcpHostedService> logger, IServer server, IServiceProvider serviceProvider)
+        public NetTcpHostedService(IOptions<NetTcpOptions> options, IServer server, IServiceBuilder serviceBuilder, ILogger<NetTcpHostedService> logger, IServiceProvider serviceProvider)
         {
             // We request the IServer in the constructor to trigger the constructor of the implementation. If the implementation
             // is KestrelServer it will run NetTcpFramingOptionsSetup.Configure, which we use to detect the server is Kestrel.
             // We can't just examine the type as we wrap it so we can throw any startup exceptions using WrappingIServer.
             // The IServer will have already been started on asp.net core 2.1, but later versions start it after IHostedService's
             _ = server;
+            _serverOptions = options.Value ?? new NetTcpOptions();
             _serviceBuilder = serviceBuilder;
             _logger = logger;
             _serviceProvider = serviceProvider;
