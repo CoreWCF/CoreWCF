@@ -33,7 +33,11 @@ namespace CoreWCF.Channels
         {
             if (abort)
             {
-                Connection.Abort(SR.ContentTypeMismatch);
+                // Need to use an overload of Connection.Abort which takes a parameter as
+                // ConnectionContext.Abort() does a clean socket shutdown and we need
+                // to abort the socket and send a RST as we are working with the assumption
+                // the client is no longer reachable.
+                Connection.Abort(string.Format(SR.ReceiveTimedOut, DefaultReceiveTimeout));
             }
             // TODO: Put connection back into the beginning of the middleware stack
             //    IConnection localConnection = null;
