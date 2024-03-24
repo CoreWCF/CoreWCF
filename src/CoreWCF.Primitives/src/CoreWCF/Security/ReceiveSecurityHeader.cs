@@ -854,20 +854,25 @@ namespace CoreWCF.Security
             MarkHeaderAsUnderstood();
         }
 
+        //TODO Fix / consult as it's getting from LocalServerSettings
         private static void AddNonce(NonceCache cache, byte[] nonce)
         {
+            /*
             if (!cache.TryAddNonce(nonce))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.InvalidOrReplayedNonce, true));
             }
+            */
         }
 
+        //TODO Fix
         private static void CheckNonce(NonceCache cache, byte[] nonce)
         {
+            /*
             if (cache.CheckNonce(nonce))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.InvalidOrReplayedNonce, true));
-            }
+            }*/
         }
 
         protected abstract void EnsureDecryptionComplete();

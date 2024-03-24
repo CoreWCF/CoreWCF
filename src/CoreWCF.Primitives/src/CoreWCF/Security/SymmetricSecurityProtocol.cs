@@ -155,14 +155,15 @@ namespace CoreWCF.Security
             }
         }
 
-        protected override SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState)
+        protected override SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, CancellationToken cancellationToken, SecurityProtocolCorrelationState correlationState)
         {
             SecurityToken token;
             SecurityTokenParameters tokenParameters;
             IList<SupportingTokenSpecification> supportingTokens;
             SecurityToken prerequisiteWrappingToken;
             SecurityProtocolCorrelationState newCorrelationState;
-            TryGetTokenSynchronouslyForOutgoingSecurity(message, correlationState, true, timeout, out token, out tokenParameters, out prerequisiteWrappingToken, out supportingTokens, out newCorrelationState);
+
+            TryGetTokenSynchronouslyForOutgoingSecurity(message, correlationState, true, DefaultOpenTimeout, out token, out tokenParameters, out prerequisiteWrappingToken, out supportingTokens, out newCorrelationState);
             SetUpDelayedSecurityExecution(ref message, prerequisiteWrappingToken, token, tokenParameters, supportingTokens, GetSignatureConfirmationCorrelationState(correlationState, newCorrelationState));
             return newCorrelationState;
         }
@@ -212,12 +213,11 @@ namespace CoreWCF.Security
             token = null;
             tokenParameters = null;
             newCorrelationState = null;
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             if (factory.ApplyIntegrity || factory.ApplyConfidentiality)
             {
                 if (factory.ActAsInitiator)
                 {
-                    if (!isBlockingCall || ! TryGetSupportingTokens(factory, Target, Via, message, timeoutHelper.RemainingTime(), isBlockingCall, out supportingTokens))
+                    if (!isBlockingCall || ! TryGetSupportingTokens(factory, Target, Via, message, timeout, isBlockingCall, out supportingTokens))
                     {
                         return false;
                     }

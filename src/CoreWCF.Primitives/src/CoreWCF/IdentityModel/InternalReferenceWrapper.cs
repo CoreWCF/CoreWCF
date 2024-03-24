@@ -14,7 +14,7 @@ namespace CoreWCF.IdentityModel
     internal class InternalReferenceWrapper
     {
         private readonly Reference _reference;
-        private bool _verified;
+        internal bool _verified;
         private string _referredId;
         private SignatureResourcePool _resourcePool;
 
@@ -70,7 +70,7 @@ namespace CoreWCF.IdentityModel
 
         internal bool IsStrTranform() =>  (_reference.TransformChain.Count == 1 && _reference.TransformChain[0].Algorithm == SecurityAlgorithms.StrTransform);
 
-        private bool EnsureDigestValidityIfIdMatches(string id, byte[] computedDigest)
+        internal bool EnsureDigestValidityIfIdMatches(string id, byte[] computedDigest)
         {
             if (_verified || id != ExtractReferredId())
             {
@@ -85,7 +85,7 @@ namespace CoreWCF.IdentityModel
             return true;
         }
 
-        private bool EnsureDigestValidityIfIdMatches(string id, object resolvedXmlSource)
+        internal bool EnsureDigestValidityIfIdMatches(string id, object resolvedXmlSource)
         {
             if (_verified)
             {
@@ -115,10 +115,11 @@ namespace CoreWCF.IdentityModel
             {
                 throw new NotSupportedException();
             }
-            XmlDocument doc = new XmlDocument();
-            doc.Load((XmlReader)resolvedXmlSource);
+            CanonicalizationDriver driver = GetConfiguredDriver(_resourcePool);
+            driver.SetInput(resolvedXmlSource as XmlReader);
+            var data = driver.GetMemoryStream();
             Transform chain = _reference.TransformChain[0];
-            chain.LoadInput(doc);
+            chain.LoadInput(data);
             byte[] computedDigest = chain.GetDigestedOutput(_resourcePool.TakeHashAlgorithm(_reference.DigestMethod));
             return CryptoHelper.FixedTimeEquals(computedDigest, digValue);
         }
@@ -142,7 +143,13 @@ namespace CoreWCF.IdentityModel
             return _referredId;
         }
 
-        private CanonicalizationDriver GetConfiguredDriver(SignatureResourcePool resourcePool) => throw new NotImplementedException();
+        private CanonicalizationDriver GetConfiguredDriver(SignatureResourcePool resourcePool)
+        {
+            CanonicalizationDriver driver = resourcePool.TakeCanonicalizationDriver();
+           // driver.IncludeComments = this.IncludeComments;
+           // driver.SetInclusivePrefixes(this.inclusivePrefixes);
+            return driver;
+        }
         internal bool NeedsInclusiveContext() => false;
         /*
 private byte[] GetDigestValue() => TransformChain[0]

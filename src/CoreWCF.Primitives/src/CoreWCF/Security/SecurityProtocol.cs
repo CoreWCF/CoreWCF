@@ -464,7 +464,6 @@ namespace CoreWCF.Security
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("message");
             }
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
             supportingTokens = null;
             IList<SupportingTokenProviderSpecification> supportingTokenProviders = GetSupportingTokenProviders(message.Headers.Action);
             if (supportingTokenProviders != null && supportingTokenProviders.Count > 0)
@@ -484,11 +483,11 @@ namespace CoreWCF.Security
                     // to pass a channel binding to InitializeSecurityContext.
                     if ((this is TransportSecurityProtocol) && (spec.TokenParameters is KerberosSecurityTokenParameters))
                     {
-                        supportingToken = new ProviderBackedSecurityToken(spec.TokenProvider, timeoutHelper.RemainingTime());
+                        supportingToken = new ProviderBackedSecurityToken(spec.TokenProvider, timeout);
                     }
                     else
                     {
-                        supportingToken = spec.TokenProvider.GetToken(timeoutHelper.RemainingTime());
+                        supportingToken = spec.TokenProvider.GetToken(timeout);
                     }
 
                     supportingTokens.Add(new SupportingTokenSpecification(supportingToken, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, spec.SecurityTokenAttachmentMode, spec.TokenParameters));
@@ -586,6 +585,18 @@ namespace CoreWCF.Security
             return token;
         }
 
+        /*
+        public abstract void SecureOutgoingMessage(ref Message message, TimeSpan timeout);
+
+        // subclasses that offer correlation should override this version
+        public virtual SecurityProtocolCorrelationState SecureOutgoingMessage(ref Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState)
+        {
+            SecureOutgoingMessage(ref message, timeout);
+            return null;
+        }*/
+
+        //Probably breaking change, let's validate
+        
         public abstract Message SecureOutgoingMessage(Message message, CancellationToken token);
 
         // subclasses that offer correlation should override this version
@@ -593,6 +604,7 @@ namespace CoreWCF.Security
         {
             return (null, SecureOutgoingMessage(message, token));
         }
+        
 
         protected virtual void OnOutgoingMessageSecured(Message securedMessage)
         {

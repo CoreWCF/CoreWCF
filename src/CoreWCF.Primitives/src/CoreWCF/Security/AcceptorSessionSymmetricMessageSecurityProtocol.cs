@@ -12,6 +12,7 @@ using CoreWCF.Security.Tokens;
 using System.Xml;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CoreWCF.Security
 {
@@ -140,7 +141,7 @@ namespace CoreWCF.Security
             tokenParameters = Factory.GetTokenParameters();
         }
 
-        protected override SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, TimeSpan timeout, SecurityProtocolCorrelationState correlationState)
+        protected override SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, CancellationToken token, SecurityProtocolCorrelationState correlationState)
         {
             SecurityToken signingToken;
             SecurityToken encryptionToken;

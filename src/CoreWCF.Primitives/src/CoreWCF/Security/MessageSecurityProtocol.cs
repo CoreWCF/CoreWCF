@@ -434,6 +434,7 @@ namespace CoreWCF.Security
             return token;
         }*/
 
+
         public override Message SecureOutgoingMessage(Message message, CancellationToken token)
         {
             try
@@ -442,11 +443,10 @@ namespace CoreWCF.Security
                 ValidateOutgoingState(message);
                 if (!RequiresOutgoingSecurityProcessing && message.Properties.Security == null)
                 {
-                    return message;
+                    return null;
                 }
-                TimeoutHelper timeoutHelper = new TimeoutHelper(DefaultOpenTimeout);
 
-                var result = SecureOutgoingMessageCore(ref message, timeoutHelper.RemainingTime(), null);
+                SecureOutgoingMessageCore(ref message, token, null);
                 base.OnOutgoingMessageSecured(message);
                 return message;
             }
@@ -460,8 +460,31 @@ namespace CoreWCF.Security
             }
         }
 
-        //TODO :- really check if State is needed.
-        protected abstract SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, TimeSpan timeOut, SecurityProtocolCorrelationState correlationState);
+        public override (SecurityProtocolCorrelationState, Message) SecureOutgoingMessage(Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
+        {
+            try
+            {
+                CommunicationObject.ThrowIfClosedOrNotOpen();
+                ValidateOutgoingState(message);
+                if (!RequiresOutgoingSecurityProcessing && message.Properties.Security == null)
+                {
+                    return (null, null);
+                }
+                SecurityProtocolCorrelationState newCorrelationState = SecureOutgoingMessageCore(ref message, token, correlationState);
+                base.OnOutgoingMessageSecured(message);
+                return (newCorrelationState, message);
+            }
+            catch (Exception exception)
+            {
+                // Always immediately rethrow fatal exceptions.
+                if (Fx.IsFatal(exception)) throw;
+
+                base.OnSecureOutgoingMessageFailure(message);
+                throw;
+            }
+        }
+
+        protected abstract SecurityProtocolCorrelationState SecureOutgoingMessageCore(ref Message message, CancellationToken token, SecurityProtocolCorrelationState correlationState);
 
         private void ValidateOutgoingState(Message message)
         {
@@ -513,8 +536,8 @@ namespace CoreWCF.Security
             }
         }
 
-        /*
-        public override SecurityProtocolCorrelationState VerifyIncomingMessage(ref Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
+        
+        public override async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, TimeSpan timeout, params SecurityProtocolCorrelationState[] correlationStates)
         {
             try
             {
@@ -529,12 +552,13 @@ namespace CoreWCF.Security
                 }
                 if (!RequiresIncomingSecurityProcessing(message))
                 {
-                    return null;
+                    return (null, null);
                 }
                 string actor = string.Empty; // message.Version.Envelope.UltimateDestinationActor;
-                SecurityProtocolCorrelationState newCorrelationState = VerifyIncomingMessageCore(ref message, actor, timeout, correlationStates);
+                SecurityProtocolCorrelationState newCorrelationState;
+                (newCorrelationState, message) = await VerifyIncomingMessageCoreAsync(message, actor, timeout, correlationStates);
                 base.OnIncomingMessageVerified(message);
-                return newCorrelationState;
+                return (message, newCorrelationState);
             }
             catch (MessageSecurityException e)
             {
@@ -550,9 +574,8 @@ namespace CoreWCF.Security
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.MessageSecurityVerificationFailed), e));
             }
         }
-        */
+        
 
-        //TODO Check with Matt if we really need SecurityProtocolCorrelationState , in that case return Tuples <SecurityProtocolCorrelationState, Message>
         protected abstract Task<Tuple<SecurityProtocolCorrelationState,Message>> VerifyIncomingMessageCoreAsync(Message message, string actor, TimeSpan timeout, SecurityProtocolCorrelationState[] correlationStates);
 
         internal SecurityProtocolCorrelationState GetSignatureConfirmationCorrelationState(SecurityProtocolCorrelationState oldCorrelationState, SecurityProtocolCorrelationState newCorrelationState)
