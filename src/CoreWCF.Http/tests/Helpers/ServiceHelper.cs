@@ -120,7 +120,7 @@ namespace Helpers
 #endif // DEBUG
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Loopback, 0, listenOptions =>
+                options.Listen(IPAddress.Loopback, 3560, listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {

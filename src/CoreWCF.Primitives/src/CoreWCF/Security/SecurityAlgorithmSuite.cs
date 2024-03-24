@@ -411,6 +411,44 @@ namespace CoreWCF.Security
             }
         }
 
+        internal void EnsureAcceptableDecryptionSymmetricKeySize(SymmetricSecurityKey securityKey, SecurityToken token)
+        {
+            int keySize;
+            DerivedKeySecurityToken dkt = token as DerivedKeySecurityToken;
+            if (dkt != null)
+            {
+                token = dkt.TokenToDerive;
+                keySize = ((SymmetricSecurityKey)token.SecurityKeys[0]).KeySize;
+
+                // doing special case for derived key token signing length since
+                // the sending side doesn't honor the algorithm suite. It used the DefaultSignatureKeyDerivationLength instead
+                if (dkt.SecurityKeys[0].KeySize < this.DefaultEncryptionKeyDerivationLength)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                        SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, dkt, dkt.SecurityKeys[0].KeySize)));
+                }
+            }
+            else
+            {
+                keySize = securityKey.KeySize;
+            }
+
+            if (!IsSymmetricKeyLengthSupported(keySize))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.TokenDoesNotMeetKeySizeRequirements, this, token, keySize)));
+            }
+        }
+
+        internal void EnsureAcceptableEncryptionAlgorithm(string algorithm)
+        {
+            if (!IsEncryptionAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "Encryption", this)));
+            }
+        }
+
         internal void EnsureAcceptableSymmetricSignatureAlgorithm(string algorithm)
         {
             if (!IsSymmetricSignatureAlgorithmSupported(algorithm))
@@ -579,14 +617,14 @@ namespace CoreWCF.Security
         //    }
         //}
 
-        //internal void EnsureAcceptableDigestAlgorithm(string algorithm)
-        //{
-        //    if (!IsDigestAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "Digest", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableDigestAlgorithm(string algorithm)
+        {
+            if (!IsDigestAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "Digest", this)));
+            }
+        }
     }
 
     public class Basic256SecurityAlgorithmSuite : SecurityAlgorithmSuite

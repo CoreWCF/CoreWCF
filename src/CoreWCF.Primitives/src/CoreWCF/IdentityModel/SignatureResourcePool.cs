@@ -17,6 +17,7 @@ namespace CoreWCF.IdentityModel
         private XmlDictionaryWriter _utf8Writer;
         private byte[] _encodingBuffer;
         private char[] _base64Buffer;
+        private CanonicalizationDriver _canonicalizationDriver;
 
         public char[] TakeBase64Buffer()
         {
@@ -34,6 +35,19 @@ namespace CoreWCF.IdentityModel
                 _encodingBuffer = new byte[BufferSize];
             }
             return _encodingBuffer;
+        }
+
+        public CanonicalizationDriver TakeCanonicalizationDriver()
+        {
+            if (_canonicalizationDriver == null)
+            {
+                _canonicalizationDriver = new CanonicalizationDriver();
+            }
+            else
+            {
+                _canonicalizationDriver.Reset();
+            }
+            return _canonicalizationDriver;
         }
 
         public HashAlgorithm TakeHashAlgorithm(string algorithm)

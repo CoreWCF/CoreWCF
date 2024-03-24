@@ -401,54 +401,53 @@ namespace CoreWCF.Security
         {
             //TODO while implementing message security
 
-            //if (this.sessionProtocolFactory is SessionSymmetricMessageSecurityProtocolFactory)
-            //{
-            //    AddressingVersion addressing = MessageVersion.Default.Addressing;
-            //    if (this.channelBuilder != null)
-            //    {
-            //        MessageEncodingBindingElement encoding = this.channelBuilder.Binding.Elements.Find<MessageEncodingBindingElement>();
-            //        if (encoding != null)
-            //        {
-            //            addressing = encoding.MessageVersion.Addressing;
-            //        }
-            //    }
+            if (_sessionProtocolFactory is SessionSymmetricMessageSecurityProtocolFactory)
+            {
+                AddressingVersion addressing = MessageVersion.Default.Addressing;
+                if (_channelBuilder != null)
+                {
+                    MessageEncodingBindingElement encoding = _channelBuilder.Binding.Elements.Find<MessageEncodingBindingElement>();
+                    if (encoding != null)
+                    {
+                        addressing = encoding.MessageVersion.Addressing;
+                    }
+                }
 
-            //    if (addressing != AddressingVersion.WSAddressing10 && addressing != AddressingVersion.WSAddressingAugust2004)
-            //    {
-            //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-            //            new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, addressing)));
-            //    }
+                if (addressing != AddressingVersion.WSAddressing10 && addressing != AddressingVersion.WSAddressingAugust2004)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, addressing)));
+                }
 
-            //    SessionSymmetricMessageSecurityProtocolFactory messagePf = (SessionSymmetricMessageSecurityProtocolFactory)this.sessionProtocolFactory;
-            //    if (!messagePf.ApplyIntegrity || !messagePf.RequireIntegrity)
-            //    {
-            //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionRequiresMessageIntegrity)));
-            //    }
-            //    MessagePartSpecification bodyPart = new MessagePartSpecification(true);
-            //    messagePf.ProtectionRequirements.IncomingSignatureParts.AddParts(bodyPart, this.SecurityStandardsManager.SecureConversationDriver.CloseAction);
-            //    messagePf.ProtectionRequirements.IncomingSignatureParts.AddParts(bodyPart, this.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
-            //    messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, this.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
-            //    messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, this.SecurityStandardsManager.SecureConversationDriver.CloseAction);
-            //    messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, addressing.FaultAction);
-            //    messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, addressing.DefaultFaultAction);
-            //    messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, DotNetSecurityStrings.SecuritySessionFaultAction);
-            //    if (messagePf.ApplyConfidentiality)
-            //    {
-            //        messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(MessagePartSpecification.NoParts, this.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
-            //        messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(MessagePartSpecification.NoParts, this.SecurityStandardsManager.SecureConversationDriver.CloseAction);
-            //        messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, addressing.FaultAction);
-            //        messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, addressing.DefaultFaultAction);
-            //        messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, DotNetSecurityStrings.SecuritySessionFaultAction);
-            //    }
-            //    if (messagePf.RequireConfidentiality)
-            //    {
-            //        messagePf.ProtectionRequirements.IncomingEncryptionParts.AddParts(MessagePartSpecification.NoParts, this.SecurityStandardsManager.SecureConversationDriver.CloseAction);
-            //        messagePf.ProtectionRequirements.IncomingEncryptionParts.AddParts(MessagePartSpecification.NoParts, this.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
-            //    }
-            //    messagePf.SecurityTokenParameters = this.IssuedSecurityTokenParameters;
-            //}
-            //else
-            if (_sessionProtocolFactory is SessionSymmetricTransportSecurityProtocolFactory sessionSymmetricProtocolFactory)
+                SessionSymmetricMessageSecurityProtocolFactory messagePf = (SessionSymmetricMessageSecurityProtocolFactory)_sessionProtocolFactory;
+                if (!messagePf.ApplyIntegrity || !messagePf.RequireIntegrity)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.Format(SR.SecuritySessionRequiresMessageIntegrity)));
+                }
+                MessagePartSpecification bodyPart = new MessagePartSpecification(true);
+                messagePf.ProtectionRequirements.IncomingSignatureParts.AddParts(bodyPart, SecurityStandardsManager.SecureConversationDriver.CloseAction);
+                messagePf.ProtectionRequirements.IncomingSignatureParts.AddParts(bodyPart, SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
+                messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
+                messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, SecurityStandardsManager.SecureConversationDriver.CloseAction);
+                messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, addressing.FaultAction);
+                messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, addressing.DefaultFaultAction);
+                messagePf.ProtectionRequirements.OutgoingSignatureParts.AddParts(bodyPart, DotNetSecurityStrings.SecuritySessionFaultAction);
+                if (messagePf.ApplyConfidentiality)
+                {
+                    messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(MessagePartSpecification.NoParts, SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
+                    messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(MessagePartSpecification.NoParts, SecurityStandardsManager.SecureConversationDriver.CloseAction);
+                    messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, addressing.FaultAction);
+                    messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, addressing.DefaultFaultAction);
+                    messagePf.ProtectionRequirements.OutgoingEncryptionParts.AddParts(bodyPart, DotNetSecurityStrings.SecuritySessionFaultAction);
+                }
+                if (messagePf.RequireConfidentiality)
+                {
+                    messagePf.ProtectionRequirements.IncomingEncryptionParts.AddParts(MessagePartSpecification.NoParts, SecurityStandardsManager.SecureConversationDriver.CloseAction);
+                    messagePf.ProtectionRequirements.IncomingEncryptionParts.AddParts(MessagePartSpecification.NoParts, SecurityStandardsManager.SecureConversationDriver.CloseResponseAction);
+                }
+                messagePf.SecurityTokenParameters = IssuedSecurityTokenParameters;
+            }
+            else if (_sessionProtocolFactory is SessionSymmetricTransportSecurityProtocolFactory sessionSymmetricProtocolFactory)
             {
                 sessionSymmetricProtocolFactory.AddTimestamp = true;
                 sessionSymmetricProtocolFactory.SecurityTokenParameters = IssuedSecurityTokenParameters;

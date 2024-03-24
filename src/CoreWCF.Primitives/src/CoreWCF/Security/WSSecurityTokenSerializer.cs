@@ -173,6 +173,9 @@ namespace CoreWCF.Security
 
         public int MaximumKeyDerivationNonceLength { get; }
 
+        internal WSSecureConversation SecureConversation => _secureConversation;
+
+
         private bool ShouldWrapException(Exception e)
         {
             if (Fx.IsFatal(e))
@@ -270,7 +273,14 @@ namespace CoreWCF.Security
 
         protected override bool CanReadKeyIdentifierCore(XmlReader reader)
         {
-            throw new PlatformNotSupportedException();
+            try
+            {
+                return _keyInfoSerializer.CanReadKeyIdentifier(reader);
+            }
+            catch (Exception ex)
+            {
+                throw Fx.Exception.AsError(new MessageSecurityException(ex.Message));
+            }
         }
 
         protected override SecurityKeyIdentifier ReadKeyIdentifierCore(XmlReader reader)

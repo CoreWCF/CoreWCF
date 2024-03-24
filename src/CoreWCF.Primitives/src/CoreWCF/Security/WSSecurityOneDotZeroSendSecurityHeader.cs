@@ -14,6 +14,7 @@ using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
+using static CoreWCF.Dispatcher.EndpointAddressProcessor;
 using IPrefixGenerator = CoreWCF.IdentityModel.IPrefixGenerator;
 using ISecurityElement = CoreWCF.IdentityModel.ISecurityElement;
 using ISignatureValueSecurityElement = CoreWCF.IdentityModel.ISignatureValueSecurityElement;
@@ -24,9 +25,16 @@ namespace CoreWCF.Security
     internal class WSSecurityOneDotZeroSendSecurityHeader : SendSecurityHeader
     {
         private HashStream _hashStream;
+        private EncryptedData _encryptedData;
         private SignedXml _signedXml;
+        private SignedInfo _signedInfo; //preDigestSignInfo needed ? TODO
         private KeyedHashAlgorithm _signingKey;
         private MessagePartSpecification _effectiveSignatureParts;
+
+        private SymmetricAlgorithm _encryptingSymmetricAlgorithm;
+        private ReferenceList _referenceList;
+        private SecurityKeyIdentifier _encryptionKeyIdentifier;
+        private bool hasSignedEncryptedMessagePart;
 
         // For Transport Security we have to sign the 'To' header with the 
         // supporting tokens.
@@ -55,6 +63,17 @@ namespace CoreWCF.Security
             out MemoryStream plainTextStream, out string encryptedDataId)
         {
             throw new PlatformNotSupportedException();
+        }
+
+        private void AddSignatureReference(SecurityToken[] tokens, SecurityTokenAttachmentMode mode)
+        {
+            if (tokens != null)
+            {
+                for (int i = 0; i < tokens.Length; ++i)
+                {
+                    AddSignatureReference(tokens[i], i, mode);
+                }
+            }
         }
 
         private void AddSignatureReference(SecurityToken token, int position, SecurityTokenAttachmentMode mode)
@@ -330,7 +349,20 @@ namespace CoreWCF.Security
                     AddReference("#" + message.BodyId, ms);
                     return;
                 case MessagePartProtectionMode.SignThenEncrypt:
-                    throw new PlatformNotSupportedException();
+                     ms = new MemoryStream();
+                    _encryptedData = CreateEncryptedDataForBody();
+                    if (CanCanonicalizeAndFragment(writer))
+                    {
+                        message.WriteBodyToSignThenEncryptWithFragments(ms, false, null, _encryptedData, _encryptingSymmetricAlgorithm, writer);
+                    }
+                    else
+                    {
+                        message.WriteBodyToSignThenEncrypt(ms, _encryptedData, _encryptingSymmetricAlgorithm);
+                    }
+                    AddReference(message.BodyId, ms);
+                    _referenceList.AddReferredId(_encryptedData.Id);
+                    hasSignedEncryptedMessagePart = true;
+                    return;
                 case MessagePartProtectionMode.Encrypt:
                     throw new PlatformNotSupportedException();
                 case MessagePartProtectionMode.EncryptThenSign:
@@ -339,6 +371,23 @@ namespace CoreWCF.Security
                     Fx.Assert("Invalid MessagePartProtectionMode");
                     return;
             }
+        }
+
+        EncryptedData CreateEncryptedDataForBody()
+        {
+            EncryptedData encryptedData = CreateEncryptedData();
+            encryptedData.Type = EncryptedData.ContentType;
+            return encryptedData;
+        }
+
+        EncryptedData CreateEncryptedData()
+        {
+            EncryptedData encryptedData = new EncryptedData();
+            encryptedData.SecurityTokenSerializer = StandardsManager.SecurityTokenSerializer;
+            encryptedData.KeyIdentifier = _encryptionKeyIdentifier;
+            encryptedData.EncryptionMethod = EncryptionAlgorithm;
+            encryptedData.EncryptionMethodDictionaryString = EncryptionAlgorithmDictionaryString;
+            return encryptedData;
         }
 
         protected override ISignatureValueSecurityElement CompletePrimarySignatureCore(
@@ -389,7 +438,9 @@ namespace CoreWCF.Security
 
             if (RequireMessageProtection)
             {
-                throw new PlatformNotSupportedException(nameof(RequireMessageProtection));
+                AddSignatureReference(signedEndorsingTokens, SecurityTokenAttachmentMode.SignedEndorsing);
+                AddSignatureReference(signedTokens, SecurityTokenAttachmentMode.Signed);
+                AddSignatureReference(basicTokens);
             }
 
             if (_signedXml.SignedInfo.References.Count == 0)
@@ -623,7 +674,14 @@ namespace CoreWCF.Security
 
         protected override void StartEncryptionCore(SecurityToken token, SecurityKeyIdentifier keyIdentifier)
         {
-            throw new NotImplementedException();
+           _encryptingSymmetricAlgorithm = SecurityUtils.GetSymmetricAlgorithm(EncryptionAlgorithm, token);
+            if (_encryptingSymmetricAlgorithm == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(
+                    SR.Format(SR.UnableToCreateSymmetricAlgorithmFromToken, EncryptionAlgorithm)));
+            }
+            _encryptionKeyIdentifier = keyIdentifier;
+            _referenceList = new ReferenceList();
         }
 
         protected override ISecurityElement CompleteEncryptionCore(SendSecurityHeaderElement primarySignature, SendSecurityHeaderElement[] basicTokens, SendSecurityHeaderElement[] signatureConfirmations, SendSecurityHeaderElement[] endorsingSignatures)

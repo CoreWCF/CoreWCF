@@ -8,9 +8,9 @@ using System.Diagnostics.Contracts;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 using System.Threading;
 using CoreWCF.Runtime.Diagnostics;
-using System.Runtime.Versioning;
 
 namespace CoreWCF.Runtime
 {

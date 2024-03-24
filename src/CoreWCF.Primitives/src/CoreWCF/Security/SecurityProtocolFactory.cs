@@ -88,6 +88,7 @@ namespace CoreWCF.Security
         private SecurityBindingElement _securityBindingElement;
         private string _requestReplyErrorPropertyName;
         private TimeSpan _timestampValidityDuration = defaultTimestampValidityDuration;
+        NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> _derivedKeyTokenAuthenticator;
 
         // AuditLogLocation auditLogLocation;
         private readonly bool _suppressAuditFailure;
@@ -305,7 +306,7 @@ namespace CoreWCF.Security
             }
         }
 
-        internal NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> DerivedKeyTokenAuthenticator { get; }
+        internal NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken> DerivedKeyTokenAuthenticator { get { return _derivedKeyTokenAuthenticator; } }
 
         internal bool ExpectIncomingMessages { get; private set; }
 
@@ -917,7 +918,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            //this.derivedKeyTokenAuthenticator = new NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken>();
+            _derivedKeyTokenAuthenticator = new NonValidatingSecurityTokenAuthenticator<DerivedKeySecurityToken>();
             return Task.CompletedTask;
         }
 

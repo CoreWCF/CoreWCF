@@ -186,8 +186,7 @@ namespace CoreWCF.Security
 
         private SecurityTokenAuthenticator CreateTlsnegoSecurityTokenAuthenticator(RecipientServiceModelSecurityTokenRequirement recipientRequirement, bool requireClientCertificate, out SecurityTokenResolver sctResolver)
         {
-            throw new PlatformNotSupportedException("TlsnegoSecurityToken");
-            /*
+       
             SecurityBindingElement securityBindingElement = recipientRequirement.SecurityBindingElement;
             if (securityBindingElement == null)
             {
@@ -211,8 +210,8 @@ namespace CoreWCF.Security
             authenticator.ListenUri = recipientRequirement.ListenUri;
             authenticator.SecurityAlgorithmSuite = recipientRequirement.SecurityAlgorithmSuite;
             authenticator.StandardsManager = SecurityUtils.CreateSecurityStandardsManager(recipientRequirement, this);
-            authenticator.SecurityStateEncoder = parent.SecureConversationAuthentication.SecurityStateEncoder;
-            authenticator.KnownTypes = parent.SecureConversationAuthentication.SecurityContextClaimTypes;
+            authenticator.SecurityStateEncoder = ServiceCredentials.SecureConversationAuthentication.SecurityStateEncoder;
+            authenticator.KnownTypes = ServiceCredentials.SecureConversationAuthentication.SecurityContextClaimTypes;
             authenticator.ServerTokenProvider = CreateTlsnegoServerX509TokenProvider(recipientRequirement);
             // local security quotas
             authenticator.MaximumCachedNegotiationState = localServiceSettings.MaxStatefulNegotiations;
@@ -228,7 +227,7 @@ namespace CoreWCF.Security
            // authenticator.AuditLogLocation = recipientRequirement.AuditLogLocation;
            // authenticator.SuppressAuditFailure = recipientRequirement.SuppressAuditFailure;
            // authenticator.MessageAuthenticationAuditLevel = recipientRequirement.MessageAuthenticationAuditLevel;
-            return authenticator;*/
+            return authenticator;
         }
 
         private X509SecurityTokenAuthenticator CreateClientX509TokenAuthenticator()
@@ -369,13 +368,11 @@ namespace CoreWCF.Security
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.AnonymousSslnego)
             {
-                throw new NotSupportedException(); 
-              //  result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
+                result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, false, out outOfBandTokenResolver);
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.MutualSslnego)
             {
-                throw new NotSupportedException();
-                //  result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, true, out outOfBandTokenResolver);
+                result = CreateTlsnegoSecurityTokenAuthenticator(recipientRequirement, true, out outOfBandTokenResolver);
             }
             else if (tokenType == ServiceModelSecurityTokenTypes.Spnego)
             {

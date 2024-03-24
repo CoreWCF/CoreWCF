@@ -574,7 +574,9 @@ namespace CoreWCF.Security
 
         public class IdManager : SignatureTargetIdManager
         {
-            private IdManager()
+            static readonly IdManager instance = new IdManager();
+
+            IdManager()
             {
             }
 
@@ -588,24 +590,30 @@ namespace CoreWCF.Security
                 get { return UtilityStrings.Namespace; }
             }
 
-            internal static IdManager Instance { get; } = new IdManager();
+            internal static IdManager Instance
+            {
+                get { return instance; }
+            }
 
             public override string ExtractId(XmlDictionaryReader reader)
             {
                 if (reader == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
-                }
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
 
-                return reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
+                if (reader.IsStartElement(EncryptedData.ElementName, XD.XmlEncryptionDictionary.Namespace))
+                {
+                    return reader.GetAttribute(XD.XmlEncryptionDictionary.Id, null);
+                }
+                else
+                {
+                    return reader.GetAttribute(XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace);
+                }
             }
 
             public override void WriteIdAttribute(XmlDictionaryWriter writer, string id)
             {
                 if (writer == null)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(writer));
-                }
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("writer");
 
                 writer.WriteAttributeString(XD.UtilityDictionary.Prefix.Value, XD.UtilityDictionary.IdAttribute, XD.UtilityDictionary.Namespace, id);
             }
