@@ -101,7 +101,8 @@ namespace CoreWCF.Configuration
                         endpoint.Address,
                         endpoint.Contract,
                         endpoint.Binding,
-                        endpoint.BindingConfiguration);
+                        endpoint.BindingConfiguration,
+                        endpoint.BindingNamespace);
                 }
             }
         }

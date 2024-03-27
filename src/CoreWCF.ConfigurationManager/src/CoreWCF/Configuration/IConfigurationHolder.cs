@@ -12,8 +12,8 @@ namespace CoreWCF.Configuration
     {
         ISet<ServiceEndpoint> Endpoints { get; }
         void AddBinding(Binding binding);
-        void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName);
-        Binding ResolveBinding(string bindingType, string name);
+        void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName, string bindingNamespace);
+        Binding ResolveBinding(string bindingType, string name, string bindingNamespace);
         IXmlConfigEndpoint GetXmlConfigEndpoint(ServiceEndpoint endPoint);
     }
 }

@@ -172,7 +172,8 @@ namespace CoreWCF.Configuration
                 Address = Address,
                 Binding = Binding,
                 BindingConfiguration = BindingConfiguration,
-                Contract = Contract
+                Contract = Contract,
+                BindingNamespace = BindingNamespace
             };
 
             return endpoint;

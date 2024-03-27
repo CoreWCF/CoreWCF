@@ -13,5 +13,6 @@ namespace CoreWCF.Configuration
         public string BindingConfiguration { get; set; }
         public string Name { get; set; }
         public string Contract { get; set; }
+        public string BindingNamespace { get; set; }
     }
 }

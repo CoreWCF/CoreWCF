@@ -27,24 +27,27 @@ namespace CoreWCF.Configuration
             _bindings.Add(binding.Name, binding);
         }
 
-        public Binding ResolveBinding(string bindingType, string name)
+        public Binding ResolveBinding(string bindingType, string name, string bindingNamespace)
         {
             if (string.IsNullOrEmpty(bindingType))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(bindingType);
             }
 
+            Binding binding;
             if (string.IsNullOrEmpty(name))
             {
-                return _factoryBinding.Create(bindingType);
+                binding = _factoryBinding.Create(bindingType);
             }
-
-            if (_bindings.TryGetValue(name, out Binding binding))
+            else if (!_bindings.TryGetValue(name, out binding))
             {
-                return binding;
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
             }
 
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperWarning(new BindingNotFoundException());
+            SetBindingNamespace(bindingNamespace, binding);
+
+            return binding;
+
         }
 
         public IXmlConfigEndpoint GetXmlConfigEndpoint(ServiceEndpoint endpoint)
@@ -56,11 +59,11 @@ namespace CoreWCF.Configuration
 
             Type contract = ServiceReflector.ResolveTypeFromName(endpoint.Contract);
             Type service = ServiceReflector.ResolveTypeFromName(endpoint.ServiceName);
-            Binding binding = ResolveBinding(endpoint.Binding, endpoint.BindingConfiguration);
+            Binding binding = ResolveBinding(endpoint.Binding, endpoint.BindingConfiguration, endpoint.BindingNamespace);
             return new XmlConfigEndpoint(service, contract, binding, endpoint.Address);
         }
 
-        public void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName)
+        public void AddServiceEndpoint(string name, string serviceName, Uri address, string contract, string bindingType, string bindingName, string bindingNamespace)
         {
             var endpoint = new ServiceEndpoint
             {
@@ -69,10 +72,19 @@ namespace CoreWCF.Configuration
                 Binding = bindingType,
                 Contract = contract,
                 Name = name,
-                BindingConfiguration = bindingName
+                BindingConfiguration = bindingName,
+                BindingNamespace = bindingNamespace
             };
 
             _endpoints.Add(endpoint);
+        }
+
+        private static void SetBindingNamespace(string bindingNamespace, Binding binding)
+        {
+            if (binding != null && bindingNamespace != null)
+            {
+                binding.Namespace = bindingNamespace;
+            }
         }
     }
 }
