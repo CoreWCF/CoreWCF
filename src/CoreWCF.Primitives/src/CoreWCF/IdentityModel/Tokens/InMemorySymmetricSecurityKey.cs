@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
-    internal class InMemorySymmetricSecurityKey : SymmetricSecurityKey
+    public class InMemorySymmetricSecurityKey : SymmetricSecurityKey
     {
         private readonly int _keySize;
         private readonly byte[] _symmetricKey;
