@@ -27,7 +27,7 @@ namespace CoreWCF.Configuration
             _bindings.Add(binding.Name, binding);
         }
 
-        public Binding ResolveBinding(string bindingType, string name, string bindingNamespace)
+        public Binding ResolveBinding(string bindingType, string name, string bindingNamespace = null)
         {
             if (string.IsNullOrEmpty(bindingType))
             {

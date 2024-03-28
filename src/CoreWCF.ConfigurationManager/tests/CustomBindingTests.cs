@@ -97,6 +97,45 @@ namespace CoreWCF.ConfigurationManager.Tests
             }
         }
 
+        [Fact]
+        public void CustomBinding_WithNamespaceSettings()
+        {
+            string expectedName = "customBinding";
+            string expectedNamespace = "customNamespace";
+            TimeSpan expectedReceiveTimeout = TimeSpan.FromMinutes(10);
+            TimeSpan expectedDefaultTimeout = TimeSpan.FromMinutes(1);
+
+
+            string xml = $@"
+<configuration> 
+    <system.serviceModel>         
+        <bindings>         
+            <customBinding>
+                <binding name=""{expectedName}"">
+                </binding>
+            </customBinding>                             
+        </bindings>                             
+   </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    CustomBinding actualBinding = settingHolder.ResolveBinding(nameof(CustomBinding), expectedName, expectedNamespace) as CustomBinding;
+
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.CloseTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.OpenTimeout);
+                    Assert.Equal(expectedDefaultTimeout, actualBinding.SendTimeout);
+                    Assert.Equal(expectedReceiveTimeout, actualBinding.ReceiveTimeout);
+                    Assert.Equal(expectedNamespace, actualBinding.Namespace);
+                }
+            }
+        }
+
         #endregion
 
         #region Encoding
