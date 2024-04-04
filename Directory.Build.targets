@@ -20,19 +20,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'true'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.cs">
-      <Visible>true</Visible>
-      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'false'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.NoConcurrency.cs">
-      <Visible>true</Visible>
-      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Condition="'$(RunUnitTestsConcurrently)' == 'ExceptNetFx'" Include="$(SourceDir)Common/tests/XunitTestAssemblyAttribute.NoConcurrencyNetFxOnly.cs">
-      <Visible>true</Visible>
-      <Link>shared/%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </Compile>
-  </ItemGroup>    
+    <None Condition="'$(RunUnitTestsConcurrently)' == 'true'" Include="$(SourceDir)Common/tests/XunitRunnerConfig/xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Link>xunit.runner.json</Link>
+    </None>
+    <None Condition="'$(RunUnitTestsConcurrently)' == 'false'" Include="$(SourceDir)Common/tests/XunitRunnerConfigConcurrencyLimiting/xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Link>xunit.runner.json</Link>
+    </None>
+  </ItemGroup>
 
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
 </Project>

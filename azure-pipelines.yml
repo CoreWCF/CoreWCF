@@ -9,11 +9,11 @@ pr:
   paths:
     exclude:
     - src/CoreWCF.Templates/
-    - src/CoreWCFTemplates.sln
+    - CoreWCFTemplates.sln
     - templates/TestTemplatesStage.yml
 
 variables:
-  _solutions: src/CoreWCF.sln
+  _solutions: CoreWCF.sln
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
     !**/CoreWCF.Templates.Tests.csproj

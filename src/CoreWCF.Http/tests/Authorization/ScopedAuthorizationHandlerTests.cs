@@ -31,7 +31,7 @@ public class ScopedAuthorizationHandlerTests
     public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_ScopedAuthorizationHandler_Test()
     {
         IWebHost host = ServiceHelper
-            .CreateWebHostBuilder<
+            .CreateDefaultWebHostBuilder<
                 SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup>(
                 _output)
             .UseDefaultServiceProvider(options =>
@@ -58,7 +58,7 @@ public class ScopedAuthorizationHandlerTests
     public void SinglePolicy_UnauthenticatedUser_Test()
     {
         IWebHost host = ServiceHelper
-            .CreateWebHostBuilder<SinglePolicyOnMethodWithUnauthenticatedUserAndScopedAuthorizationHandlerStartup>(_output)
+            .CreateDefaultWebHostBuilder<SinglePolicyOnMethodWithUnauthenticatedUserAndScopedAuthorizationHandlerStartup>(_output)
             .UseDefaultServiceProvider(options =>
             {
                 options.ValidateScopes = true;
@@ -82,7 +82,7 @@ public class ScopedAuthorizationHandlerTests
     public void SinglePolicy_AuthenticatedUser_MissingScopeValues_Test()
     {
         IWebHost host = ServiceHelper
-            .CreateWebHostBuilder<
+            .CreateDefaultWebHostBuilder<
                 SinglePolicyOnMethodWithAuthenticatedUserButMissingScopeValuesAndScopedAuthorizationHandlerStartup>(_output)
             .UseDefaultServiceProvider(options =>
             {

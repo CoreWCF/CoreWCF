@@ -55,8 +55,10 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
-        public async Task UseSynchronizationContextTrueWithoutSynchronizationContextTestAsync()
+        public async void UseSynchronizationContextTrueWithoutSynchronizationContextTestAsync()
         {
+            // Method must be async void as a change in xunit 2.7.0 no longer sets a sync context
+            // if the method returns a Task. Switching to async void reverts to previous behavior.
             await RunWithoutSynchronizationContextAsync(async () =>
             {
                 Assert.Null(SynchronizationContext.Current);
@@ -86,8 +88,10 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
-        public async Task UseSynchronizationContextFalseWithoutSynchronizationContextTestAsync()
+        public async void UseSynchronizationContextFalseWithoutSynchronizationContextTestAsync()
         {
+            // Method must be async void as a change in xunit 2.7.0 no longer sets a sync context
+            // if the method returns a Task. Switching to async void reverts to previous behavior.
             await RunWithoutSynchronizationContextAsync(async () =>
             {
                 Assert.Null(SynchronizationContext.Current);

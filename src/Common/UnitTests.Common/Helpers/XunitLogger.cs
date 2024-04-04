@@ -38,7 +38,8 @@ namespace Helpers
             }
             catch (InvalidOperationException e) when (e.Message == "There is no currently active test.")
             {
-                throw new InvalidOperationException($"{_callerMethodName} is no longer an active test.", e.InnerException);
+                // Swallow exception as this is caused by bug in earlier versions of AspNetCore which would
+                // write to the logger from the heartbeat code after the host was shut down.
             }
         }
 

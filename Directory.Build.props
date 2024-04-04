@@ -10,14 +10,18 @@
   </PropertyGroup>
 
   <!-- Set up some common paths -->
-  <PropertyGroup>
+	<PropertyGroup>
     <CommonPath>$(SourceDir)Common/src/</CommonPath>
     <UnitTestCommonProjectPath>$(SourceDir)Common/UnitTests.Common/UnitTests.Common.csproj</UnitTestCommonProjectPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
+	</PropertyGroup>
+
+  <!-- Set up some properties describing the build -->
+  <PropertyGroup>
     <IsSampleProject>$(ParentFolder.EndsWith(`Samples`, true, null))</IsSampleProject>
     <IsTestProject>$(MSBuildProjectName.EndsWith(`Tests`, true, null))</IsTestProject>
     <IsClientProject>$(MSBuildProjectName.Contains(`Client`))</IsClientProject>
-    <IsMsmqProject>$(MSBuildProjectName.Contains(`MSMQ`))</IsMsmqProject> 
+    <IsMsmqProject>$(MSBuildProjectName.Contains(`MSMQ`))</IsMsmqProject>
     <IsMetadataProject>$(MSBuildProjectName.Contains(`Metadata`))</IsMetadataProject>
     <IsHttpProject>$(MSBuildProjectName.Contains(`.Http`))</IsHttpProject>
     <IsQueueProject>$(MSBuildProjectName.Contains(`Queue`))</IsQueueProject>
@@ -26,6 +30,7 @@
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
     <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject) OR $(IsClientProject))">true</IncludeCommonCode>
     <ReferenceCommonTestProject Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)) AND !($(IsClientProject)))">true</ReferenceCommonTestProject>
+    <IsCIBuild Condition="'$(TF_BUILD)' == 'true'">true</IsCIBuild>
   </PropertyGroup>
 
   <!-- UT -->
@@ -38,12 +43,7 @@
   <!-- UT concurrency -->
   <PropertyGroup>
     <RunUnitTestsConcurrently Condition="$(IsTestProject)">true</RunUnitTestsConcurrently>
-  </PropertyGroup>  
-  <PropertyGroup >
-    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject))">false</RunUnitTestsConcurrently>
-  </PropertyGroup>
-  <PropertyGroup >
-    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND $(IsHttpProject)">ExceptNetFx</RunUnitTestsConcurrently>
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject) OR ($(IsHttpProject) AND $(TargetFramework.StartsWith('net4'))))">false</RunUnitTestsConcurrently>
   </PropertyGroup>
 
   <!-- Output directories -->
