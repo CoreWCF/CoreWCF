@@ -22,8 +22,8 @@ stages:
           imageName: 'ubuntu-latest'
           artifactName: 'LinuxReleaseBuild'
         LinuxDebug:
-          configuration: 'Debug'     
-          imageName: 'ubuntu-latest'     
+          configuration: 'Debug'
+          imageName: 'ubuntu-latest'
           artifactName: 'LinuxDebugBuild'
     pool:
       vmImage: $(imageName)
@@ -52,9 +52,9 @@ stages:
         inputs:
           command: restore
           feedsToUse: config
-          nugetConfigPath: src/NuGet.config
+          nugetConfigPath: NuGet.config
           projects: ${{ parameters.solutions }}
-      
+
       - task: DotNetCoreCLI@2
         displayName: Build $(configuration)
         inputs:

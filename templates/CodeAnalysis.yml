@@ -36,7 +36,7 @@ stages:
       inputs:
         command: restore
         feedsToUse: config
-        nugetConfigPath: src/NuGet.config
+        nugetConfigPath: NuGet.config
         projects: ${{ parameters.solutions }}
 
     - task: SonarCloudPrepare@1

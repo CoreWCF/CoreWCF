@@ -12,7 +12,7 @@ trigger:
 pr: none
 
 variables:
-  _solutions: 'src/*.sln'
+  _solutions: '*.sln'
   _libraryProjects: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
