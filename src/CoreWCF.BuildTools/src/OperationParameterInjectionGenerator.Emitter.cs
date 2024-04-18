@@ -55,29 +55,12 @@ namespace CoreWCF.BuildTools
 
             private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
             private readonly SourceGenerationSpec _generationSpec;
-            private readonly List<(INamedTypeSymbol PropertySymbol, string PropertyName, string PropertyTypeFullName, string outputVarName)> _properties = new();
+            private readonly List<(INamedTypeSymbol PropertySymbol, string PropertyName, string PropertyTypeFullName, string outputVarName)> _messageProperties = new();
 
             public Emitter(in OperationParameterInjectionSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
             {
                 _sourceGenerationContext = sourceGenerationContext;
                 _generationSpec = generationSpec;
-                if (_generationSpec.RemoteEndpointMessagePropertySymbol is not null)
-                {
-                    _properties.Add((_generationSpec.RemoteEndpointMessagePropertySymbol, "CoreWCF.Channels.RemoteEndpointMessageProperty", "CoreWCF.Channels.RemoteEndpointMessageProperty", "remoteEndpointMessageProperty"));
-                }
-                if (_generationSpec.KafkaMessagePropertySymbol is not null)
-                {
-                    _properties.Add((_generationSpec.KafkaMessagePropertySymbol, "CoreWCF.Channels.KafkaMessageProperty", "CoreWCF.Channels.KafkaMessageProperty", "kafkaMessageProperty"));
-                }
-                if (_generationSpec.HttpRequestMessagePropertySymbol is not null)
-                {
-                    _properties.Add((_generationSpec.HttpRequestMessagePropertySymbol, "httpRequest", "CoreWCF.Channels.HttpRequestMessageProperty", "httpRequestMessageProperty"));
-                }
-                if (_generationSpec.HttpResponseMessagePropertySymbol is not null)
-                {
-                    _properties.Add((_generationSpec.HttpResponseMessagePropertySymbol, "httpResponse", "CoreWCF.Channels.HttpResponseMessageProperty", "httpResponseMessageProperty"));
-                }
-
                 _builder = new StringBuilder();
             }
 
@@ -105,15 +88,37 @@ using Microsoft.Extensions.DependencyInjection;");
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
+                Dictionary<ITypeSymbol, string> messagePropertyNames = new(SymbolEqualityComparer.Default);
+                foreach (var parameter in operationContractSpec.UserProvidedOperationContractImplementation!.Parameters)
+                {
+                    if (operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter)))
+                    {
+                           continue;
+                    }
 
+                    var attribute = parameter.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, _generationSpec.CoreWCFInjectedSymbol));
+                    if (attribute != null)
+                    {
+                        string propertyName = attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName").Value.Value?.ToString();
+                        if (propertyName == null)
+                        {
+                            continue;
+                        }
+
+                        var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
+                        var messagePropertyType = parameter.Type as INamedTypeSymbol;
+                        messagePropertyNames[messagePropertyType!] = messagePropertyVariableName!;
+                        _messageProperties.Add((messagePropertyType!, propertyName, parameter.Type.ToDisplayString(), messagePropertyVariableName!));
+                    }
+                }
+
+                Dictionary<ITypeSymbol, string> dependencyNames = new(SymbolEqualityComparer.Default);
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
-                       p.IsMatchingParameter(x))).ToArray();
+                    p.IsMatchingParameter(x))).ToList();
 
                 bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract!.ReturnType, _generationSpec.TaskSymbol)
                     || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
-
-                Dictionary<ITypeSymbol, string> dependencyNames = new(SymbolEqualityComparer.Default);
 
                 string @async = shouldGenerateAsyncAwait
                     ? "async "
@@ -204,21 +209,15 @@ using Microsoft.Extensions.DependencyInjection;");
                     objectIndex++;
                 }
 
-                foreach ((INamedTypeSymbol propertySymbol, string PropertyName, string PropertyTypeFullName, string outputVar) property in _properties)
+                foreach ((INamedTypeSymbol propertySymbol, string PropertyName, string PropertyTypeFullName, string outputVar) property in _messageProperties)
                 {
-                    var propertyDependency = dependencies.FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.Type, property.propertySymbol)
-                        && x.GetInjectedPropertyNameValue(_generationSpec.CoreWCFInjectedSymbol) == property.PropertyName);
-                    if (propertyDependency != null)
-                    {
-                        _builder.AppendLine($@"{indentor}var {property.outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{property.PropertyName}"", out var o{objectIndex})");
-                        indentor.Increment();
-                        _builder.AppendLine($@"{indentor}&& o{objectIndex} is {property.PropertyTypeFullName} p{objectIndex})");
-                        _builder.AppendLine($@"{indentor}? p{objectIndex}");
-                        _builder.AppendLine($@"{indentor}: null;");
-                        indentor.Decrement();
-                        _builder.AppendLine($@"{indentor}if ({property.outputVar} == null) throw new InvalidOperationException(""Missing {property.PropertyName} in IncomingMessageProperties properties"");");
-                        objectIndex++;
-                    }
+                    _builder.AppendLine($@"{indentor}var {property.outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{property.PropertyName}"", out var o{objectIndex})");
+                    indentor.Increment();
+                    _builder.AppendLine($@"{indentor}&& o{objectIndex} is {property.PropertyTypeFullName} p{objectIndex})");
+                    _builder.AppendLine($@"{indentor}? p{objectIndex}");
+                    _builder.AppendLine($@"{indentor}: null;");
+                    indentor.Decrement();
+                    objectIndex++;
                 }
 
                 _builder.AppendLine($@"{indentor}if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)");
@@ -258,8 +257,16 @@ using Microsoft.Extensions.DependencyInjection;");
 
                 void AppendResolveDependencies()
                 {
-                    for (int i = 0; i < dependencies.Length; i++)
+                    for (int i = 0; i < dependencies.Count; i++)
                     {
+                        // if (dependencies[i].Type is INamedTypeSymbol namedTypeSymbol)
+                        // {
+                        //     if (messagePropertyNames.ContainsKey(namedTypeSymbol))
+                        //     {
+                        //         continue;
+                        //     }
+                        // }
+
                         dependencyNames[dependencies[i].Type] = $"{dependencyNamePrefix}{i}";
                         if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpContextSymbol, dependencies[i].Type))
                         {
@@ -273,21 +280,9 @@ using Microsoft.Extensions.DependencyInjection;");
                         {
                             _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
                         }
-                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.RemoteEndpointMessagePropertySymbol, dependencies[i].Type))
+                        else if(messagePropertyNames.TryGetValue(dependencies[i].Type, out var messagePropertyVariableName))
                         {
-                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = remoteEndpointMessageProperty;");
-                        }
-                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.KafkaMessagePropertySymbol, dependencies[i].Type))
-                        {
-                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = kafkaMessageProperty;");
-                        }
-                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.HttpRequestMessagePropertySymbol, dependencies[i].Type))
-                        {
-                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpRequestMessageProperty;");
-                        }
-                        else if (SymbolEqualityComparer.Default.Equals(_generationSpec.HttpResponseMessagePropertySymbol, dependencies[i].Type))
-                        {
-                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpResponseMessageProperty;");
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {messagePropertyVariableName};");
                         }
                         else
                         {
@@ -307,9 +302,39 @@ using Microsoft.Extensions.DependencyInjection;");
                             _builder.Append(", ");
                         }
 
-                        if (parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol) is not null)
+                        var attributes = parameter.GetAttributes();
+                        var attribute = attributes.FirstOrDefault(x =>
+                            SymbolEqualityComparer.Default.Equals(x.AttributeClass,
+                                _generationSpec.CoreWCFInjectedSymbol));
+                        (string? PropertyName, INamedTypeSymbol? PropertyType)? messageProperty = null;
+                        if (attribute != null)
                         {
-                            _builder.Append(dependencyNames[parameter.Type]);
+                            messageProperty = (attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName").Value.Value?.ToString(), parameter.Type as INamedTypeSymbol);
+                        }
+                        else
+                        {
+                            attribute = attributes.FirstOrDefault(x =>
+                                SymbolEqualityComparer.Default.Equals(x.AttributeClass,
+                                    _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol));
+                        }
+
+                        if (attribute != null)
+                        {
+                            if (messageProperty.HasValue)
+                            {
+                                if (messageProperty.Value.PropertyName == null)
+                                {
+                                    _builder.Append(dependencyNames[parameter.Type]);
+                                }
+                                else
+                                {
+                                    _builder.Append(dependencyNames[parameter.Type]);
+                                }
+                            }
+                            else
+                            {
+                                _builder.Append(dependencyNames[parameter.Type]);
+                            }
                         }
                         else
                         {

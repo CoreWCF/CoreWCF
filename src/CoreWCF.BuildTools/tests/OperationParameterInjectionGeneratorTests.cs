@@ -155,7 +155,6 @@ namespace MyProject
                 && o0 is CoreWCF.Channels.RemoteEndpointMessageProperty p0)
                 ? p0
                 : null;
-            if (remoteEndpointMessageProperty == null) throw new InvalidOperationException(""Missing CoreWCF.Channels.RemoteEndpointMessageProperty in IncomingMessageProperties properties"");
             if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)
             {{
                 using (var scope = serviceProvider.CreateScope())

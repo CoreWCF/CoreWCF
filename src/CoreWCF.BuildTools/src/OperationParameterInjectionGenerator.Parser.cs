@@ -106,11 +106,7 @@ namespace CoreWCF.BuildTools
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
                     _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"),
-                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.RemoteEndpointMessageProperty"),
-                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.KafkaMessageProperty"),
-                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.HttpRequestMessageProperty"),
-                    _compilation.GetTypeByMetadataName("CoreWCF.Channels.HttpResponseMessageProperty")
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
                 );
             }
 
