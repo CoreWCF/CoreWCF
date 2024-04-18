@@ -259,14 +259,6 @@ using Microsoft.Extensions.DependencyInjection;");
                 {
                     for (int i = 0; i < dependencies.Count; i++)
                     {
-                        // if (dependencies[i].Type is INamedTypeSymbol namedTypeSymbol)
-                        // {
-                        //     if (messagePropertyNames.ContainsKey(namedTypeSymbol))
-                        //     {
-                        //         continue;
-                        //     }
-                        // }
-
                         dependencyNames[dependencies[i].Type] = $"{dependencyNamePrefix}{i}";
                         if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpContextSymbol, dependencies[i].Type))
                         {
@@ -302,39 +294,9 @@ using Microsoft.Extensions.DependencyInjection;");
                             _builder.Append(", ");
                         }
 
-                        var attributes = parameter.GetAttributes();
-                        var attribute = attributes.FirstOrDefault(x =>
-                            SymbolEqualityComparer.Default.Equals(x.AttributeClass,
-                                _generationSpec.CoreWCFInjectedSymbol));
-                        (string? PropertyName, INamedTypeSymbol? PropertyType)? messageProperty = null;
-                        if (attribute != null)
+                        if (parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol) is not null)
                         {
-                            messageProperty = (attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName").Value.Value?.ToString(), parameter.Type as INamedTypeSymbol);
-                        }
-                        else
-                        {
-                            attribute = attributes.FirstOrDefault(x =>
-                                SymbolEqualityComparer.Default.Equals(x.AttributeClass,
-                                    _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol));
-                        }
-
-                        if (attribute != null)
-                        {
-                            if (messageProperty.HasValue)
-                            {
-                                if (messageProperty.Value.PropertyName == null)
-                                {
-                                    _builder.Append(dependencyNames[parameter.Type]);
-                                }
-                                else
-                                {
-                                    _builder.Append(dependencyNames[parameter.Type]);
-                                }
-                            }
-                            else
-                            {
-                                _builder.Append(dependencyNames[parameter.Type]);
-                            }
+                            _builder.Append(dependencyNames[parameter.Type]);
                         }
                         else
                         {
