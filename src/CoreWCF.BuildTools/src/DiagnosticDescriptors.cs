@@ -57,5 +57,18 @@ namespace CoreWCF.BuildTools
 
             internal static Diagnostic AuthorizeDataRolesPropertyIsNotSupportedWarning(Location location) => Diagnostic.Create(AuthorizeDataRolesPropertyIsNotSupported, location);
         }
+
+        internal static class PrivateServiceContractAnalyzer__03XX
+        {
+            internal static readonly DiagnosticDescriptor PrivateServiceContract = new DiagnosticDescriptor(id: "COREWCF_0300",
+                title: "Private ServiceContract interface",
+                messageFormat: "ServiceContract '{0}' accessibility should at least be internal to generate an OperationInvoker implementation",
+                category: nameof(PrivateServiceContractAnalyzer),
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true);
+
+            internal static Diagnostic PrivateServiceContractError(string serviceContract, Location location) =>
+                Diagnostic.Create(PrivateServiceContract, location);
+        }
     }
 }

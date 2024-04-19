@@ -94,6 +94,16 @@ namespace CoreWCF.BuildTools
 
             return false;
         }
+
+        public static bool IsPrivate(this ISymbol symbol)
+        {
+            bool result = symbol.DeclaredAccessibility == Accessibility.Private;
+            if (!result && symbol.ContainingType != null)
+            {
+                return symbol.ContainingType.IsPrivate();
+            }
+            return result;
+        }
     }
 
     internal static class NamedTypeSymbolExtensions
