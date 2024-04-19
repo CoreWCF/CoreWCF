@@ -20,14 +20,8 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _httpContextSymbol;
             private readonly INamedTypeSymbol? _httpRequestSymbol;
             private readonly INamedTypeSymbol? _httpResponseSymbol;
-            private readonly INamedTypeSymbol? _remoteEndpointMessagePropertySymbol;
-            private readonly INamedTypeSymbol? _kafkaMessagePropertySymbol;
-            private readonly INamedTypeSymbol? _httpRequestMessagePropertySymbol;
-            private readonly INamedTypeSymbol? _httpResponseMessagePropertySymbol;
             private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
-            private readonly INamedTypeSymbol? _coreWCFInjectedSymbol;
-            private readonly INamedTypeSymbol? _mvcFromServicesSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext context)
             {
@@ -41,8 +35,6 @@ namespace CoreWCF.BuildTools
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
                 _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
-                _coreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
-                _mvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute");
             }
 
             public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
