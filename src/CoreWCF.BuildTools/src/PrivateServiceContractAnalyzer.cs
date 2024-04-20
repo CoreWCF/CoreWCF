@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -52,9 +53,17 @@ public sealed class PrivateServiceContractAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol? sSMOperationContractSymbol =
             context.Compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
 
-        var serviceContracts = from @interface in methodSymbol.ContainingType.AllInterfaces
-            where @interface.GetOneAttributeOf(coreWcfServiceContractSymbol, sSMServiceContractSymbol) is not null
-            select @interface;
+        IEnumerable<INamedTypeSymbol> serviceContracts;
+        if (methodSymbol.ContainingType?.TypeKind == TypeKind.Interface)
+        {
+            serviceContracts = new[] { methodSymbol.ContainingType };
+        }
+        else
+        {
+            serviceContracts = from @interface in methodSymbol.ContainingType.AllInterfaces
+                where @interface.GetOneAttributeOf(coreWcfServiceContractSymbol, sSMServiceContractSymbol) is not null
+                select @interface;
+        }
 
         var privateServiceContracts = from @interface in serviceContracts
             where @interface.IsPrivate()
@@ -70,10 +79,7 @@ public sealed class PrivateServiceContractAnalyzer : DiagnosticAnalyzer
 
         foreach (var (privateServiceContract, operationContract) in operationContracts)
         {
-            if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(operationContract), methodSymbol))
-            {
-                context.ReportDiagnostic(DiagnosticDescriptors.PrivateServiceContractAnalyzer__03XX.PrivateServiceContractError(privateServiceContract.Name, context.Node.GetLocation()));
-            }
+            context.ReportDiagnostic(DiagnosticDescriptors.PrivateServiceContractAnalyzer__03XX.PrivateServiceContractError(privateServiceContract.ToDisplayString(), context.Node.GetLocation()));
         }
     }
 

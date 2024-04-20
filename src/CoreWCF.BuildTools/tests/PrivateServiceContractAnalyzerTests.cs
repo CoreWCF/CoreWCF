@@ -85,7 +85,8 @@ namespace MyProject
 
         static Container()
         {{
-            new IdentityService().Echo("""");
+            MyProject.Container.IdentityService service = new IdentityService();
+            service.Echo("""");
         }}
     }}
 
@@ -102,8 +103,66 @@ namespace MyProject
                 ExpectedDiagnostics =
                 {
                     new DiagnosticResult(DiagnosticDescriptors.PrivateServiceContractAnalyzer__03XX.PrivateServiceContract)
-                        .WithSpan(20, 13, 20, 43)
+                        .WithSpan(21, 13, 21, 29)
                         .WithDefaultPath("/0/Test0.cs")
+                        .WithArguments("MyProject.Container.IIdentityService")
+                }
+            }
+        };
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(SSMNamespace)]
+    [InlineData(CoreWCFNamespace)]
+    public async Task BasicTestsWithInterfaceVariable(string attributeNamespace)
+    {
+        var test = new VerifyAnalyzer.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    @$"
+namespace MyProject
+{{
+    class Container
+    {{
+        [{attributeNamespace}.ServiceContract]
+        private interface IIdentityService
+        {{
+            [{attributeNamespace}.OperationContract]
+            string Echo(string input);
+        }}
+
+        public class IdentityService : IIdentityService
+        {{
+            public string Echo(string input) => input;
+        }}
+
+        static Container()
+        {{
+            MyProject.Container.IIdentityService service = new IdentityService();
+            service.Echo("""");
+        }}
+    }}
+
+}}
+"
+                },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator),"/.globalconfig", """
+                                                                         is_global = true
+                                                                         build_property.EnableCoreWCFOperationInvokerGenerator = true
+                                                                         """)
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.PrivateServiceContractAnalyzer__03XX.PrivateServiceContract)
+                        .WithSpan(21, 13, 21, 29)
+                        .WithDefaultPath("/0/Test0.cs")
+                        .WithArguments("MyProject.Container.IIdentityService")
                 }
             }
         };

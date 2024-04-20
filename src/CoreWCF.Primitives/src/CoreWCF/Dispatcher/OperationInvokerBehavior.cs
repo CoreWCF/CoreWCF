@@ -30,7 +30,7 @@ namespace CoreWCF.Dispatcher
 
         public OperationInvokerBehavior()
         {
-            
+
         }
 
         void IOperationBehavior.Validate(OperationDescription description)
@@ -63,7 +63,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker 
+                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker
                         // for the operation. This is a bug in the DispatchOperationRuntimeHelpers.GetKey logic.
                         throw new PlatformNotSupportedException();
                     }
@@ -72,7 +72,7 @@ namespace CoreWCF.Dispatcher
                 {
                     dispatch.Invoker = new TaskMethodInvoker(_serviceProvider, description.TaskMethod, description.TaskTResult);
                 }
-                
+
             }
             else if (description.SyncMethod != null)
             {
@@ -84,7 +84,7 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker 
+                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker
                         // for the operation. This is a bug in the DispatchOperationRuntimeHelpers.GetKey logic.
                         throw new PlatformNotSupportedException();
                     }

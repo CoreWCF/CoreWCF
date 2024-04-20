@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#if NET8_0_OR_GREATER
 using System;
 using System.Linq;
 using CoreWCF.Configuration;
@@ -77,7 +76,7 @@ public class KeyedServiceBehaviorTests
     }
 
     [System.ServiceModel.ServiceContract]
-    private interface IReverseEchoService
+    internal interface IReverseEchoService
     {
         [System.ServiceModel.OperationContract]
         string Reverse(string value);
@@ -115,4 +114,3 @@ public class KeyedServiceBehaviorTests
         }
     }
 }
-#endif
