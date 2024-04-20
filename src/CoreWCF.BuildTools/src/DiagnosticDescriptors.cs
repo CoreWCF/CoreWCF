@@ -68,7 +68,7 @@ namespace CoreWCF.BuildTools
                 isEnabledByDefault: true);
 
             internal static Diagnostic PrivateServiceContractError(string serviceContract, Location location) =>
-                Diagnostic.Create(PrivateServiceContract, location);
+                Diagnostic.Create(PrivateServiceContract, location, serviceContract);
         }
     }
 }
