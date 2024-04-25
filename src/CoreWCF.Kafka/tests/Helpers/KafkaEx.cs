@@ -115,7 +115,17 @@ internal static class KafkaEx
         return messageCount;
     }
 
-    public static Task PauseAsync(ITestOutputHelper output) => DockerEx.PauseAsync(output, s_brokerContainerName);
-    public static Task UnpauseAsync(ITestOutputHelper output) => DockerEx.UnpauseAsync(output, s_brokerContainerName);
+    public static async Task PauseAsync(ITestOutputHelper output)
+    {
+        output.WriteLine($"Pausing container {s_brokerContainerName}");
+        await DockerEx.PauseAsync(s_brokerContainerName);
+        output.WriteLine($"Container {s_brokerContainerName} paused");
+    }
 
+    public static async Task UnpauseAsync(ITestOutputHelper output)
+    {
+        output.WriteLine($"Unpausing container {s_brokerContainerName}");
+        await DockerEx.UnpauseAsync(s_brokerContainerName);
+        output.WriteLine($"Container {s_brokerContainerName} unpaused");
+    }
 }
