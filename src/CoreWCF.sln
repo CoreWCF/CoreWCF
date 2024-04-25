@@ -82,11 +82,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.UnixDomainSocket.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests.Common", "Common\UnitTests.Common\UnitTests.Common.csproj", "{357CE1CE-72A8-427A-8163-145588449536}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka", "CoreWCF.Kafka\src\CoreWCF.Kafka.csproj", "{B0D747FE-05A0-43F9-8BBD-43A080F20ADB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka", "CoreWCF.Kafka\src\CoreWCF.Kafka.csproj", "{B0D747FE-05A0-43F9-8BBD-43A080F20ADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka.Tests", "CoreWCF.Kafka\tests\CoreWCF.Kafka.Tests.csproj", "{517C27F5-DBF2-4F68-B66F-885F683ED922}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka.Tests", "CoreWCF.Kafka\tests\CoreWCF.Kafka.Tests.csproj", "{517C27F5-DBF2-4F68-B66F-885F683ED922}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Kafka.Client", "CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj", "{DCC20AEC-A912-4CD9-86FC-499BBEC24E90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka.Client", "CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj", "{DCC20AEC-A912-4CD9-86FC-499BBEC24E90}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.UnixDomainSocket", "CoreWCF.UnixDomainSocket\src\CoreWCF.UnixDomainSocket.csproj", "{1967968B-457D-4A1C-A463-1127CAAE2818}"
 EndProject

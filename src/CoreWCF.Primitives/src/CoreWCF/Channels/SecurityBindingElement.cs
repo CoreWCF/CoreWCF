@@ -1001,6 +1001,68 @@ namespace CoreWCF.Channels
             }
         }
 
+        internal static ChannelProtectionRequirements ComputeProtectionRequirements(SecurityBindingElement security, BindingParameterCollection parameterCollection, BindingElementCollection bindingElements, bool isForService)
+        {
+            if (parameterCollection == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("parameterCollection");
+            if (bindingElements == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("bindingElements");
+            if (security == null)
+            {
+                return null;
+            }
+
+            ChannelProtectionRequirements result = null;
+            if ((security is SymmetricSecurityBindingElement) || (security is AsymmetricSecurityBindingElement))
+            {
+                result = new ChannelProtectionRequirements();
+                ChannelProtectionRequirements contractRequirements = parameterCollection.Find<ChannelProtectionRequirements>();
+
+                if (contractRequirements != null)
+                    result.Add(contractRequirements);
+
+                AddBindingProtectionRequirements(result, bindingElements, !isForService);
+            }
+
+            return result;
+        }
+
+        private static void AddBindingProtectionRequirements(ChannelProtectionRequirements requirements, BindingElementCollection bindingElements, bool isForChannel)
+        {
+            // Gather custom requirements from bindingElements
+            CustomBinding binding = new CustomBinding(bindingElements);
+            BindingContext context = new BindingContext(binding, new BindingParameterCollection());
+            // In theory, we can just do 
+            //     context.GetInnerProperty<ChannelProtectionRequirements>()
+            // but that relies on each binding element to correctly union-up its own requirements with
+            // those of the rest of the stack.  So instead, we ask each BE individually, and we do the 
+            // work of combining the results.  This protects us against this scenario: someone authors "FooBE"
+            // with a a GetProperty implementation that always returns null (oops), and puts FooBE on the 
+            // top of the stack, and so FooBE "hides" important protection requirements that inner BEs
+            // require, resulting in an insecure binding.
+            foreach (BindingElement bindingElement in bindingElements)
+            {
+                if (bindingElement != null)
+                {
+                    // ask each element individually for its requirements
+                    context.RemainingBindingElements.Clear();
+                    context.RemainingBindingElements.Add(bindingElement);
+                    ChannelProtectionRequirements s = context.GetInnerProperty<ChannelProtectionRequirements>();
+                    if (s != null)
+                    {
+                        //if (isForChannel)
+                        //{
+                        //    requirements.Add(s.CreateInverse());
+                        //}
+                        //else
+                        //{
+                        requirements.Add(s);
+                        //}
+                    }
+                }
+            }
+        }
+
         private static bool HasEndorsingSupportingTokensAtOperationScope(SecurityBindingElement binding)
         {
             foreach (SupportingTokenParameters r in binding.OperationSupportingTokenParameters.Values)
@@ -1088,6 +1150,130 @@ namespace CoreWCF.Channels
                 for (int i = 0; i < assertions.Count; ++i)
                     existingAssertions.Add(assertions[i]);
             }
+        }
+
+        internal static SecurityBindingElement CreateSslNegotiationBindingElement(bool requireClientCertificate, bool requireCancellation)
+        {
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new SslSecurityTokenParameters(requireClientCertificate, requireCancellation));
+            return result;
+        }
+
+        internal static SecurityBindingElement CreateUserNameForSslBindingElement(bool requireCancellation)
+        {
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new SslSecurityTokenParameters(false, requireCancellation));
+            result.EndpointSupportingTokenParameters.SignedEncrypted.Add(
+                new UserNameSecurityTokenParameters());
+            result.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+
+            return result;
+        }
+
+        static public SymmetricSecurityBindingElement CreateSspiNegotiationBindingElement()
+        {
+            return CreateSspiNegotiationBindingElement(SspiSecurityTokenParameters.defaultRequireCancellation);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsSspiNegotiationBinding() method.
+        static public SymmetricSecurityBindingElement CreateSspiNegotiationBindingElement(bool requireCancellation)
+        {
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new SspiSecurityTokenParameters(requireCancellation));
+            return result;
+        }
+
+        static public SymmetricSecurityBindingElement CreateAnonymousForCertificateBindingElement()
+        {
+            SymmetricSecurityBindingElement result;
+
+            result = new SymmetricSecurityBindingElement(
+                new X509SecurityTokenParameters( // protection
+                    X509KeyIdentifierClauseType.Thumbprint,
+                    SecurityTokenInclusionMode.Never));
+            result.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+            result.RequireSignatureConfirmation = true;
+
+            return result;
+        }
+
+        static public SymmetricSecurityBindingElement CreateUserNameForCertificateBindingElement()
+        {
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                new X509SecurityTokenParameters(
+                    X509KeyIdentifierClauseType.Thumbprint,
+                    SecurityTokenInclusionMode.Never));
+            result.EndpointSupportingTokenParameters.SignedEncrypted.Add(
+                new UserNameSecurityTokenParameters());
+            result.MessageSecurityVersion = MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11;
+
+            return result;
+        }
+
+        static public SymmetricSecurityBindingElement CreateKerberosBindingElement()
+        {
+            SymmetricSecurityBindingElement result = new SymmetricSecurityBindingElement(
+                null
+              //  new KerberosSecurityTokenParameters()
+                );
+            result.DefaultAlgorithmSuite = SecurityAlgorithmSuite.KerberosDefault;
+            return result;
+        }
+
+        static public SecurityBindingElement CreateMutualCertificateBindingElement()
+        {
+            return CreateMutualCertificateBindingElement(MessageSecurityVersion.WSSecurity11WSTrustFebruary2005WSSecureConversationFebruary2005WSSecurityPolicy11);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsMutualCertificateBinding() method.
+        static public SecurityBindingElement CreateMutualCertificateBindingElement(MessageSecurityVersion version)
+        {
+            return CreateMutualCertificateBindingElement(version, false);
+        }
+
+        // If any changes are made to this method, please make sure that they are
+        // reflected in the corresponding IsMutualCertificateBinding() method.
+        static public SecurityBindingElement CreateMutualCertificateBindingElement(MessageSecurityVersion version, bool allowSerializedSigningTokenOnReply)
+        {
+            if (version == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("version");
+            }
+            SecurityBindingElement result;
+
+            if (version.SecurityVersion == SecurityVersion.WSSecurity10)
+            {
+                throw new NotImplementedException();
+                /*
+                result = new AsymmetricSecurityBindingElement(
+                    new X509SecurityTokenParameters( // recipient
+                        X509KeyIdentifierClauseType.Any,
+                        SecurityTokenInclusionMode.Never,
+                        false),
+                    new X509SecurityTokenParameters( // initiator
+                        X509KeyIdentifierClauseType.Any,
+                        SecurityTokenInclusionMode.AlwaysToRecipient, false),
+                    allowSerializedSigningTokenOnReply);*/
+            }
+            else
+            {
+                result = new SymmetricSecurityBindingElement(
+                    new X509SecurityTokenParameters( // protection
+                        X509KeyIdentifierClauseType.Thumbprint,
+                        SecurityTokenInclusionMode.Never));
+                result.EndpointSupportingTokenParameters.Endorsing.Add(
+                    new X509SecurityTokenParameters(
+                        X509KeyIdentifierClauseType.Thumbprint,
+                        SecurityTokenInclusionMode.AlwaysToRecipient,
+                        false));
+                ((SymmetricSecurityBindingElement)result).RequireSignatureConfirmation = true;
+            }
+
+            result.MessageSecurityVersion = version;
+
+            return result;
         }
     }
 }

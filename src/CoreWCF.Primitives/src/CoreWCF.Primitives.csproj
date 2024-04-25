@@ -40,7 +40,7 @@
   <ItemGroup>
     <Compile Remove="CoreWCFWebApplicationExtensions.cs" />
     <None Include="CoreWCFWebApplicationExtensions.cs" Link="PackageFiles/CoreWCFWebApplicationExtensions.cs" />
-    <None Include="CoreWCF.Primitives.targets" Link="PackageFiles/CoreWCF.Primitives.targets"/>
+    <None Include="CoreWCF.Primitives.targets" Link="PackageFiles/CoreWCF.Primitives.targets" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn4.0.dll">
@@ -63,5 +63,8 @@
       <PackagePath>contentFiles</PackagePath>
       <Visible>false</Visible>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\corewcf.primitives\src\corewcf\identitymodel\tokens\" />
   </ItemGroup>
 </Project>

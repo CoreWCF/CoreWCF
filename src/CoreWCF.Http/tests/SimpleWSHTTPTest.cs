@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF;
 using CoreWCF.Configuration;
@@ -166,6 +167,37 @@ namespace WSHttp
                 string result = channel.EchoString(testString);
                 Assert.Equal(testString, result);
                 ((IChannel)channel).Close();
+            }
+        }
+
+        [Fact, Description("message-security-with-basic-authentication")]
+        public void WSHttpRequestReplyWithMessageEchoString()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpMessageCredentialWithUserName>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                Console.WriteLine("port is" + host.GetHttpPort() + " , " + host.GetHttpBaseAddressUri().ToString());
+
+                Thread.Sleep(3600000);
+                /*
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Message);
+                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost/WSHttpWcfService/basichttp.svc")));
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();*/
             }
         }
 
@@ -373,6 +405,31 @@ namespace WSHttp
                     = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
                     = new CustomTestValidator();
+                host.Description.Behaviors.Add(srvCredentials);
+            }
+        }
+
+        internal class WSHttpMessageCredentialWithUserName : StartupWSHttpBase
+        {
+            public WSHttpMessageCredentialWithUserName() :
+                base(SecurityMode.Message, MessageCredentialType.UserName)
+            {
+            }
+
+            public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding wsBInding)
+            {
+                wsBInding.Security.Message.NegotiateServiceCredential = false;
+                return wsBInding;
+            }
+
+            public override void ChangeHostBehavior(ServiceHostBase host)
+            {
+                var srvCredentials = new CoreWCF.Description.ServiceCredentials();
+                srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
+                    = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
+                srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
+                    = new CustomTestValidator();
+                srvCredentials.ServiceCertificate.Certificate = ServiceHelper.GetServiceCertificate();
                 host.Description.Behaviors.Add(srvCredentials);
             }
         }

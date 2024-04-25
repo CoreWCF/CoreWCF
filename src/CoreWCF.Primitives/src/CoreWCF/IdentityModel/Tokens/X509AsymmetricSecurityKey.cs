@@ -106,7 +106,37 @@ namespace CoreWCF.IdentityModel.Tokens
 
         public override byte[] DecryptKey(string algorithm, byte[] keyData)
         {
-            throw new PlatformNotSupportedException();
+            if (this.PrivateKey == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format("MissingPrivateKey")));
+            }
+
+            RSA rsa = this.PrivateKey as RSA;
+            if (rsa == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format("PrivateKeyNotRSA")));
+            }
+
+            // Support exchange keySpec, AT_EXCHANGE ?
+            if (rsa.KeyExchangeAlgorithm == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format("MissingPrivateKey")));
+            }
+
+            switch (algorithm)
+            {
+                case EncryptedXml.XmlEncRSA15Url:
+                    return EncryptedXml.DecryptKey(keyData, rsa, false);
+
+                case EncryptedXml.XmlEncRSAOAEPUrl:
+                    return EncryptedXml.DecryptKey(keyData, rsa, true);
+
+                default:
+                    if (IsSupportedAlgorithm(algorithm))
+                        return EncryptedXml.DecryptKey(keyData, rsa, true);
+
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.Format(SR.UnsupportedCryptoAlgorithm, algorithm)));
+            }
         }
 
         public override byte[] EncryptKey(string algorithm, byte[] keyData)

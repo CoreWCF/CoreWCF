@@ -28,6 +28,7 @@ using CoreWCF.IdentityModel.Selectors;
 using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Security.Tokens;
+using static CoreWCF.IdentityModel.XmlSignatureConstants;
 
 namespace CoreWCF.Security
 {
@@ -115,7 +116,44 @@ namespace CoreWCF.Security
         private static SecurityIdentifier s_administratorsSid;
         internal static byte[] ReadContentAsBase64(XmlDictionaryReader reader, long maxBufferSize)
         {
-            throw new PlatformNotSupportedException();
+            if (reader == null)
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull("reader");
+
+            // Code cloned from System.Xml.XmlDictionaryReader.
+            byte[][] buffers = new byte[32][];
+            byte[] buffer;
+            // Its best to read in buffers that are a multiple of 3 so we don't break base64 boundaries when converting text
+            int count = 384;
+            int bufferCount = 0;
+            int totalRead = 0;
+            while (true)
+            {
+                buffer = new byte[count];
+                buffers[bufferCount++] = buffer;
+                int read = 0;
+                while (read < buffer.Length)
+                {
+                    int actual = reader.ReadContentAsBase64(buffer, read, buffer.Length - read);
+                    if (actual == 0)
+                        break;
+                    read += actual;
+                }
+                if (totalRead > maxBufferSize - read)
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new Exception(SR.Format(SR.BufferQuotaExceededReadingBase64, maxBufferSize))); //TODO proper exception
+                totalRead += read;
+                if (read < buffer.Length)
+                    break;
+                count = count * 2;
+            }
+            buffer = new byte[totalRead];
+            int offset = 0;
+            for (int i = 0; i < bufferCount - 1; i++)
+            {
+                Buffer.BlockCopy(buffers[i], 0, buffer, offset, buffers[i].Length);
+                offset += buffers[i].Length;
+            }
+            Buffer.BlockCopy(buffers[bufferCount - 1], 0, buffer, offset, totalRead - offset);
+            return buffer;
         }
 
         private static bool s_computedDomain;
@@ -1570,6 +1608,34 @@ namespace CoreWCF.Security
             }
 
             return false;
+        }
+
+        internal static void EnsureExpectedSymmetricMatch(SecurityToken t1, SecurityToken t2, Message message)
+        {
+            if (t1 == null || t2 == null || ReferenceEquals(t1, t2))
+            {
+                return;
+            }
+            // check for interop flexibility
+            SymmetricSecurityKey c1 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t1);
+            SymmetricSecurityKey c2 = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(t2);
+            if (c1 == null || c2 == null || !CryptoHelper.IsEqual(c1.GetSymmetricKey(), c2.GetSymmetricKey()))
+            {
+                throw CoreWCF.Diagnostics.TraceUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.TokenNotExpectedInSecurityHeader, t2)), message);
+            }
+        }
+
+        internal static SymmetricAlgorithm GetSymmetricAlgorithm(string encryptionAlgorithm, SecurityToken token)
+        {
+            SymmetricSecurityKey securityKey = SecurityUtils.GetSecurityKey<SymmetricSecurityKey>(token);
+            if (securityKey != null && securityKey.IsSupportedAlgorithm(encryptionAlgorithm))
+            {
+                return securityKey.GetSymmetricAlgorithm(encryptionAlgorithm);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 
