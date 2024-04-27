@@ -99,10 +99,29 @@ using Microsoft.Extensions.DependencyInjection;");
                     var attribute = parameter.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, _generationSpec.CoreWCFInjectedSymbol));
                     if (attribute != null)
                     {
-                        string propertyName = attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName").Value.Value?.ToString();
-                        if (propertyName == null)
+                        var attributeProperty = attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName");
+                        // attributeProperty is a KeyValuePair<string, TypedConstant> which is a value type thus never null.
+                        // FirstOrDefault with a predicate returns the default value of the type with a null Key.
+
+                        // PropertyName is not specified
+                        if (attributeProperty.Key == null)
                         {
                             continue;
+                        }
+
+                        // PropertyName is specified but is null
+                        if (attributeProperty.Value.IsNull)
+                        {
+                            _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                            return;
+                        }
+
+                        // PropertyName is specified but is empty
+                        var propertyName = attributeProperty.Value.Value!.ToString();
+                        if (propertyName is "")
+                        {
+                            _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                            return;
                         }
 
                         var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
