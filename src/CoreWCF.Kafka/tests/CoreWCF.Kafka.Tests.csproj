@@ -38,6 +38,7 @@
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <ProjectReference Include="$(SourceDir)CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj" />
     <ProjectReference Include="..\src\CoreWCF.Kafka.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

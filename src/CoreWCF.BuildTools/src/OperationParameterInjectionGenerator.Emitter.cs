@@ -55,6 +55,7 @@ namespace CoreWCF.BuildTools
 
             private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
             private readonly SourceGenerationSpec _generationSpec;
+            private readonly List<(INamedTypeSymbol PropertySymbol, string PropertyName, string PropertyTypeFullName, string outputVarName)> _messageProperties = new();
 
             public Emitter(in OperationParameterInjectionSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
             {
@@ -87,15 +88,56 @@ using Microsoft.Extensions.DependencyInjection;");
 
             private void EmitOperationContract(OperationContractSpec operationContractSpec)
             {
+                Dictionary<ITypeSymbol, string> messagePropertyNames = new(SymbolEqualityComparer.Default);
+                foreach (var parameter in operationContractSpec.UserProvidedOperationContractImplementation!.Parameters)
+                {
+                    if (operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter)))
+                    {
+                           continue;
+                    }
 
+                    var attribute = parameter.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, _generationSpec.CoreWCFInjectedSymbol));
+                    if (attribute != null)
+                    {
+                        var attributeProperty = attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName");
+                        // attributeProperty is a KeyValuePair<string, TypedConstant> which is a value type thus never null.
+                        // FirstOrDefault with a predicate returns the default value of the type with a null Key.
+
+                        // PropertyName is not specified
+                        if (attributeProperty.Key == null)
+                        {
+                            continue;
+                        }
+
+                        // PropertyName is specified but is null
+                        if (attributeProperty.Value.IsNull)
+                        {
+                            _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                            return;
+                        }
+
+                        // PropertyName is specified but is empty
+                        var propertyName = attributeProperty.Value.Value!.ToString();
+                        if (propertyName is "")
+                        {
+                            _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                            return;
+                        }
+
+                        var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
+                        var messagePropertyType = parameter.Type as INamedTypeSymbol;
+                        messagePropertyNames[messagePropertyType!] = messagePropertyVariableName!;
+                        _messageProperties.Add((messagePropertyType!, propertyName, parameter.Type.ToDisplayString(), messagePropertyVariableName!));
+                    }
+                }
+
+                Dictionary<ITypeSymbol, string> dependencyNames = new(SymbolEqualityComparer.Default);
                 var dependencies = operationContractSpec.UserProvidedOperationContractImplementation!.Parameters.Where(x => !operationContractSpec.MissingOperationContract!.Parameters.Any(p =>
-                       p.IsMatchingParameter(x))).ToArray();
+                    p.IsMatchingParameter(x))).ToList();
 
                 bool shouldGenerateAsyncAwait = SymbolEqualityComparer.Default.Equals(operationContractSpec.MissingOperationContract!.ReturnType, _generationSpec.TaskSymbol)
                     || (operationContractSpec.MissingOperationContract.ReturnType is INamedTypeSymbol symbol &&
                     SymbolEqualityComparer.Default.Equals(symbol.ConstructedFrom, _generationSpec.GenericTaskSymbol));
-
-                Dictionary<ITypeSymbol, string> dependencyNames = new(SymbolEqualityComparer.Default);
 
                 string @async = shouldGenerateAsyncAwait
                     ? "async "
@@ -171,17 +213,30 @@ using Microsoft.Extensions.DependencyInjection;");
                 _builder.AppendLine($@"{indentor}var serviceProvider = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();");
                 _builder.AppendLine($@"{indentor}if (serviceProvider == null) throw new InvalidOperationException(""Missing IServiceProvider in InstanceContext extensions"");");
 
+                int objectIndex = 0;
                 if (dependencies.Any(x => SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpContextSymbol)
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpRequestSymbol)
                     || SymbolEqualityComparer.Default.Equals(x.Type, operationContractSpec.HttpResponseSymbol)))
                 {
-                    _builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var @object)");
+                    _builder.AppendLine($@"{indentor}var httpContext = (CoreWCF.OperationContext.Current.RequestContext.RequestMessage.Properties.TryGetValue(""Microsoft.AspNetCore.Http.HttpContext"", out var o{objectIndex})");
                     indentor.Increment();
-                    _builder.AppendLine($@"{indentor}&& @object is Microsoft.AspNetCore.Http.HttpContext context)");
-                    _builder.AppendLine($@"{indentor}? context");
+                    _builder.AppendLine($@"{indentor}&& o{objectIndex} is Microsoft.AspNetCore.Http.HttpContext p{objectIndex})");
+                    _builder.AppendLine($@"{indentor}? p{objectIndex}");
                     _builder.AppendLine($@"{indentor}: null;");
                     indentor.Decrement();
                     _builder.AppendLine($@"{indentor}if (httpContext == null) throw new InvalidOperationException(""Missing HttpContext in RequestMessage properties"");");
+                    objectIndex++;
+                }
+
+                foreach ((INamedTypeSymbol propertySymbol, string PropertyName, string PropertyTypeFullName, string outputVar) property in _messageProperties)
+                {
+                    _builder.AppendLine($@"{indentor}var {property.outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{property.PropertyName}"", out var o{objectIndex})");
+                    indentor.Increment();
+                    _builder.AppendLine($@"{indentor}&& o{objectIndex} is {property.PropertyTypeFullName} p{objectIndex})");
+                    _builder.AppendLine($@"{indentor}? p{objectIndex}");
+                    _builder.AppendLine($@"{indentor}: null;");
+                    indentor.Decrement();
+                    objectIndex++;
                 }
 
                 _builder.AppendLine($@"{indentor}if (CoreWCF.OperationContext.Current.InstanceContext.IsSingleton)");
@@ -221,7 +276,7 @@ using Microsoft.Extensions.DependencyInjection;");
 
                 void AppendResolveDependencies()
                 {
-                    for (int i = 0; i < dependencies.Length; i++)
+                    for (int i = 0; i < dependencies.Count; i++)
                     {
                         dependencyNames[dependencies[i].Type] = $"{dependencyNamePrefix}{i}";
                         if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpContextSymbol, dependencies[i].Type))
@@ -235,6 +290,10 @@ using Microsoft.Extensions.DependencyInjection;");
                         else if (SymbolEqualityComparer.Default.Equals(operationContractSpec.HttpResponseSymbol, dependencies[i].Type))
                         {
                             _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
+                        }
+                        else if(messagePropertyNames.TryGetValue(dependencies[i].Type, out var messagePropertyVariableName))
+                        {
+                            _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {messagePropertyVariableName};");
                         }
                         else
                         {

@@ -17,6 +17,15 @@ namespace CoreWCF.BuildTools
                 isEnabledByDefault: true);
 
             internal static Diagnostic RaiseParentClassShouldBePartialError(string parentClassName, string methodName, Location location) => Diagnostic.Create(ParentClassShouldBePartialError, location, parentClassName, methodName);
+
+            internal static readonly DiagnosticDescriptor PropertyNameCannotBeNullOrEmptyError = new DiagnosticDescriptor(id: "COREWCF_0103",
+                title: "PropertyName cannot be null or empty",
+                messageFormat: "PropertyName value of CoreWCF.InjectedAttribute cannot be null or empty",
+                category: nameof(OperationParameterInjectionGenerator),
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true);
+
+            internal static Diagnostic RaisePropertyNameCannotBeNullOrEmptyError(Location location) => Diagnostic.Create(PropertyNameCannotBeNullOrEmptyError, location);
         }
 
         internal static class AuthorizationAttributesAnalyzer_02XX

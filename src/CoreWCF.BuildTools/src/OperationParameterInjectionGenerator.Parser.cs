@@ -22,8 +22,6 @@ namespace CoreWCF.BuildTools
             private readonly INamedTypeSymbol? _httpResponseSymbol;
             private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
             private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
-            private readonly INamedTypeSymbol? _coreWCFInjectedSymbol;
-            private readonly INamedTypeSymbol? _mvcFromServicesSymbol;
 
             public Parser(Compilation compilation, in OperationParameterInjectionSourceGenerationContext context)
             {
@@ -37,8 +35,6 @@ namespace CoreWCF.BuildTools
                 _httpContextSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpContext");
                 _httpRequestSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpRequest");
                 _httpResponseSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.HttpResponse");
-                _coreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
-                _mvcFromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute");
             }
 
             public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
@@ -102,7 +98,8 @@ namespace CoreWCF.BuildTools
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
                     _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"));
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
+                );
             }
 
             internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax

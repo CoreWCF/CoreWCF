@@ -123,4 +123,23 @@ namespace CoreWCF.BuildTools
 
         }
     }
+
+    internal static class StringExtensions
+    {
+        public static string? ToMessagePropertyVariableName(this string? propertyName)
+        {
+            if (propertyName is null)
+            {
+                return null;
+            }
+
+            var parts = propertyName.Split('.');
+            return parts.Last().ToCamelCase();
+        }
+
+        private static string ToCamelCase(this string propertyName)
+        {
+            return $"{char.ToLowerInvariant(propertyName[0])}{propertyName.Substring(1)}";
+        }
+    }
 }

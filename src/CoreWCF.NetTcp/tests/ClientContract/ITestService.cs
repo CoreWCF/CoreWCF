@@ -32,6 +32,10 @@ namespace ClientContract
             ReplyAction = Constants.OPERATION_BASE + "GetClientIpEndpointResponse")]
         string GetClientIpEndpoint();
 
+        [OperationContract(Name = "GetClientIpEndpointInjected", Action = Constants.OPERATION_BASE + "GetClientIpEndpointInjected",
+            ReplyAction = Constants.OPERATION_BASE + "GetClientIpEndpointInjectedResponse")]
+        string GetClientIpEndpointInjected();
+
         [OperationContract(Name = "TestMessageContract", Action = Constants.OPERATION_BASE + "TestMessageContract",
             ReplyAction = Constants.OPERATION_BASE + "TestMessageContractResponse")]
         TestMessage TestMessageContract(TestMessage testMessage);
