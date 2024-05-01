@@ -106,7 +106,7 @@ namespace Helpers
             })
             .UseStartup<TStartup>();
 
-        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
+        public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") =>
             WebHost.CreateDefaultBuilder(Array.Empty<string>())
 #if DEBUG
             .ConfigureLogging((ILoggingBuilder logging) =>
@@ -127,7 +127,10 @@ namespace Helpers
                         listenOptions.UseConnectionLogging();
                     }
                 });
-            })
+            });
+
+        public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
+            CreateWebHostBuilder(outputHelper, callerMethodName)
             .UseStartup<TStartup>();
 
         public static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, Type startupType, [CallerMemberName] string callerMethodName = "") =>

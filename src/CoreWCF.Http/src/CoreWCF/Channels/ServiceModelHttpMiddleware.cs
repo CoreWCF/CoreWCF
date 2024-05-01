@@ -162,9 +162,8 @@ namespace CoreWCF.Channels
 
                     bool ExecHandler(HttpContext context)
                     {
-                        return (dispatcher.BaseAddress.AbsolutePath == "/"
-                               || context.Request.Path.StartsWithSegments(dispatcher.BaseAddress.AbsolutePath, out _, out _)) &&
-                               dispatcher.Binding.Scheme == context.Request.Scheme;
+                        return context.Request.Path is PathString reqPath && reqPath.Equals(dispatcher.BaseAddress.AbsolutePath)
+                            && dispatcher.Binding.Scheme == context.Request.Scheme;
                     }
 
                     branchApp.MapWhen(ExecHandler, wcfApp =>
