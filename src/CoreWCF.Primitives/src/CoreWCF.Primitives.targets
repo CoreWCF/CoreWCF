@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ItemGroup Condition="'$(Language)' == 'CSharp' AND
-                        '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
+  <ItemGroup Condition="'$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
                         '$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND
                         !$(TargetFramework.StartsWith('netstandard')) AND
                         (@(FrameworkReference->WithMetadataValue('Identity', 'Microsoft.AspNetCore.App')->Count()) != 0)">
