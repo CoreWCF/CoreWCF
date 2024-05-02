@@ -11,7 +11,7 @@ pr:
     - src/CoreWCF.Templates/
 
 variables:
-  _solutions: src/CoreWCFTemplates.sln
+  _solutions: CoreWCFTemplates.sln
   _libraryProjects: src/CoreWCF.Templates/src/CoreWCF.Templates.csproj
   _testProjects: src/CoreWCF.Templates.Tests.csproj
 
