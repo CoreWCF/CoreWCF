@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools
 {
-    [Generator]
+    [Generator(LanguageNames.CSharp)]
     public sealed partial class OperationInvokerGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
