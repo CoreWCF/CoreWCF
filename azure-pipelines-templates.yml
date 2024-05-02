@@ -6,9 +6,6 @@ pr:
     - main
     - release/*
     - feature/*
-  paths:
-    include:
-    - src/CoreWCF.Templates/
 
 variables:
   _solutions: CoreWCFTemplates.sln
