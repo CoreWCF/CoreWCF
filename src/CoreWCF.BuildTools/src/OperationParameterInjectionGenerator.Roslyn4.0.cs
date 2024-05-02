@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools
 {
-    [Generator]
+    [Generator(LanguageNames.CSharp)]
     public sealed partial class OperationParameterInjectionGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
