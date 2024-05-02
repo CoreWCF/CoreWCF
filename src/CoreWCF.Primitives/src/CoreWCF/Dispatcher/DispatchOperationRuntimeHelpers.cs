@@ -31,7 +31,6 @@ public static class DispatchOperationRuntimeHelpers
     private static string GetParameterString(ParameterInfo p)
     {
         StringBuilder sb = new();
-        //bool removeLastChar = false;
         Type parameterType = p.ParameterType;
         if (p.IsOut)
         {

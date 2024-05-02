@@ -14,7 +14,7 @@ using static CoreWCF.BuildTools.OperationParameterInjectionGenerator;
 
 namespace CoreWCF.BuildTools
 {
-    [Generator]
+    [Generator(LanguageNames.CSharp)]
     public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
