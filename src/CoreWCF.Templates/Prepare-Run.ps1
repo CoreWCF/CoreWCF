@@ -11,7 +11,7 @@ $DirectoryBuildPropsContent = '<Project></Project>'
 $DirectoryBuildPropsContent | Out-File $TestTemplatesPath/Directory.Build.props
 $DirectoryBuildTargetsContent = '<Project></Project>'
 $DirectoryBuildTargetsContent | Out-File $TestTemplatesPath/Directory.Build.target
-$NuGetConfigPath = [IO.Path]::Combine($SourceDir, 'src', 'NuGet.config')
+$NuGetConfigPath = [IO.Path]::Combine($SourceDir, 'NuGet.config')
 Copy-Item $NuGetConfigPath -Destination $TestTemplatesPath
 # Add a local nuget feed to publish current code packages
 $NugetFeedName = 'CoreWCFTemplates-Feed'

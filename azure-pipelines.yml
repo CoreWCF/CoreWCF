@@ -6,14 +6,10 @@ pr:
     - main
     - release/*
     - feature/*
-  paths:
-    exclude:
-    - src/CoreWCF.Templates/
-    - CoreWCFTemplates.sln
-    - templates/TestTemplatesStage.yml
 
 variables:
-  _solutions: CoreWCF.sln
+  _solutions: '*.sln'
+  # templates tests are ran from a dedicated stage
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
     !**/CoreWCF.Templates.Tests.csproj
@@ -26,6 +22,8 @@ stages:
 - template: templates/TestStage.yml
   parameters:
     testProjects: $(_testProjects)
+
+- template: templates/TestTemplatesStage.yml    
 
 - template: templates/CodeAnalysis.yml
   parameters:
