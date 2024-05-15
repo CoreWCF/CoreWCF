@@ -196,7 +196,10 @@ namespace CoreWCF.OpenApi
 
             string uri = Regex.Replace(operationInfo.UriTemplate, @"\?.*", "");
 
-            uri = address.OriginalString + "/" + uri;
+            if (address != null)
+            {
+                uri = address.OriginalString + "/" + uri;
+            }
             if (!string.IsNullOrEmpty(additionalBasePath))
             {
                 uri = additionalBasePath + uri;
