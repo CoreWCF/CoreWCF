@@ -117,13 +117,12 @@ namespace CoreWCF.Dispatcher
                     _builder.AppendLine($"{indentor}{parameter.Type.ToDisplayString()} p{i};");
                     if (FlowsIn(parameter))
                     {
-                        _builder.AppendLine($"{indentor}p{i} = ({parameter.Type.ToDisplayString()})inputs[{inputParameterCount}];");
+                        _builder.AppendLine($"{indentor}p{i} = inputs[{inputParameterCount}] == null ? default({parameter.Type.ToDisplayString()}) : ({parameter.Type.ToDisplayString()})inputs[{inputParameterCount}];");
                         inputParameterCount++;
                     }
 
                     if (FlowOut(parameter))
                     {
-
                         outputParams.Add((outputParameterCount, i, parameter));
                         outputParameterCount++;
                     }
