@@ -116,6 +116,7 @@ namespace CoreWCF.Dispatcher
 
                 var inputParamPositions = new List<int>();
                 var outputParamPositions = new List<int>();
+
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     if (ServiceReflector.FlowsIn(parameters[i]))
@@ -204,7 +205,13 @@ namespace CoreWCF.Dispatcher
 
                     if (ServiceReflector.FlowsIn(parameters[i]))
                     {
-                        expressions.Add(Expression.Assign(variable, Expression.Convert(Expression.ArrayIndex(inputsParam, Expression.Constant(inputParameterCount)), variableType)));
+                        var inputParamValue =
+                            Expression.ArrayIndex(inputsParam, Expression.Constant(inputParameterCount));
+                        var convertValueToType = Expression.Convert(inputParamValue, variableType);
+                        var defaultValue = Expression.Default(variableType);
+                        var convertOrGetDefault = Expression.Condition(Expression.Equal(inputParamValue, Expression.Constant(null)),
+                            defaultValue, convertValueToType);
+                        expressions.Add(Expression.Assign(variable, convertOrGetDefault));
                         inputParameterCount++;
                     }
 
