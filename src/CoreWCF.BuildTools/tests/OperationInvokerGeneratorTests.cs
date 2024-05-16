@@ -120,9 +120,9 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             bool p1;
-            p1 = (bool)inputs[1];
+            p1 = inputs[1] == null ? default(bool) : (bool)inputs[1];
             int p2;
             var result = ((MyProject.IIdentityService)instance).Echo(p0, ref p1, out p2);
             var outputs = AllocateOutputs();
@@ -216,9 +216,9 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             bool p1;
-            p1 = (bool)inputs[1];
+            p1 = inputs[1] == null ? default(bool) : (bool)inputs[1];
             int p2;
             var result = ((IIdentityService)instance).Echo(p0, ref p1, out p2);
             var outputs = AllocateOutputs();
@@ -413,9 +413,9 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             bool p1;
-            p1 = (bool)inputs[1];
+            p1 = inputs[1] == null ? default(bool) : (bool)inputs[1];
             int p2;
             var result = ((MyProject.IIdentityService)instance).Echo(p0, ref p1, out p2);
             var outputs = AllocateOutputs();
@@ -439,9 +439,9 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             bool p1;
-            p1 = (bool)inputs[1];
+            p1 = inputs[1] == null ? default(bool) : (bool)inputs[1];
             int p2;
             var result = ((MyProject.IIdentityService)instance).Echo2(p0, ref p1, out p2);
             var outputs = AllocateOutputs();
@@ -539,9 +539,9 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             bool p1;
-            p1 = (bool)inputs[1];
+            p1 = inputs[1] == null ? default(bool) : (bool)inputs[1];
             int p2;
             var result = ((MyProject.IIdentityService)instance).Echo(p0, ref p1, out p2);
             var outputs = AllocateOutputs();
@@ -637,7 +637,7 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             System.Collections.Generic.List<string> p0;
-            p0 = (System.Collections.Generic.List<string>)inputs[0];
+            p0 = inputs[0] == null ? default(System.Collections.Generic.List<string>) : (System.Collections.Generic.List<string>)inputs[0];
             var result = ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
             return new ValueTask<(object, object[])>((result, outputs));
@@ -730,7 +730,7 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string[] p0;
-            p0 = (string[])inputs[0];
+            p0 = inputs[0] == null ? default(string[]) : (string[])inputs[0];
             var result = ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
             return new ValueTask<(object, object[])>((result, outputs));
@@ -823,7 +823,7 @@ namespace CoreWCF.Dispatcher
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
             return new ValueTask<(object, object[])>((null, outputs));
@@ -916,7 +916,7 @@ namespace CoreWCF.Dispatcher
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             await ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
             return (null, outputs);
@@ -1009,7 +1009,7 @@ namespace CoreWCF.Dispatcher
         public async ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
             string p0;
-            p0 = (string)inputs[0];
+            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
             var result = await ((MyProject.IIdentityService)instance).Echo(p0);
             var outputs = AllocateOutputs();
             return (result, outputs);
