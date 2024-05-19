@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
+using CoreWCF.Security.Tokens;
 
 namespace CoreWCF
 {
@@ -92,9 +93,9 @@ namespace CoreWCF
                     case MessageCredentialType.Windows:
                         oneShotSecurity = SecurityBindingElement.CreateSspiNegotiationOverTransportBindingElement(true);
                         break;
-                    //case MessageCredentialType.IssuedToken:
-                    //    oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspAttributes: true)), this.algorithmSuite));
-                    //    break;
+                    case MessageCredentialType.IssuedToken:
+                        oneShotSecurity = SecurityBindingElement.CreateIssuedTokenOverTransportBindingElement(IssuedSecurityTokenParameters.CreateInfoCardParameters(new SecurityStandardsManager(new WSSecurityTokenSerializer(emitBspRequiredAttributes: true)), AlgorithmSuite));
+                        break;
                     default:
                         Fx.Assert("unknown ClientCredentialType");
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
