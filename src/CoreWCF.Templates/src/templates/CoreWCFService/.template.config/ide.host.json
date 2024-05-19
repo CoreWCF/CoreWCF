@@ -1,23 +1,23 @@
 {
-    "$schema": "http://json.schemastore.org/ide.host",
-    "order": 150,
-    "icon": "ide/Empty.png",
-    "disableHttpsSymbol": "NoHttps",
-    "supportsDocker": true,
-    "symbolInfo": [
-      {
-        "id": "NoWsdl",
-        "name": {
-          "text": "Turn off WSDL metadata feature."
-        },
-        "isVisible": true
+  "$schema": "http://json.schemastore.org/ide.host",
+  "order": 150,
+  "icon": "ide/Empty.png",
+  "disableHttpsSymbol": "NoHttps",
+  "supportsDocker": true,
+  "symbolInfo": [
+    {
+      "id": "NoWsdl",
+      "name": {
+        "text": "Turn off WSDL metadata feature."
       },
-      {
-        "id": "UseProgramMain",
-        "name": {
-          "text": "Turn off minimal ASP.NET Core hosting model."
-        },
-        "isVisible": true
-      }
-    ]
-  }
+      "isVisible": true
+    },
+    {
+      "id": "UseProgramMain",
+      "name": {
+        "text": "Turn off minimal ASP.NET Core hosting model."
+      },
+      "isVisible": true
+    }
+  ]
+}
