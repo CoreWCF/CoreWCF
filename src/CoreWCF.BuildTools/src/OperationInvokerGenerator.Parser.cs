@@ -7,21 +7,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CoreWCF.BuildTools
-{
-    public sealed partial class OperationInvokerGenerator
-    {
-        private sealed class Parser
-        {
-            private readonly Compilation _compilation;
-            private readonly OperationInvokerSourceGenerationContext _context;
-            private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
-            private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
-            private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
-            private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
+namespace CoreWCF.BuildTools;
 
-            public Parser(Compilation compilation, in OperationInvokerSourceGenerationContext context)
-            {
+public sealed partial class OperationInvokerGenerator
+{
+    private sealed class Parser
+    {
+        private readonly Compilation _compilation;
+        private readonly OperationInvokerSourceGenerationContext _context;
+        private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
+        private readonly INamedTypeSymbol? _coreWCFOperationContractSymbol;
+        private readonly INamedTypeSymbol? _sSMServiceContractSymbol;
+        private readonly INamedTypeSymbol? _coreWCFServiceContractSymbol;
+
+        public Parser(Compilation compilation, in OperationInvokerSourceGenerationContext context)
+        {
                 _compilation = compilation;
                 _context = context;
 
@@ -31,8 +31,8 @@ namespace CoreWCF.BuildTools
                 _coreWCFServiceContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
             }
 
-            public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
-            {
+        public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
+        {
                 var methodSymbols = (from methodDeclarationSyntax in methodDeclarationSyntaxes
                     let semanticModel = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree)
                     let symbol = semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)
@@ -64,12 +64,12 @@ namespace CoreWCF.BuildTools
                 return new SourceGenerationSpec(operationContractSpecs);
             }
 
-            internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
-                                                                                 && methodDeclarationSyntax.AttributeLists.Count > 0
-                                                                                 && methodDeclarationSyntax.Ancestors().Any(static ancestor => ancestor.IsKind(SyntaxKind.InterfaceDeclaration) && ((InterfaceDeclarationSyntax)ancestor).AttributeLists.Count > 0);
+        internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
+                                                                             && methodDeclarationSyntax.AttributeLists.Count > 0
+                                                                             && methodDeclarationSyntax.Ancestors().Any(static ancestor => ancestor.IsKind(SyntaxKind.InterfaceDeclaration) && ((InterfaceDeclarationSyntax)ancestor).AttributeLists.Count > 0);
 
-            internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
-            {
+        internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        {
                 var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
                 foreach (var attributeList in methodDeclarationSyntax.AttributeLists)
                 {
@@ -93,6 +93,5 @@ namespace CoreWCF.BuildTools
 
                 return null;
             }
-        }
     }
 }

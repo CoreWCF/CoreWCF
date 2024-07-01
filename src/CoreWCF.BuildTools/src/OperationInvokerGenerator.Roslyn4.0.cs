@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace CoreWCF.BuildTools
+namespace CoreWCF.BuildTools;
+
+[Generator(LanguageNames.CSharp)]
+public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
 {
-    [Generator(LanguageNames.CSharp)]
-    public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        public void Initialize(IncrementalGeneratorInitializationContext context)
-        {
             IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
                           predicate: static (token, _) => Parser.IsSyntaxTargetForGeneration(token),
                           transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
@@ -26,8 +26,8 @@ namespace CoreWCF.BuildTools
                 => Execute(source.ConfigOptions.GlobalOptions, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Methods!, spc));
         }
 
-        private void Execute(AnalyzerConfigOptions analyzerConfigOptions, Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
-        {
+    private void Execute(AnalyzerConfigOptions analyzerConfigOptions, Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
+    {
             bool enableOperationInvokerGenerator =
                 analyzerConfigOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator",
                     out string? enableSourceGenerator) && enableSourceGenerator == "true";
@@ -52,24 +52,23 @@ namespace CoreWCF.BuildTools
             }
         }
 
-        internal readonly struct OperationInvokerSourceGenerationContext
-        {
-            private readonly SourceProductionContext _context;
+    internal readonly struct OperationInvokerSourceGenerationContext
+    {
+        private readonly SourceProductionContext _context;
 
-            public OperationInvokerSourceGenerationContext(SourceProductionContext context)
-            {
+        public OperationInvokerSourceGenerationContext(SourceProductionContext context)
+        {
                 _context = context;
             }
 
-            public void ReportDiagnostic(Diagnostic diagnostic)
-            {
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
                 _context.ReportDiagnostic(diagnostic);
             }
 
-            public void AddSource(string hintName, SourceText sourceText)
-            {
+        public void AddSource(string hintName, SourceText sourceText)
+        {
                 _context.AddSource(hintName, sourceText);
             }
-        }
     }
 }
