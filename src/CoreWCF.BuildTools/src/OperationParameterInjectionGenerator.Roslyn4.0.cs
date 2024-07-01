@@ -3,60 +3,59 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace CoreWCF.BuildTools
+namespace CoreWCF.BuildTools;
+
+[Generator(LanguageNames.CSharp)]
+public sealed partial class OperationParameterInjectionGenerator : IIncrementalGenerator
 {
-    [Generator(LanguageNames.CSharp)]
-    public sealed partial class OperationParameterInjectionGenerator : IIncrementalGenerator
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        public void Initialize(IncrementalGeneratorInitializationContext context)
-        {
-            IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
+        IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
                 predicate: static (token, _) => Parser.IsSyntaxTargetForGeneration(token),
                 transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
-                .Where(static c => c is not null);
+            .Where(static c => c is not null);
 
-            IncrementalValueProvider<(Compilation Compilation, ImmutableArray<MethodDeclarationSyntax?> Methods)> compilationAndMethods =
-              context.CompilationProvider.Combine(methodDeclarations.Collect());
+        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<MethodDeclarationSyntax?> Methods)> compilationAndMethods =
+            context.CompilationProvider.Combine(methodDeclarations.Collect());
 
-            context.RegisterSourceOutput(compilationAndMethods, (spc, source)
-                => Execute(source.Compilation, source.Methods!, spc));
+        context.RegisterSourceOutput(compilationAndMethods, (spc, source)
+            => Execute(source.Compilation, source.Methods!, spc));
+    }
+
+    private void Execute(Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
+    {
+        if (contextMethods.IsDefaultOrEmpty)
+        {
+            return;
         }
 
-        private void Execute(Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
+        OperationParameterInjectionSourceGenerationContext context = new(sourceProductionContext);
+        Parser parser = new(compilation, context);
+        SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
+        if (spec != SourceGenerationSpec.None)
         {
-            if (contextMethods.IsDefaultOrEmpty)
-            {
-                return;
-            }
+            Emitter emitter = new(context, spec);
+            emitter.Emit();
+        }
+    }
 
-            OperationParameterInjectionSourceGenerationContext context = new(sourceProductionContext);
-            Parser parser = new(compilation, context);
-            SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
-            if (spec != SourceGenerationSpec.None)
-            {
-                Emitter emitter = new(context, spec);
-                emitter.Emit();
-            }
+    internal readonly struct OperationParameterInjectionSourceGenerationContext
+    {
+        private readonly SourceProductionContext _context;
+
+        public OperationParameterInjectionSourceGenerationContext(SourceProductionContext context)
+        {
+            _context = context;
         }
 
-        internal readonly struct OperationParameterInjectionSourceGenerationContext
+        public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            private readonly SourceProductionContext _context;
+            _context.ReportDiagnostic(diagnostic);
+        }
 
-            public OperationParameterInjectionSourceGenerationContext(SourceProductionContext context)
-            {
-                _context = context;
-            }
-
-            public void ReportDiagnostic(Diagnostic diagnostic)
-            {
-                _context.ReportDiagnostic(diagnostic);
-            }
-
-            public void AddSource(string hintName, SourceText sourceText)
-            {
-                _context.AddSource(hintName, sourceText);
-            }
+        public void AddSource(string hintName, SourceText sourceText)
+        {
+            _context.AddSource(hintName, sourceText);
         }
     }
 }
