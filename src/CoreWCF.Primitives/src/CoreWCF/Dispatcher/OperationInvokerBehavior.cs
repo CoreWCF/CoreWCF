@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -15,13 +16,28 @@ namespace CoreWCF.Dispatcher
 
         private static readonly Lazy<bool> s_isOperationInvokerGeneratorEnabled = new Lazy<bool>(() =>
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
+            if (AppContext.TryGetSwitch("CoreWCF.Dispatcher.UseGeneratedOperationInvokers", out var value))
             {
-                EnableCoreWCFOperationInvokerGeneratorAttribute attribute = assembly.GetCustomAttribute<EnableCoreWCFOperationInvokerGeneratorAttribute>();
-                if (attribute != null)
+                return value;
+            }
+
+            foreach (var attribute in Assembly.GetEntryAssembly().GetCustomAttributesData())
+            {
+                if (attribute.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
                 {
-                    return string.Equals(attribute.Value, "true", StringComparison.OrdinalIgnoreCase);
+                    foreach(var argument in attribute.NamedArguments)
+                    {
+                        if (
+                            argument.TypedValue.ArgumentType == typeof(string)
+                            && argument.TypedValue.Value is string stringValue
+                            && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
+                        {
+
+                            return true;
+                        }
+                    }
+
+                    break;
                 }
             }
 

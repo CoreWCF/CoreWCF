@@ -57,4 +57,9 @@
     <None Include="DependencyInjection\KeyedServicesTests.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="UseGeneratedOperationInvokerModuleInitializer.cs" />
+    <None Include="UseGeneratedOperationInvokerModuleInitializer.cs" />
+  </ItemGroup>
+
 </Project>
