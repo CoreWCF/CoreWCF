@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace CoreWCF.BuildTools
 {
     [Generator(LanguageNames.CSharp)]
-    public sealed partial class OperationParameterInjectionGenerator : ISourceGenerator
+    public sealed partial class OperationInvokerGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -16,13 +19,22 @@ namespace CoreWCF.BuildTools
 
         public void Execute(GeneratorExecutionContext executionContext)
         {
+            bool enableOperationInvokerGenerator = executionContext.AnalyzerConfigOptions.GlobalOptions
+                .TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator", out string? enableSourceGenerator)
+                && enableSourceGenerator == "true";
+
+            if (!enableOperationInvokerGenerator)
+            {
+                return;
+            }
+
             if (executionContext.SyntaxContextReceiver is not SyntaxContextReceiver receiver || receiver.MethodDeclarationSyntaxList == null)
             {
                 // nothing to do yet
                 return;
             }
 
-            OperationParameterInjectionSourceGenerationContext context = new(executionContext);
+            OperationInvokerSourceGenerationContext context = new(executionContext);
             Parser parser = new(executionContext.Compilation, context);
             SourceGenerationSpec spec = parser.GetGenerationSpec(receiver.MethodDeclarationSyntaxList.ToImmutableArray());
             if (spec != SourceGenerationSpec.None)
@@ -49,11 +61,11 @@ namespace CoreWCF.BuildTools
             }
         }
 
-        internal readonly struct OperationParameterInjectionSourceGenerationContext
+        internal readonly struct OperationInvokerSourceGenerationContext
         {
             private readonly GeneratorExecutionContext _context;
 
-            public OperationParameterInjectionSourceGenerationContext(GeneratorExecutionContext context)
+            public OperationInvokerSourceGenerationContext(GeneratorExecutionContext context)
             {
                 _context = context;
             }
