@@ -21,26 +21,31 @@ namespace CoreWCF.Dispatcher
                 return value;
             }
 
-            foreach (var attribute in Assembly.GetEntryAssembly().GetCustomAttributesData())
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            // return null when running UT with Xunit and .NET Framework
+            if (entryAssembly != null)
             {
-                if (attribute.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
+                foreach (var attribute in entryAssembly.GetCustomAttributesData())
                 {
-                    foreach(var argument in attribute.NamedArguments)
+                    if (attribute.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
                     {
-                        if (
-                            argument.TypedValue.ArgumentType == typeof(string)
-                            && argument.TypedValue.Value is string stringValue
-                            && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
+                        foreach (var argument in attribute.NamedArguments)
                         {
+                            if (
+                                argument.TypedValue.ArgumentType == typeof(string)
+                                && argument.TypedValue.Value is string stringValue
+                                && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
+                            {
 
-                            return true;
+                                return true;
+                            }
                         }
-                    }
 
-                    break;
+                        break;
+                    }
                 }
             }
-
+            
             return false;
         });
 
