@@ -136,8 +136,8 @@ namespace CoreWCF.Description
             mex.HttpGetEnabled = HttpGetEnabled;
             mex.HttpsGetEnabled = HttpsGetEnabled;
 
-            mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, _httpGetUrl ?? new Uri(string.Empty, UriKind.Relative));
-            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, _httpsGetUrl ?? new Uri(string.Empty, UriKind.Relative));
+            mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpGetUrl, description));
+            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpsGetUrl, description));
 
             foreach (ChannelDispatcherBase dispatcherBase in host.ChannelDispatchers)
             {
@@ -161,6 +161,13 @@ namespace CoreWCF.Description
                 }
             }
         }
+
+        private static Uri GetFirstEndpointUriForScheme(string uriScheme, Uri configuredGetUrl, ServiceDescription description)
+            => configuredGetUrl
+                ?? description?.Endpoints?.FirstOrDefault(endpoint =>
+                        string.Equals(endpoint?.Address?.Uri?.Scheme, uriScheme, StringComparison.Ordinal))
+                   ?.Address?.Uri
+                ?? new Uri(string.Empty, UriKind.Relative);
 
         private static EndpointDispatcher GetListenerByID(SynchronizedCollection<ChannelDispatcherBase> channelDispatchers, string id)
         {
