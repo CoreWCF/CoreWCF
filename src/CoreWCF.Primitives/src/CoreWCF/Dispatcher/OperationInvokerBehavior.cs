@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CoreWCF.Channels;
@@ -25,27 +26,21 @@ namespace CoreWCF.Dispatcher
             // return null when running UT with Xunit and .NET Framework
             if (entryAssembly != null)
             {
-                foreach (var attribute in entryAssembly.GetCustomAttributesData())
+                IEnumerable<CustomAttributeNamedArgument> assemblyAttributeArgsData = entryAssembly
+                    .GetCustomAttributesData()
+                    .FirstOrDefault(data => data.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
+                    ?.NamedArguments;
+
+                if (assemblyAttributeArgsData?.Any(arg => arg.MemberName == nameof(EnableCoreWCFOperationInvokerGeneratorAttribute.Enabled)) ?? false)
                 {
-                    if (attribute.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
+                    CustomAttributeNamedArgument enabledArg = assemblyAttributeArgsData.FirstOrDefault(arg => arg.MemberName == "Enabled");
+                    if (enabledArg.TypedValue.Value is string stringValue && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var argument in attribute.NamedArguments)
-                        {
-                            if (
-                                argument.TypedValue.ArgumentType == typeof(string)
-                                && argument.TypedValue.Value is string stringValue
-                                && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
-                            {
-
-                                return true;
-                            }
-                        }
-
-                        break;
+                        return true;
                     }
                 }
             }
-            
+
             return false;
         });
 

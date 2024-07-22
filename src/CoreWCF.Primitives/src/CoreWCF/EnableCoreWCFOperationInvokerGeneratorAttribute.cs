@@ -10,10 +10,6 @@ namespace CoreWCF
     [AttributeUsage(AttributeTargets.Assembly)]
     public sealed class EnableCoreWCFOperationInvokerGeneratorAttribute : Attribute
     {
-        public string Value { get; }
-        public EnableCoreWCFOperationInvokerGeneratorAttribute(string value)
-        {
-            Value = value;
-        }
+        public string Enabled { get; set; }
     }
 }
