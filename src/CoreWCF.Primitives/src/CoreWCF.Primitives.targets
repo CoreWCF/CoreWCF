@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">false</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND
                         '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
                         '$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND
