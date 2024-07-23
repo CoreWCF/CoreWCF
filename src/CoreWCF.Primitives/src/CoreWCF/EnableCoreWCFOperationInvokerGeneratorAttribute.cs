@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CoreWCF
 {
     [AttributeUsage(AttributeTargets.Assembly)]
     public sealed class EnableCoreWCFOperationInvokerGeneratorAttribute : Attribute
     {
-        public string Enabled { get; set; }
+        public EnableCoreWCFOperationInvokerGeneratorAttribute(bool value)
+        {
+            Value = value;
+        }
+
+        public bool Value { get; }
     }
 }

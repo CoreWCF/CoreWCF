@@ -26,19 +26,14 @@ namespace CoreWCF.Dispatcher
             // return null when running UT with Xunit and .NET Framework
             if (entryAssembly != null)
             {
-                IEnumerable<CustomAttributeNamedArgument> assemblyAttributeArgsData = entryAssembly
+                var assemblyAttributeArgsData = entryAssembly
                     .GetCustomAttributesData()
-                    .FirstOrDefault(data => data.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
-                    ?.NamedArguments;
+                    .Where(static data => data.AttributeType == typeof(EnableCoreWCFOperationInvokerGeneratorAttribute))
+                    .SelectMany(static data => data.ConstructorArguments)
+                    .Where(static data => data.ArgumentType == typeof(bool))
+                    .ToList();
 
-                if (assemblyAttributeArgsData?.Any(arg => arg.MemberName == nameof(EnableCoreWCFOperationInvokerGeneratorAttribute.Enabled)) ?? false)
-                {
-                    CustomAttributeNamedArgument enabledArg = assemblyAttributeArgsData.FirstOrDefault(arg => arg.MemberName == "Enabled");
-                    if (enabledArg.TypedValue.Value is string stringValue && string.Equals(stringValue, "true", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
+                return assemblyAttributeArgsData.Count > 0 && assemblyAttributeArgsData[0].Value is true;
             }
 
             return false;

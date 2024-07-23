@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
-      <_Parameter1>Enabled = "$(EnableCoreWCFOperationInvokerGenerator)"</_Parameter1>
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
       <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
     </AssemblyAttribute>
   </ItemGroup>
