@@ -33,13 +33,6 @@ stages:
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: UseDotNet@2
-      displayName: 'Use .NET 7 sdk'
-      inputs:
-        packageType: sdk
-        version: '7.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-
-    - task: UseDotNet@2
       displayName: 'Use .NET 8 sdk'
       inputs:
         packageType: sdk

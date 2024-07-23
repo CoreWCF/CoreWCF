@@ -19,12 +19,6 @@ stages:
             testArgs: ''
             dotnetSdk: '6.0.x'
             artifactName: 'Windows${{ configuration }}Build'
-          Windows_net7.0:
-            imageName: 'windows-latest'
-            targetFramework: 'net7.0'
-            testArgs: ''
-            dotnetSdk: '7.0.x'
-            artifactName: 'Windows${{ configuration }}Build'
           Windows_net8.0:
             imageName: 'windows-latest'
             targetFramework: 'net8.0'
@@ -42,12 +36,6 @@ stages:
             targetFramework: 'net6.0'
             testArgs: ''
             dotnetSdk: '6.0.x'
-            artifactName: 'Linux${{ configuration }}Build'
-          Linux_net7.0:
-            imageName: 'ubuntu-latest'
-            targetFramework: 'net7.0'
-            testArgs: ''
-            dotnetSdk: '7.0.x'
             artifactName: 'Linux${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
