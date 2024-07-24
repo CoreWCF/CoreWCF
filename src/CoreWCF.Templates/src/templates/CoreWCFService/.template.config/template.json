@@ -171,7 +171,7 @@
         }
       ],
       "replaces": "net8.0",
-      "defaultValue": "net6.0"
+      "defaultValue": "net8.0"
     },
     "isNetFramework": {
       "type": "computed",
@@ -214,9 +214,19 @@
       "defaultValue": "false",
       "description": "Whether to turn off WSDL metadata feature."
     },
+    "UseOperationInvokerGenerator": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Whether to turn on OperationInvokerGenerator feature."
+    },
     "minimal": {
       "type": "computed",
       "value": "(((Framework==\"net6.0\")||(Framework==\"net8.0\"))&&(!UseProgramMain))"
+    },
+    "enableOperationInvokerGenerator": {
+      "type": "computed",
+      "value": "(UseOperationInvokerGenerator)"
     }
   },
   "primaryOutputs": [

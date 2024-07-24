@@ -18,6 +18,13 @@
         "text": "Turn off minimal ASP.NET Core hosting model."
       },
       "isVisible": true
+    },
+    {
+      "id": "UseOperationInvokerGenerator",
+      "name": {
+        "text": "Turn on OperationInvokerGenerator feature."
+      },
+      "isVisible": true
     }
   ]
 }

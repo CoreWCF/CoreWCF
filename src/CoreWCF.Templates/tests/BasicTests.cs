@@ -41,7 +41,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
         }
     }
 
-    public class TestVariation : IXunitSerializable
+    public class TestVariation : IXunitSerializable, ICloneable
     {
         public List<string> Arguments { get; private set; } = new List<string>();
 
@@ -71,6 +71,12 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
             return this;
         }
 
+        public TestVariation UseOperationInvokerGenerator()
+        {
+            Arguments.Add("--use-operation-invoker-generator");
+            return this;
+        }
+
         public TestVariation Framework(string framework)
         {
             Arguments.Add($"--framework {framework}");
@@ -90,64 +96,87 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
             info.AddValue(nameof(AssertMetadataEndpoint), AssertMetadataEndpoint.ToString());
             info.AddValue(nameof(UseHttps), UseHttps.ToString());
         }
+
+        object ICloneable.Clone()
+        {
+            TestVariation clone = new();
+            clone.Arguments = new();
+            foreach (var argument in Arguments)
+            {
+                clone.Arguments.Add(argument);
+            }
+
+            clone.UseHttps = UseHttps;
+            clone.AssertMetadataEndpoint = AssertMetadataEndpoint;
+
+            return clone;
+        }
+
+        public TestVariation Clone()
+        {
+            ICloneable cloneable = this;
+            return (TestVariation)cloneable.Clone();
+        }
     }
 
     private static IEnumerable<TestVariation> GetTestVariations()
     {
-        yield return TestVariation.New();
-        yield return TestVariation.New().Framework(Frameworks.Net8);
-        yield return TestVariation.New().Framework(Frameworks.Net6);
-        yield return TestVariation.New().NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps();
-        yield return TestVariation.New().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl();
-        yield return TestVariation.New().NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl();
-        yield return TestVariation.New().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net8).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net6).UseProgramMain();
-        yield return TestVariation.New().NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().UseProgramMain();
-        yield return TestVariation.New().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net8).NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net6).NoHttps().NoWsdl().UseProgramMain();
-
-        if (!OperatingSystem.IsWindows())
+        IEnumerable<TestVariation> GetFrameworksVariations()
         {
-            yield break;
+            yield return TestVariation.New();
+            yield return TestVariation.New().Framework(Frameworks.Net8);
+            yield return TestVariation.New().Framework(Frameworks.Net6);
+
+            if (!OperatingSystem.IsWindows())
+            {
+                yield break;
+            }
+
+            yield return TestVariation.New().Framework(Frameworks.Net48);
+            yield return TestVariation.New().Framework(Frameworks.Net472);
+            yield return TestVariation.New().Framework(Frameworks.Net462);
         }
 
-        yield return TestVariation.New().Framework(Frameworks.Net48);
-        yield return TestVariation.New().Framework(Frameworks.Net472);
-        yield return TestVariation.New().Framework(Frameworks.Net462);
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps();
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().NoWsdl();
-        yield return TestVariation.New().Framework(Frameworks.Net48).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net472).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net462).UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net48).NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net472).NoHttps().NoWsdl().UseProgramMain();
-        yield return TestVariation.New().Framework(Frameworks.Net462).NoHttps().NoWsdl().UseProgramMain();
+        IEnumerable<TestVariation> GetHttpsVariations(TestVariation testVariation)
+        {
+            yield return (TestVariation)testVariation.Clone();
+            yield return ((TestVariation)testVariation.Clone()).NoHttps();
+        }
+
+        IEnumerable<TestVariation> GetNoWsdlVariations(TestVariation testVariation)
+        {
+            yield return (TestVariation)testVariation.Clone();
+            yield return ((TestVariation)testVariation.Clone()).NoWsdl();
+        }
+
+        IEnumerable<TestVariation> GetUseProgramMainVariations(TestVariation testVariation)
+        {
+            yield return (TestVariation)testVariation.Clone();
+            yield return ((TestVariation)testVariation.Clone()).UseProgramMain();
+        }
+
+        IEnumerable<TestVariation> GetUseOperationInvokerGeneratorVariations(TestVariation testVariation)
+        {
+            yield return (TestVariation)testVariation.Clone();
+            yield return ((TestVariation)testVariation.Clone()).UseOperationInvokerGenerator();
+        }
+
+        foreach (var frameworksVariation in GetFrameworksVariations())
+        {
+            foreach (var httpsVariation in GetHttpsVariations(frameworksVariation))
+            {
+                foreach (var wsdlVariation in GetNoWsdlVariations(httpsVariation))
+                {
+                    foreach (var useProgramMainVariation in GetUseProgramMainVariations(wsdlVariation))
+                    {
+                        foreach (var useOperationInvokerGeneratorVariation in GetUseOperationInvokerGeneratorVariations(useProgramMainVariation))
+                        {
+                            yield return useOperationInvokerGeneratorVariation;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     [Theory]
@@ -163,7 +192,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     private async Task CoreWCFTemplateDefaultCore(string[] args, bool assertMetadataEndpoint, bool useHttps, string expectedListeningUriScheme)
     {
-        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? Frameworks.Net6;
+        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? Frameworks.Net8;
         var project = ProjectFactory.GetOrCreateProject($"corewcf-{Guid.NewGuid()}", targetFramework,  _output);
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
