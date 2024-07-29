@@ -35,7 +35,7 @@
 
   <!-- UT -->
   <PropertyGroup>
-    <TestTargetFrameworks>net6.0;net7.0;net8.0</TestTargetFrameworks>
+    <TestTargetFrameworks>net6.0;net8.0</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
     <DotNetVersion>$(TargetFramework.Replace('net', ''))</DotNetVersion>
   </PropertyGroup>
