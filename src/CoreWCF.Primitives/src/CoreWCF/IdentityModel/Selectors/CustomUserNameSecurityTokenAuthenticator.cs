@@ -11,7 +11,7 @@ using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Selectors
 {
-    internal class CustomUserNameSecurityTokenAuthenticator : UserNameSecurityTokenAuthenticator
+    public class CustomUserNameSecurityTokenAuthenticator : UserNameSecurityTokenAuthenticator
     {
         private readonly UserNamePasswordValidator _validator;
 
