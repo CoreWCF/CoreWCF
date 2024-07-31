@@ -10,7 +10,7 @@ namespace CoreWCF.Http.Tests.Authorization;
 public partial class AuthorizationIntegrationTests
 {
     [ServiceContract]
-    private interface ISecuredService
+    internal interface ISecuredService
     {
         [OperationContract]
         string Default(string text);

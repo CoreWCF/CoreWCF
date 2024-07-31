@@ -35,6 +35,10 @@
     "NoWsdl": {
       "longName": "no-wsdl",
       "shortName": ""
+    },
+    "UseOperationInvokerGenerator": {
+      "longName": "use-operation-invoker-generator",
+      "shortName": ""
     }
   },
   "usageExamples": [

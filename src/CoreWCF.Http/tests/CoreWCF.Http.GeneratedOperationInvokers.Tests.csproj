@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="CoreWCF.Http.Tests.csproj" />
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="UseGeneratedOperationInvokerModuleInitializer.cs" />
+  </ItemGroup>
+
+</Project>

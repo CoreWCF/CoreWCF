@@ -1,5 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">false</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND
                         '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
                         '$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND
@@ -8,5 +11,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)/../contentFiles/CoreWCFWebApplicationExtensions.cs">
       <Visible>false</Visible>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+      <!-- Exposes EnableCoreWCFOperationInvokerGenerator at runtime -->
+    	<AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+	      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+        <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+	    </AssemblyAttribute>
   </ItemGroup>
 </Project>

@@ -3,16 +3,13 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace CoreWCF.BuildTools
+namespace CoreWCF.BuildTools;
+
+public sealed partial class OperationParameterInjectionGenerator
 {
-    internal readonly record struct OperationContractSpec(
-        INamedTypeSymbol? ServiceContract,
-        INamedTypeSymbol? ServiceContractImplementation,
-        IMethodSymbol? MissingOperationContract,
-        IMethodSymbol? UserProvidedOperationContractImplementation,
-        INamedTypeSymbol? HttpContextSymbol,
-        INamedTypeSymbol? HttpRequestSymbol,
-        INamedTypeSymbol? HttpResponseSymbol,
+    internal readonly record struct OperationContractSpec(INamedTypeSymbol? ServiceContract, INamedTypeSymbol? ServiceContractImplementation,
+        IMethodSymbol? MissingOperationContract, IMethodSymbol? UserProvidedOperationContractImplementation,
+        INamedTypeSymbol? HttpContextSymbol, INamedTypeSymbol? HttpRequestSymbol, INamedTypeSymbol? HttpResponseSymbol,
         AttributeData OperationContractAttributeData)
     {
         public INamedTypeSymbol? ServiceContract { get; } = ServiceContract;
