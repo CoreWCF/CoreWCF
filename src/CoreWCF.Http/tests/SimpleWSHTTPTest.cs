@@ -20,6 +20,13 @@ using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
+using System.Collections.ObjectModel;
+using CoreWCF.IdentityModel.Policy;
+using CoreWCF.IdentityModel.Claims;
+using System.Collections.Generic;
+using CoreWCF.Security;
+using CoreWCF.IdentityModel.Tokens;
+
 #if NETCOREAPP3_1_OR_GREATER
 using Microsoft.AspNetCore.Authentication.Negotiate;
 #endif
@@ -147,6 +154,33 @@ namespace WSHttp
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();
+            }
+        }
+
+        [Fact, Description("transport-security-with-basic-authentication-custom-validator")]
+        public void WSHttpRequestReplyWithTransportMessageCustomValidatorEchoString()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameAndToken>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -313,6 +347,86 @@ namespace WSHttp
             }
         }
 
+        internal class AuthenticationDataTokenManager : ServiceCredentialsSecurityTokenManager
+        {
+            public AuthenticationDataTokenManager(AuthenticationDataServiceCredentials parent) : base(parent)
+            {
+            }
+
+            public override SecurityTokenAuthenticator CreateSecurityTokenAuthenticator(
+                SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
+            {
+
+                if(tokenRequirement.TokenType == SecurityTokenTypes.UserName)
+                {
+                    outOfBandTokenResolver = null;
+
+                    var validator = new CustomTestValidator();
+
+                    return new CustomUserNameSecurityTokenTestValidator(validator);
+                }
+
+                return base.CreateSecurityTokenAuthenticator(tokenRequirement, out outOfBandTokenResolver);
+            }
+        }
+
+        internal class AuthenticationDataServiceCredentials : CoreWCF.Description.ServiceCredentials
+        {
+            public override SecurityTokenManager CreateSecurityTokenManager()
+            {
+                if (UserNameAuthentication.UserNamePasswordValidationMode == UserNamePasswordValidationMode.Custom)
+                    return new AuthenticationDataTokenManager(this);
+
+                return base.CreateSecurityTokenManager();
+            }
+
+        }
+
+        internal class CustomUserNameSecurityTokenTestValidator : CustomUserNameSecurityTokenAuthenticator
+        {
+            private readonly UserNamePasswordValidator _validator;
+
+            public CustomUserNameSecurityTokenTestValidator(UserNamePasswordValidator validator) : base(validator)
+            {
+                _validator = validator;
+            }
+
+            protected override async ValueTask<ReadOnlyCollection<IAuthorizationPolicy>>
+                ValidateUserNamePasswordCoreAsync(string userName, string password)
+            {
+                var newPolicies = new List<IAuthorizationPolicy>();
+
+                var currentPolicies = await base.ValidateUserNamePasswordCoreAsync(userName, password);
+                newPolicies.AddRange(currentPolicies);
+
+                if (_validator != null)
+                {
+                    await _validator.ValidateAsync(userName, password);
+                    newPolicies.Add(new UserNameSecurityTokenAuthorizationPolicy());
+                }
+
+                var readOnlyPolicies = new ReadOnlyCollection<IAuthorizationPolicy>(newPolicies);
+                return readOnlyPolicies;
+            }
+        }
+
+        internal class UserNameSecurityTokenAuthorizationPolicy : IAuthorizationPolicy
+        {
+            public ClaimSet Issuer { get; private set; }
+
+            public UserNameSecurityTokenAuthorizationPolicy()
+            {
+                Issuer = ClaimSet.System;
+            }
+
+            public string Id => Guid.NewGuid().ToString();
+
+            public bool Evaluate(EvaluationContext evaluationContext, ref object state)
+            {
+                return true;
+            }
+        }
+
         internal class WSHttpTransportWithMessageCredentialWithCertificate : StartupWSHttpBase
         {
             public WSHttpTransportWithMessageCredentialWithCertificate() :
@@ -369,6 +483,24 @@ namespace WSHttp
             public override void ChangeHostBehavior(ServiceHostBase host)
             {
                 var srvCredentials = new CoreWCF.Description.ServiceCredentials();
+                srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
+                    = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
+                srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
+                    = new CustomTestValidator();
+                host.Description.Behaviors.Add(srvCredentials);
+            }
+        }
+
+        internal class WSHttpTransportWithMessageCredentialWithUserNameAndToken : StartupWSHttpBase
+        {
+            public WSHttpTransportWithMessageCredentialWithUserNameAndToken() :
+                base(SecurityMode.TransportWithMessageCredential, MessageCredentialType.UserName)
+            {
+            }
+
+            public override void ChangeHostBehavior(ServiceHostBase host)
+            {
+                var srvCredentials = new AuthenticationDataServiceCredentials();
                 srvCredentials.UserNameAuthentication.UserNamePasswordValidationMode
                     = CoreWCF.Security.UserNamePasswordValidationMode.Custom;
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator
