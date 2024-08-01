@@ -167,8 +167,6 @@ namespace CoreWCF.Channels.Framing
         {
             if (contentType == FramingUpgradeString.SslOrTls)
                 _inputLengthDecider = new TlsInputLengthDecider();
-            else if (contentType == FramingUpgradeString.Negotiate)
-                _inputLengthDecider = new NegotiateInputLengthDecider();
             else _inputLengthDecider = NoopInputLengthDecider.Instance;
         }
 
@@ -221,56 +219,6 @@ namespace CoreWCF.Channels.Framing
                 }
 
                 // If the frame size is smaller than the number of bytes read from the input, then only read frame size number of bytes.
-                bytesToRead = Math.Min(maxRead, _frameSize);
-                // Decrement _frameSize by bytesToRead to store number of bytes still pending to be read in future reads.
-                _frameSize -= bytesToRead;
-                return bytesToRead;
-            }
-        }
-
-        internal class NegotiateInputLengthDecider : IInputLengthDecider
-        {
-            // The frame size for NegotiateStream is in the first 4 bytes of the frame. It is a big endian encoded uint32
-            // Using int as I don't think we need to worry about frames bigger than 2GB.
-            private int _frameSize;
-
-            public int LengthToConsume(ReadOnlySequence<byte> buffer, int destinationLength)
-            {
-                // Maximum number of bytes that can be read from incoming buffer. This is either the entire buffer if there's
-                // space in the destination, or however much space is available in the destination buffer
-                int maxRead = (int)Math.Min(buffer.Length, destinationLength);
-                int bytesToRead;
-
-                // If there's still bytes left to be read from the current frame, we don't need to read the frame header. Only
-                // read the frame size if we've finished reading the previous frame.
-                if (_frameSize == 0)
-                {
-                    if (buffer.Length < 4)
-                    {
-                        // Need at least 4 bytes to read frame size so presuming this isn't a Negotiate frame
-                        // so indicating to consume everything that's possible.
-                        return maxRead;
-                    }
-
-                    if (buffer.IsSingleSegment || buffer.First.Length >= 4)
-                    {
-                        // We have enough bytes to read the frame size from the first segment
-                        var span = buffer.First.Span;
-                        // The length in the Negotiate header doesn't include the header itself so that needs to be added
-                        _frameSize = ((span[0] << 24) | (span[1] << 16) | (span[2] << 8) | span[3]) + 4;
-                    }
-                    else
-                    {
-                        // We have at least 4 bytes, but the first 4 bytes aren't in the first segment so get the 4 bytes the slow way.
-                        var frameHeaderBytes = buffer.Slice(0, 4).ToArray();
-                        // The length in the Negotiate header doesn't include the header itself so that needs to be added
-                        _frameSize = ((frameHeaderBytes[0] << 24) | (frameHeaderBytes[1] << 16) | (frameHeaderBytes[2] << 8) | frameHeaderBytes[3]) + 4;
-                    }
-                }
-
-                Debug.Assert(_frameSize >= 0, "_frameSize can't be negative");
-
-                // If the frame size is smaller than the number of bytes read from the input, then only read read frame size number of bytes.
                 bytesToRead = Math.Min(maxRead, _frameSize);
                 // Decrement _frameSize by bytesToRead to store number of bytes still pending to be read in future reads.
                 _frameSize -= bytesToRead;
