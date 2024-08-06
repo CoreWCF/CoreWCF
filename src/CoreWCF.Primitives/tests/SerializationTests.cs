@@ -149,9 +149,9 @@ namespace CoreWCF.Primitives.Tests
 
         private ClassToPass SerializeAndDeserialize(ClassToPass data, Action<Description.DataContractSerializerOperationBehavior> resolverSet)
         {
+            OperationDescription od = null;
             Description.DataContractSerializerOperationBehavior behavior =
-                new Description.DataContractSerializerOperationBehavior(
-                    new Description.OperationDescription("Serialize", new Description.ContractDescription("Contract")));
+                new Description.DataContractSerializerOperationBehavior(od);
 
             resolverSet(behavior);
 
