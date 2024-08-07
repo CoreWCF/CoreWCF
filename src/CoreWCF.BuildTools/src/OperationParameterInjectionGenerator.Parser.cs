@@ -98,7 +98,8 @@ public sealed partial class OperationParameterInjectionGenerator
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
                     _compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
                     _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute"),
-                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute")
+                    _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute"),
+                    _compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute")
                 );
             }
 
@@ -125,7 +126,9 @@ public sealed partial class OperationParameterInjectionGenerator
                             INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                             string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                            if (fullName == "Microsoft.AspNetCore.Mvc.FromServicesAttribute" || fullName == "CoreWCF.InjectedAttribute")
+                            if (fullName is "Microsoft.AspNetCore.Mvc.FromServicesAttribute"
+                                or "CoreWCF.InjectedAttribute"
+                                or "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute")
                             {
                                 return methodDeclarationSyntax;
                             }

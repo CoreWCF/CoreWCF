@@ -26,7 +26,7 @@ public class KeyedServiceBehaviorTests
         _output = output;
     }
 
-    [Fact]
+    [Net8OrGreaterFact]
     public void BasicHttpRequestReplyEchoString()
     {
         string testString = "azerty";
