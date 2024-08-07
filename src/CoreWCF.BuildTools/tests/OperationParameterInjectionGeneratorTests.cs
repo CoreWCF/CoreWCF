@@ -156,11 +156,11 @@ namespace MyProject
             {{
                 using (var scope = serviceProvider.CreateScope())
                 {{
-                    var d0 = (scope.ServiceProvider as IKeyedServiceProvider).GetKeyedService<object>(""key"");
+                    var d0 = scope.ServiceProvider.GetKeyedService<object>(""key"");
                     return Echo2(input, d0);
                 }}
             }}
-            var e0 = (serviceProvider as IKeyedServiceProvider).GetKeyedService<object>(""key"");
+            var e0 = serviceProvider.GetKeyedService<object>(""key"");
             return Echo2(input, e0);
         }}
     }}

@@ -49,12 +49,10 @@ public partial class KeyedServiceProviderTests
     [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
     public partial class MyKeyedServiceContract : IMyKeyedServiceContract
     {
-        public string Hello(string value, [Injected]
-                                          object o)
+        public string Hello(string value, [Injected(ServiceKey = "fr")] object o)
         {
-            var sp = CoreWCF.OperationContext.Current.InstanceContext.Extensions.Find<IServiceProvider>();
             return o + value;
-        }        
+        }
     }
 
     internal class Startup
@@ -64,7 +62,6 @@ public partial class KeyedServiceProviderTests
             services.AddServiceModelServices();
             services.AddTransient<MyKeyedServiceContract>();
             services.AddKeyedTransient<object>("fr", (provider, key) => "Bonjour ");
-            services.AddTransient<object>(provider => "Bonjour ");//services.AddSingleton<object>("Bonjour ");
         }
 
         public void Configure(IApplicationBuilder app)
