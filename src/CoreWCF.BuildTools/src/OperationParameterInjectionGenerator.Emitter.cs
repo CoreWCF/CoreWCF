@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -11,12 +13,19 @@ namespace CoreWCF.BuildTools;
 
 public sealed partial class OperationParameterInjectionGenerator
 {
+    private record struct MessageProperty(
+        string PropertyName,
+        string PropertyTypeFullName,
+        string OutputVarName);
+
+    private record struct KeyedService(string serviceType, TypedConstant serviceKey);
+
     private sealed class Emitter
     {
         private readonly StringBuilder _builder;
         private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
         private readonly SourceGenerationSpec _generationSpec;
-        private readonly List<(INamedTypeSymbol PropertySymbol, string PropertyName, string PropertyTypeFullName, string outputVarName)> _messageProperties = new();
+        private readonly List<MessageProperty> _messageProperties = new();
 
         public Emitter(in OperationParameterInjectionSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
         {
@@ -40,7 +49,7 @@ using Microsoft.Extensions.DependencyInjection;");
                 EmitOperationContract(operationContractSpec);
             }
 
-            if(_generationSpec.OperationContractSpecs.Length > 0)
+            if (_generationSpec.OperationContractSpecs.Length > 0)
             {
                 _builder.AppendLine("#nullable restore");
                 _sourceGenerationContext.AddSource("OperationParameterInjection.g.cs", SourceText.From(_builder.ToString(), Encoding.UTF8, SourceHashAlgorithm.Sha256));
@@ -50,6 +59,7 @@ using Microsoft.Extensions.DependencyInjection;");
         private void EmitOperationContract(OperationContractSpec operationContractSpec)
         {
             Dictionary<ITypeSymbol, string> messagePropertyNames = new(SymbolEqualityComparer.Default);
+            Dictionary<IParameterSymbol, KeyedService> keyedServices = new(SymbolEqualityComparer.Default);
             foreach (var parameter in operationContractSpec.UserProvidedOperationContractImplementation!.Parameters)
             {
                 if (operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter)))
@@ -60,35 +70,36 @@ using Microsoft.Extensions.DependencyInjection;");
                 var attribute = parameter.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, _generationSpec.CoreWCFInjectedSymbol));
                 if (attribute != null)
                 {
-                    var attributeProperty = attribute.NamedArguments.FirstOrDefault(x => x.Key == "PropertyName");
-                    // attributeProperty is a KeyValuePair<string, TypedConstant> which is a value type thus never null.
-                    // FirstOrDefault with a predicate returns the default value of the type with a null Key.
-
-                    // PropertyName is not specified
-                    if (attributeProperty.Key == null)
+                    foreach (var namedArgument in attribute.NamedArguments)
                     {
-                        continue;
+                        if (namedArgument.Key == "PropertyName")
+                        {
+                            if (namedArgument.Value.IsNull)
+                            {
+                                _sourceGenerationContext.ReportDiagnostic(
+                                    DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
+                                        .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                                return;
+                            }
+                            var propertyName = namedArgument.Value.Value!.ToString();
+                            if (propertyName is "")
+                            {
+                                _sourceGenerationContext.ReportDiagnostic(
+                                    DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
+                                        .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                                return;
+                            }
+                            var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
+                            var messagePropertyType = parameter.Type as INamedTypeSymbol;
+                            messagePropertyNames[messagePropertyType!] = messagePropertyVariableName!;
+                            _messageProperties.Add(new(propertyName, parameter.Type.ToDisplayString(),
+                                messagePropertyVariableName!));
+                        }
+                        else if (namedArgument.Key == "ServiceKey")
+                        {
+                            keyedServices[parameter] = new KeyedService(parameter.Type.ToDisplayString(), namedArgument.Value);
+                        }
                     }
-
-                    // PropertyName is specified but is null
-                    if (attributeProperty.Value.IsNull)
-                    {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
-                        return;
-                    }
-
-                    // PropertyName is specified but is empty
-                    var propertyName = attributeProperty.Value.Value!.ToString();
-                    if (propertyName is "")
-                    {
-                        _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
-                        return;
-                    }
-
-                    var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
-                    var messagePropertyType = parameter.Type as INamedTypeSymbol;
-                    messagePropertyNames[messagePropertyType!] = messagePropertyVariableName!;
-                    _messageProperties.Add((messagePropertyType!, propertyName, parameter.Type.ToDisplayString(), messagePropertyVariableName!));
                 }
             }
 
@@ -189,11 +200,11 @@ using Microsoft.Extensions.DependencyInjection;");
                 objectIndex++;
             }
 
-            foreach ((INamedTypeSymbol propertySymbol, string PropertyName, string PropertyTypeFullName, string outputVar) property in _messageProperties)
+            foreach ((string propertyName, string propertyTypeFullName, string outputVar) in _messageProperties)
             {
-                _builder.AppendLine($@"{indentor}var {property.outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{property.PropertyName}"", out var o{objectIndex})");
+                _builder.AppendLine($@"{indentor}var {outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{propertyName}"", out var o{objectIndex})");
                 indentor.Increment();
-                _builder.AppendLine($@"{indentor}&& o{objectIndex} is {property.PropertyTypeFullName} p{objectIndex})");
+                _builder.AppendLine($@"{indentor}&& o{objectIndex} is {propertyTypeFullName} p{objectIndex})");
                 _builder.AppendLine($@"{indentor}? p{objectIndex}");
                 _builder.AppendLine($@"{indentor}: null;");
                 indentor.Decrement();
@@ -252,9 +263,13 @@ using Microsoft.Extensions.DependencyInjection;");
                     {
                         _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
                     }
-                    else if(messagePropertyNames.TryGetValue(dependencies[i].Type, out var messagePropertyVariableName))
+                    else if (messagePropertyNames.TryGetValue(dependencies[i].Type, out var messagePropertyVariableName))
                     {
                         _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {messagePropertyVariableName};");
+                    }
+                    else if (keyedServices.TryGetValue(dependencies[i], out var keyedService))
+                    {
+                        _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetKeyedService<{dependencies[i].Type}>({keyedService.serviceKey.ToSafeCSharpString()});");
                     }
                     else
                     {
