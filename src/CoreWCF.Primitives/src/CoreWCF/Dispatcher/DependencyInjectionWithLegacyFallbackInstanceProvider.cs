@@ -9,12 +9,16 @@ namespace CoreWCF.Dispatcher
 {
     internal class DependencyInjectionWithLegacyFallbackInstanceProvider : IInstanceProvider
     {
-        private class ScopedServiceProviderExtension : IExtension<InstanceContext>, IServiceProvider, IDisposable
+        private class ScopedServiceProviderExtension : IExtension<InstanceContext>, IKeyedServiceProvider, IDisposable
         {
             private readonly IServiceScope _serviceScope;
+            private IKeyedServiceProvider KeyedServiceProvider { get; }
 
             public ScopedServiceProviderExtension(IServiceProvider serviceProvider)
-                => _serviceScope = serviceProvider.CreateScope();
+            {
+                _serviceScope = serviceProvider.CreateScope();
+                KeyedServiceProvider = _serviceScope.ServiceProvider as IKeyedServiceProvider;
+            }
 
             public void Attach(InstanceContext owner)
             {
@@ -29,6 +33,10 @@ namespace CoreWCF.Dispatcher
             public object GetService(Type serviceType) => _serviceScope.ServiceProvider.GetService(serviceType);
 
             public void Dispose() => _serviceScope?.Dispose();
+
+            public object GetKeyedService(Type serviceType, object serviceKey) => KeyedServiceProvider.GetKeyedService(serviceType, serviceKey);
+
+            public object GetRequiredKeyedService(Type serviceType, object serviceKey) => KeyedServiceProvider.GetRequiredKeyedService(serviceType, serviceKey);
         }
 
         private delegate object GetInstanceDelegate(InstanceContext instanceContext);
