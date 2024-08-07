@@ -50,13 +50,6 @@
     <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'!='net8.0'">
-    <Compile Remove="DependencyInjection\KeyedServiceBehaviorTests.cs" />
-    <Compile Remove="DependencyInjection\KeyedServicesTests.cs" />
-    <None Include="DependencyInjection\KeyedServiceBehaviorTests.cs" />
-    <None Include="DependencyInjection\KeyedServicesTests.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="UseGeneratedOperationInvokerModuleInitializer.cs" />
     <None Include="UseGeneratedOperationInvokerModuleInitializer.cs" />
