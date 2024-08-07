@@ -76,7 +76,10 @@ namespace CoreWCF.Description
             settings.MaxItemsInObjectGraph = MaxItemsInObjectGraph;
             settings.DataContractResolver = DataContractResolver;
             DataContractSerializer dcs = new DataContractSerializer(type, settings);
-            dcs.SetSerializationSurrogateProvider(SerializationSurrogateProvider);
+            if (SerializationSurrogateProvider != null)
+            {
+                dcs.SetSerializationSurrogateProvider(SerializationSurrogateProvider);
+            }
             return dcs;
         }
 
@@ -89,7 +92,10 @@ namespace CoreWCF.Description
             settings.MaxItemsInObjectGraph = MaxItemsInObjectGraph;
             settings.DataContractResolver = DataContractResolver;
             DataContractSerializer dcs = new DataContractSerializer(type, settings);
-            dcs.SetSerializationSurrogateProvider(SerializationSurrogateProvider);
+            if (SerializationSurrogateProvider != null)
+            {
+                dcs.SetSerializationSurrogateProvider(SerializationSurrogateProvider);
+            }
             return dcs;
         }
 
