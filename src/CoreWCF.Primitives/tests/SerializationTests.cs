@@ -120,31 +120,28 @@ namespace CoreWCF.Primitives.Tests
             };
 
             Assert.Throws<SerializationException>(() => SerializeAndDeserialize(classToPass, bvr => { }));
-
         }
 
         [Fact]
         public void Deserialize_Extended_WithResolver_Success()
         {
+            ClassToPass classToPass = new ClassToPass()
             {
-                ClassToPass classToPass = new ClassToPass()
+                Name = "Test",
+                Description = "Failure test",
+                Items = new List<string> { "1", "2", "3" },
+                Basic = new ExtendedClass() //Extended class!!!
                 {
-                    Name = "Test",
-                    Description = "Failure test",
-                    Items = new List<string> { "1", "2", "3" },
-                    Basic = new ExtendedClass() //Extended class!!!
-                    {
-                        Prop1 = 1,
-                        Prop2 = "2",
-                        Prop3 = null
-                    }
-                };
+                    Prop1 = 1,
+                    Prop2 = "2",
+                    Prop3 = null
+                }
+            };
 
-                ClassToPass result = SerializeAndDeserialize(classToPass, bvr => { bvr.DataContractResolver = new BasicClassResolver(); });
-                Assert.True(result != null);
-                Assert.True(result.Basic != null);
-                Assert.True(result.Basic.GetType() == typeof(ExtendedClass));
-            }
+            ClassToPass result = SerializeAndDeserialize(classToPass, bvr => { bvr.DataContractResolver = new BasicClassResolver(); });
+            Assert.True(result != null);
+            Assert.True(result.Basic != null);
+            Assert.True(result.Basic.GetType() == typeof(ExtendedClass));
         }
 
         private ClassToPass SerializeAndDeserialize(ClassToPass data, Action<Description.DataContractSerializerOperationBehavior> resolverSet)
