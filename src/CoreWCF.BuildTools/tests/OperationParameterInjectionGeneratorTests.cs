@@ -25,6 +25,7 @@ public class OperationParameterInjectionGeneratorTests
 
     private const string CoreWCFInjectedAttribute = "CoreWCF.Injected";
     private const string MVCFromServicesAttribute = "Microsoft.AspNetCore.Mvc.FromServices";
+    private const string MSDIFromKeyedServicesAttribute = "Microsoft.Extensions.DependencyInjection.FromKeyedServices";
 
     public static IEnumerable<object[]> GetTestVariations()
     {
@@ -103,12 +104,14 @@ namespace MyProject
         await test.RunAsync();
     }
 
-#if NET8_0_OR_GREATER
     [Theory]
     [InlineData(CoreWCFNamespace, CoreWCFInjectedAttribute)]
     [InlineData(SSMNamespace, CoreWCFInjectedAttribute)]
+    [InlineData(CoreWCFNamespace, MSDIFromKeyedServicesAttribute)]
+    [InlineData(SSMNamespace, MSDIFromKeyedServicesAttribute)]
     public async Task KeyedServiceProviderTests(string attributeNamespace, string attribute)
     {
+        attribute = FormatKeyedServiceAttribute(attribute, "\"key\"");
         var test = new VerifyGenerator.Test
         {
             TestState =
@@ -131,7 +134,7 @@ namespace MyProject
     public partial class IdentityService : IIdentityService
     {{
         public string Echo(string input) => input;
-        public string Echo2(string input, [{attribute}(ServiceKey = ""key"")] object a) => input;
+        public string Echo2(string input, [{attribute}] object a) => input;
     }}
 }}
 "
@@ -173,7 +176,6 @@ namespace MyProject
 
         await test.RunAsync();
     }
-#endif
 
     [Theory]
     [InlineData(SSMNamespace, CoreWCFInjectedAttribute)]
@@ -3056,4 +3058,10 @@ namespace MyProject
 
         await test.RunAsync();
     }
+
+    private static string FormatKeyedServiceAttribute(string attribute, string key) =>
+        attribute == CoreWCFInjectedAttribute
+            ? $"{attribute}(ServiceKey = {key})"
+            : $"{attribute}({key})";
+
 }

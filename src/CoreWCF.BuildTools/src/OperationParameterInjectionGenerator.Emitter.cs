@@ -18,14 +18,13 @@ public sealed partial class OperationParameterInjectionGenerator
         string PropertyTypeFullName,
         string OutputVarName);
 
-    private record struct KeyedService(string serviceType, TypedConstant serviceKey);
+    private record struct KeyedService(TypedConstant ServiceKey);
 
     private sealed class Emitter
     {
         private readonly StringBuilder _builder;
         private readonly OperationParameterInjectionSourceGenerationContext _sourceGenerationContext;
         private readonly SourceGenerationSpec _generationSpec;
-        private readonly List<MessageProperty> _messageProperties = new();
 
         public Emitter(in OperationParameterInjectionSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
         {
@@ -58,8 +57,10 @@ using Microsoft.Extensions.DependencyInjection;");
 
         private void EmitOperationContract(OperationContractSpec operationContractSpec)
         {
-            Dictionary<ITypeSymbol, string> messagePropertyNames = new(SymbolEqualityComparer.Default);
+            Dictionary<IParameterSymbol, string> messagePropertyNames = new(SymbolEqualityComparer.Default);
             Dictionary<IParameterSymbol, KeyedService> keyedServices = new(SymbolEqualityComparer.Default);
+            List<MessageProperty> messageProperties = new();
+
             foreach (var parameter in operationContractSpec.UserProvidedOperationContractImplementation!.Parameters)
             {
                 if (operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter)))
@@ -67,38 +68,46 @@ using Microsoft.Extensions.DependencyInjection;");
                     continue;
                 }
 
-                var attribute = parameter.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, _generationSpec.CoreWCFInjectedSymbol));
-                if (attribute != null)
+                foreach (AttributeData attribute in parameter.GetAttributes())
                 {
-                    foreach (var namedArgument in attribute.NamedArguments)
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass,
+                            _generationSpec.CoreWCFInjectedSymbol))
                     {
-                        if (namedArgument.Key == "PropertyName")
+                        foreach (var namedArgument in attribute.NamedArguments)
                         {
-                            if (namedArgument.Value.IsNull)
+                            if (namedArgument.Key == "PropertyName")
                             {
-                                _sourceGenerationContext.ReportDiagnostic(
-                                    DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
-                                        .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
-                                return;
+                                if (namedArgument.Value.IsNull)
+                                {
+                                    _sourceGenerationContext.ReportDiagnostic(
+                                        DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
+                                            .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                                    return;
+                                }
+                                var propertyName = namedArgument.Value.Value!.ToString();
+                                if (propertyName is "")
+                                {
+                                    _sourceGenerationContext.ReportDiagnostic(
+                                        DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
+                                            .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
+                                    return;
+                                }
+                                var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
+                                messagePropertyNames[parameter] = messagePropertyVariableName;
+                                messageProperties.Add(new MessageProperty(propertyName, parameter.Type.ToDisplayString(),
+                                    messagePropertyVariableName));
                             }
-                            var propertyName = namedArgument.Value.Value!.ToString();
-                            if (propertyName is "")
+                            else if (namedArgument.Key == "ServiceKey")
                             {
-                                _sourceGenerationContext.ReportDiagnostic(
-                                    DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX
-                                        .RaisePropertyNameCannotBeNullOrEmptyError(parameter.Locations[0]));
-                                return;
+                                // TODO: Raise appropriate Diagnostics
+                                keyedServices[parameter] = new KeyedService(namedArgument.Value);
                             }
-                            var messagePropertyVariableName = propertyName.ToMessagePropertyVariableName();
-                            var messagePropertyType = parameter.Type as INamedTypeSymbol;
-                            messagePropertyNames[messagePropertyType!] = messagePropertyVariableName!;
-                            _messageProperties.Add(new(propertyName, parameter.Type.ToDisplayString(),
-                                messagePropertyVariableName!));
                         }
-                        else if (namedArgument.Key == "ServiceKey")
-                        {
-                            keyedServices[parameter] = new KeyedService(parameter.Type.ToDisplayString(), namedArgument.Value);
-                        }
+                    }
+                    else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass,
+                                 _generationSpec.MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol))
+                    {
+                        keyedServices[parameter] = new KeyedService(attribute.ConstructorArguments.First());
                     }
                 }
             }
@@ -200,7 +209,7 @@ using Microsoft.Extensions.DependencyInjection;");
                 objectIndex++;
             }
 
-            foreach ((string propertyName, string propertyTypeFullName, string outputVar) in _messageProperties)
+            foreach ((string propertyName, string propertyTypeFullName, string outputVar) in messageProperties)
             {
                 _builder.AppendLine($@"{indentor}var {outputVar} = (CoreWCF.OperationContext.Current.IncomingMessageProperties.TryGetValue(""{propertyName}"", out var o{objectIndex})");
                 indentor.Increment();
@@ -263,13 +272,13 @@ using Microsoft.Extensions.DependencyInjection;");
                     {
                         _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = httpContext.Response;");
                     }
-                    else if (messagePropertyNames.TryGetValue(dependencies[i].Type, out var messagePropertyVariableName))
+                    else if (messagePropertyNames.TryGetValue(dependencies[i], out string messagePropertyVariableName))
                     {
                         _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {messagePropertyVariableName};");
                     }
                     else if (keyedServices.TryGetValue(dependencies[i], out var keyedService))
                     {
-                        _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetKeyedService<{dependencies[i].Type}>({keyedService.serviceKey.ToSafeCSharpString()});");
+                        _builder.AppendLine($@"{indentor}var {dependencyNamePrefix}{i} = {serviceProviderName}.GetKeyedService<{dependencies[i].Type}>({keyedService.ServiceKey.ToSafeCSharpString()});");
                     }
                     else
                     {
@@ -289,7 +298,9 @@ using Microsoft.Extensions.DependencyInjection;");
                         _builder.Append(", ");
                     }
 
-                    if (parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol, _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol) is not null)
+                    if (parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol,
+                            _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol,
+                            _generationSpec.MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol) is not null)
                     {
                         _builder.Append(dependencyNames[parameter.Type]);
                     }
