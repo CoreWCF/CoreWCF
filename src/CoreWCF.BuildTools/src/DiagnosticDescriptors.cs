@@ -26,6 +26,15 @@ internal static class DiagnosticDescriptors
             isEnabledByDefault: true);
 
         internal static Diagnostic RaisePropertyNameCannotBeNullOrEmptyError(Location location) => Diagnostic.Create(PropertyNameCannotBeNullOrEmptyError, location);
+
+        internal static readonly DiagnosticDescriptor EitherPropertyNameOrServiceKeyShouldBeSpecified = new DiagnosticDescriptor(id: "COREWCF_0104",
+            title: "Either PropertyName or ServiceKey should be specified",
+            messageFormat: "PropertyName value of CoreWCF.InjectedAttribute cannot be null or empty",
+            category: nameof(OperationParameterInjectionGenerator),
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        internal static Diagnostic RaiseEitherPropertyNameOrServiceKeyShouldBeSpecified(Location location) => Diagnostic.Create(EitherPropertyNameOrServiceKeyShouldBeSpecified, location);
     }
 
     internal static class AuthorizationAttributesAnalyzer_02XX

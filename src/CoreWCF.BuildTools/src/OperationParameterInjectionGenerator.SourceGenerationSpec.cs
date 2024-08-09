@@ -12,15 +12,18 @@ public sealed partial class OperationParameterInjectionGenerator
         INamedTypeSymbol? TaskSymbol,
         INamedTypeSymbol? GenericTaskSymbol,
         INamedTypeSymbol? CoreWCFInjectedSymbol,
-        INamedTypeSymbol? MicrosoftAspNetCoreMvcFromServicesSymbol)
+        INamedTypeSymbol? MicrosoftAspNetCoreMvcFromServicesSymbol,
+        INamedTypeSymbol? MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol)
     {
         public ImmutableArray<OperationContractSpec> OperationContractSpecs { get; } = OperationContractSpecs;
         public INamedTypeSymbol? TaskSymbol { get; } = TaskSymbol;
         public INamedTypeSymbol? GenericTaskSymbol { get; } = GenericTaskSymbol;
         public INamedTypeSymbol? CoreWCFInjectedSymbol { get; } = CoreWCFInjectedSymbol;
         public INamedTypeSymbol? MicrosoftAspNetCoreMvcFromServicesSymbol { get; } = MicrosoftAspNetCoreMvcFromServicesSymbol;
+        public INamedTypeSymbol? MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol { get; } =
+            MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol;
 
         public static readonly SourceGenerationSpec None =
-            new(in ImmutableArray<OperationContractSpec>.Empty, null, null, null, null);
+            new(in ImmutableArray<OperationContractSpec>.Empty, null, null, null, null, null);
     }
 }

@@ -136,16 +136,11 @@ internal static class TypedConstantExtensions
 
 internal static class StringExtensions
 {
-    public static string? ToMessagePropertyVariableName(this string? propertyName)
+    public static string ToMessagePropertyVariableName(this string propertyName)
     {
-            if (propertyName is null)
-            {
-                return null;
-            }
-
-            var parts = propertyName.Split('.');
-            return parts.Last().ToCamelCase();
-        }
+        string[] parts = propertyName.Split('.');
+        return parts.Last().ToCamelCase();
+    }
 
     private static string ToCamelCase(this string propertyName)
     {
