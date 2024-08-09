@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Text.Json.Serialization;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CoreWCF.Http.GeneratedOperationInvokers.Tests.Generation;
+namespace CoreWCF.Http.Tests.Generation;
 
 public partial class KeyedServiceProviderTests
 {
@@ -23,10 +21,20 @@ public partial class KeyedServiceProviderTests
         _output = output;
     }
 
-    [Fact]
-    public void BasicHttpRequestReplyEchoString()
+    public class GetInjectedKeyedServiceTestTheoryData : TheoryData<Type>
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        public GetInjectedKeyedServiceTestTheoryData()
+        {
+            Add(typeof(Startup<MyKeyedServiceContract>));
+            Add(typeof(Startup<MyOtherKeyedServiceContract>));
+        }
+    }
+
+    [Net8OrGreaterTheory]
+    [ClassData(typeof(GetInjectedKeyedServiceTestTheoryData))]
+    public void InjectedKeyedServiceTests(Type startupType)
+    {
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();
@@ -49,27 +57,32 @@ public partial class KeyedServiceProviderTests
     [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
     public partial class MyKeyedServiceContract : IMyKeyedServiceContract
     {
-        public string Hello(string value, [Injected(ServiceKey = "fr")] object o)
-        {
-            return o + value;
-        }
+        public string Hello(string value, [Injected(ServiceKey = "fr")] HelloProvider o) => $"{o.Invoke()} {value}";
     }
 
-    internal class Startup
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    public partial class MyOtherKeyedServiceContract : IMyKeyedServiceContract
+    {
+        public string Hello(string value, [FromKeyedServices("fr")] HelloProvider o) => $"{o.Invoke()} {value}";
+    }
+
+    public delegate string HelloProvider();
+
+    internal class Startup<T> where T : class, IMyKeyedServiceContract
     {
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddServiceModelServices();
-            services.AddTransient<MyKeyedServiceContract>();
-            services.AddKeyedTransient<object>("fr", (provider, key) => "Bonjour ");
+            services.AddTransient<T>();
+            services.AddKeyedTransient<HelloProvider>("fr", (_, _) => () => "Bonjour");
         }
 
         public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(builder =>
             {
-                builder.AddService<MyKeyedServiceContract>();
-                builder.AddServiceEndpoint<MyKeyedServiceContract, IMyKeyedServiceContract>(new CoreWCF.BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
+                builder.AddService<T>();
+                builder.AddServiceEndpoint<T, IMyKeyedServiceContract>(new BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
             });
         }
     }

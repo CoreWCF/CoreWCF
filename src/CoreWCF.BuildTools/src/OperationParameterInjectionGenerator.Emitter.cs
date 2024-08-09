@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -73,6 +71,12 @@ using Microsoft.Extensions.DependencyInjection;");
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass,
                             _generationSpec.CoreWCFInjectedSymbol))
                     {
+                        if (attribute.NamedArguments.Length > 1)
+                        {
+                            _sourceGenerationContext.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaiseEitherPropertyNameOrServiceKeyShouldBeSpecified(parameter.Locations[0]));
+                            return;
+                        }
+
                         foreach (var namedArgument in attribute.NamedArguments)
                         {
                             if (namedArgument.Key == "PropertyName")
@@ -99,7 +103,6 @@ using Microsoft.Extensions.DependencyInjection;");
                             }
                             else if (namedArgument.Key == "ServiceKey")
                             {
-                                // TODO: Raise appropriate Diagnostics
                                 keyedServices[parameter] = new KeyedService(namedArgument.Value);
                             }
                         }

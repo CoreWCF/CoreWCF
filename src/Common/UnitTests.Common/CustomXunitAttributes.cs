@@ -6,6 +6,28 @@ using System.Runtime.InteropServices;
 
 namespace Xunit;
 
+public class Net8OrGreaterFact : FactAttribute
+{
+    public Net8OrGreaterFact()
+    {
+        if (Environment.Version.Major < 8)
+        {
+            Skip = nameof(Net8OrGreaterFact);
+        }
+    }
+}
+
+public class Net8OrGreaterTheory : TheoryAttribute
+{
+    public Net8OrGreaterTheory()
+    {
+        if (Environment.Version.Major < 8)
+        {
+            Skip = nameof(Net8OrGreaterTheory);
+        }
+    }
+}
+
 public class NetCoreOnlyFactAttribute : FactAttribute
 {
     public NetCoreOnlyFactAttribute()

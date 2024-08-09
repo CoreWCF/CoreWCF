@@ -53,10 +53,8 @@
   <ItemGroup Condition="'$(TargetFramework)'=='net6.0' OR '$(TargetFramework)'=='net472'">
     <Compile Remove="DependencyInjection\KeyedServiceBehaviorTests.cs" />
     <Compile Remove="DependencyInjection\KeyedServicesTests.cs" />
-    <Compile Remove="Generation\KeyedServiceProviderTests.cs" />
     <None Include="DependencyInjection\KeyedServiceBehaviorTests.cs" />
     <None Include="DependencyInjection\KeyedServicesTests.cs" />
-    <None Include="Generation\KeyedServiceProviderTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
