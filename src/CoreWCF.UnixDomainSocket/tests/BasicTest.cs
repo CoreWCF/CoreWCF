@@ -38,26 +38,22 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
                 ClientContract.ITestService channel = null;
                 host.Start();
+                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding();
+                var uriBuilder = new UriBuilder()
+                {
+                    Scheme = "net.uds",
+                    Path = LinuxSocketFilepath
+                };
+                factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                    new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
+                channel = factory.CreateChannel();
                 try
                 {
-                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding();
-                    var uriBuilder = new UriBuilder()
-                    {
-                        Scheme = "net.uds",
-                        Path = LinuxSocketFilepath
-                    };
-                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
-                    channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
-                }
-                catch(Exception ex)
-                {
-
                 }
                 finally
                 {
@@ -66,7 +62,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
             }
         }
 
-        [LinuxOnlyFactAttribute]
+        [LinuxOnlyFact]
         public void BasicIdentityOnlyAuthLinux()
         {
             string testString = new string('a', 3000);
@@ -76,23 +72,19 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
                 ClientContract.ITestService channel = null;
                 host.Start();
+                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.TransportCredentialOnly);
+                binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.PosixIdentity;
+
+                factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
+                    new System.ServiceModel.EndpointAddress(new Uri("net.uds://" + LinuxSocketFilepath)));
+                channel = factory.CreateChannel();
                 try
                 {
-                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
-                    binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.PosixIdentity;
-
-                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(new Uri("net.uds://" + LinuxSocketFilepath)));
-                    channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
-                }
-                catch (Exception ex)
-                {
-
                 }
                 finally
                 {
@@ -112,34 +104,66 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
                 ClientContract.ITestService channel = null;
                 host.Start();
+                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
+                binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.Windows;
+
+                var uri = new Uri("net.uds://localhost/" + LinuxSocketFilepath);
+                // Temporary workaround for Windows auth not working with an empty string URI hostname
+                // Would also work with DnsEndpointIdentity("localhost"), or specifying the hostname in the URI
+                // e.g. "net.uds://localhost/" + LinuxSocketFilepath
+                // Tracked in dotnet/wcf#5621
+                var endpointAddress = new System.ServiceModel.EndpointAddress(uri, new System.ServiceModel.DnsEndpointIdentity("localhost"));
+                factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding, endpointAddress);
+                channel = factory.CreateChannel();
                 try
                 {
-                    System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
-                    binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.Windows;
-
-                    var uriBuilder = new UriBuilder()
-                    {
-                        Scheme = "net.uds",
-                        Path = LinuxSocketFilepath
-                    };
-                    factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding,
-                        new System.ServiceModel.EndpointAddress(uriBuilder.ToString()));
-                    channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     string result = channel.EchoString(testString);
                     Assert.Equal(testString, result);
                     ((IChannel)channel).Close();
                     factory.Close();
                 }
-                catch (Exception ex)
+                finally
                 {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
 
+        [WindowsOnlyFact]
+        public void WindowsAuthProtectionLevelNone()
+        {
+            string testString = new string('a', 3000);
+            IHost host = Helpers.ServiceHelper.CreateWebHostBuilder<StartupForWindowsAuthProtectionLevelNone>(_output, LinuxSocketFilepath);
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
+                ClientContract.ITestService channel = null;
+                host.Start();
+                System.ServiceModel.UnixDomainSocketBinding binding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.UnixDomainSocketSecurityMode.Transport);
+                binding.Security.Transport.ClientCredentialType = System.ServiceModel.UnixDomainSocketClientCredentialType.Windows;
+                binding.Security.Transport.ProtectionLevel = System.Net.Security.ProtectionLevel.None;
+
+                var uri = new Uri("net.uds://localhost/" + LinuxSocketFilepath);
+                // Temporary workaround for Windows auth not working with an empty string URI hostname
+                // Would also work with DnsEndpointIdentity("localhost"), or specifying the hostname in the URI
+                // e.g. "net.uds://localhost/" + LinuxSocketFilepath
+                // Tracked in dotnet/wcf#5621
+                var endpointAddress = new System.ServiceModel.EndpointAddress(uri, new System.ServiceModel.DnsEndpointIdentity("localhost"));
+                factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(binding, endpointAddress);
+                channel = factory.CreateChannel();
+                try
+                {
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    factory.Close();
                 }
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
-
             }
         }
 
@@ -212,6 +236,11 @@ namespace CoreWCF.UnixDomainSocket.Tests
             {
                 return Path.Combine(Path.GetTempPath(), "unix1.txt");
             }
+
+            public virtual UnixDomainSocketBinding GetUnixDomainSocketBinding(UnixDomainSocketSecurityMode mode = UnixDomainSocketSecurityMode.None)
+            {
+                return new UnixDomainSocketBinding(mode);
+            }
         }
 
         public class StartUpForUDS : UDS
@@ -223,7 +252,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
 
             public void Configure(IHost host)
             {
-                CoreWCF.UnixDomainSocketBinding serverBinding = new CoreWCF.UnixDomainSocketBinding(UnixDomainSocketSecurityMode.None);
+                CoreWCF.UnixDomainSocketBinding serverBinding = GetUnixDomainSocketBinding();
                 host.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
@@ -244,18 +273,8 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 host.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    var udsBinding = new UnixDomainSocketBinding
-                    {
-                        Security = new UnixDomainSocketSecurity
-                        {
-                            Mode = UnixDomainSocketSecurityMode.Transport,
-                            Transport = new UnixDomainSocketTransportSecurity
-                            {
-                                ClientCredentialType = UnixDomainSocketClientCredentialType.Certificate,
-                            },
-                        },
-                    };
-
+                    var udsBinding = GetUnixDomainSocketBinding(UnixDomainSocketSecurityMode.Transport);
+                    udsBinding.Security.Transport.ClientCredentialType = UnixDomainSocketClientCredentialType.Certificate;
                     builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(udsBinding, "net.uds://" + GetUDSFilePath());
                     Action<ServiceHostBase> serviceHost = host => ChangeHostBehavior(host);
                     builder.ConfigureServiceHostBase<Services.TestService>(serviceHost);
@@ -283,18 +302,8 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 host.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    var udsBinding = new UnixDomainSocketBinding
-                    {
-                        Security = new UnixDomainSocketSecurity
-                        {
-                            Mode = UnixDomainSocketSecurityMode.TransportCredentialOnly,
-                            Transport = new UnixDomainSocketTransportSecurity
-                            {
-                                ClientCredentialType = UnixDomainSocketClientCredentialType.PosixIdentity,
-                            },
-                        },
-                    };
-
+                    var udsBinding = GetUnixDomainSocketBinding(UnixDomainSocketSecurityMode.TransportCredentialOnly);
+                    udsBinding.Security.Transport.ClientCredentialType = UnixDomainSocketClientCredentialType.PosixIdentity;
                     builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(udsBinding, "net.uds://" + GetUDSFilePath());
                 });
             }
@@ -312,20 +321,21 @@ namespace CoreWCF.UnixDomainSocket.Tests
                 host.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.TestService>();
-                    var udsBinding = new UnixDomainSocketBinding
-                    {
-                        Security = new UnixDomainSocketSecurity
-                        {
-                            Mode = UnixDomainSocketSecurityMode.Transport,
-                            Transport = new UnixDomainSocketTransportSecurity
-                            {
-                                ClientCredentialType = UnixDomainSocketClientCredentialType.Windows,
-                            },
-                        },
-                    };
+                    var udsBinding = GetUnixDomainSocketBinding(UnixDomainSocketSecurityMode.Transport);
+                    udsBinding.Security.Transport.ClientCredentialType = UnixDomainSocketClientCredentialType.Windows;
 
                     builder.AddServiceEndpoint<Services.TestService, ServiceContract.ITestService>(udsBinding,   "net.uds://" +  GetUDSFilePath());
                 });
+            }
+        }
+
+        public class StartupForWindowsAuthProtectionLevelNone : StartupForWindowsAuth
+        {
+            public override UnixDomainSocketBinding GetUnixDomainSocketBinding(UnixDomainSocketSecurityMode mode = UnixDomainSocketSecurityMode.None)
+            {
+                var udsBinding = base.GetUnixDomainSocketBinding(mode);
+                udsBinding.Security.Transport.ProtectionLevel = System.Net.Security.ProtectionLevel.None;
+                return udsBinding;
             }
         }
     }
