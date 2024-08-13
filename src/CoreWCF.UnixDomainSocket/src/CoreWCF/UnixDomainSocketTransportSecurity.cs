@@ -44,6 +44,21 @@ namespace CoreWCF
             }
         }
 
+        [DefaultValue(DefaultProtectionLevel)]
+        public ProtectionLevel ProtectionLevel
+        {
+            get { return _protectionLevel; }
+            set
+            {
+                if (!Security.ProtectionLevelHelper.IsDefined(value))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value)));
+                }
+
+                _protectionLevel = value;
+            }
+        }
+
         public ExtendedProtectionPolicy ExtendedProtectionPolicy
         {
             get
