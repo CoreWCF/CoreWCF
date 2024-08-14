@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -136,11 +137,13 @@ namespace CoreWCF.NetTcp.Tests
             string line;
             string originPort;
             string destinationPort = null;
+            string rawLine = null;
+            string matchingPortRawLine = null;
             bool verifiedClientPort = false;
 
             while (!myProcess.StandardOutput.EndOfStream)
             {
-                line = myProcess.StandardOutput.ReadLine();
+                rawLine = line = myProcess.StandardOutput.ReadLine();
 
                 int index = line.IndexOf("]");
 
@@ -169,6 +172,7 @@ namespace CoreWCF.NetTcp.Tests
 
                         index = line.IndexOf(":");
                         destinationPort = GetPort(line.Substring(++index));
+                        matchingPortRawLine = rawLine;
 
                         if (destinationPort == servicePort)
                         {
@@ -178,7 +182,9 @@ namespace CoreWCF.NetTcp.Tests
                 }
             }
 
-            Assert.True(verifiedClientPort, "Reported port does not match client machine info. Client port: " + clientPort + ", Service port (expected): " + servicePort + ", Destination port (actual): " + destinationPort);
+            // Test sometimes fail where the destinationPort string is empty so failing the destingationPort == servicePort check. Added more logging to help debug what's causing this.
+            Assert.True(verifiedClientPort, "Reported port does not match client machine info. Client port: \"" + clientPort + "\", Service port (expected): \"" + servicePort + "\", Destination port (actual): \""
+                + destinationPort + "\", client port matching line:" + Environment.NewLine + matchingPortRawLine);
             Assert.False(verifiedClientPort, "Reported port did not match any ports used by client.  Reported port: " + clientPort);
         }
 
