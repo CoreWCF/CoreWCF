@@ -153,7 +153,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class ClassicQueueWithTLSStartup
     {
-        public static Uri Uri = new("net.amqps://HOST:PORT/amq.direct/QUEUE_NAME#ROUTING_KEY");
+        public static Uri Uri = new("soap.amqps://HOST:PORT/amq.direct/QUEUE_NAME#ROUTING_KEY");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
         public static readonly SslOption SslOption = new SslOption
         {
@@ -188,7 +188,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultClassicQueueStartup
     {
-        public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
+        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);
@@ -217,7 +217,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQuorumQueueStartup
     {
-        public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
+        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings =>
@@ -247,7 +247,7 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQueueStartup
     {
-        public static Uri Uri = new("net.amqp://localhost:5672/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
+        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);
