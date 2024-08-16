@@ -186,7 +186,17 @@ namespace CoreWCF.Channels
         public virtual IServiceDispatcher BuildServiceDispatcher<TChannel>(BindingParameterCollection parameters, IServiceDispatcher dispatcher)
 where TChannel : class, IChannel
         {
-            UriBuilder listenUriBuilder = new UriBuilder(Scheme, DnsCache.MachineName);
+            UriBuilder listenUriBuilder;
+            if (dispatcher.BaseAddress == null)
+            {
+                listenUriBuilder = new UriBuilder(Scheme, DnsCache.MachineName);
+            }
+            else
+            {
+                listenUriBuilder = new UriBuilder(dispatcher.BaseAddress);
+                listenUriBuilder.Scheme = Scheme;
+            }
+
             return BuildServiceDispatcher<TChannel>(listenUriBuilder.Uri, string.Empty, parameters, dispatcher);
         }
 
