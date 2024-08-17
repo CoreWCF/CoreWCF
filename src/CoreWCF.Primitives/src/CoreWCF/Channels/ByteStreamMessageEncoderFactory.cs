@@ -9,9 +9,9 @@ namespace CoreWCF.Channels
     {
         private readonly ByteStreamMessageEncoder _encoder;
 
-        public ByteStreamMessageEncoderFactory(XmlDictionaryReaderQuotas quotas)
+        public ByteStreamMessageEncoderFactory(XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
         {
-            _encoder = new ByteStreamMessageEncoder(quotas);
+            _encoder = new ByteStreamMessageEncoder(quotas, moveBodyReaderToContent);
         }
 
         public override MessageEncoder Encoder => _encoder;
