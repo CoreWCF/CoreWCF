@@ -10,14 +10,12 @@ namespace CoreWCF.Channels
     {
         private readonly string _quotaExceededString;
 
-        public BufferManagerOutputStream(string quotaExceededString)
-            : base()
+        public BufferManagerOutputStream(string quotaExceededString) : base()
         {
             _quotaExceededString = quotaExceededString;
         }
 
-        public BufferManagerOutputStream(string quotaExceededString, int maxSize)
-            : base(maxSize)
+        public BufferManagerOutputStream(string quotaExceededString, int maxSize) : base(maxSize)
         {
             _quotaExceededString = quotaExceededString;
         }

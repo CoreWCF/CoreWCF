@@ -28,8 +28,7 @@ namespace CoreWCF.Runtime
             _chunks = new byte[4][];
         }
 
-        public BufferedOutputStream(int initialSize, int maxSize, InternalBufferManager bufferManager)
-            : this()
+        public BufferedOutputStream(int initialSize, int maxSize, InternalBufferManager bufferManager) : this()
         {
             Reinitialize(initialSize, maxSize, bufferManager);
         }

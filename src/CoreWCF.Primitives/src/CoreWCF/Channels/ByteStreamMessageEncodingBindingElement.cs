@@ -10,6 +10,7 @@ namespace CoreWCF.Channels
     public sealed class ByteStreamMessageEncodingBindingElement : MessageEncodingBindingElement
     {
         private readonly XmlDictionaryReaderQuotas _readerQuotas;
+        private bool _moveBodyReaderToContent;
 
         public ByteStreamMessageEncodingBindingElement() : this((XmlDictionaryReaderQuotas)null)
         {
@@ -58,7 +59,22 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override MessageEncoderFactory CreateMessageEncoderFactory() => new ByteStreamMessageEncoderFactory(_readerQuotas);
+        public override T GetProperty<T>(BindingContext context)
+        {
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+            if (typeof(T).FullName == "CoreWCF.Channels.WebMessageEncoderFactory+WebMessageEncoder")
+            {
+                _moveBodyReaderToContent = true;
+                return null;
+            }
+
+            return base.GetProperty<T>(context);
+        }
+
+        public override MessageEncoderFactory CreateMessageEncoderFactory() => new ByteStreamMessageEncoderFactory(_readerQuotas, _moveBodyReaderToContent);
 
         public override BindingElement Clone() => new ByteStreamMessageEncodingBindingElement(this);
     }

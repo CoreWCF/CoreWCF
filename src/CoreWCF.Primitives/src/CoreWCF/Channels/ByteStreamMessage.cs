@@ -18,7 +18,7 @@ namespace CoreWCF.Channels
                 throw Fx.Exception.ArgumentNull(nameof(stream));
             }
 
-            return CreateMessage(stream, XmlDictionaryReaderQuotas.Max);
+            return CreateMessage(stream, XmlDictionaryReaderQuotas.Max, true);
         }
 
         public static Message CreateMessage(ArraySegment<byte> buffer)
@@ -35,16 +35,31 @@ namespace CoreWCF.Channels
 
             ByteStreamBufferedMessageData data = new ByteStreamBufferedMessageData(buffer, bufferManager);
 
-            return CreateMessage(data, XmlDictionaryReaderQuotas.Max);
+            // moveBodyReaderToContent is true, for consistency with the other implementations of Message (including the Message base class itself)
+            return CreateMessage(data, XmlDictionaryReaderQuotas.Max, true);
         }
 
-        internal static Message CreateMessage(Stream stream, XmlDictionaryReaderQuotas quotas) => new InternalByteStreamMessage(stream, quotas);
+        internal static Message CreateMessage(Stream stream, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
+        {
+            return new InternalByteStreamMessage(stream, quotas, moveBodyReaderToContent);
+        }
 
-        internal static Message CreateMessage(HttpRequestMessage httpRequestMessage, XmlDictionaryReaderQuotas quotas) => new InternalByteStreamMessage(httpRequestMessage, quotas);
+        internal static Message CreateMessage(HttpRequestMessage httpRequestMessage, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
+        {
+            // moveBodyReaderToContent is true, for consistency with the other implementations of Message (including the Message base class itself)
+            return new InternalByteStreamMessage(httpRequestMessage, quotas, true);
+        }
 
-        internal static Message CreateMessage(HttpResponseMessage httpResponseMessage, XmlDictionaryReaderQuotas quotas) => new InternalByteStreamMessage(httpResponseMessage, quotas);
+        internal static Message CreateMessage(HttpResponseMessage httpResponseMessage, XmlDictionaryReaderQuotas quotas)
+        {
+            // moveBodyReaderToContent is true, for consistency with the other implementations of Message (including the Message base class itself)
+            return new InternalByteStreamMessage(httpResponseMessage, quotas, true);
+        }
 
-        internal static Message CreateMessage(ByteStreamBufferedMessageData bufferedMessageData, XmlDictionaryReaderQuotas quotas) => new InternalByteStreamMessage(bufferedMessageData, quotas);
+        internal static Message CreateMessage(ByteStreamBufferedMessageData bufferedMessageData, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
+        {
+            return new InternalByteStreamMessage(bufferedMessageData, quotas, moveBodyReaderToContent);
+        }
 
         internal static bool IsInternalByteStreamMessage(Message message)
         {
@@ -58,12 +73,13 @@ namespace CoreWCF.Channels
             private readonly MessageHeaders _headers;
             private readonly MessageProperties _properties;
             private XmlByteStreamReader _reader;
+            private bool _moveBodyReaderToContent;
 
-            public InternalByteStreamMessage(ByteStreamBufferedMessageData bufferedMessageData, XmlDictionaryReaderQuotas quotas)
+            public InternalByteStreamMessage(ByteStreamBufferedMessageData bufferedMessageData, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
             {
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write. 
+                // preventing both a read/write.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -71,13 +87,14 @@ namespace CoreWCF.Channels
                 _headers = new MessageHeaders(MessageVersion.None);
                 _properties = new MessageProperties();
                 _reader = new XmlBufferedByteStreamReader(bufferedMessageData, quotas);
+                _moveBodyReaderToContent = moveBodyReaderToContent;
             }
 
-            public InternalByteStreamMessage(Stream stream, XmlDictionaryReaderQuotas quotas)
+            public InternalByteStreamMessage(Stream stream, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
             {
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -85,15 +102,16 @@ namespace CoreWCF.Channels
                 _headers = new MessageHeaders(MessageVersion.None);
                 _properties = new MessageProperties();
                 _reader = XmlStreamedByteStreamReader.Create(stream, quotas);
+                _moveBodyReaderToContent = moveBodyReaderToContent;
             }
 
-            public InternalByteStreamMessage(HttpRequestMessage httpRequestMessage, XmlDictionaryReaderQuotas quotas)
+            public InternalByteStreamMessage(HttpRequestMessage httpRequestMessage, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
             {
                 Fx.Assert(httpRequestMessage != null, "The 'httpRequestMessage' parameter should not be null.");
 
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -101,15 +119,16 @@ namespace CoreWCF.Channels
                 _headers = new MessageHeaders(MessageVersion.None);
                 _properties = new MessageProperties();
                 _reader = XmlStreamedByteStreamReader.Create(httpRequestMessage, quotas);
+                _moveBodyReaderToContent = moveBodyReaderToContent;
             }
 
-            public InternalByteStreamMessage(HttpResponseMessage httpResponseMessage, XmlDictionaryReaderQuotas quotas)
+            public InternalByteStreamMessage(HttpResponseMessage httpResponseMessage, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
             {
                 Fx.Assert(httpResponseMessage != null, "The 'httpResponseMessage' parameter should not be null.");
 
                 // Assign both writer and reader here so that we can CreateBufferedCopy without the need to
                 // abstract between a streamed or buffered message. We're protected here by the state on Message
-                // preventing both a read/write on the same stream. 
+                // preventing both a read/write on the same stream.
 
                 quotas = ByteStreamMessageUtility.EnsureQuotas(quotas);
 
@@ -117,14 +136,16 @@ namespace CoreWCF.Channels
                 _headers = new MessageHeaders(MessageVersion.None);
                 _properties = new MessageProperties();
                 _reader = XmlStreamedByteStreamReader.Create(httpResponseMessage, quotas);
+                _moveBodyReaderToContent = moveBodyReaderToContent;
             }
 
-            private InternalByteStreamMessage(ByteStreamBufferedMessageData messageData, MessageHeaders headers, MessageProperties properties, XmlDictionaryReaderQuotas quotas)
+            private InternalByteStreamMessage(ByteStreamBufferedMessageData messageData, MessageHeaders headers, MessageProperties properties, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
             {
                 _headers = new MessageHeaders(headers);
                 _properties = new MessageProperties(properties);
                 _bodyWriter = new BufferedBodyWriter(messageData);
                 _reader = new XmlBufferedByteStreamReader(messageData, quotas);
+                _moveBodyReaderToContent = moveBodyReaderToContent;
             }
 
             public override MessageHeaders Headers
@@ -271,7 +292,7 @@ namespace CoreWCF.Channels
                 BufferedBodyWriter bufferedBodyWriter;
                 if (_bodyWriter.IsBuffered)
                 {
-                    // Can hand this off in buffered case without making a new one. 
+                    // Can hand this off in buffered case without making a new one.
                     bufferedBodyWriter = (BufferedBodyWriter)_bodyWriter;
                 }
                 else
@@ -279,9 +300,9 @@ namespace CoreWCF.Channels
                     bufferedBodyWriter = (BufferedBodyWriter)_bodyWriter.CreateBufferedCopy(maxBufferSize);
                 }
 
-                // Protected by Message state to be called only once. 
+                // Protected by Message state to be called only once.
                 _bodyWriter = null;
-                return new ByteStreamMessageBuffer(bufferedBodyWriter.MessageData, _headers, _properties, _reader.Quotas);
+                return new ByteStreamMessageBuffer(bufferedBodyWriter.MessageData, _headers, _properties, _reader.Quotas, _moveBodyReaderToContent);
             }
 
             protected override T OnGetBody<T>(XmlDictionaryReader reader)
@@ -315,7 +336,7 @@ namespace CoreWCF.Channels
                 XmlDictionaryReader r = _reader;
                 _reader = null;
 
-                if ((r != null))
+                if ((r != null) && _moveBodyReaderToContent)
                 {
                     r.MoveToContent();
                 }
@@ -340,7 +361,7 @@ namespace CoreWCF.Channels
 
                 protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
                 {
-                    // Never called because when copying a Buffered message, we simply hand off the existing BodyWriter 
+                    // Never called because when copying a Buffered message, we simply hand off the existing BodyWriter
                     // to the new message.
                     Fx.Assert(false, "This is never called");
                     return null;
@@ -370,7 +391,7 @@ namespace CoreWCF.Channels
                 // OnCreateBufferedCopy / OnWriteBodyContents can only be called once - protected by state on Message (either copied or written once)
                 protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
                 {
-                    using (BufferManagerOutputStream bufferedStream = new BufferManagerOutputStream(SR.Format(SR.MaxReceivedMessageSizeExceeded, maxBufferSize)))
+                    using (BufferManagerOutputStream bufferedStream = new BufferManagerOutputStream(SR.MaxReceivedMessageSizeExceeded, maxBufferSize))
                     {
                         using (XmlDictionaryWriter writer = new XmlByteStreamWriter(bufferedStream, true))
                         {
@@ -416,7 +437,6 @@ namespace CoreWCF.Channels
 
                     public StreamBasedStreamedBodyWriter(Stream stream)
                     {
-
                         _stream = stream;
                     }
 
@@ -499,8 +519,9 @@ namespace CoreWCF.Channels
                 private ByteStreamBufferedMessageData _messageData;
                 private MessageProperties _properties;
                 private XmlDictionaryReaderQuotas _quotas;
+                private bool _moveBodyReaderToContent;
 
-                public ByteStreamMessageBuffer(ByteStreamBufferedMessageData messageData, MessageHeaders headers, MessageProperties properties, XmlDictionaryReaderQuotas quotas)
+                public ByteStreamMessageBuffer(ByteStreamBufferedMessageData messageData, MessageHeaders headers, MessageProperties properties, XmlDictionaryReaderQuotas quotas, bool moveBodyReaderToContent)
                     : base()
                 {
                     _messageData = messageData;
@@ -508,6 +529,7 @@ namespace CoreWCF.Channels
                     _properties = new MessageProperties(properties);
                     _quotas = new XmlDictionaryReaderQuotas();
                     quotas.CopyTo(_quotas);
+                    _moveBodyReaderToContent = moveBodyReaderToContent;
 
                     _messageData.Open();
                 }
@@ -547,7 +569,7 @@ namespace CoreWCF.Channels
                             throw Fx.Exception.ObjectDisposed(SR.Format(SR.ObjectDisposed, "message"));
                         }
 
-                        return new InternalByteStreamMessage(_messageData, _headers, _properties, _quotas);
+                        return new InternalByteStreamMessage(_messageData, _headers, _properties, _quotas, _moveBodyReaderToContent);
                     }
                 }
             }
