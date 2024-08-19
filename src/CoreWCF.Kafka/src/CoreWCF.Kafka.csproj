@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.5.2" />
     <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
   </ItemGroup>
 

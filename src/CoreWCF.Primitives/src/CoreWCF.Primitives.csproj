@@ -20,9 +20,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.23" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="6.23.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.23.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.23.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="6.35.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.35.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.35.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="2.1.6" />
     <PackageReference Include="System.DirectoryServices" Version="6.0.1" />
     <PackageReference Include="System.DirectoryServices.Protocols" Version="6.0.2" />
@@ -40,8 +40,8 @@
   <ItemGroup>
     <Compile Remove="CoreWCFWebApplicationExtensions.cs" />
     <None Include="CoreWCFWebApplicationExtensions.cs" Link="PackageFiles/CoreWCFWebApplicationExtensions.cs" />
-    <None Include="CoreWCF.Primitives.props" Link="PackageFiles/CoreWCF.Primitives.props"/>
-    <None Include="CoreWCF.Primitives.targets" Link="PackageFiles/CoreWCF.Primitives.targets"/>
+    <None Include="CoreWCF.Primitives.props" Link="PackageFiles/CoreWCF.Primitives.props" />
+    <None Include="CoreWCF.Primitives.targets" Link="PackageFiles/CoreWCF.Primitives.targets" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(OutputPath)\CoreWCF.BuildTools.Roslyn4.0.dll">
