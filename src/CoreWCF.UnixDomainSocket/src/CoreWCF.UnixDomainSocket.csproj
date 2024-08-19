@@ -19,7 +19,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="6.0.24" />
+    <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="6.0.33" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>
 </Project>
