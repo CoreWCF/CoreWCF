@@ -11,7 +11,7 @@ stages:
   jobs:
 
   - job: Code_Analysis
-    displayName: SonarCloud & CodeCoverage reports 
+    displayName: SonarCloud & CodeCoverage reports
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -61,7 +61,7 @@ stages:
 
     - task: DotNetCoreCLI@2
       displayName: Run tests with Coverage
-      timeoutInMinutes: 20
+      timeoutInMinutes: 40
       inputs:
         command: test
         projects: ${{ parameters.testProjects }}

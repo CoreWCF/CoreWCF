@@ -37,10 +37,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{1026C1CC-83E8-444C-9B16-28E68C50A727}"
 	ProjectSection(SolutionItems) = preProject
 		templates\BuildStage.yml = templates\BuildStage.yml
+		templates\CodeAnalysis.yml = templates\CodeAnalysis.yml
 		templates\CodeSignStage.yml = templates\CodeSignStage.yml
 		templates\PackStage.yml = templates\PackStage.yml
 		templates\PublishStage.yml = templates\PublishStage.yml
 		templates\TestStage.yml = templates\TestStage.yml
+		templates\TestTemplatesStage.yml = templates\TestTemplatesStage.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.ConfigurationManager", "src\CoreWCF.ConfigurationManager\src\CoreWCF.ConfigurationManager.csproj", "{49146BDD-2797-4208-97CA-66811DF01FD2}"
@@ -93,7 +95,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Kafka.Client", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.UnixDomainSocket", "src\CoreWCF.UnixDomainSocket\src\CoreWCF.UnixDomainSocket.csproj", "{1967968B-457D-4A1C-A463-1127CAAE2818}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreWCF.Http.GeneratedOperationInvokers.Tests", "src\CoreWCF.Http\tests\CoreWCF.Http.GeneratedOperationInvokers.Tests.csproj", "{2310A9CD-F373-45BB-9844-FA8073DBF382}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreWCF.Http.GeneratedOperationInvokers.Tests", "src\CoreWCF.Http\tests\CoreWCF.Http.GeneratedOperationInvokers.Tests.csproj", "{2310A9CD-F373-45BB-9844-FA8073DBF382}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
