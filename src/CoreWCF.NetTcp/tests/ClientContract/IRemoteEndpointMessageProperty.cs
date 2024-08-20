@@ -7,7 +7,7 @@ using System.ServiceModel.Channels;
 namespace ClientContract
 {
     [ServiceContract]
-    public interface IRemoteEndpointMessageProperty
+    public interface IRemoteEndpointMessageProperty : IClientChannel
     {
         [OperationContract(Action = "*", ReplyAction = "*")]
         Message Echo(Message input);
