@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -39,17 +38,28 @@ namespace CoreWCF.NetTcp.Tests
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IRemoteEndpointMessageProperty>(nettcpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri(host.GetNetTcpAddressInUse() + "/RemoteEndpointMessagePropertyService.svc")));
                 ClientContract.IRemoteEndpointMessageProperty channel = factory.CreateChannel();
+                try
+                {
+                    channel.Open();
+                    Message request = Message.CreateMessage(nettcpBinding.MessageVersion, "echo", "PASS");
+                    Message response = channel.Echo(request);
 
-                Message request = Message.CreateMessage(nettcpBinding.MessageVersion, "echo", "PASS");
-                Message response = channel.Echo(request);
+                    string[] results = response.GetBody<string>().Split(';');
+                    Assert.Equal(3, results.Length);
+                    Assert.Equal("PASS", results[0]);
 
-                string[] results = response.GetBody<string>().Split(';');
-                Assert.Equal(3, results.Length);
-                Assert.Equal("PASS", results[0]);
+                    string clientIP = results[1];
+                    CheckIP(clientIP);
+                    NetstatResults(_output, results[2], host.GetNetTcpPortInUse().ToString());
 
-                string clientIP = results[1];
-                CheckIP(clientIP);
-                NetstatResults(results[2], host.GetNetTcpPortInUse().ToString());
+                    // *** CLEANUP *** \\
+                    channel.Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
             }
         }
 
@@ -70,7 +80,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        private void NetstatResults(string clientPort, string endpointPort)
+        private void NetstatResults(ITestOutputHelper output, string clientPort, string endpointPort)
         {
             Process netstatProcess = new Process();
             var netstatFileName = "netstat";
@@ -101,7 +111,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 throw new Exception($"Tried to execute \"{netstatFileName}\"", we);
             }
-            CheckPort(clientPort, endpointPort, netstatProcess);
+            CheckPort(output, clientPort, endpointPort, netstatProcess);
         }
 
         private void CheckIP(string ip)
@@ -132,7 +142,7 @@ namespace CoreWCF.NetTcp.Tests
         //
         // A succesful pass will include the client and origin matching and the
         // service and destination matching
-        private void CheckPort(string clientPort, string servicePort, Process myProcess)
+        private void CheckPort(ITestOutputHelper output, string clientPort, string servicePort, Process myProcess)
         {
             string line;
             string originPort;
@@ -140,44 +150,56 @@ namespace CoreWCF.NetTcp.Tests
             string rawLine = null;
             string matchingPortRawLine = null;
             bool verifiedClientPort = false;
-
+            bool extraLogging = false;
+#if NETFRAMEWORK
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                extraLogging = true;
+            }
+#endif
+            if (extraLogging) output.WriteLine("Client port: " + clientPort + ", Service port: " + servicePort + ", Process exited?: " + myProcess.HasExited);
             while (!myProcess.StandardOutput.EndOfStream)
             {
                 rawLine = line = myProcess.StandardOutput.ReadLine();
-
+                if (extraLogging) output.WriteLine("Read new line:" + line);
                 int index = line.IndexOf("]");
 
                 if (index > -1) //address is IPv6 need to find location of appropriate ':'
                 {
                     line = line.Substring(++index);
+                    if (extraLogging) output.WriteLine("Origin Address is IPv6, line is now:" + line);
                 }
 
                 index = line.IndexOf(":");
 
                 if (index > -1)
                 {
-                    originPort = GetPort(line.Substring(++index));
+                    originPort = GetPort(output, extraLogging, line.Substring(++index));
 
                     if (originPort == clientPort)
                     {
+                        if (extraLogging) output.WriteLine("Origin port matches client port: \"" + originPort + "\" == \"" + clientPort + "\"");
                         verifiedClientPort = true;
                         line = line.Substring(++index);
-
+                        if (extraLogging) output.WriteLine("Line is now:" + line);
                         index = line.IndexOf("]");
 
                         if (index > -1) //address is IPv6 need to find location of appropriate ':'
                         {
                             line = line.Substring(++index);
+                            if (extraLogging) output.WriteLine("Destination Address is IPv6, line is now:" + line);
                         }
 
                         index = line.IndexOf(":");
-                        destinationPort = GetPort(line.Substring(++index));
+                        destinationPort = GetPort(output, extraLogging, line.Substring(++index));
                         matchingPortRawLine = rawLine;
 
                         if (destinationPort == servicePort)
                         {
+                            if (extraLogging) output.WriteLine("Destination port matches service port: \"" + destinationPort + "\" == \"" + servicePort + "\"");
                             return;
                         }
+                        if (extraLogging) output.WriteLine("Destination port does not match service port: \"" + destinationPort + "\" != \"" + servicePort + "\"");
                     }
                 }
             }
@@ -188,10 +210,13 @@ namespace CoreWCF.NetTcp.Tests
             Assert.False(verifiedClientPort, "Reported port did not match any ports used by client.  Reported port: " + clientPort);
         }
 
-        private string GetPort(string str)
+        private string GetPort(ITestOutputHelper output, bool extraLogging, string str)
         {
+            if (extraLogging) output.WriteLine("GetPort:" + str);
             int index = str.IndexOf(" ");
-            return str.Substring(0, index);
+            string portString = str.Substring(0, index);
+            if (extraLogging) output.WriteLine("PortString:*" + portString + "*");
+            return portString;
         }
     }
 }
