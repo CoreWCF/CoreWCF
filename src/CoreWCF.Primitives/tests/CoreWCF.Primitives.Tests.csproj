@@ -34,7 +34,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
-    <ProjectReference Include="$(SourceDir)CoreWCF.NetTcp/src/CoreWCF.NetTcp.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Http/src/CoreWCF.Http.csproj" />
   </ItemGroup>
 </Project>

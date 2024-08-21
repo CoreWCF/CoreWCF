@@ -8,6 +8,7 @@
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
+    <!-- After .NET 6.0 goes EOL, WebUtilities should be updated to 8.0.0 -->
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.7.1" />
     <PackageReference Include="System.Text.Json" Version="6.0.9" />
