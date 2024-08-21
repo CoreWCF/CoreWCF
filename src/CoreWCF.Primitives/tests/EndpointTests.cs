@@ -46,8 +46,8 @@ namespace CoreWCF.Primitives.Tests
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<TwoContractService>();
-                    var binding = new NetTcpBinding();
-                    var address = "net-tcp://localhost/Test";
+                    var binding = new BasicHttpBinding();
+                    var address = "http://localhost/Test";
                     builder.AddServiceEndpoint<TwoContractService, IContract1>(binding, address);
                     builder.AddServiceEndpoint<TwoContractService, IContract2>(binding, address);
                 });
@@ -58,7 +58,6 @@ namespace CoreWCF.Primitives.Tests
         public void MultipleEndpointsWithSameListenAddressShouldWork()
         {
             var builder = WebHost.CreateDefaultBuilder<Startup>(null);
-            builder.UseNetTcp(0);
             var host = builder.Build();
             using (host)
                 host.Start();
