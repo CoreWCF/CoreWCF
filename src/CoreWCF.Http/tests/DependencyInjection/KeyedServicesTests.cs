@@ -22,7 +22,7 @@ public class KeyedServicesTests
         _output = output;
     }
 
-    [Net8OrGreaterFact]
+    [Fact]
     public void BasicHttpRequestReplyEchoString()
     {
         string testString = "azerty";
