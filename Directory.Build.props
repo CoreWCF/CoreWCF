@@ -53,7 +53,7 @@
     <BaseIntermediateOutputPath>$(ObjDir)/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
     <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
     <ProjectAssetsFile>$(BaseIntermediateOutputPath)/project.assets.json</ProjectAssetsFile>
-    <WarningsAsErrors>CS4014;RS2007</WarningsAsErrors>
+    <WarningsAsErrors>CS4014</WarningsAsErrors>
   </PropertyGroup>
 
   <!-- Set up the default output and intermediate paths -->
