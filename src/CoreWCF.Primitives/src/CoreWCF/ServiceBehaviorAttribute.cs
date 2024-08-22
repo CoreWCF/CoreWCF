@@ -8,17 +8,23 @@ using CoreWCF.Channels;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF
 {
     [AttributeUsage(CoreWCFAttributeTargets.ServiceBehavior)]
     public sealed class ServiceBehaviorAttribute : Attribute, IServiceBehavior
     {
-        private class ServiceProviderExtension : IExtension<InstanceContext>, IServiceProvider
+        private class ServiceProviderExtension : IExtension<InstanceContext>, IKeyedServiceProvider
         {
             private readonly IServiceProvider _serviceProvider;
+            private IKeyedServiceProvider KeyedServiceProvider { get; }
 
-            public ServiceProviderExtension(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+            public ServiceProviderExtension(IServiceProvider serviceProvider)
+            {
+                _serviceProvider = serviceProvider;
+                KeyedServiceProvider = _serviceProvider as IKeyedServiceProvider;
+            }
 
             public void Attach(InstanceContext owner)
             {
@@ -31,6 +37,11 @@ namespace CoreWCF
             }
 
             public object GetService(Type serviceType) => _serviceProvider.GetService(serviceType);
+
+            public object GetKeyedService(Type serviceType, object serviceKey) => KeyedServiceProvider.GetKeyedService(serviceType, serviceKey);
+
+            public object GetRequiredKeyedService(Type serviceType, object serviceKey) =>
+                KeyedServiceProvider.GetRequiredKeyedService(serviceType, serviceKey);
         }
 
         private ConcurrencyMode _concurrencyMode;
