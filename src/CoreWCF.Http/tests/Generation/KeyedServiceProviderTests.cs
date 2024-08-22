@@ -30,7 +30,7 @@ public partial class KeyedServiceProviderTests
         }
     }
 
-    [Net8OrGreaterTheory]
+    [Theory]
     [ClassData(typeof(GetInjectedKeyedServiceTestTheoryData))]
     public void InjectedKeyedServiceTests(Type startupType)
     {
