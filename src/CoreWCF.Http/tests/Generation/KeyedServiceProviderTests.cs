@@ -25,8 +25,11 @@ public partial class KeyedServiceProviderTests
     {
         public GetInjectedKeyedServiceTestTheoryData()
         {
-            Add(typeof(Startup<MyKeyedServiceContract>));
-            Add(typeof(Startup<MyOtherKeyedServiceContract>));
+            Add(typeof(SingletonStartup<MyKeyedServiceContract>));
+            Add(typeof(SingletonStartup<MyOtherKeyedServiceContract>));
+            Add(typeof(TransientStartup<MyKeyedServiceContract>));
+            Add(typeof(TransientStartup<MyOtherKeyedServiceContract>));
+            Add(typeof(Startup<MyExtraKeyedServiceContract>));
         }
     }
 
@@ -66,14 +69,25 @@ public partial class KeyedServiceProviderTests
         public string Hello(string value, [FromKeyedServices("fr")] HelloProvider o) => $"{o.Invoke()} {value}";
     }
 
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)]
+    public partial class MyExtraKeyedServiceContract : IMyKeyedServiceContract
+    {
+        public string Hello(string value, [FromKeyedServices("fr")] HelloProvider o) => $"{o.Invoke()} {value}";
+    }
+
     public delegate string HelloProvider();
 
     internal class Startup<T> where T : class, IMyKeyedServiceContract
     {
+        protected virtual void OnRegisterService(IServiceCollection services)
+        {
+
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddServiceModelServices();
-            services.AddTransient<T>();
+            OnRegisterService(services);
             services.AddKeyedTransient<HelloProvider>("fr", (_, _) => () => "Bonjour");
         }
 
@@ -85,5 +99,15 @@ public partial class KeyedServiceProviderTests
                 builder.AddServiceEndpoint<T, IMyKeyedServiceContract>(new BasicHttpBinding(), "/BasicWcfService/basichttp.svc");
             });
         }
+    }
+
+    internal class SingletonStartup<T> : Startup<T> where T : class, IMyKeyedServiceContract
+    {
+        protected override void OnRegisterService(IServiceCollection services) =>    services.AddSingleton<T>();
+    }
+
+    internal class TransientStartup<T> : Startup<T> where T : class, IMyKeyedServiceContract
+    {
+        protected override void OnRegisterService(IServiceCollection services) => services.AddTransient<T>();
     }
 }
