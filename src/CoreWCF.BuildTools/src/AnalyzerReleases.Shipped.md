@@ -33,3 +33,12 @@ Rule ID | Category | Severity | Notes
 COREWCF_0200 | AuthorizationAttributesAnalyzer | Warning  | COREWCF_0200_DiagnosticDescriptors
 COREWCF_0201 | AuthorizationAttributesAnalyzer | Warning  | COREWCF_0202_DiagnosticDescriptors
 COREWCF_0202 | AuthorizationAttributesAnalyzer | Warning  | COREWCF_0203_DiagnosticDescriptors
+
+## Release 1.6.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+COREWCF_0103 | OperationParameterInjectionGenerator | Error | COREWCF_0103_OperationParameterInjectionGenerator
+COREWCF_0300 | OperationInvokerGenerator | Error | COREWCF_0300_OperationInvokerGenerator
