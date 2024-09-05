@@ -25,6 +25,12 @@ stages:
             testArgs: ''
             dotnetSdk: '8.0.x'
             artifactName: 'Windows${{ configuration }}Build'
+          Windows_net9.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net9.0'
+            testArgs: ''
+            dotnetSdk: '9.0.x'
+            artifactName: 'Windows${{ configuration }}Build'            
           Windows_netfx:
             imageName: 'windows-latest'
             targetFramework: 'net472'
@@ -43,6 +49,12 @@ stages:
             testArgs: ''
             dotnetSdk: '8.0.x'
             artifactName: 'Linux${{ configuration }}Build'
+          Linux_net9.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net9.0'
+            testArgs: ''
+            dotnetSdk: '9.0.x'
+            artifactName: 'Linux${{ configuration }}Build'            
       displayName: Test ${{ configuration }}
       pool:
         vmImage: $(imageName)

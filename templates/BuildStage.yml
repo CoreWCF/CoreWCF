@@ -29,10 +29,10 @@ stages:
       vmImage: $(imageName)
     steps:
       - task: UseDotNet@2
-        displayName: 'Use .NET 8 sdk'
+        displayName: 'Use .NET 9 sdk'
         inputs:
           packageType: sdk
-          version: 8.0.x
+          version: 9.0.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
           includePreviewVersions: true
 

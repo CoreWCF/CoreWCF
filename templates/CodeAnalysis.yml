@@ -24,10 +24,10 @@ stages:
       retryCountOnTaskFailure: 2
 
     - task: UseDotNet@2
-      displayName: 'Use .NET 8 sdk'
+      displayName: 'Use .NET 9 sdk'
       inputs:
         packageType: sdk
-        version: '8.0.x'
+        version: '9.0.x'
         includePreviewVersions: true
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
@@ -65,7 +65,7 @@ stages:
       inputs:
         command: test
         projects: ${{ parameters.testProjects }}
-        arguments: '--no-restore --no-build -c Release -f net8.0 --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
+        arguments: '--no-restore --no-build -c Release -f net9.0 --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
 
     - task: PublishCodeCoverageResults@1
       displayName: Publish Code Coverage report
