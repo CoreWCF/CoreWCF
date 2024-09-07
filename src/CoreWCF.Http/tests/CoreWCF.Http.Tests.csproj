@@ -40,8 +40,8 @@
 
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(DotNetVersion).*" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="$(DotNetVersion).*" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="$(AspNetCoreVersion)" />
   </ItemGroup>
 
   <ItemGroup>

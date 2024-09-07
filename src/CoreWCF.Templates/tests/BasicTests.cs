@@ -23,6 +23,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     public static class Frameworks
     {
+        public const string Net9 = "net9.0";
         public const string Net8 = "net8.0";
         public const string Net6 = "net6.0";
         public const string Net48 = "net48";
@@ -124,6 +125,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
         IEnumerable<TestVariation> GetFrameworksVariations()
         {
             yield return TestVariation.New();
+            yield return TestVariation.New().Framework(Frameworks.Net9);
             yield return TestVariation.New().Framework(Frameworks.Net8);
             yield return TestVariation.New().Framework(Frameworks.Net6);
 

@@ -41,7 +41,7 @@
     <PackageReference Include="System.ServiceModel.UnixDomainSocket" Version="6.2.0" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="6.2.0" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
     <PackageReference Include="System.ServiceModel.UnixDomainSocket" Version="8.0.0" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
   </ItemGroup>
