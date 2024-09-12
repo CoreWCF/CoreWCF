@@ -44,7 +44,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 var classXmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
                 if (!File.Exists(classXmlFileName))
                 {
-                    Assert.True(false, $"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
+                    Assert.Fail($"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
                 }
 
                 xmlFileName = classXmlFileName;
@@ -90,7 +90,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 var classXmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
                 if (!File.Exists(classXmlFileName))
                 {
-                    Assert.True(false, $"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
+                    Assert.Fail($"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
                 }
 
                 xmlFileName = classXmlFileName;
@@ -133,7 +133,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 Assert.True(nav.MoveToAttribute("location", ""));
                 if (!Uri.TryCreate(nav.Value, UriKind.Absolute, out Uri servicePathUri))
                 {
-                    Assert.False(true, $"Unable to parse location uri {nav.Value} as Uri");
+                    Assert.Fail($"Unable to parse location uri {nav.Value} as Uri");
                 }
 
                 bool validServiceAddress = false;
@@ -159,7 +159,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 {
                     if (!Uri.TryCreate(nav.Value, UriKind.Absolute, out Uri servicePathUri))
                     {
-                        Assert.False(true, $"Unable to parse location uri {nav.Value} as Uri");
+                        Assert.Fail($"Unable to parse location uri {nav.Value} as Uri");
                     }
 
                     bool validServiceAddress = false;

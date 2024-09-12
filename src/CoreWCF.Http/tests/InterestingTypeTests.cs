@@ -51,7 +51,7 @@ namespace CoreWCF.Http.Tests
                     {
                         if ((int)responseAL[item] != (int)outgoingAL[item])
                         {
-                            Assert.True(false, "ArrayList item validation failed");
+                            Assert.Fail("ArrayList item validation failed");
                         }
                     }
 
@@ -69,7 +69,7 @@ namespace CoreWCF.Http.Tests
                     {
                         if (responseCL[item].CompareTo(outgoingCL[item]) != 0)
                         {
-                            Assert.True(false, "Collection item validation failed");
+                            Assert.Fail("Collection item validation failed");
                         }
                     }
 
@@ -86,7 +86,7 @@ namespace CoreWCF.Http.Tests
                     {
                         if (responseCB[item] != outgoingCB[item])
                         {
-                            Assert.True(false, "MyCollection:CollectionBase item validation failed");
+                            Assert.Fail("MyCollection:CollectionBase item validation failed");
                         }
                     }
                 }

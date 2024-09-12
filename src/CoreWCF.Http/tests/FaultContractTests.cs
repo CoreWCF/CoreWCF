@@ -239,7 +239,7 @@ namespace CoreWCF.Http.Tests
                     Stream outputStream = channel.TwoWayStream_Method(inputStream);
                     StreamReader sr = new StreamReader(outputStream, Encoding.UTF8);
                     string outputText = sr.ReadToEnd();
-                    Assert.False(true, $"Error, Received Input: {outputText}");
+                    Assert.Fail($"Error, Received Input: {outputText}");
                 }
                 catch (Exception e)
                 {
@@ -250,7 +250,7 @@ namespace CoreWCF.Http.Tests
                 try
                 {
                     string response = channel.TwoWayAsync_Method(f).GetAwaiter().GetResult();
-                    Assert.False(true, $"Error, Client received: {response}");
+                    Assert.Fail($"Error, Client received: {response}");
                 }
                 catch (Exception e)
                 {
@@ -266,7 +266,7 @@ namespace CoreWCF.Http.Tests
                         Name = f
                     };
                     ClientContract.FaultMsgContract fmcResult = channel.MessageContract_Method(fmc);
-                    Assert.False(true, $"Error, Client received: {fmcResult.Name}");
+                    Assert.Fail($"Error, Client received: {fmcResult.Name}");
                 }
                 catch (Exception e)
                 {

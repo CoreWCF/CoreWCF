@@ -9,7 +9,7 @@ namespace Services
     {
         public void TestMethodNullAction(int id)
         {
-            Assert.False(true, $"Parameter in: {id}, but service should throw before reaching here.");
+            Assert.Fail($"Parameter in: {id}, but service should throw before reaching here.");
         }
     }
 
@@ -17,7 +17,7 @@ namespace Services
     {
         public int TestMethodNullReplyAction(int id)
         {
-            Assert.False(true, $"Parameter in: {id}, but service should throw before reaching here.");
+            Assert.Fail($"Parameter in: {id}, but service should throw before reaching here.");
             return id;
         }
     }
