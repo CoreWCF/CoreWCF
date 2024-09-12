@@ -49,13 +49,9 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
 
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics) => false;
 
-        protected override IEnumerable<ISourceGenerator> GetSourceGenerators()
-        {
-#if ROSLYN4_0_OR_GREATER
-            yield return new TSourceGenerator().AsSourceGenerator();
-#else
-            yield return new TSourceGenerator();
-#endif
+		protected override IEnumerable<Type> GetSourceGenerators()
+		{
+            yield return typeof(TSourceGenerator);
         }
     }
 }
