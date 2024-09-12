@@ -915,7 +915,9 @@ namespace CoreWCF.IdentityModel.Tokens
                 byte[] bytes = dictionaryReader.ReadContentAsBase64();
                 using (MemoryStream ms = new MemoryStream(bytes))
                 {
+#pragma warning disable SYSLIB0011
                     BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
                     identity.BootstrapContext = (BootstrapContext)formatter.Deserialize(ms);
                 }
 
@@ -1248,7 +1250,9 @@ namespace CoreWCF.IdentityModel.Tokens
 
                 using (MemoryStream ms = new MemoryStream())
                 {
+#pragma warning disable SYSLIB0011
                     BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
                     formatter.Serialize(ms, identity.BootstrapContext);
                     byte[] bootstrapArray = ms.ToArray();
                     dictionaryWriter.WriteBase64(bootstrapArray, 0, bootstrapArray.Length);

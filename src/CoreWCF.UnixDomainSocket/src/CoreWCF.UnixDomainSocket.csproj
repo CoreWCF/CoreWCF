@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <AssemblyName>CoreWCF.UnixDomainSocket</AssemblyName>
     <PackageId>CoreWCF.UnixDomainSocket</PackageId>
     <RootNamespace />

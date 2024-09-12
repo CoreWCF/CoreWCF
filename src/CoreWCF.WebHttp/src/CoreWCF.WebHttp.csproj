@@ -1,18 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
     <AssemblyName>CoreWCF.WebHttp</AssemblyName>
     <PackageId>CoreWCF.WebHttp</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.7.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(IsAspNetCore) != true">
     <!-- After .NET 6.0 goes EOL, WebUtilities should be updated to 8.0.0 -->
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.7.1" />
     <PackageReference Include="System.Text.Json" Version="6.0.9" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="$(SourceDir)CoreWCF.Http\src\CoreWCF.Http.csproj" />
   </ItemGroup>
