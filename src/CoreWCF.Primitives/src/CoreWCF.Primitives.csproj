@@ -47,25 +47,25 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Web.Services.Description" Version="6.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="6.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.*" />
-    <PackageReference Include="System.DirectoryServices" Version="6.*" />
-    <PackageReference Include="System.DirectoryServices.Protocols" Version="6.*" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.*" />
-    <PackageReference Include="System.Security.Cryptography.xml" Version="6.*" />
+    <PackageReference Include="System.Web.Services.Description" Version="6.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="6.35.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.35.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.35.1" />
+    <PackageReference Include="System.DirectoryServices" Version="6.0.1" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="6.0.2" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />
+    <PackageReference Include="System.Security.Cryptography.xml" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.Web.Services.Description" Version="8.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="8.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="8.*" />
-    <PackageReference Include="System.DirectoryServices" Version="8.*" />
-    <PackageReference Include="System.DirectoryServices.Protocols" Version="8.*" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.*" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.*" />
+    <PackageReference Include="System.Web.Services.Description" Version="8.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="8.0.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="8.0.2" />
+    <PackageReference Include="System.DirectoryServices" Version="8.0.0" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="$(IsAspNetCore) == true">
