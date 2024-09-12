@@ -51,7 +51,7 @@ namespace CoreWCF.Primitives.Tests
             }
             catch (Exception ex)
             {
-                Assert.True(false, $"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
+                Assert.Fail($"Exception caught: {ex.Message} More information: {bad} bad ones, {good} good ones.");
             }
         }
 
