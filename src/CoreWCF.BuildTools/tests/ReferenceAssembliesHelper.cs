@@ -40,12 +40,14 @@ internal static class ReferenceAssembliesHelper
 		var packages = ParsePackageReferences(coreWcfPrimitivesCsprojPath)
 			.Union(ParsePackageReferences(coreWcfWebHttpCsprojPath))
 			.Union(new[]
-			{   
-					new PackageIdentity("System.ServiceModel.Primitives", "6.2.0"),
-#if !NETCOREAPP
-					new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.1.3"),
-					new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.1.2")
+			{
+#if NETCOREAPP
+                new PackageIdentity("System.ServiceModel.Primitives", "6.2.0"),
+#else
+                new PackageIdentity("System.ServiceModel.Primitives", "4.10.3"),
 #endif
+                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.1.3"),
+                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.1.2")
             }).ToImmutableArray();
 		return ReferenceAssembliesDefaults.AddPackages(packages);
 	});
