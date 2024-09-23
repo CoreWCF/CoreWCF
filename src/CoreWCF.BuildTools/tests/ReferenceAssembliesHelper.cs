@@ -41,7 +41,9 @@ internal static class ReferenceAssembliesHelper
 			.Union(ParsePackageReferences(coreWcfWebHttpCsprojPath))
 			.Union(new[]
 			{
-#if NETCOREAPP
+#if NET8_0_OR_GREATER
+                new PackageIdentity("System.ServiceModel.Primitives", "8.0.0"),
+#elif NET6_0_OR_GREATER
                 new PackageIdentity("System.ServiceModel.Primitives", "6.2.0"),
 #else
                 new PackageIdentity("System.ServiceModel.Primitives", "4.10.3"),
@@ -55,9 +57,16 @@ internal static class ReferenceAssembliesHelper
 	private static IEnumerable<PackageIdentity> ParsePackageReferences(string csprojPath)
 	{
 		XDocument document = XDocument.Load(Path.GetFullPath(csprojPath));
-		return document.Root!.Descendants("ItemGroup")
-#if NETCOREAPP
+
+        // See CoreWCF.Primitives .csproj -file for Conditions to filter off
+        return document.Root!.Descendants("ItemGroup")
             .Where(x => x.Attribute("Condition")?.Value != "$(IsAspNetCore) != true")
+#if NET8_0_OR_GREATER
+            .Where(x => x.Attribute("Condition")?.Value != "'$(TargetFramework)'=='net6.0' or $(IsAspNetCore) != true")
+#elif NET6_0_OR_GREATER
+            .Where(x => x.Attribute("Condition")?.Value != "'$(TargetFramework)'=='net8.0'" && x.Attribute("Condition")?.Value != "'$(TargetFramework)'=='net8.0'")
+#else
+            .Where(x => x.Attribute("Condition")?.Value != "'$(TargetFramework)'=='net8.0'")
 #endif
             .Descendants("PackageReference")
 			.Select(x => new PackageIdentity(x.Attribute("Include")!.Value, x.Attribute("Version")!.Value));
