@@ -332,8 +332,15 @@ namespace CoreWCF.Channels
             allowOutputBatching = message.Properties.AllowOutputBatching;
             Connection.Logger.SendMessage(message);
             messageData = EncodeMessage(message);
-            await Connection.Output.WriteAsync(messageData, token);
-            await Connection.Output.FlushAsync();
+            try
+            {
+                await Connection.Output.WriteAsync(messageData, token);
+                await Connection.Output.FlushAsync();
+            }
+            finally
+            {
+                BufferManager.ReturnBuffer(messageData.Array);
+            }
         }
 
         protected override async Task CloseOutputAsync(CancellationToken token)
