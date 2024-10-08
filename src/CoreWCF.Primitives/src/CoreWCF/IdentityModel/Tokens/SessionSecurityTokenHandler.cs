@@ -388,7 +388,9 @@ namespace CoreWCF.IdentityModel.Tokens
 
                     using (MemoryStream ms = new MemoryStream(decodedCookie))
                     {
+#pragma warning disable SYSLIB0011
                         BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
                         securityContextToken = formatter.Deserialize(ms) as SecurityToken;
                     }
 
@@ -726,7 +728,9 @@ namespace CoreWCF.IdentityModel.Tokens
 
                 using (MemoryStream ms = new MemoryStream())
                 {
+#pragma warning disable SYSLIB0011
                     BinaryFormatter formatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
                     formatter.Serialize(ms, token);
                     cookie = ms.ToArray();
                 }

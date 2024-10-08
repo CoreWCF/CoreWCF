@@ -33,6 +33,13 @@
     <IsCIBuild Condition="'$(TF_BUILD)' == 'true'">true</IsCIBuild>
   </PropertyGroup>
 
+  <!-- Library target frameworks -->
+  <PropertyGroup>
+    <LibraryTargetFrameworks>netstandard2.0;net6.0;net8.0</LibraryTargetFrameworks>
+    <IsAspNetCore Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net8.0'">true</IsAspNetCore>
+  </PropertyGroup>
+
+
   <!-- UT -->
   <PropertyGroup>
     <TestTargetFrameworks>net6.0;net8.0;net9.0</TestTargetFrameworks>
@@ -75,7 +82,7 @@
   </PropertyGroup>
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
-      <Version>3.6.141</Version>
+      <Version>3.6.143</Version>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- Include license file in packages -->
