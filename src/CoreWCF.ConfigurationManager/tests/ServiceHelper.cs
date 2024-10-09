@@ -29,7 +29,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             });
 #endif // DEBUG
             if (ipAddress == IPAddress.Any)
-                result = result.UseNetTcp(port);
+                result = result.UseNetTcp(IPAddress.Any, port);
             else
                 result = result.UseNetTcp(ipAddress, port);
             return result

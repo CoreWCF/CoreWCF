@@ -31,9 +31,11 @@ namespace CoreWCF.Configuration
 
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, int port)
         {
+            var ret = webHostBuilder.UseNetTcp(IPAddress.Any, port);
+
             if (Socket.OSSupportsIPv6)
-                return webHostBuilder.UseNetTcp(IPAddress.IPv6Any, port);
-            return webHostBuilder.UseNetTcp(IPAddress.Any, port);
+                return ret.UseNetTcp(IPAddress.IPv6Any, port);
+            return ret;
         }
 
         public static IWebHostBuilder UseNetTcp(this IWebHostBuilder webHostBuilder, IPAddress ipAddress)

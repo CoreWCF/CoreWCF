@@ -44,7 +44,7 @@ public class Ipv6Tests
     public void RegressionBoundToIpv6AnyStillAllowsIpv4()
     {
         string testString = new string('a', 3000);
-        int port = random.Next(1025, 65535);
+        int port = random.Next(2048, 32_767);
         using var host = WebHost.CreateDefaultBuilder(Array.Empty<string>())
             .UseStartup<Startup>()
             .UseNetTcp(port)
@@ -55,12 +55,20 @@ public class Ipv6Tests
         var netTcpBinding = ClientHelper.GetBufferedModeBinding();
         using var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(netTcpBinding,
             new System.ServiceModel.EndpointAddress(new Uri($"net.tcp://127.0.0.1:{port}/EchoService.svc")));
-        var channel = factory.CreateChannel();
+        try
+        {
+            var channel = factory.CreateChannel();
 
 
 
-        var result = channel.EchoString(testString);
-        Assert.Equal(testString, result);
+            var result = channel.EchoString(testString);
+            Assert.Equal(testString, result);
+        }
+        finally
+        {
+            factory.Abort();
+            factory.Close();
+        }
     }
 
     internal class Startup
