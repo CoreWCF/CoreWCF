@@ -13,6 +13,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,48 +32,118 @@ namespace CoreWCF.Http.Tests
             _output = output;
         }
 
-        public static IEnumerable<object[]> GetTestVariations()
-        {
-            yield return new object[] { typeof(BasicHttpBindingWithTextMessageEncodingStartup), BasicHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength };
-            yield return new object[] { typeof(BasicHttpBindingWithMtomMessageEncodingStartup), BasicHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehavior() };
-            yield return new object[] { typeof(WSHttpBindingWithTextMessageEncodingStartup), WSHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength };
-            yield return new object[] { typeof(WSHttpBindingWithMtomMessageEncodingStartup), WSHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehavior() };
-            yield return new object[] { typeof(NetHttpBindingWithTextMessageEncodingStartup), NetHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength };
-            yield return new object[] { typeof(NetHttpBindingWithMtomMessageEncodingStartup), NetHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength, new AssertMtomOptimizedEndpointBehavior() };
-            yield return new object[] { typeof(NetHttpBindingWithBinaryMessageEncodingStartup), NetHttpBindingWithBinaryMessageEncodingStartup.GetClientBinding(), LargeRequestByteArrayLength };
-
-            yield return new object[] { typeof(BasicHttpBindingWithTextMessageEncodingStartup), BasicHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(BasicHttpBindingWithMtomMessageEncodingStartup), BasicHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(WSHttpBindingWithTextMessageEncodingStartup), WSHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(WSHttpBindingWithMtomMessageEncodingStartup), WSHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(NetHttpBindingWithTextMessageEncodingStartup), NetHttpBindingWithTextMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(NetHttpBindingWithMtomMessageEncodingStartup), NetHttpBindingWithMtomMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-            yield return new object[] { typeof(NetHttpBindingWithBinaryMessageEncodingStartup), NetHttpBindingWithBinaryMessageEncodingStartup.GetClientBinding(), SmallRequestByteArrayLength };
-        }
-
         [Theory]
-        [MemberData(nameof(GetTestVariations))]
-        public void EchoByteArray(Type startupType, System.ServiceModel.Channels.Binding binding, int bytesCount, System.ServiceModel.Description.IEndpointBehavior endpointBehavior = null)
+        [InlineData("BasicHttpBinding", "Text", LargeRequestByteArrayLength)]
+        [InlineData("BasicHttpBinding", "Mtom", LargeRequestByteArrayLength)]
+        [InlineData("WSHttpBinding", "Text", LargeRequestByteArrayLength)]
+        [InlineData("WSHttpBinding", "Mtom", LargeRequestByteArrayLength)]
+        [InlineData("WS2007HttpBinding", "Text", LargeRequestByteArrayLength)]
+        [InlineData("WS2007HttpBinding", "Mtom", LargeRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Text", LargeRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Mtom", LargeRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Binary", LargeRequestByteArrayLength)]
+        [InlineData("BasicHttpBinding", "Text", SmallRequestByteArrayLength)]
+        [InlineData("BasicHttpBinding", "Mtom", SmallRequestByteArrayLength)]
+        [InlineData("WSHttpBinding", "Text", SmallRequestByteArrayLength)]
+        [InlineData("WSHttpBinding", "Mtom", SmallRequestByteArrayLength)]
+        [InlineData("WS2007HttpBinding", "Text", SmallRequestByteArrayLength)]
+        [InlineData("WS2007HttpBinding", "Mtom", SmallRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Text", SmallRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Mtom", SmallRequestByteArrayLength)]
+        [InlineData("NetHttpBinding", "Binary", SmallRequestByteArrayLength)]
+        public void EchoByteArray(string bindingType, string messageEncoding, int bytesCount)
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output)
+                .UseSetting("bindingType", bindingType)
+                .UseSetting("messageEncoding", messageEncoding)
+                .Build();
+
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService> factory = null;
+                ClientContract.IMessageEncodingService channel = null;
                 host.Start();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(binding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/MessageEncodingService/IMessageEncodingService.svc")));
-                if (endpointBehavior != null)
+                try
                 {
-                    factory.Endpoint.EndpointBehaviors.Add(endpointBehavior);
-                }
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IMessageEncodingService>(GetClientBinding(bindingType, messageEncoding),
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/MessageEncodingService/IMessageEncodingService.svc")));
 
-                ClientContract.IMessageEncodingService channel = factory.CreateChannel();
-                var bytes = ClientHelper.GetByteArray(bytesCount);
-                var result = channel.EchoByteArray(bytes);
-                Assert.Equal(bytes, result);
+                    if (messageEncoding == "Mtom" && bytesCount == LargeRequestByteArrayLength)
+                    {
+                        factory.Endpoint.EndpointBehaviors.Add(new AssertMtomOptimizedEndpointBehavior());
+                    }
+
+                    channel = factory.CreateChannel();
+                    var bytes = ClientHelper.GetByteArray(bytesCount);
+                    var result = channel.EchoByteArray(bytes);
+                    Assert.Equal(bytes, result);
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
             }
         }
 
-        internal abstract class Startup
+        internal static T ParseEnum<T>(string value) => (T)Enum.Parse(typeof(T), value);
+
+        private static CoreWCF.Channels.Binding GetServerBinding(string bindingType, string messageEncoding)
+        {
+            CoreWCF.Channels.Binding binding;
+            if (bindingType == "BasicHttpBinding")
+            {
+                var basicHttpBinding = new CoreWCF.BasicHttpBinding();
+                basicHttpBinding.MessageEncoding = ParseEnum<CoreWCF.WSMessageEncoding>(messageEncoding);
+                binding = basicHttpBinding;
+            }
+            else if (bindingType == "WSHttpBinding")
+            {
+                var wsHttpbinding = new CoreWCF.WSHttpBinding(SecurityMode.None);
+                wsHttpbinding.MessageEncoding = ParseEnum<CoreWCF.WSMessageEncoding>(messageEncoding);
+                binding = wsHttpbinding;
+            }
+            else if (bindingType == "WS2007HttpBinding")
+            {
+                var ws2007Httpbinding = new CoreWCF.WS2007HttpBinding(SecurityMode.None);
+                ws2007Httpbinding.MessageEncoding = ParseEnum<CoreWCF.WSMessageEncoding>(messageEncoding);
+                binding = ws2007Httpbinding;
+            }
+            else
+            {
+                var netHttpBinding = new CoreWCF.NetHttpBinding(Channels.BasicHttpSecurityMode.None);
+                netHttpBinding.MessageEncoding = ParseEnum<CoreWCF.NetHttpMessageEncoding>(messageEncoding);
+                binding = netHttpBinding;
+            }
+
+            return binding;
+        }
+
+        private static System.ServiceModel.Channels.Binding GetClientBinding(string bindingType, string messageEncoding)
+        {
+            System.ServiceModel.Channels.Binding binding;
+            if (bindingType == "BasicHttpBinding")
+            {
+                var basicHttpBinding = ClientHelper.GetBufferedModeBinding();
+                basicHttpBinding.MessageEncoding = ParseEnum<System.ServiceModel.WSMessageEncoding>(messageEncoding);
+                binding = basicHttpBinding;
+            }
+            else if (bindingType == "WSHttpBinding" || bindingType == "WS2007HttpBinding")
+            {
+                var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, securityMode: System.ServiceModel.SecurityMode.None);
+                wsHttpBinding.MessageEncoding = ParseEnum<System.ServiceModel.WSMessageEncoding>(messageEncoding);
+                binding = wsHttpBinding;
+            }
+            else
+            {
+                var netHttpBinding = ClientHelper.GetBufferedModeWebSocketBinding();
+                netHttpBinding.MessageEncoding = ParseEnum<System.ServiceModel.NetHttpMessageEncoding>(messageEncoding);
+                binding = netHttpBinding;
+            }
+
+            return binding;
+        }
+
+        internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)
             {
@@ -81,125 +152,14 @@ namespace CoreWCF.Http.Tests
 
             public void Configure(IApplicationBuilder app)
             {
+                var config = app.ApplicationServices.GetRequiredService<IConfiguration>();
+
                 app.UseServiceModel(builder =>
                 {
                     builder.AddService<Services.MessageEncodingService>();
-                    builder.AddServiceEndpoint<Services.MessageEncodingService, ServiceContract.IMessageEncodingService>(GetServerBinding(), $"/MessageEncodingService/IMessageEncodingService.svc");
+                    builder.AddServiceEndpoint<Services.MessageEncodingService, ServiceContract.IMessageEncodingService>(
+                        GetServerBinding(config["bindingType"], config["messageEncoding"]), $"/MessageEncodingService/IMessageEncodingService.svc");
                 });
-            }
-
-            protected abstract Channels.Binding GetServerBinding();
-        }
-
-        internal class BasicHttpBindingWithTextMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeBinding();
-                binding.MessageEncoding = System.ServiceModel.WSMessageEncoding.Text;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding() => new BasicHttpBinding()
-            {
-                MessageEncoding = CoreWCF.WSMessageEncoding.Text
-            };
-        }
-
-
-        internal class BasicHttpBindingWithMtomMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeBinding();
-                binding.MessageEncoding = System.ServiceModel.WSMessageEncoding.Mtom;
-                return binding;
-            }
-            protected override Channels.Binding GetServerBinding() => new BasicHttpBinding()
-            {
-                MessageEncoding = CoreWCF.WSMessageEncoding.Mtom
-            };
-        }
-
-
-        internal class WSHttpBindingWithTextMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeWSHttpBinding(securityMode: System.ServiceModel.SecurityMode.None);
-                binding.MessageEncoding = System.ServiceModel.WSMessageEncoding.Text;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding() => new WSHttpBinding(SecurityMode.None)
-            {
-                MessageEncoding = CoreWCF.WSMessageEncoding.Text
-            };
-        }
-
-        internal class WSHttpBindingWithMtomMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeWSHttpBinding(securityMode: System.ServiceModel.SecurityMode.None);
-                binding.MessageEncoding = System.ServiceModel.WSMessageEncoding.Mtom;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding() => new WSHttpBinding(SecurityMode.None)
-            {
-                MessageEncoding = CoreWCF.WSMessageEncoding.Mtom
-            };
-        }
-
-        internal class NetHttpBindingWithTextMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeWebSocketBinding();
-                binding.MessageEncoding = System.ServiceModel.NetHttpMessageEncoding.Text;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding()
-            {
-                var binding = new NetHttpBinding(Channels.BasicHttpSecurityMode.None);
-                binding.MessageEncoding = NetHttpMessageEncoding.Text;
-                return binding;
-            }
-        }
-
-        internal class NetHttpBindingWithMtomMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeWebSocketBinding();
-                binding.MessageEncoding = System.ServiceModel.NetHttpMessageEncoding.Mtom;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding()
-            {
-                var binding = new NetHttpBinding(Channels.BasicHttpSecurityMode.None);
-                binding.MessageEncoding = NetHttpMessageEncoding.Mtom;
-                return binding;
-            }
-        }
-
-        internal class NetHttpBindingWithBinaryMessageEncodingStartup : Startup
-        {
-            internal static System.ServiceModel.Channels.Binding GetClientBinding()
-            {
-                var binding = ClientHelper.GetBufferedModeWebSocketBinding();
-                binding.MessageEncoding = System.ServiceModel.NetHttpMessageEncoding.Binary;
-                return binding;
-            }
-
-            protected override Channels.Binding GetServerBinding()
-            {
-                var binding = new NetHttpBinding(Channels.BasicHttpSecurityMode.None);
-                binding.MessageEncoding = NetHttpMessageEncoding.Binary;
-                return binding;
             }
         }
 

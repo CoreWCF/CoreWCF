@@ -90,9 +90,18 @@ namespace Helpers
             return binding;
         }
 
-        public static WSHttpBinding GetBufferedModeWSHttpBinding(SecurityMode securityMode)
+        public static WSHttpBinding GetBufferedModeWSHttpBinding(string bindingType, SecurityMode securityMode)
         {
-            var binding = new WSHttpBinding(securityMode);
+            WSHttpBinding binding;
+            if (bindingType == "WS2007HttpBinding")
+            {
+                binding = new WS2007HttpBinding(securityMode);
+            }
+            else
+            {
+                binding = new WSHttpBinding(securityMode);
+            }
+
             ApplyDebugTimeouts(binding);
             return binding;
         }

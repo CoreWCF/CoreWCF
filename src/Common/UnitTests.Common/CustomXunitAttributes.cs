@@ -62,6 +62,18 @@ public class WindowsNetCoreOnlyFactAttribute : FactAttribute
     }
 }
 
+public class WindowsNetCoreOnlyTheoryAttribute : TheoryAttribute
+{
+    public WindowsNetCoreOnlyTheoryAttribute()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            || Environment.Version.Major < 6)
+        {
+            Skip = nameof(WindowsNetCoreOnlyTheoryAttribute);
+        }
+    }
+}
+
 public class LinuxWhenCIOnlyFactAttribute : FactAttribute
 {
     public LinuxWhenCIOnlyFactAttribute()
