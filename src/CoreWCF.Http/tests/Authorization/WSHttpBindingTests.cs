@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using CoreWCF.Configuration;
 using CoreWCF.Http.Tests.Helpers;
@@ -10,6 +11,7 @@ using Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceContract;
 using Services;
@@ -28,61 +30,94 @@ public class WSHttpBindingTests
         _output = output;
     }
 
-    [Fact]
-    public void WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test()
+    [Theory]
+    [InlineData("WSHttpBinding")]
+    [InlineData("WS2007HttpBinding")]
+    public void WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
+            System.ServiceModel.ChannelFactory<ISecuredService> factory = null;
+            ISecuredService channel = null;
             host.Start();
-            System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-            var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
-            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            try
             {
-                CertificateValidationMode = X509CertificateValidationMode.None
-            };
-            ISecuredService channel = factory.CreateChannel();
-            string result = channel.Echo(TestString);
-            Assert.Equal(TestString, result);
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = X509CertificateValidationMode.None
+                };
+                channel = factory.CreateChannel();
+                string result = channel.Echo(TestString);
+                Assert.Equal(TestString, result);
+            }
+            finally
+            {
+                ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+            }            
         }
     }
 
-    [Fact]
-    public void WSHttpBinding_UnauthenticatedUser_Test()
+    [Theory]
+    [InlineData("WSHttpBinding")]
+    [InlineData("WS2007HttpBinding")]
+    public void WSHttpBinding_UnauthenticatedUser_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithUnauthenticatedUserStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
+            System.ServiceModel.ChannelFactory<ISecuredService> factory = null;
+            ISecuredService channel = null;
             host.Start();
-            System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-            var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
-            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            try
             {
-                CertificateValidationMode = X509CertificateValidationMode.None
-            };
-            ISecuredService channel = factory.CreateChannel();
-            Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = X509CertificateValidationMode.None
+                };
+                channel = factory.CreateChannel();
+                Assert.Throws<MessageSecurityException>(() => channel.Echo(TestString));
+            }
+            finally
+            {
+                ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+            }
         }
     }
 
-    [Fact]
-    public void WSHttpBinding_AuthenticatedUser_MissingScopeValues_Test()
+    [Theory]
+    [InlineData("WSHttpBinding")]
+    [InlineData("WS2007HttpBinding")]
+    public void WSHttpBinding_AuthenticatedUser_MissingScopeValues_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
+            System.ServiceModel.ChannelFactory<ISecuredService> factory = null;
+            ISecuredService channel = null;
             host.Start();
-            System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-            var factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
-            factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+            try
             {
-                CertificateValidationMode = X509CertificateValidationMode.None
-            };
-            ISecuredService channel = factory.CreateChannel();
-            Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                factory = new System.ServiceModel.ChannelFactory<ISecuredService>(wsHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicWcfService/wshttp.svc")));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = X509CertificateValidationMode.None
+                };
+                channel = factory.CreateChannel();
+                Assert.Throws<SecurityAccessDeniedException>(() => channel.Echo(TestString));
+            }
+            finally
+            {
+                ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+            }
         }
     }
 
@@ -128,21 +163,42 @@ public class WSHttpBindingTests
 
         public void Configure(IApplicationBuilder app)
         {
+            var config = app.ApplicationServices.GetRequiredService<IConfiguration>();
+
+            WSHttpBinding serverBinding;
+            if (config["bindingType"] == "WS2007HttpBinding")
+            {
+                serverBinding = new WS2007HttpBinding()
+                {
+                    Security = new WSHTTPSecurity()
+                    {
+                        Mode = SecurityMode.Transport,
+                        Transport = new HttpTransportSecurity
+                        {
+                            ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                        }
+                    }
+                };
+            }
+            else
+            {
+                serverBinding = new WSHttpBinding()
+                {
+                    Security = new WSHTTPSecurity()
+                    {
+                        Mode = SecurityMode.Transport,
+                        Transport = new HttpTransportSecurity
+                        {
+                            ClientCredentialType = HttpClientCredentialType.InheritedFromHost
+                        }
+                    }
+                };
+            }
+
             app.UseServiceModel(builder =>
             {
                 builder.AddService<TSecuredService>();
-                builder.AddServiceEndpoint<TSecuredService, ISecuredService>(
-                    new WSHttpBinding()
-                    {
-                        Security = new WSHTTPSecurity()
-                        {
-                            Mode = SecurityMode.Transport,
-                            Transport = new HttpTransportSecurity
-                            {
-                                ClientCredentialType = HttpClientCredentialType.InheritedFromHost
-                            }
-                        }
-                    }, "/BasicWcfService/wshttp.svc");
+                builder.AddServiceEndpoint<TSecuredService, ISecuredService>(serverBinding, "/BasicWcfService/wshttp.svc");
             });
         }
     }

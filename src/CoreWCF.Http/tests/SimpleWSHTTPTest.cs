@@ -26,6 +26,7 @@ using CoreWCF.IdentityModel.Claims;
 using System.Collections.Generic;
 using CoreWCF.Security;
 using CoreWCF.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 
 #if NETCOREAPP3_1_OR_GREATER
 using Microsoft.AspNetCore.Authentication.Negotiate;
@@ -43,294 +44,417 @@ namespace WSHttp
             _output = output;
         }
 
-        [Fact, Description("no-security-with-an-anonymous-client")]
-        public void WSHttpRequestReplyEchoString()
+        [Theory, Description("no-security-with-an-anonymous-client")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
+                try
+                {
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.None);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/WSHttpWcfService/basichttp.svc")));
+                    channel = factory.CreateChannel();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }                
             }
         }
 
         // On NetFx, Negotiate auth is forwarded to Windows auth, but Windows auth on Kestrel is not supported on NetFx
-        [WindowsNetCoreOnlyFact, Description("transport-security-with-an-anonymous-client")]
-        public void WSHttpRequestReplyEchoStringTransportSecurity()
+        [WindowsNetCoreOnlyTheory, Description("transport-security-with-an-anonymous-client")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyEchoStringTransportSecurity(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.None;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
-                {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
-            }
-        }
-
-        [Fact, Description("Demuxer-failure")]
-        public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure()
-        {
-            string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.UserName.UserName = "testuser@corewcf";
-                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
-                {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
                 try
                 {
-                    channel.EchoString(testString);
-                }
-                catch (Exception ex)
-                {
-                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
-                    Assert.Contains("expired security context token", ex.InnerException.Message);
-                }
-            }
-        }
-
-        [Fact, Description("user-validation-failure")]
-        public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure()
-        {
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).Build();
-            using (host)
-            {
-                host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.UserName.UserName = "invalid-user@corewcf";
-                clientCredentials.UserName.Password = "invalid-password";
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
-                {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                try
-                {
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.None;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
                 }
-                catch (Exception ex)
+                finally
                 {
-                    Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
-                    Assert.Contains("An error occurred when verifying security for the message.", ex.InnerException.Message);
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
             }
         }
 
-        [Fact, Description("transport-security-with-basic-authentication")]
-        public void WSHttpRequestReplyWithTransportMessageEchoString()
+        [Theory, Description("Demuxer-failure")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.UserName.UserName = "testuser@corewcf";
-                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.UserName.UserName = "testuser@corewcf";
+                    clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    try
+                    {
+                        channel.EchoString(testString);
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                        Assert.Contains("expired security context token", ex.InnerException.Message);
+                    }
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+                
             }
         }
 
-        [Fact, Description("transport-security-with-basic-authentication-custom-validator")]
-        public void WSHttpRequestReplyWithTransportMessageCustomValidatorEchoString()
+        [Theory, Description("user-validation-failure")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure(string bindingType)
         {
-            string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameAndToken>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.UserName.UserName = "testuser@corewcf";
-                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.UserName.UserName = "invalid-user@corewcf";
+                    clientCredentials.UserName.Password = "invalid-password";
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    try
+                    {
+                        ((IChannel)channel).Open();
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.True(typeof(System.ServiceModel.FaultException).Equals(ex.InnerException.GetType()));
+                        Assert.Contains("An error occurred when verifying security for the message.", ex.InnerException.Message);
+                    }
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }               
             }
         }
 
-        [Fact, Description("transport-security-with-certificate-authentication")]
-        internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString()
+        [Theory, Description("transport-security-with-basic-authentication")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyWithTransportMessageEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
-                wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.Certificate;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
-                clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetServiceCertificate();
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoString(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.UserName.UserName = "testuser@corewcf";
+                    clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }               
+            }
+        }
+
+        [Theory, Description("transport-security-with-basic-authentication-custom-validator")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyWithTransportMessageCustomValidatorEchoString(string bindingType)
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameAndToken>(_output).UseSetting("bindingType", bindingType).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.UserName.UserName = "testuser@corewcf";
+                    clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }               
+            }
+        }
+
+        [Theory, Description("transport-security-with-certificate-authentication")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString(string bindingType)
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).UseSetting("bindingType", bindingType).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.Certificate;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.ClientCertificate.Certificate = ServiceHelper.GetServiceCertificate();
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }               
             }
         }
 
 
-        [WindowsNetCoreOnlyFact, Description("transport-security-with-windows-authentication-kestrel")]
-        internal void WSHttpRequestImpersonateWithKestrel()
+        [WindowsNetCoreOnlyTheory, Description("transport-security-with-windows-authentication-kestrel")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        internal void WSHttpRequestImpersonateWithKestrel(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
-                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoForImpersonation(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoForImpersonation(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }                
             }
         }
 
-        [WindowsOnlyFact]
+        [WindowsOnlyTheory]
         [Description("transport-security-with-windows-authentication-httpsys")]
+
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        internal void WSHttpRequestImpersonateWithHttpSys()
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        internal void WSHttpRequestImpersonateWithHttpSys(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).Build();
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.Transport);
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("https://localhost:44300/WSHttpWcfService/basichttp.svc")));
-                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                ((IChannel)channel).Open();
-                string result = channel.EchoForImpersonation(testString);
-                Assert.Equal(testString, result);
-                ((IChannel)channel).Close();
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.Transport);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri("https://localhost:44300/WSHttpWcfService/basichttp.svc")));
+                    factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoForImpersonation(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }                
             }
         }
 
-        [WindowsOnlyFact, Description("no-security-with-an-anonymous-client-using-impersonation")]
-        public void WSHttpRequestImpersonateFailsWithoutAuthentication()
+        [WindowsOnlyTheory, Description("no-security-with-an-anonymous-client-using-impersonation")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestImpersonateFailsWithoutAuthentication(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/WSHttpWcfService/basichttp.svc")));
-                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.None);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/WSHttpWcfService/basichttp.svc")));
+                    factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                    {
+                        channel.EchoForImpersonation(testString);
+                    });
+                }
+                finally
                 {
-                    channel.EchoForImpersonation(testString);
-                });
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }                
             }
         }
 
-        [WindowsOnlyFact]
+        [WindowsOnlyTheory]
         [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication()
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8085/WSHttpWcfService/basichttp.svc")));
-                factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
-                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                try
                 {
-                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
-                };
-                ClientContract.IEchoService channel = factory.CreateChannel();
-                Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.None);
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri("http://localhost:8085/WSHttpWcfService/basichttp.svc")));
+                    factory.Credentials.Windows.AllowedImpersonationLevel = TokenImpersonationLevel.Impersonation;
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() =>
+                    {
+                        channel.EchoForImpersonation(testString);
+                    });
+                }
+                finally
                 {
-                    channel.EchoForImpersonation(testString);
-                });
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }                
             }
         }
 
@@ -357,7 +481,7 @@ namespace WSHttp
                 SecurityTokenRequirement tokenRequirement, out SecurityTokenResolver outOfBandTokenResolver)
             {
 
-                if(tokenRequirement.TokenType == SecurityTokenTypes.UserName)
+                if (tokenRequirement.TokenType == SecurityTokenTypes.UserName)
                 {
                     outOfBandTokenResolver = null;
 
@@ -617,7 +741,18 @@ namespace WSHttp
 
             public void Configure(IApplicationBuilder app)
             {
-                CoreWCF.WSHttpBinding serverBinding = new CoreWCF.WSHttpBinding(_wsHttpSecurityMode);
+                var config = app.ApplicationServices.GetRequiredService<IConfiguration>();
+
+                WSHttpBinding serverBinding;
+                if (config["bindingType"] == "WS2007HttpBinding")
+                {
+                    serverBinding = new WS2007HttpBinding(_wsHttpSecurityMode);
+                }
+                else
+                {
+                    serverBinding = new WSHttpBinding(_wsHttpSecurityMode);
+                }
+
                 serverBinding.Security.Message.ClientCredentialType = _credentialType;
                 app.UseServiceModel(builder =>
                 {
