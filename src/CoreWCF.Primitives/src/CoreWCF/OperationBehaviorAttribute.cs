@@ -15,7 +15,7 @@ namespace CoreWCF
         private ImpersonationOption _impersonation = ImpersonationOption.NotAllowed;
         private ReleaseInstanceMode _releaseInstance = ReleaseInstanceMode.None;
 
-        public bool AutoDisposeParameters { get; set; }
+        public bool AutoDisposeParameters { get; set; } = true;
 
         public ImpersonationOption Impersonation
         {
