@@ -125,8 +125,15 @@ namespace CoreWCF.Description
 
         private void ApplyBehavior(ServiceDescription description, ServiceHostBase host)
         {
-            ServiceMetadataExtension mex = ServiceMetadataExtension.EnsureServiceMetadataExtension(host);
-            SetExtensionProperties(description, host, mex);
+            if (description != null && description.Endpoints != null)
+            {
+                for (int i = 0; i < description.Endpoints.Count; i++)
+                {
+                    var address = description.Endpoints[i].Address.Uri.AbsolutePath;
+                    ServiceMetadataExtension mex = ServiceMetadataExtension.EnsureServiceMetadataExtension(host, address);
+                    SetExtensionProperties(description, host, mex);
+                }
+            }
         }
 
         private void SetExtensionProperties(ServiceDescription description, ServiceHostBase host, ServiceMetadataExtension mex)
@@ -136,8 +143,8 @@ namespace CoreWCF.Description
             mex.HttpGetEnabled = HttpGetEnabled;
             mex.HttpsGetEnabled = HttpsGetEnabled;
 
-            mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpGetUrl, description));
-            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpsGetUrl, description));
+            mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, _httpGetUrl ?? new Uri(string.Empty, UriKind.Relative));
+            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, _httpsGetUrl ?? new Uri(string.Empty, UriKind.Relative));
 
             foreach (ChannelDispatcherBase dispatcherBase in host.ChannelDispatchers)
             {
@@ -321,7 +328,7 @@ namespace CoreWCF.Description
                 _host = host;
             }
 
-            internal MetadataSet GenerateMetadata()
+            internal MetadataSet GenerateMetadata(string epPath)
             {
                 if (_behavior.ExternalMetadataLocation == null || _behavior.ExternalMetadataLocation.ToString() == string.Empty)
                 {
@@ -351,6 +358,12 @@ namespace CoreWCF.Description
                                     address = endpointDispatcher.EndpointAddress;
                                 }
 
+                                var path = endpoint.Address.Uri.AbsolutePath;
+
+                                if (epPath != null && epPath != path)
+                                {
+                                    continue;
+                                }
                                 ServiceEndpoint exportedEndpoint = new ServiceEndpoint(endpoint.Contract)
                                 {
                                     Binding = endpoint.Binding,
@@ -386,6 +399,12 @@ namespace CoreWCF.Description
                         {
                             foreach (ServiceEndpoint endpoint in exportedEndpoints)
                             {
+                                var path = endpoint.Address.Uri.AbsolutePath;
+
+                                if (epPath != null && epPath != path)
+                                {
+                                    continue;
+                                }
                                 exporter.ExportEndpoint(endpoint);
                             }
                         }

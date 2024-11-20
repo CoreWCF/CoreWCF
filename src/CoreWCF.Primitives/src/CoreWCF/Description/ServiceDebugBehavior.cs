@@ -89,8 +89,19 @@ namespace CoreWCF.Description
                 return;
             }
 
-            ServiceMetadataExtension mex = ServiceMetadataExtension.EnsureServiceMetadataExtension(serviceHostBase);
-            SetExtensionProperties(mex, serviceHostBase);
+            for (int i = 0; i < serviceHostBase.ChannelDispatchers.Count; i++)
+            {
+                ChannelDispatcher channelDispatcher = serviceHostBase.ChannelDispatchers[i] as ChannelDispatcher;
+                if (channelDispatcher != null && channelDispatcher.Endpoints != null && channelDispatcher.Endpoints.Count > 0)
+                {
+                    for (int j = 0; j < channelDispatcher.Endpoints.Count; j++)
+                    {
+                        var address = channelDispatcher.Endpoints[j].EndpointAddress.Uri.AbsolutePath;
+                        ServiceMetadataExtension mex = ServiceMetadataExtension.EnsureServiceMetadataExtension(serviceHostBase, address);
+                        SetExtensionProperties(mex, serviceHostBase);
+                    }
+                }
+            }
         }
 
         private void SetExtensionProperties(ServiceMetadataExtension mex, ServiceHostBase host)

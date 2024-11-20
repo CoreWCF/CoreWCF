@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -80,7 +81,8 @@ namespace CoreWCF.Channels
         {
             _logger.LogDebug("Building branch map");
             IApplicationBuilder branchApp = _app.New();
-            branchApp.Use(branchNext => {
+            branchApp.Use(branchNext =>
+            {
                 return reqContext =>
                 {
                     if ("GET".Equals(reqContext.Request.Method, StringComparison.OrdinalIgnoreCase))
@@ -114,17 +116,18 @@ namespace CoreWCF.Channels
 
                 var dispatchers = _dispatcherBuilder.BuildDispatchers(serviceType);
                 var serviceHost = _app.ApplicationServices.GetRequiredService(typeof(ServiceHostObjectModel<>).MakeGenericType(serviceType)) as ServiceHostBase;
-                var metadataExtension = serviceHost.Extensions.Find<ServiceMetadataExtension>();
-                if (metadataExtension == null)
+                var metadataExtensions = serviceHost.Extensions.FindAll<ServiceMetadataExtension>();
+                if (metadataExtensions == null)
                 {
                     continue; // No ServiceMetadataExtension on this service
                 }
 
                 // Look for endpoints listening on HTTP and HTTPS and use them for fallback paths
-                Uri fallbackHttpEndpointAddress = null;
-                Uri fallbackHttpsEndpointAddress = null;
                 foreach (var dispatcher in dispatchers)
                 {
+                    Uri fallbackHttpEndpointAddress = null;
+                    Uri fallbackHttpsEndpointAddress = null;
+                    var path = dispatcher.BaseAddress?.AbsolutePath;
                     var scheme = dispatcher.BaseAddress?.Scheme;
                     if (fallbackHttpEndpointAddress == null && Uri.UriSchemeHttp.Equals(scheme))
                     {
@@ -144,7 +147,7 @@ namespace CoreWCF.Channels
                             }
                         }
 
-                        continue;
+                        //continue;
                     }
 
                     if (fallbackHttpsEndpointAddress == null && Uri.UriSchemeHttps.Equals(scheme))
@@ -165,88 +168,96 @@ namespace CoreWCF.Channels
                             }
                         }
 
+                        //continue;
+                    }
+
+
+                    ServiceMetadataExtension metadataExtension = metadataExtensions.FirstOrDefault(p => p.EndpointAbsolutePath == path);
+                    if (metadataExtension == null)
+                    {
                         continue;
                     }
-                }
 
-                Uri httpMetadataUri = null;
-                Uri httpsMetadataUri = null;
-                if (metadataExtension.HttpGetEnabled)
-                {
-                    if (metadataExtension.HttpGetUrl != null && metadataExtension.HttpGetUrl.AbsolutePath != "/")
+                    Uri httpMetadataUri = null;
+                    Uri httpsMetadataUri = null;
+                    if (metadataExtension.HttpGetEnabled)
                     {
-                        httpMetadataUri = metadataExtension.HttpGetUrl;
-                    }
-                    else
-                    {
-                        httpMetadataUri = fallbackHttpEndpointAddress;
-                        metadataExtension.HttpGetUrl = fallbackHttpEndpointAddress;
-                    }
+                        if (metadataExtension.HttpGetUrl != null && metadataExtension.HttpGetUrl.AbsolutePath != "/")
+                        {
+                            httpMetadataUri = metadataExtension.HttpGetUrl;
+                        }
+                        else
+                        {
+                            httpMetadataUri = fallbackHttpEndpointAddress;
+                            metadataExtension.HttpGetUrl = fallbackHttpEndpointAddress;
+                        }
 
-                    if(httpMetadataUri != null)
-                    {
-                        MapMetadata(branchApp, httpMetadataUri.AbsolutePath, metadataExtension.CreateMiddleware(httpMetadataUri, false));
-                    }
-                }
-
-                if (metadataExtension.HttpHelpPageEnabled)
-                {
-                    Uri helpPageUri;
-                    if (metadataExtension.HttpHelpPageUrl != null && metadataExtension.HttpHelpPageUrl.AbsolutePath != "/")
-                    {
-                        helpPageUri = metadataExtension.HttpHelpPageUrl;
-                    }
-                    else
-                    {
-                        helpPageUri = fallbackHttpEndpointAddress;
-                        metadataExtension.HttpHelpPageUrl = fallbackHttpEndpointAddress;
-                    }
-                    if (helpPageUri != null && !helpPageUri.Equals(httpMetadataUri))
-                    {
-                        // Only map the help page uri if it's not null, and different from http metadata uri.
-                        MapMetadata(branchApp, helpPageUri.AbsolutePath, metadataExtension.CreateMiddleware(helpPageUri, false));
-                    }
-                }
-
-                if (metadataExtension.HttpsGetEnabled)
-                {
-                    if (metadataExtension.HttpsGetUrl != null && metadataExtension.HttpsGetUrl.AbsolutePath != "/")
-                    {
-                        httpsMetadataUri = metadataExtension.HttpsGetUrl;
-                    }
-                    else
-                    {
-                        httpsMetadataUri = fallbackHttpsEndpointAddress;
-                        metadataExtension.HttpsGetUrl = fallbackHttpsEndpointAddress;
+                        if (httpMetadataUri != null)
+                        {
+                            MapMetadata(branchApp, httpMetadataUri.AbsolutePath, metadataExtension.CreateMiddleware(httpMetadataUri, false));
+                        }
                     }
 
-                    if (httpsMetadataUri != null)
+                    if (metadataExtension.HttpHelpPageEnabled)
                     {
-                        MapMetadata(branchApp, httpsMetadataUri.AbsolutePath, metadataExtension.CreateMiddleware(httpsMetadataUri, true));
+                        Uri helpPageUri;
+                        if (metadataExtension.HttpHelpPageUrl != null && metadataExtension.HttpHelpPageUrl.AbsolutePath != "/")
+                        {
+                            helpPageUri = metadataExtension.HttpHelpPageUrl;
+                        }
+                        else
+                        {
+                            helpPageUri = fallbackHttpEndpointAddress;
+                            metadataExtension.HttpHelpPageUrl = fallbackHttpEndpointAddress;
+                        }
+                        if (helpPageUri != null && !helpPageUri.Equals(httpMetadataUri))
+                        {
+                            // Only map the help page uri if it's not null, and different from http metadata uri.
+                            MapMetadata(branchApp, helpPageUri.AbsolutePath, metadataExtension.CreateMiddleware(helpPageUri, false));
+                        }
                     }
-                }
 
-                if (metadataExtension.HttpsHelpPageEnabled)
-                {
-                    Uri helpPageUri;
-                    if (metadataExtension.HttpsHelpPageUrl != null && metadataExtension.HttpsHelpPageUrl.AbsolutePath != "/")
+                    if (metadataExtension.HttpsGetEnabled)
                     {
-                        helpPageUri = metadataExtension.HttpsHelpPageUrl;
+                        if (metadataExtension.HttpsGetUrl != null && metadataExtension.HttpsGetUrl.AbsolutePath != "/")
+                        {
+                            httpsMetadataUri = metadataExtension.HttpsGetUrl;
+                        }
+                        else
+                        {
+                            httpsMetadataUri = fallbackHttpsEndpointAddress;
+                            metadataExtension.HttpsGetUrl = fallbackHttpsEndpointAddress;
+                        }
+
+                        if (httpsMetadataUri != null)
+                        {
+                            MapMetadata(branchApp, httpsMetadataUri.AbsolutePath, metadataExtension.CreateMiddleware(httpsMetadataUri, true));
+                        }
                     }
-                    else
+
+                    if (metadataExtension.HttpsHelpPageEnabled)
                     {
-                        helpPageUri = fallbackHttpsEndpointAddress;
-                        metadataExtension.HttpsHelpPageUrl = fallbackHttpsEndpointAddress;
-                    }
-                    if (helpPageUri != null && !helpPageUri.Equals(httpsMetadataUri))
-                    {
-                        // Only map the help page uri if it's not null, and different from https metadata uri.
-                        MapMetadata(branchApp, helpPageUri.AbsolutePath, metadataExtension.CreateMiddleware(helpPageUri, true));
+                        Uri helpPageUri;
+                        if (metadataExtension.HttpsHelpPageUrl != null && metadataExtension.HttpsHelpPageUrl.AbsolutePath != "/")
+                        {
+                            helpPageUri = metadataExtension.HttpsHelpPageUrl;
+                        }
+                        else
+                        {
+                            helpPageUri = fallbackHttpsEndpointAddress;
+                            metadataExtension.HttpsHelpPageUrl = fallbackHttpsEndpointAddress;
+                        }
+                        if (helpPageUri != null && !helpPageUri.Equals(httpsMetadataUri))
+                        {
+                            // Only map the help page uri if it's not null, and different from https metadata uri.
+                            MapMetadata(branchApp, helpPageUri.AbsolutePath, metadataExtension.CreateMiddleware(helpPageUri, true));
+                        }
                     }
                 }
             }
 
-            branchApp.Use(_ => {
+            branchApp.Use(_ =>
+            {
                 return reqContext =>
                 {
                     if (reqContext.Items.TryGetValue(RestorePathsDelegateItemName, out object restorePathsDelegateAsObject))

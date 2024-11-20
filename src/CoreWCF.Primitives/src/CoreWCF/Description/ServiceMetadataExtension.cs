@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -33,12 +34,16 @@ namespace CoreWCF.Description
         private ServiceHostBase _owner;
         private readonly object _syncRoot = new object();
         private readonly object _singleWsdlSyncRoot = new object();
+        private readonly string _endpointAbsolutePath = string.Empty;
 
-        public ServiceMetadataExtension() : this(null) { }
+        public string EndpointAbsolutePath { get { return _endpointAbsolutePath; } }
 
-        internal ServiceMetadataExtension(ServiceMetadataBehavior.MetadataExtensionInitializer initializer)
+        public ServiceMetadataExtension(string epAbsolutePath) : this(epAbsolutePath, null) { }
+
+        internal ServiceMetadataExtension(string epAbsolutePath, ServiceMetadataBehavior.MetadataExtensionInitializer initializer)
         {
             Initializer = initializer;
+            _endpointAbsolutePath = epAbsolutePath;
         }
 
         internal ServiceMetadataBehavior.MetadataExtensionInitializer Initializer { get; set; }
@@ -47,7 +52,7 @@ namespace CoreWCF.Description
         {
             get
             {
-                EnsureInitialized();
+                EnsureInitialized(_endpointAbsolutePath);
                 return _metadata;
             }
         }
@@ -120,7 +125,7 @@ namespace CoreWCF.Description
             return impl.MetadataMiddleware;
         }
 
-        private void EnsureInitialized()
+        private void EnsureInitialized(string epPath)
         {
             if (!_isInitialized)
             {
@@ -134,7 +139,7 @@ namespace CoreWCF.Description
                             // it will use the Metadata property to do the initialization
                             // this will call back into this method, but exit because isInitialized is set.
                             // if other threads try to call these methods, they will block on the lock
-                            _metadata = Initializer.GenerateMetadata();
+                            _metadata = Initializer.GenerateMetadata(epPath);
                         }
 
                         if (_metadata == null)
@@ -212,12 +217,12 @@ namespace CoreWCF.Description
             _owner = null;
         }
 
-        internal static ServiceMetadataExtension EnsureServiceMetadataExtension(ServiceHostBase host)
+        internal static ServiceMetadataExtension EnsureServiceMetadataExtension(ServiceHostBase host, string address)
         {
-            ServiceMetadataExtension mex = host.Extensions.Find<ServiceMetadataExtension>();
+            ServiceMetadataExtension mex = host.Extensions.FindAll<ServiceMetadataExtension>().FirstOrDefault(p => p.EndpointAbsolutePath == address);
             if (mex == null)
             {
-                mex = new ServiceMetadataExtension();
+                mex = new ServiceMetadataExtension(address);
                 host.Extensions.Add(mex);
             }
 
