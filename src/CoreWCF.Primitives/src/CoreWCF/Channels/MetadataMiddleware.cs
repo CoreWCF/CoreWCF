@@ -123,6 +123,7 @@ namespace CoreWCF.Channels
                 }
 
                 // Look for endpoints listening on HTTP and HTTPS and use them for fallback paths
+
                 foreach (var dispatcher in dispatchers)
                 {
                     Uri fallbackHttpEndpointAddress = null;
@@ -146,8 +147,6 @@ namespace CoreWCF.Channels
                                 fallbackHttpEndpointAddress = uriBuilder.Uri;
                             }
                         }
-
-                        //continue;
                     }
 
                     if (fallbackHttpsEndpointAddress == null && Uri.UriSchemeHttps.Equals(scheme))
@@ -167,12 +166,9 @@ namespace CoreWCF.Channels
                                 fallbackHttpsEndpointAddress = uriBuilder.Uri;
                             }
                         }
-
-                        //continue;
                     }
 
-
-                    ServiceMetadataExtension metadataExtension = metadataExtensions.FirstOrDefault(p => p.EndpointAbsolutePath == path);
+                    var metadataExtension = metadataExtensions.FirstOrDefault(p => p.EndpointAbsolutePath == path);
                     if (metadataExtension == null)
                     {
                         continue;

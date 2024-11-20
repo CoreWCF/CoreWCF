@@ -111,6 +111,7 @@ namespace CoreWCF.Description
 
             mex.HttpsHelpPageEnabled = HttpsHelpPageEnabled;
             mex.HttpsHelpPageUrl = host.GetVia(Uri.UriSchemeHttps, _httpsHelpPageUrl == null ? new Uri(string.Empty, UriKind.Relative) : _httpsHelpPageUrl);
+
         }
     }
 }

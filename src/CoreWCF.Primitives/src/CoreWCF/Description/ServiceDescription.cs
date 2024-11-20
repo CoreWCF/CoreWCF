@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using CoreWCF.Collections.Generic;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
@@ -325,11 +323,11 @@ namespace CoreWCF.Description
             // Clone IServiceBehavior DI services implementing ICloneable to allow per service override.
             var behaviors = injectedBehaviors.ToList();
 
+
             if (services is IKeyedServiceProvider keyedServiceProvider)
             {
                 behaviors.AddRange(keyedServiceProvider.GetKeyedServices<IServiceBehavior>(ServiceType));
             }
-
             for (int i = 0; i < behaviors.Count; i++)
             {
                 if(behaviors[i] is ICloneable cloneable)

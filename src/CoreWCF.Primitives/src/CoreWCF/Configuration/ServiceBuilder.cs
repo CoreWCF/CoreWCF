@@ -199,6 +199,7 @@ namespace CoreWCF.Configuration
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(address)));
             }
+
             if (_services.TryGetValue(service, out IServiceConfiguration serviceConfig))
             {
                 serviceConfig.Endpoints.Add(new ServiceEndpointConfiguration()

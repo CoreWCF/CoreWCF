@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -312,7 +313,7 @@ namespace CoreWCF.Description
                 context = contextObj as HttpContext;
             }
 
-            if (context==null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort, out string requestScheme))
+            if (context == null || !TryGetHttpHostAndPort(listenUri, context.Request, out string requestHost, out int requestPort, out string requestScheme))
             {
                 if (request.Headers.To == null)
                 {
@@ -1318,8 +1319,8 @@ namespace CoreWCF.Description
                         WriteKeyword("new ");
                         WriteClass(clientName);
                         _writer.WriteString("();\n\n");
-                        WriteComment("        // " + SR.SFxDocExt_MainPageComment+ "\n\n");
-                        WriteComment("        // " + SR.SFxDocExt_MainPageComment2+ "\n");
+                        WriteComment("        // " + SR.SFxDocExt_MainPageComment + "\n\n");
+                        WriteComment("        // " + SR.SFxDocExt_MainPageComment2 + "\n");
                         _writer.WriteString("        client.Close();\n");
                         _writer.WriteString("    }\n");
                         _writer.WriteString("}\n");
@@ -1341,8 +1342,8 @@ namespace CoreWCF.Description
                         WriteKeyword("New ");
                         WriteClass(clientName);
                         _writer.WriteString("()\n");
-                        WriteComment("        ' " + SR.SFxDocExt_MainPageComment+ "\n\n");
-                        WriteComment("        ' " + SR.SFxDocExt_MainPageComment2+ "\n");
+                        WriteComment("        ' " + SR.SFxDocExt_MainPageComment + "\n\n");
+                        WriteComment("        ' " + SR.SFxDocExt_MainPageComment2 + "\n");
                         _writer.WriteString("        client.Close()\n");
                         WriteKeyword("    End Sub\n");
                         WriteKeyword("End Class");
@@ -1505,7 +1506,7 @@ SR.SFxDocExt_NoMetadataSection1, SR.SFxDocExt_NoMetadataSection2,
 SR.SFxDocExt_NoMetadataSection3, SR.SFxDocExt_NoMetadataSection4,
 SR.SFxDocExt_NoMetadataConfigComment1, SR.SFxDocExt_NoMetadataConfigComment2,
 SR.SFxDocExt_NoMetadataConfigComment3, SR.SFxDocExt_NoMetadataConfigComment4,
-SR.SFxDocExt_NoMetadataSection5        ));
+SR.SFxDocExt_NoMetadataSection5));
 
                     writer.WriteEndElement(); //HTML
                 }

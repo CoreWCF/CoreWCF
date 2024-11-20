@@ -134,6 +134,7 @@ namespace CoreWCF.Description
                     SetExtensionProperties(description, host, mex);
                 }
             }
+
         }
 
         private void SetExtensionProperties(ServiceDescription description, ServiceHostBase host, ServiceMetadataExtension mex)
@@ -170,12 +171,11 @@ namespace CoreWCF.Description
         }
 
         private static Uri GetFirstEndpointUriForScheme(string uriScheme, Uri configuredGetUrl, ServiceDescription description)
-            => configuredGetUrl
-                ?? description?.Endpoints?.FirstOrDefault(endpoint =>
-                        string.Equals(endpoint?.Address?.Uri?.Scheme, uriScheme, StringComparison.Ordinal))
-                   ?.Address?.Uri
-                ?? new Uri(string.Empty, UriKind.Relative);
-
+    => configuredGetUrl
+        ?? description?.Endpoints?.FirstOrDefault(endpoint =>
+                string.Equals(endpoint?.Address?.Uri?.Scheme, uriScheme, StringComparison.Ordinal))
+           ?.Address?.Uri
+        ?? new Uri(string.Empty, UriKind.Relative);
         private static EndpointDispatcher GetListenerByID(SynchronizedCollection<ChannelDispatcherBase> channelDispatchers, string id)
         {
             for (int i = 0; i < channelDispatchers.Count; ++i)
@@ -364,6 +364,7 @@ namespace CoreWCF.Description
                                 {
                                     continue;
                                 }
+
                                 ServiceEndpoint exportedEndpoint = new ServiceEndpoint(endpoint.Contract)
                                 {
                                     Binding = endpoint.Binding,
@@ -405,6 +406,7 @@ namespace CoreWCF.Description
                                 {
                                     continue;
                                 }
+
                                 exporter.ExportEndpoint(endpoint);
                             }
                         }
