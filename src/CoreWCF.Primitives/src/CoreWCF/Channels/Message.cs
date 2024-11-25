@@ -751,7 +751,14 @@ namespace CoreWCF.Channels
             // otherwise EnsureWriteMessageState would get called twice. Also see OnWriteMessage()
             // for the example.
             await OnWriteBodyContentsAsync(writer);
-            await WriteMessagePostambleAsync(writer);
+            if (writer.SupportsAsync())
+            {
+                await WriteMessagePostambleAsync(writer);
+            }
+            else
+            {
+                WriteMessagePostamble(writer);
+            }
         }
 
         private void EnsureWriteMessageState(XmlDictionaryWriter writer)
