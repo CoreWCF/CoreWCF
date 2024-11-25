@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
@@ -187,7 +188,7 @@ namespace CoreWCF.Http.Tests
 
         private void AsyncOnlyMtomStreamingService()
         {
-            // Binary data should be large enough to trigger XOP include.
+            // Binary data should be large enough to avoid inlining and trigger XOP include.
             string largeText = new('a', 1024 * 100);
 
             IMessageContractStreamInReturnService clientProxy = GetMtomStreamingProxy<IMessageContractStreamInReturnService>();

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using CoreWCF.Http.Tests.Helpers;
+using System.Threading.Tasks;
 
 namespace Helpers
 {
@@ -304,11 +305,16 @@ namespace Helpers
             return stream;
         }
 
-        public static Stream GetAsncStreamWithStringBytes(string s)
+        public static Stream GetAsyncStreamWithStringBytes(string s)
         {
             Stream inner = new MemoryStream();
             PopulateStreamWithStringBytes(inner, s);
+#if NETFRAMEWORK
+            // .NET Framework XmlWriter does not seem to support the async API's.
+            return inner;
+#else
             return new AsyncOnlyStream(inner);
+#endif
         }
 
         public static string GetStringFrom(Stream s)

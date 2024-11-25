@@ -561,7 +561,14 @@ namespace CoreWCF.Channels
                 await xmlWriter.WriteEndDocumentAsync();
             }
 
-            await xmlWriter.FlushAsync();
+            if (xmlWriter.SupportsAsync())
+            {
+                await xmlWriter.FlushAsync();
+            }
+            else
+            {
+                xmlWriter.Flush();
+            }
             _factory.ReturnStreamedWriter(xmlWriter);
 
             // if (WcfEventSource.Instance.StreamedMessageWrittenByEncoderIsEnabled())

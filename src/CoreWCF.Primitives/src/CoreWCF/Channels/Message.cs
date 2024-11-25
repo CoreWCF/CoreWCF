@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
+using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Xml;
 
@@ -835,18 +837,8 @@ namespace CoreWCF.Channels
         {
             if (Version.Envelope != EnvelopeVersion.None)
             {
-                // Unfortunately not every XmlWriter supports asynchronous IO.
-                // And there's no API to check for this.
-                if (writer is IAsyncXmlWriter)
-                {
-                    await writer.WriteEndElementAsync();
-                    await writer.WriteEndElementAsync();
-                }
-                else
-                {
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                }
+                await writer.WriteEndElementAsync();
+                await writer.WriteEndElementAsync();
             }
         }
 
@@ -1193,7 +1185,15 @@ namespace CoreWCF.Channels
         {
             WriteMessagePreamble(writer);
             await OnWriteBodyContentsAsync(writer);
-            await WriteMessagePostambleAsync(writer);
+
+            if (writer.SupportsAsync())
+            {
+                await WriteMessagePostambleAsync(writer);
+            }
+            else
+            {
+                WriteMessagePostamble(writer);
+            }
         }
 
         internal override Task OnWriteBodyContentsAsync(XmlDictionaryWriter writer)
