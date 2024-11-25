@@ -11,6 +11,7 @@ using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using CoreWCF.Xml;
 
 namespace CoreWCF.Channels
 {
@@ -834,8 +835,18 @@ namespace CoreWCF.Channels
         {
             if (Version.Envelope != EnvelopeVersion.None)
             {
-                await writer.WriteEndElementAsync();
-                await writer.WriteEndElementAsync();
+                // Unfortunately not every XmlWriter supports asynchronous IO.
+                // And there's no API to check for this.
+                if (writer is IAsyncXmlWriter)
+                {
+                    await writer.WriteEndElementAsync();
+                    await writer.WriteEndElementAsync();
+                }
+                else
+                {
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                }
             }
         }
 
