@@ -109,7 +109,7 @@ namespace Services
             string value = ServiceHelper.GetStringFrom(input.stream);
             var msg = new MessageContractStreamOneIntHeader
             {
-                input = ServiceHelper.GetAsncStreamWithStringBytes(value)
+                input = ServiceHelper.GetAsyncStreamWithStringBytes(value)
             };
             return msg;
         }
