@@ -15,6 +15,7 @@ namespace ServiceContract
     }
 
     [DataContract(Name = "HelloDatum", Namespace = "")]
+    [KnownType(typeof(DerivedClass))]
     public class SerializationDatum
     {
         [DataMember(Name = "NumericField", Order = 0)]
@@ -40,5 +41,22 @@ namespace ServiceContract
 
         [DataMember(Name = "UriField", Order = 7)]
         public Uri UriField { get; set; }
+
+        [DataMember(Name = "MultiTypeListField", Order = 8)]
+        public List<BaseClass> MultiTypeListField { get; set; }
+    }
+
+    [DataContract(Name = "BaseClass", Namespace = "")]
+    public class BaseClass
+    {
+        [DataMember(Name = "StringField", Order = 0)]
+        public string StringField { get; set; }
+    }
+
+    [DataContract(Name = "DerivedClass", Namespace = "")]
+    public class DerivedClass : BaseClass
+    {
+        [DataMember(Name = "NumericField", Order = 1)]
+        public int NumericField { get; set; }
     }
 }
