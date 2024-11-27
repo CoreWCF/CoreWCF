@@ -87,7 +87,12 @@ namespace CoreWCF.WebHttp.Tests
                     TimeSpanField = TimeSpan.FromMilliseconds(10),
                     DateTimeOffsetField = new DateTimeOffset(new DateTime(2022, 02, 02)),
                     GuidField = new Guid("166d37d2-e712-4233-96e7-8cd1d40e9da2"),
-                    UriField = new Uri("http://microsoft.com")
+                    UriField = new Uri("http://microsoft.com"),
+                    MultiTypeListField = new List<ServiceContract.BaseClass>()
+                    {
+                        new ServiceContract.BaseClass() { StringField = "base" },
+                        new ServiceContract.DerivedClass() { StringField = "derived", NumericField = 2 }
+                    }
                 }
             }
         };
@@ -104,6 +109,12 @@ namespace CoreWCF.WebHttp.Tests
             Assert.Equal(new DateTimeOffset(new DateTime(2022, 02, 02)), responseDatum.DateTimeOffsetField);
             Assert.Equal(new Guid("166d37d2-e712-4233-96e7-8cd1d40e9da2"), responseDatum.GuidField);
             Assert.Equal(new Uri("http://microsoft.com"), responseDatum.UriField);
+            Assert.Equal(2, responseDatum.MultiTypeListField.Count);
+            Assert.IsType<ServiceContract.BaseClass>(responseDatum.MultiTypeListField[0]);
+            Assert.IsType<ServiceContract.DerivedClass>(responseDatum.MultiTypeListField[1]);
+            Assert.Equal("base", responseDatum.MultiTypeListField[0].StringField);
+            Assert.Equal("derived", responseDatum.MultiTypeListField[1].StringField);
+            Assert.Equal(2, ((ServiceContract.DerivedClass)responseDatum.MultiTypeListField[1]).NumericField);
         }
 
         internal class Startup

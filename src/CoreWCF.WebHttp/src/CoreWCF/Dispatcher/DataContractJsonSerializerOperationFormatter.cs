@@ -21,7 +21,7 @@ namespace CoreWCF.Dispatcher
         private static readonly DataContractFormatAttribute s_defaultDataContractFormatAttribute = new DataContractFormatAttribute();
 
         public DataContractJsonSerializerOperationFormatter(OperationDescription description, int maxItemsInObjectGraph, bool ignoreExtensionDataObject, bool isWrapped, bool useAspNetAjaxJson, string callbackParameterName)
-            : base(description, s_defaultDataContractFormatAttribute, new DataContractJsonSerializerOperationBehavior(description, maxItemsInObjectGraph, ignoreExtensionDataObject, useAspNetAjaxJson ? EmitTypeInformation.Always : EmitTypeInformation.Never))
+            : base(description, s_defaultDataContractFormatAttribute, new DataContractJsonSerializerOperationBehavior(description, maxItemsInObjectGraph, ignoreExtensionDataObject, useAspNetAjaxJson))
         {
             if (requestMessageInfo != null)
             {

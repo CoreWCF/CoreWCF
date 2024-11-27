@@ -12,7 +12,12 @@ namespace Helpers
     {
         public static string SerializeJson<T>(T data)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(
+                typeof(T),
+                new DataContractJsonSerializerSettings
+                {
+                    EmitTypeInformation = EmitTypeInformation.AsNeeded
+                });
             using MemoryStream stream = new MemoryStream();
             serializer.WriteObject(stream, data);
 
@@ -21,7 +26,12 @@ namespace Helpers
 
         public static T DeserializeJson<T>(string json)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(
+                typeof(T),
+                new DataContractJsonSerializerSettings
+                {
+                    EmitTypeInformation = EmitTypeInformation.AsNeeded
+                });
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
             return (T)serializer.ReadObject(stream);
