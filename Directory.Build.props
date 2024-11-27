@@ -80,7 +80,7 @@
     </PackageReference>
     <!-- Include license file in packages -->
     <!-- Set an empty PackagePath to place this file in the root of the package -->
-    <Content Include="$(ProjectDir)LICENSE" Pack="true" PackagePath="" />
+    <None Include="$(ProjectDir)LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <!-- Configuring strong name signing -->
