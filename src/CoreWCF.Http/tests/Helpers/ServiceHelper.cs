@@ -21,6 +21,8 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
+using CoreWCF.Http.Tests.Helpers;
+using System.Threading.Tasks;
 
 namespace Helpers
 {
@@ -126,6 +128,7 @@ namespace Helpers
             CreateBaseWebHostBuilder<TStartup>(outputHelper, callerMethodName)
             .UseKestrel(options =>
             {
+                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -300,6 +303,18 @@ namespace Helpers
             Stream stream = new NoneSerializableStream();
             PopulateStreamWithStringBytes(stream, s);
             return stream;
+        }
+
+        public static Stream GetAsyncStreamWithStringBytes(string s)
+        {
+            Stream inner = new MemoryStream();
+            PopulateStreamWithStringBytes(inner, s);
+#if NETFRAMEWORK
+            // .NET Framework XmlWriter does not seem to support the async API's.
+            return inner;
+#else
+            return new AsyncOnlyStream(inner);
+#endif
         }
 
         public static string GetStringFrom(Stream s)
