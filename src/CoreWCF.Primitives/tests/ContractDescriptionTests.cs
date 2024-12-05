@@ -15,8 +15,19 @@ namespace CoreWCF.Primitives.Tests
             ContractDescription.GetContract<MessagePropertyService>(typeof(IMessagePropertyService));
         }
 
+        [Fact]
+        public void ValidateInheritedContractWithAuthorizeRoleAttributeCanBeConstructed()
+        {
+            ContractDescription.GetContract<MessagePropertyService2>(typeof(IMessagePropertyService));
+        }
+
+        private class MessagePropertyService2 : MessagePropertyService
+        {
+        }
+
         public class MessagePropertyService : IMessagePropertyService
         {
+            [AuthorizeRole]
             public SimpleResponse Request(SimpleRequest request)
             {
                 return new SimpleResponse
