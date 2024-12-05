@@ -221,7 +221,10 @@ namespace CoreWCF.Description
                         GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
-                            opDesc.AuthorizeOperation.Add(toAdd[j]);
+                            if (!opDesc.AuthorizeOperation.Contains(toAdd[j].GetType()))
+                            {
+                                opDesc.AuthorizeOperation.Add(toAdd[j]);
+                            }
                         }
                     });
             }
