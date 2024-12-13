@@ -86,11 +86,14 @@ namespace CoreWCF.Dispatcher
             _processMessageCleanupError = new MessageRpcErrorHandler(ProcessMessageCleanupError);
 
             _actionMappings = new Dictionary<string, ActionMetadata>();
-            foreach (var clientOperation in dispatch.ClientRuntime.ClientOperations)
+            if (dispatch.ClientRuntime != null)
             {
-                _actionMappings[clientOperation.Action] = new ActionMetadata(
-                    contractName: $"{dispatch.ClientRuntime.ContractNamespace}{dispatch.ClientRuntime.ContractName}",
-                    operationName: clientOperation.Name);
+                foreach (var clientOperation in dispatch.ClientRuntime.ClientOperations)
+                {
+                    _actionMappings[clientOperation.Action] = new ActionMetadata(
+                        contractName: $"{dispatch.ClientRuntime.ContractNamespace}{dispatch.ClientRuntime.ContractName}",
+                        operationName: clientOperation.Name);
+                }
             }
         }
 
