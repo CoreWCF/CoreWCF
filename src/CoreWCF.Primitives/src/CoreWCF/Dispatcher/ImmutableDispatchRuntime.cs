@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
+using CoreWCF.Telemetry;
 
 namespace CoreWCF.Dispatcher
 {
@@ -24,6 +26,9 @@ namespace CoreWCF.Dispatcher
         private readonly ThreadBehavior _thread;
         private readonly MessageRpcErrorHandler _processMessageNonCleanupError;
         private readonly MessageRpcErrorHandler _processMessageCleanupError;
+        private readonly Dictionary<string, ActionMetadata> _actionMappings;
+
+        private Activity? _activity;
 
         internal ImmutableDispatchRuntime(DispatchRuntime dispatch)
         {
@@ -79,6 +84,14 @@ namespace CoreWCF.Dispatcher
 
             _processMessageNonCleanupError = new MessageRpcErrorHandler(ProcessMessageNonCleanupError);
             _processMessageCleanupError = new MessageRpcErrorHandler(ProcessMessageCleanupError);
+
+            _actionMappings = new Dictionary<string, ActionMetadata>();
+            foreach (var clientOperation in dispatch.ClientRuntime.ClientOperations)
+            {
+                _actionMappings[clientOperation.Action] = new ActionMetadata(
+                    contractName: $"{dispatch.ClientRuntime.ContractNamespace}{dispatch.ClientRuntime.ContractName}",
+                    operationName: clientOperation.Name);
+            }
         }
 
         internal int CallContextCorrelationOffset
@@ -409,6 +422,35 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
+            if (_activity != null)
+            {
+                var reply = rpc.Reply;
+                if (_activity.IsAllDataRequested && reply != null)
+                {
+                    if (reply.IsFault)
+                    {
+                        _activity.SetStatus(ActivityStatusCode.Error);
+                    }
+
+                    _activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                    try
+                    {
+                        WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(_activity, "BeforeSendReply", reply);
+                    }
+                    catch (Exception ex)
+                    {
+                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                    }
+                }
+
+                _activity.Stop();
+
+                // if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
+                // {
+                //     Baggage.Current = default;
+                // }
+            }
+
             BeforeSendReply(rpc, ref exception, ref thereIsAnUnhandledException);
 
             if (rpc.Operation.IsOneWay)
@@ -571,6 +613,8 @@ namespace CoreWCF.Dispatcher
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
 
+            _activity = CreateActivity(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy, rpc.InstanceContext);
+
             AfterReceiveRequest(ref rpc);
 
             await _concurrency.LockInstanceAsync(rpc);
@@ -658,6 +702,90 @@ namespace CoreWCF.Dispatcher
             }
 
             return rpc;
+        }
+
+        private Activity CreateActivity(ref Message request, IClientChannel channel, InstanceContext instanceContext)
+        {
+             try
+        {
+            if (WcfInstrumentationActivitySource.Options == null || WcfInstrumentationActivitySource.Options.IncomingRequestFilter?.Invoke(request) == false)
+            {
+                WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            WcfInstrumentationEventSource.Log.RequestFilterException(ex);
+            return null;
+        }
+
+        // var textMapPropagator = Propagators.DefaultTextMapPropagator;
+        // var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
+
+        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+            WcfInstrumentationActivitySource.IncomingRequestActivityName,
+            ActivityKind.Server);
+            // ctx.ActivityContext);
+
+        if (activity != null)
+        {
+            string action;
+            if (!string.IsNullOrEmpty(request.Headers.Action))
+            {
+                action = request.Headers.Action;
+                activity.DisplayName = action;
+            }
+            else
+            {
+                action = string.Empty;
+            }
+
+            if (activity.IsAllDataRequested)
+            {
+                activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
+
+                if (!this._actionMappings.TryGetValue(action, out var actionMetadata))
+                {
+                    actionMetadata = new ActionMetadata(
+                        contractName: null,
+                        operationName: action);
+                }
+
+                activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
+                activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
+
+                if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
+                {
+                    activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
+                }
+
+                var localAddressUri = channel.LocalAddress?.Uri;
+                if (localAddressUri != null)
+                {
+                    activity.SetTag(WcfInstrumentationConstants.NetHostNameTag, localAddressUri.Host);
+                    activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, localAddressUri.Port);
+                    activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
+                    activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
+                }
+
+                try
+                {
+                    WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, "AfterReceiveRequest", request);
+                }
+                catch (Exception ex)
+                {
+                    WcfInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
+            }
+
+            // if (textMapPropagator is not TraceContextPropagator)
+            // {
+            //     Baggage.Current = ctx.Baggage;
+            // }
+        }
+
+        return activity;
         }
 
         private async Task ProcessError(MessageRpc rpc)
