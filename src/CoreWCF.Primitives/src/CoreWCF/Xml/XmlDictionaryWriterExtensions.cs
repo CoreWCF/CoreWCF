@@ -13,8 +13,11 @@ namespace CoreWCF.Xml
         internal static bool SupportsAsync(this XmlDictionaryWriter writer)
         {
             // Unfortunately not every XmlWriter supports asynchronous IO.
-            // And there's no API to check for this.
-            return s_frameworkSupportsAsyncWriteOperations && writer is IAsyncXmlWriter;
+            // And there's no easy API to check for this.
+            //
+            // writer.Settings.Async is often null, so also not reliable
+            return s_frameworkSupportsAsyncWriteOperations &&
+                (writer is IAsyncXmlWriter || (writer.Settings?.Async ?? false));
         }
     }
 }
