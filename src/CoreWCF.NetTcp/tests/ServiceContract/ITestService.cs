@@ -9,11 +9,24 @@ namespace ServiceContract
     {
         public const string NS = "http://tempuri.org/";
         public const string TESTSERVICE_NAME = nameof(ITestService);
+        public const string AUTHORIZATION_SERVICE_NAME = nameof(ITestAuthorizationService);
         public const string OPERATION_BASE = NS + TESTSERVICE_NAME + "/";
     }
 
+    [ServiceContract(Namespace = Constants.NS, Name = Constants.AUTHORIZATION_SERVICE_NAME)]
+    public interface ITestAuthorizationService
+    {
+        [OperationContract(Name = "EchoForAuthorizarionOneRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRoleResponse")]
+        string EchoForAuthorizarionOneRole(string echo);
+
+        [OperationContract(Name = "EchoForAuthorizarionNoRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRole",
+        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRoleResponse")]
+        string EchoForAuthorizarionNoRole(string echo);
+    }
+
     [ServiceContract(Namespace = Constants.NS, Name = Constants.TESTSERVICE_NAME)]
-    public interface ITestService
+    public interface ITestService : ITestAuthorizationService
     {
         [OperationContract(Name = "Echo", Action = Constants.OPERATION_BASE + "Echo",
             ReplyAction = Constants.OPERATION_BASE + "EchoResponse")]
@@ -46,13 +59,5 @@ namespace ServiceContract
         [OperationContract(Name = "EchoForImpersonation", Action = Constants.OPERATION_BASE + "EchoForImpersonation",
         ReplyAction = Constants.OPERATION_BASE + "EchoForImpersonationResponse")]
         string EchoForImpersonation(string echo);
-
-        [OperationContract(Name = "EchoForAuthorizarionOneRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRole",
-        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionOneRoleResponse")]
-        string EchoForAuthorizarionOneRole(string echo);
-
-        [OperationContract(Name = "EchoForAuthorizarionNoRole", Action = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRole",
-        ReplyAction = Constants.OPERATION_BASE + "EchoForAuthorizarionNoRoleResponse")]
-        string EchoForAuthorizarionNoRole(string echo);
     }
 }
