@@ -226,7 +226,7 @@ namespace CoreWCF.Dispatcher
                     KnownTypes = _knownTypes,
                     MaxItemsInObjectGraph = _maxItemsInObjectGraph,
                     IgnoreExtensionDataObject = _ignoreExtensionData,
-                    EmitTypeInformation = EmitTypeInformation.Never
+                    EmitTypeInformation = EmitTypeInformation.AsNeeded
                 });
             }
             else

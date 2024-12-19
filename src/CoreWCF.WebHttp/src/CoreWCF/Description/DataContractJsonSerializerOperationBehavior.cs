@@ -11,15 +11,14 @@ namespace CoreWCF.Description
 {
     internal class DataContractJsonSerializerOperationBehavior : DataContractSerializerOperationBehavior
     {
-        private readonly EmitTypeInformation _emitTypeInformation;
+        private readonly bool _alwaysEmitTypeInformation;
 
-        public DataContractJsonSerializerOperationBehavior(OperationDescription description, int maxItemsInObjectGraph, bool ignoreExtensionDataObject, EmitTypeInformation emitTypeInformation)
+        public DataContractJsonSerializerOperationBehavior(OperationDescription description, int maxItemsInObjectGraph, bool ignoreExtensionDataObject, bool alwaysEmitTypeInformation)
             : base(description)
         {
             MaxItemsInObjectGraph = maxItemsInObjectGraph;
             IgnoreExtensionDataObject = ignoreExtensionDataObject;
-
-            _emitTypeInformation = emitTypeInformation;
+            _alwaysEmitTypeInformation = alwaysEmitTypeInformation;
         }
 
         public override XmlObjectSerializer CreateSerializer(Type type, string name, string ns, IList<Type> knownTypes)
@@ -30,7 +29,7 @@ namespace CoreWCF.Description
                 KnownTypes = knownTypes,
                 MaxItemsInObjectGraph = MaxItemsInObjectGraph,
                 IgnoreExtensionDataObject = IgnoreExtensionDataObject,
-                EmitTypeInformation = _emitTypeInformation
+                EmitTypeInformation = _alwaysEmitTypeInformation ? EmitTypeInformation.Always : EmitTypeInformation.AsNeeded
             });
         }
 
@@ -42,7 +41,7 @@ namespace CoreWCF.Description
                 KnownTypes = knownTypes,
                 MaxItemsInObjectGraph = MaxItemsInObjectGraph,
                 IgnoreExtensionDataObject = IgnoreExtensionDataObject,
-                EmitTypeInformation = _emitTypeInformation
+                EmitTypeInformation = _alwaysEmitTypeInformation ? EmitTypeInformation.Always : EmitTypeInformation.AsNeeded
             });
         }
     }

@@ -1165,14 +1165,12 @@ namespace CoreWCF.Description
 
                 protected override void Write(XmlWriter writer)
                 {
-                    writer.WriteStartDocument();
                     writer.WriteStartElement("discovery", "http://schemas.xmlsoap.org/disco/");
                     writer.WriteStartElement("contractRef", "http://schemas.xmlsoap.org/disco/scl/");
                     writer.WriteAttributeString("ref", _wsdlAddress);
                     writer.WriteAttributeString("docRef", _docAddress);
                     writer.WriteEndElement(); // </contractRef>
                     writer.WriteEndElement(); // </discovery>
-                    writer.WriteEndDocument();
                 }
             }
 
