@@ -31,7 +31,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 host.Start();
                 var netTcpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(netTcpBinding,
+                using var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(netTcpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"{host.GetNetTcpAddressInUse()}/EchoService.svc")));
                 var channel = factory.CreateChannel();
 
