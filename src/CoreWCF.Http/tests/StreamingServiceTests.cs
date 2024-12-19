@@ -4,12 +4,12 @@
 using System;
 using System.IO;
 using System.ServiceModel;
-using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,15 +37,22 @@ namespace CoreWCF.Http.Tests
         //[InlineData("VoidStreamService")]
         //[InlineData("RefStreamService")] //issue: https://github.com/CoreWCF/CoreWCF/issues/196
         //[InlineData("StreamInOutService")]
-        [InlineData("StreamStreamAsyncService")]
-        [InlineData("InFileStreamService")]
-        [InlineData("ReturnFileStreamService")]
-        [InlineData("MessageContractStreamInOutService")]
-        [InlineData("MessageContractStreamMutipleOperationsService")]
-        [InlineData("AsyncOnlyMtomStreamingService")]
-        public void StreamingInputOutputTest(string method)
+        [InlineData("StreamStreamAsyncService", false)]
+        [InlineData("InFileStreamService", false)]
+        [InlineData("ReturnFileStreamService", false)]
+        [InlineData("MessageContractStreamInOutService", false)]
+        [InlineData("MessageContractStreamMutipleOperationsService", false)]
+        [InlineData("AsyncOnlyMtomStreamingService", true)] // XmlMtomReader still uses sync IO. Writing should be fully async.
+        public void StreamingInputOutputTest(string method, bool allowSynchronousIo)
         {
-            _host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHostBuilder builder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
+
+            if (allowSynchronousIo)
+            {
+                builder.AllowSynchronousIO();
+            }
+
+            _host = builder.Build();
             Startup._method = method;
             using (_host)
             {
@@ -92,6 +99,7 @@ namespace CoreWCF.Http.Tests
             T proxy = channelFactory.CreateChannel();
             return proxy;
         }
+
         private T GetMtomStreamingProxy<T>()
         {
             System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetMtomStreamedModeBinding();
