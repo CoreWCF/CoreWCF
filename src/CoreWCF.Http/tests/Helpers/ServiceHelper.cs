@@ -19,8 +19,10 @@ using System.Text;
 using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
+using CoreWCF.Http.Tests.Helpers;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers
 {
@@ -246,6 +248,18 @@ namespace Helpers
                 .UseStartup(startupType);
         }
 
+        public static IWebHostBuilder AllowSynchronousIO(this IWebHostBuilder webHostBuilder)
+        {
+            webHostBuilder.ConfigureServices(services =>
+            {
+                services.Configure<KestrelServerOptions>(options =>
+                {
+                    options.AllowSynchronousIO = true;
+                });
+            });
+            return webHostBuilder;
+        }
+
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
         {
             foreach (System.ServiceModel.ICommunicationObject comObj in objects)
@@ -300,6 +314,15 @@ namespace Helpers
             Stream stream = new NoneSerializableStream();
             PopulateStreamWithStringBytes(stream, s);
             return stream;
+        }
+
+        public static Stream GetAsyncStreamWithStringBytes(string s)
+        {
+            Stream inner = new MemoryStream();
+            PopulateStreamWithStringBytes(inner, s);
+
+            // .NET Framework XmlWriter does not seem to support the async API's.
+            return Environment.Version.Major >= 6 ? new AsyncOnlyStream(inner) : inner;
         }
 
         public static string GetStringFrom(Stream s)
