@@ -19,10 +19,10 @@ using System.Text;
 using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using CoreWCF.Http.Tests.Helpers;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helpers
 {
@@ -128,7 +128,6 @@ namespace Helpers
             CreateBaseWebHostBuilder<TStartup>(outputHelper, callerMethodName)
             .UseKestrel(options =>
             {
-                options.AllowSynchronousIO = true;
                 options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
                     if (Debugger.IsAttached)
@@ -247,6 +246,18 @@ namespace Helpers
                     options.ValidateScopes = context.HostingEnvironment.IsDevelopment();
                 })
                 .UseStartup(startupType);
+        }
+
+        public static IWebHostBuilder AllowSynchronousIO(this IWebHostBuilder webHostBuilder)
+        {
+            webHostBuilder.ConfigureServices(services =>
+            {
+                services.Configure<KestrelServerOptions>(options =>
+                {
+                    options.AllowSynchronousIO = true;
+                });
+            });
+            return webHostBuilder;
         }
 
         public static void CloseServiceModelObjects(params System.ServiceModel.ICommunicationObject[] objects)
