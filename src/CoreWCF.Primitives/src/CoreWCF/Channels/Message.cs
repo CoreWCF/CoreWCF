@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
-using CoreWCF.IdentityModel.Tokens;
 using CoreWCF.Runtime;
 using CoreWCF.Xml;
 
