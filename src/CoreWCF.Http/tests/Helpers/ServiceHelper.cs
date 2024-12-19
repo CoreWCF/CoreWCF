@@ -320,12 +320,9 @@ namespace Helpers
         {
             Stream inner = new MemoryStream();
             PopulateStreamWithStringBytes(inner, s);
-#if NETFRAMEWORK
+
             // .NET Framework XmlWriter does not seem to support the async API's.
-            return inner;
-#else
-            return new AsyncOnlyStream(inner);
-#endif
+            return Environment.Version.Major >= 6 ? new AsyncOnlyStream(inner) : inner;
         }
 
         public static string GetStringFrom(Stream s)
