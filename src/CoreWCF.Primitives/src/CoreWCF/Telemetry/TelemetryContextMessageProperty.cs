@@ -7,11 +7,11 @@ namespace CoreWCF.Telemetry;
 
 internal sealed class TelemetryContextMessageProperty
 {
-    public const string Name = "OpenTelemetry.Instrumentation.Wcf.Implementation.TelemetryContextMessageProperty";
+    public const string Name = "CoreWCF.Telemetry.TelemetryContextMessageProperty";
 
     public TelemetryContextMessageProperty(IDictionary<string, ActionMetadata> actionMappings)
     {
-        this.ActionMappings = actionMappings;
+        ActionMappings = actionMappings;
     }
 
     public IDictionary<string, ActionMetadata> ActionMappings { get; set; }
