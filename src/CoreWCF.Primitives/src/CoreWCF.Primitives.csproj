@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.35.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="6.35.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.33" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
     <PackageReference Include="System.DirectoryServices" Version="6.0.1" />
     <PackageReference Include="System.DirectoryServices.Protocols" Version="6.0.2" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />

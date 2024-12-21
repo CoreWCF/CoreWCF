@@ -7,8 +7,8 @@ internal sealed class ActionMetadata
 {
     public ActionMetadata(string? contractName, string operationName)
     {
-        this.ContractName = contractName;
-        this.OperationName = operationName;
+        ContractName = contractName;
+        OperationName = operationName;
     }
 
     public string? ContractName { get; set; }
