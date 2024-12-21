@@ -439,7 +439,7 @@ namespace CoreWCF.Description
             }
         }
 
-        internal class HttpGetImpl
+        public class HttpGetImpl
         {
             private const string DiscoToken = "disco token";
             private const string DiscoQueryString = "disco";
@@ -1152,7 +1152,7 @@ namespace CoreWCF.Description
             #endregion static helpers
 
             #region Helper Message implementations
-            private class DiscoResult : MetadataResult
+            public class DiscoResult : MetadataResult
             {
                 private readonly string _wsdlAddress;
                 private readonly string _docAddress;
@@ -1504,7 +1504,7 @@ SR.SFxDocExt_NoMetadataSection5        ));
                 }
             }
 
-            internal abstract class MetadataResult
+            public abstract class MetadataResult
             {
                 public async Task WriteResponseAsync(HttpResponse response)
                 {
