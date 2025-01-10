@@ -218,5 +218,48 @@ namespace CoreWCF.Metadata.Tests.Helpers
             }
         }
 
+        internal static async Task RunDiscoTestAsync<TService, TContract>(Binding binding, ITestOutputHelper output,
+            Action<IServiceCollection> configureServices = null,
+            Action<HttpClient> configureHttpClient = null,
+            string endpointAddress = null,
+            [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
+                 where TService : class
+        {
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+                binding,
+                EndpointRelativePath,
+                configureServices,
+                output,
+                callerMethodName)
+                .Build();
+
+            using (host)
+            {
+                await host.StartAsync();
+                var portHelper = host.Services.GetRequiredService<ListeningPortHelper>();
+                string metadataBaseAddress;
+                if (Uri.UriSchemeHttps.Equals(binding.Scheme))
+                {
+                    int port = portHelper.GetPortForScheme(Uri.UriSchemeHttps);
+                    if (port == 0)
+                    {
+                        Assert.Fail($"No port found for https scheme, available port mappings are: {portHelper}");
+                    }
+                    metadataBaseAddress = $"https://localhost:{port}" + EndpointRelativePath;
+                }
+                else
+                {
+                    int port = portHelper.GetPortForScheme(Uri.UriSchemeHttp);
+                    if (port == 0)
+                    {
+                        Assert.Fail($"No port found for http scheme, available port mappings are: {portHelper}");
+                    }
+                    metadataBaseAddress = $"http://localhost:{port}" + EndpointRelativePath;
+                }
+
+                await DiscoHelper.ValidateDiscoDocument(metadataBaseAddress, callerMethodName, sourceFilePath, configureHttpClient);
+            }
+        }
     }
 }
