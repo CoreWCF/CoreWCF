@@ -24,7 +24,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             var singleWsdlPath = serviceMetadataPath + "?singleWsdl";
             string generatedWsdlTxt = string.Empty;
             // As a new ASP.NET Core service is started for each test, there's no benefit from
-            // cachine an HttpClient instance as idle sockets will be closed.
+            // cachine an HttpClient instance as a new port will be used and idle sockets will be closed.
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
             using (var client = new HttpClient(httpClientHandler))
@@ -68,8 +68,6 @@ namespace CoreWCF.Metadata.Tests.Helpers
         {
             var serviceBaseAddress = serviceBaseAddresses.Where(uri => uri.Scheme == Uri.UriSchemeHttp).Single();
             var singleWsdlUriBuilder = new UriBuilder(serviceBaseAddress);
-            singleWsdlUriBuilder.Host = serviceBaseAddress.Host;
-            singleWsdlUriBuilder.Port = serviceBaseAddress.Port;
             singleWsdlUriBuilder.Query = "singleWsdl";
             var singleWsdlPath = singleWsdlUriBuilder.ToString();
             string generatedWsdlTxt = string.Empty;
