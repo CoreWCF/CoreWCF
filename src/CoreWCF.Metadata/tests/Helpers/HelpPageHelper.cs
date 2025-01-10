@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Helpers
 {
-    internal class HelpPageHelper
+    internal static class HelpPageHelper
     {
         internal static async Task ValidateHelpPage(string serviceMetadataPath, string callerMethodName, string sourceFilePath, Action<HttpClient> configureHttpClient = null)
         {
