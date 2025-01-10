@@ -63,7 +63,7 @@ namespace CoreWCF.Metadata.Tests
                 ["Basic256"] = CreateBindingUsingAglgorithmSuite(SecurityAlgorithmSuite.Basic256),
                 ["Basic256Sha256"] = CreateBindingUsingAglgorithmSuite(SecurityAlgorithmSuite.Basic256Sha256)
             };
-            await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(bindingEndpointMap, new Uri[] { new Uri("http://localhost:8080/wsHttp"), new Uri("https://localhost:8443/wsHttp") }, _output);
+            await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(bindingEndpointMap, new Uri[] { new Uri("http://localhost/wsHttp"), new Uri("https://localhost/wsHttp") }, _output);
         }
 
         private Binding CreateBindingUsingAglgorithmSuite(SecurityAlgorithmSuite suite)

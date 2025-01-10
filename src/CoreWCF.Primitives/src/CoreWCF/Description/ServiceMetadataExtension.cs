@@ -14,9 +14,7 @@ using System.Xml.Schema;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 using WsdlNS = System.Web.Services.Description;
 
 namespace CoreWCF.Description
@@ -1165,12 +1163,14 @@ namespace CoreWCF.Description
 
                 protected override void Write(XmlWriter writer)
                 {
+                    writer.WriteStartDocument();
                     writer.WriteStartElement("discovery", "http://schemas.xmlsoap.org/disco/");
                     writer.WriteStartElement("contractRef", "http://schemas.xmlsoap.org/disco/scl/");
                     writer.WriteAttributeString("ref", _wsdlAddress);
                     writer.WriteAttributeString("docRef", _docAddress);
                     writer.WriteEndElement(); // </contractRef>
                     writer.WriteEndElement(); // </discovery>
+                    writer.WriteEndDocument();
                 }
             }
 
@@ -1512,14 +1512,9 @@ SR.SFxDocExt_NoMetadataSection5        ));
                     using (var memoryStream = new MemoryStream())
                     {
                         var utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-                        using (var textWriter = new StreamWriter(memoryStream, encoding: utf8NoBomEncoding, bufferSize: 1024, leaveOpen: true))
+                        using (var xmlTextWriter = XmlDictionaryWriter.CreateTextWriter(memoryStream, utf8NoBomEncoding, false))
                         {
-                            using (var xmlTextWriter = XmlWriter.Create(textWriter, new XmlWriterSettings { Indent = false, OmitXmlDeclaration = false }))
-                            {
-                                xmlTextWriter.WriteStartDocument();
-                                Write(xmlTextWriter);
-                                xmlTextWriter.WriteEndDocument();
-                            }
+                            Write(xmlTextWriter);
                         }
                         memoryStream.Position = 0;
                         await memoryStream.CopyToAsync(response.Body);

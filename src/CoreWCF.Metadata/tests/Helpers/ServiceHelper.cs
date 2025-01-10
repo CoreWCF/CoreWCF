@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
+using Xunit;
+
 #if NET472
 using System.Security.Authentication;
 #endif // NET472
@@ -48,17 +50,32 @@ namespace Helpers
                 },
                 app =>
                 {
+                    var portHelper = app.ApplicationServices.GetRequiredService<ListeningPortHelper>();
                     app.UseServiceModel(serviceBuilder =>
                     {
-                        serviceBuilder.AddService<TService>();
+                        serviceBuilder.AddService<TService>(options =>
+                        {
+                            options.BaseAddresses.Clear();
+                            foreach(var scheme in portHelper.Schemes)
+                            {
+                                options.BaseAddresses.Add(new Uri($"{scheme}://localhost:{portHelper.GetPortForScheme(scheme)}"));
+                            }
+                        });
                         serviceBuilder.AddServiceEndpoint<TService, TContract>(customBinding, url);
                     });
                     var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
-                    serviceMetadataBehavior.HttpGetEnabled = true;
-                    serviceMetadataBehavior.HttpsGetEnabled = true;
-                    // If we aren't testing an HTTP based binding, then need to explicitly set the WSDL url using the path
-                    if (!Uri.UriSchemeHttp.Equals(transportScheme) && !Uri.UriSchemeHttps.Equals(transportScheme))
+                    if (transportScheme == Uri.UriSchemeHttp)
                     {
+                        serviceMetadataBehavior.HttpGetEnabled = true;
+                    }
+                    else if (transportScheme == Uri.UriSchemeHttps)
+                    {
+                        serviceMetadataBehavior.HttpsGetEnabled = true;
+                    }
+                    else
+                    {
+                        serviceMetadataBehavior.HttpGetEnabled = true;
+                        // If we aren't testing an HTTP based binding, then need to explicitly set the WSDL url using the path
                         serviceMetadataBehavior.HttpGetUrl = new Uri($"http://localhost:{HttpListenPort}{url}");
                     }
                 });
@@ -82,21 +99,50 @@ namespace Helpers
                 {
                     app.UseServiceModel(serviceBuilder =>
                     {
+                        var portHelper = app.ApplicationServices.GetRequiredService<ListeningPortHelper>();
                         serviceBuilder.AddService<TService1>(serviceOptions =>
                         {
-                            serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{HttpListenPort}/1{url}"));
-                            if (Uri.UriSchemeHttp.Equals(customBinding1.Scheme))
+                            var baseAddressBuilder = new UriBuilder($"http://localhost/1{url}");
+                            baseAddressBuilder.Scheme = customBinding1.Scheme;
+                            var port = portHelper.GetPortForScheme(customBinding1.Scheme);
+                            if (port == 0)
                             {
-                                serviceOptions.BaseAddresses.Add(new Uri($"{customBinding1.Scheme}://localhost/1{url}"));
+                                Assert.Fail($"No port found for scheme {customBinding1.Scheme}, available port mappings are: {portHelper}");
+                            }
+                            baseAddressBuilder.Port = port;
+                            serviceOptions.BaseAddresses.Add(baseAddressBuilder.Uri);
+                            if (!customBinding1.Scheme.StartsWith(Uri.UriSchemeHttp))
+                            {
+                                // Binding isn't HTTP or HTTPS so need to add a second base address to support the metadata endpoint
+                                port = portHelper.GetPortForScheme(Uri.UriSchemeHttp);
+                                if (port == 0)
+                                {
+                                    Assert.Fail($"No port found for scheme {Uri.UriSchemeHttp}, available port mappings are: {portHelper}");
+                                }
+                                serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{port}/1{url}"));
                             }
                         });
                         serviceBuilder.AddServiceEndpoint<TService1, TContract1>(customBinding1, customBinding1.Scheme);
                         serviceBuilder.AddService<TService2>(serviceOptions =>
                         {
-                            serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{HttpListenPort}/2{url}"));
-                            if (Uri.UriSchemeHttp.Equals(customBinding2.Scheme))
+                            var baseAddressBuilder = new UriBuilder($"http://localhost:/2{url}");
+                            baseAddressBuilder.Scheme = customBinding2.Scheme;
+                            var port = portHelper.GetPortForScheme(customBinding2.Scheme);
+                            if (port == 0)
                             {
-                                serviceOptions.BaseAddresses.Add(new Uri($"{customBinding2.Scheme}://localhost/2{url}"));
+                                Assert.Fail($"No port found for scheme {customBinding2.Scheme}, available port mappings are: {portHelper}");
+                            }
+                            baseAddressBuilder.Port = port;
+                            serviceOptions.BaseAddresses.Add(baseAddressBuilder.Uri);
+                            if (!customBinding2.Scheme.StartsWith(Uri.UriSchemeHttp))
+                            {
+                                // Binding isn't HTTP or HTTPS so need to add a second base address to support the metadata endpoint
+                                port = portHelper.GetPortForScheme(Uri.UriSchemeHttp);
+                                if (port == 0)
+                                {
+                                    Assert.Fail($"No port found for scheme {Uri.UriSchemeHttp}, available port mappings are: {portHelper}");
+                                }
+                                serviceOptions.BaseAddresses.Add(new Uri($"http://localhost:{port}/2{url}"));
                             }
                         });
                         serviceBuilder.AddServiceEndpoint<TService2, TContract2>(customBinding2, customBinding2.Scheme);
@@ -120,11 +166,20 @@ namespace Helpers
                 {
                     app.UseServiceModel(serviceBuilder =>
                     {
+                        var portHelper = app.ApplicationServices.GetRequiredService<ListeningPortHelper>();
                         serviceBuilder.AddService<TService>(serviceOptions =>
                         {
                             foreach (var address in baseAddresses)
                             {
-                                serviceOptions.BaseAddresses.Add(address);
+                                var baseAddressBuilder = new UriBuilder(address);
+                                var port = portHelper.GetPortForScheme(baseAddressBuilder.Scheme);
+                                if (port == 0)
+                                {
+                                    Assert.Fail($"No port found for scheme {baseAddressBuilder.Scheme}, available port mappings are: {portHelper}");
+                                }
+
+                                baseAddressBuilder.Port = port;
+                                serviceOptions.BaseAddresses.Add(baseAddressBuilder.Uri);
                             }
                         });
                         foreach (var bindingEndpoint in bindingEndpointMap)
@@ -141,46 +196,49 @@ namespace Helpers
                         });
                     });
                     var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
-                    serviceMetadataBehavior.HttpGetEnabled = true;
-                    serviceMetadataBehavior.HttpsGetEnabled = true;
+                    var baseAddressSchemes = baseAddresses.Select(a => a.Scheme).ToArray();
+                    if (baseAddressSchemes.Contains(Uri.UriSchemeHttp))
+                    {
+                        serviceMetadataBehavior.HttpGetEnabled = true;
+                    }
 
+                    if (baseAddressSchemes.Contains(Uri.UriSchemeHttps))
+                    {
+                        serviceMetadataBehavior.HttpsGetEnabled = true;
+                    }
                 });
         }
 
-        internal static string GetEndpointBaseAddress(IWebHost host, Binding binding)
+        internal static string GetEndpointBaseAddress(IWebHost host, string transportScheme)
         {
-            string transportScheme = binding.Scheme;
-            ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
-            foreach (string address in addresses)
+            var portHelper = host.Services.GetRequiredService<ListeningPortHelper>();
+            IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(a => new Uri(a));
+            var listeningPort = portHelper.GetPortForScheme(transportScheme);
+            if (listeningPort == 0)
             {
-                var addressInUse = new Uri(address, UriKind.Absolute);
-                var port = addressInUse.Port;
-                if ("net.tcp".Equals(transportScheme, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (port == HttpListenPort || port == HttpsListenPort)
-                    {
-                        continue;
-                    }
-
-                    return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
-                }
-                else if ("http".Equals(transportScheme, StringComparison.OrdinalIgnoreCase) && port == HttpListenPort)
-                {
-                    return $"http://{addressInUse.Host}:{addressInUse.Port}";
-                }
-                else if ("https".Equals(transportScheme, StringComparison.OrdinalIgnoreCase) && port == HttpsListenPort)
-                {
-                    return $"https://{addressInUse.Host}:{addressInUse.Port}";
-                }
+                throw new InvalidOperationException($"No calculable listening port found for scheme {transportScheme}, known ports are {portHelper}");
             }
 
-            throw new InvalidOperationException($"There are no listening addresses for scheme {transportScheme}. Available addresses are {string.Join(", ", addresses)}");
+            var serverAddress = addresses.Single(a => a.Port == listeningPort);
+            var baseAddressUriBuilder = new UriBuilder(serverAddress);
+            baseAddressUriBuilder.Scheme = transportScheme;
+            if (baseAddressUriBuilder.Host == "127.0.0.1")
+            {
+                baseAddressUriBuilder.Host = "localhost";
+            }
+
+            return baseAddressUriBuilder.Uri.ToString();
         }
 
         private static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, IEnumerable<string> transportSchemes, string callerMethodName)
         {
             var schemesCollection = new HashSet<string>(transportSchemes, StringComparer.OrdinalIgnoreCase);
             var host = WebHost.CreateDefaultBuilder(Array.Empty<string>());
+            var listeningPortHelper = new ListeningPortHelper();
+            host.ConfigureServices(services =>
+            {
+                services.AddSingleton(listeningPortHelper);
+            });
 #if DEBUG
             host.ConfigureLogging((ILoggingBuilder logging) =>
             {
@@ -194,28 +252,28 @@ namespace Helpers
             host.UseKestrel(options =>
             {
                 // Always listen on http
-                options.ListenLocalhost(HttpListenPort, listenOptions =>
+                options.Listen(IPAddress.Loopback, 0, listenOptions =>
                 {
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
                     }
+                    listeningPortHelper.AddSchemeToPortDelegate(Uri.UriSchemeHttp, () => listenOptions?.IPEndPoint?.Port ?? 0 );
                 });
                 // Optionally listen on https port
                 bool useHttps = schemesCollection.Contains(Uri.UriSchemeHttps);
                 if (useHttps)
                 {
-                    options.ListenLocalhost(HttpsListenPort, listenOptions =>
+                    options.Listen(IPAddress.Loopback, 0, listenOptions =>
                     {
-                        if (useHttps)
+                        listenOptions.UseHttps(httpsOptions =>
                         {
-                            listenOptions.UseHttps(httpsOptions =>
-                            {
 #if NET472
-                                httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+                            httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 #endif // NET472
-                            });
-                        }
+                        });
+
+                        listeningPortHelper.AddSchemeToPortDelegate(Uri.UriSchemeHttps, () => listenOptions?.IPEndPoint?.Port ?? 0);
 
                         if (Debugger.IsAttached)
                         {
@@ -225,9 +283,15 @@ namespace Helpers
                 }
             });
 
-            if (schemesCollection.Contains("net.tcp"))
+            if (schemesCollection.Contains(Uri.UriSchemeNetTcp))
             {
-                host.UseNetTcp(IPAddress.Loopback, 0);
+                host.UseNetTcp(netTcpOptions =>
+                {
+                    netTcpOptions.Listen("net.tcp://127.0.0.1:0/", tcpOptions =>
+                    {
+                        listeningPortHelper.AddSchemeToPortDelegate(Uri.UriSchemeNetTcp, () => tcpOptions?.IPEndpoint?.Port ?? 0);
+                    });
+                });
             }
 
             return host;

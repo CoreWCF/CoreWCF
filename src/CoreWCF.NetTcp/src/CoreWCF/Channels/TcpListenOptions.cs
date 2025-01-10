@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
 using System.Security.Policy;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace CoreWCF.Channels
 {
@@ -21,6 +23,11 @@ namespace CoreWCF.Channels
         }
 
         public override IServiceProvider ApplicationServices => NetTcpServerOptions?.ApplicationServices;
+
+        // This is the Kestrel ListenOptions which will be used to create the listener, and can be used to get the IPEndpoint
+        internal ListenOptions ListenOptions { get; set; }
+
+        public IPEndPoint IPEndpoint => ListenOptions?.IPEndPoint;
 
         public NetTcpOptions NetTcpServerOptions { get; internal set; }
     }

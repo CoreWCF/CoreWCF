@@ -137,7 +137,7 @@ namespace CoreWCF.Description
             mex.HttpsGetEnabled = HttpsGetEnabled;
 
             mex.HttpGetUrl = host.GetVia(Uri.UriSchemeHttp, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpGetUrl, description));
-            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, GetFirstEndpointUriForScheme(Uri.UriSchemeHttp, _httpsGetUrl, description));
+            mex.HttpsGetUrl = host.GetVia(Uri.UriSchemeHttps, GetFirstEndpointUriForScheme(Uri.UriSchemeHttps, _httpsGetUrl, description));
 
             foreach (ChannelDispatcherBase dispatcherBase in host.ChannelDispatchers)
             {

@@ -166,6 +166,9 @@ namespace CoreWCF.Configuration
                     builder.UseConnectionHandler<NetMessageFramingConnectionHandler>();
                     // Save the ListenOptions to be able to get final port number for adding BaseAddresses later
                     ListenOptions.Add(builder);
+                    // Save the Kestrel ListenOptions in the TcpListenOptions to enable getting the final listening IPEndpoint
+                    // This helps to get the port number being used if specified as 0, after the server has started.
+                    tcpListenOptions.ListenOptions = builder;
                 });
             }
             //foreach (IPEndPoint endpoint in _options.EndPoints)
