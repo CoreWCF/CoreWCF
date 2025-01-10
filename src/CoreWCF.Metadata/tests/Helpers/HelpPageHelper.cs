@@ -31,7 +31,9 @@ namespace Helpers
                 configureHttpClient?.Invoke(client);
                 var response = await client.GetAsync(serviceMetadataPath);
                 Assert.True(response.IsSuccessStatusCode, $"Response status for url {serviceMetadataPath} is {(int)response.StatusCode} {response.StatusCode} {response.ReasonPhrase}");
-                Assert.Equal("text/html; charset=UTF-8", response.Content.Headers.ContentType.ToString());
+                // There's a bug in .NET 6 where it switches the charset to lower case. This is fixed in .NET 7 and later. Without ignoring the case
+                // when doing the comparison, this test fails on .NET 6
+                Assert.Equal("text/html; charset=UTF-8", response.Content.Headers.ContentType.ToString(), StringComparer.OrdinalIgnoreCase);
                 generatedHtml = await response.Content.ReadAsStringAsync();
             }
 
