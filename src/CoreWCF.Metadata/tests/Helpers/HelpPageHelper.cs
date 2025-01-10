@@ -23,7 +23,7 @@ namespace Helpers
         {
             string generatedHtml = string.Empty;
             // As a new ASP.NET Core service is started for each test, there's no benefit from
-            // cachine an HttpClient instance as a new port will be used and idle sockets will be closed.
+            // caching an HttpClient instance as a new port will be used and idle sockets will be closed.
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
             using (var client = new HttpClient(httpClientHandler))
