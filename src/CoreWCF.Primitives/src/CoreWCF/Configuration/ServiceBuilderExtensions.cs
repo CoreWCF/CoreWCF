@@ -36,10 +36,9 @@ namespace CoreWCF.Configuration
 
         public static void ConfigureAllServiceHostBase(this IServiceBuilder builder, Action<ServiceHostBase> func)
         {
-            foreach (Type service in builder.Services)
-            {
-                builder.ConfigureServiceHostBase(service, func);
-            }
+            var serviceBuilder = builder as ServiceBuilder;
+            AllServicesConfigurationDelegateHolder holder = serviceBuilder.ServiceProvider.GetRequiredService<AllServicesConfigurationDelegateHolder>();
+            holder.AddConfigDelegate(func);
         }
     }
 }

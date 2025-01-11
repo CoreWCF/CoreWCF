@@ -88,6 +88,7 @@ namespace CoreWCF.Configuration
             services.TryAddSingleton(typeof(IServiceConfiguration<>), typeof(ServiceConfiguration<>));
             services.TryAddSingleton<IDispatcherBuilder, DispatcherBuilderImpl>();
             services.AddSingleton(typeof(ServiceConfigurationDelegateHolder<>));
+            services.AddSingleton<AllServicesConfigurationDelegateHolder>();
             services.AddScoped<ReplyChannelBinder>();
             services.AddScoped<DuplexChannelBinder>();
             services.AddScoped<InputChannelBinder>();

@@ -40,9 +40,12 @@ namespace CoreWCF.Configuration
         }
     }
 
+    // Used by ConfigureAllServiceHostBase
+    internal class AllServicesConfigurationDelegateHolder : ServiceConfigurationDelegateHolder { }
+
     internal class ServiceConfigurationDelegateHolder<TService> : ServiceConfigurationDelegateHolder
         where TService : class
     {
-        
+
     }
 }
