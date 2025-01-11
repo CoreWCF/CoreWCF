@@ -681,15 +681,18 @@ namespace CoreWCF.Description
 
                     if (dispatchOperation != null)
                     {
-                        for (int j = 0; j < operation.Behaviors.Count; j++)
-                        {
-                            IOperationBehavior behavior = operation.Behaviors[j];
-                            behavior.ApplyDispatchBehavior(operation, dispatchOperation);
-                        }
+                        // Applying authorizations before behaviors so that behaviors can be used validate or customize
+                        // any claims that have been applied.
                         for (int k = 0; k < operation.AuthorizeOperation.Count; k++)
                         {
                             IAuthorizeOperation authorizeOperation = operation.AuthorizeOperation[k];
                             authorizeOperation.BuildClaim(operation, dispatchOperation);
+                        }
+
+                        for (int j = 0; j < operation.Behaviors.Count; j++)
+                        {
+                            IOperationBehavior behavior = operation.Behaviors[j];
+                            behavior.ApplyDispatchBehavior(operation, dispatchOperation);
                         }
                     }
                 }
@@ -717,6 +720,7 @@ namespace CoreWCF.Description
             ServiceHostObjectModel<TService> serviceHost;
             serviceHost = services.GetRequiredService<ServiceHostObjectModel<TService>>();
 
+            AllServicesConfigurationDelegateHolder allServicesConfigDelegate = services.GetService<AllServicesConfigurationDelegateHolder>();
             ServiceConfigurationDelegateHolder<TService> configDelegate = services.GetService<ServiceConfigurationDelegateHolder<TService>>();
             var options = new ServiceOptions<TService>(serviceHost);
             foreach (var serverUriAddress in serverUriAddresses)
@@ -750,6 +754,7 @@ namespace CoreWCF.Description
             }
 
             configDelegate?.Configure(serviceHost);
+            allServicesConfigDelegate?.Configure(serviceHost);
             InitializeServiceHost(serviceHost, services);
 
             // TODO: Add error checking to make sure property chain is correctly populated with objects

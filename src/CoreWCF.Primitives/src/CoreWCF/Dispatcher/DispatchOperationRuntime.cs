@@ -551,7 +551,7 @@ namespace CoreWCF.Dispatcher
                 return;
             }
 
-            if (rpc.OperationContext?.ServiceSecurityContext.AuthorizationContext == null)
+            if (rpc.OperationContext?.ServiceSecurityContext?.AuthorizationContext == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
             }
@@ -559,13 +559,11 @@ namespace CoreWCF.Dispatcher
             foreach (var eachAuthClaim in AuthorizeClaims)
             {
                 List<Claim> allClaims = eachAuthClaim.Value;
-                if(IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationContext.ClaimSets, allClaims))
+                if(!IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationContext.ClaimSets, allClaims))
                 {
-                    return;
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
                 }
             }
-
-            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
         }
 
         private bool IsClaimFound(ReadOnlyCollection<IdentityModel.Claims.ClaimSet> claimSets, List<Claim> anyClaims)
