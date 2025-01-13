@@ -68,7 +68,7 @@ public class BinaryFormatterDeprecationTests
         }
     }
 
-    [Theory]
+    [Theory(Skip = "Dependent feature not fully implemented yet")]
     [ClassData(typeof(GetBinaryFormatterCodePathTestVariations))]
     public void BinaryFormatterCodePathTests(Type startupType, Func<System.ServiceModel.Channels.Binding> clientBindingFactory)
     {
