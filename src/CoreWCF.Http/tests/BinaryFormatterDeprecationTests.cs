@@ -57,7 +57,7 @@ public class BinaryFormatterDeprecationTests
             });
             Add(typeof(StartupWithWSHttpBinding), () =>
             {
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(nameof(WSHttpBinding), System.ServiceModel.SecurityMode.TransportWithMessageCredential);
                 wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.UserName;
                 System.ServiceModel.Channels.CustomBinding customBinding = new (wsHttpBinding);
                 var security = customBinding.Elements.Find<System.ServiceModel.Channels.SecurityBindingElement>();
