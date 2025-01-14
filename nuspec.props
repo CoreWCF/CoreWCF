@@ -10,6 +10,7 @@
     <PackageProjectUrl>https://github.com/CoreWCF/CoreWCF</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageIconFullPath>$(ProjectDir)/Documentation/branding/web_92dpi_avatar_256_transparentbackground.png</PackageIconFullPath>
     <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
