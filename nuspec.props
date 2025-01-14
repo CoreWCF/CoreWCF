@@ -11,6 +11,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIconFullPath>$(ProjectDir)/Documentation/branding/web_92dpi_avatar_256_transparentbackground.png</PackageIconFullPath>
+    <PackageReadmeFile>$(ProjectDir)/README.md</PackageReadmeFile>
     <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
