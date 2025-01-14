@@ -15,9 +15,9 @@
     <!-- See rationale in comment https://github.com/CoreWCF/CoreWCF/issues/1171#issuecomment-1675183317 -->
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" Version="2.1.40" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.4" />
-    <PackageReference Include="System.IO.Pipelines" Version="6.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />

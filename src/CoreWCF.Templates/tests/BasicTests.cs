@@ -25,7 +25,6 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
     {
         public const string Net9 = "net9.0";
         public const string Net8 = "net8.0";
-        public const string Net6 = "net6.0";
         public const string Net48 = "net48";
         public const string Net472 = "net472";
         public const string Net462 = "net462";
@@ -127,7 +126,6 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
             yield return TestVariation.New();
             yield return TestVariation.New().Framework(Frameworks.Net9);
             yield return TestVariation.New().Framework(Frameworks.Net8);
-            yield return TestVariation.New().Framework(Frameworks.Net6);
 
             if (!OperatingSystem.IsWindows())
             {
