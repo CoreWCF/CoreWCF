@@ -13,12 +13,6 @@ stages:
     - job: Test${{ configuration }}
       strategy:
         matrix:
-          Windows_net6.0:
-            imageName: 'windows-latest'
-            targetFramework: 'net6.0'
-            testArgs: ''
-            dotnetSdk: '6.0.x'
-            artifactName: 'Windows${{ configuration }}Build'
           Windows_net8.0:
             imageName: 'windows-latest'
             targetFramework: 'net8.0'
@@ -37,12 +31,6 @@ stages:
             testArgs: ''
             dotnetSdk: '8.0.x'
             artifactName: 'Windows${{ configuration }}Build'
-          Linux_net6.0:
-            imageName: 'ubuntu-latest'
-            targetFramework: 'net6.0'
-            testArgs: ''
-            dotnetSdk: '6.0.x'
-            artifactName: 'Linux${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net8.0'
