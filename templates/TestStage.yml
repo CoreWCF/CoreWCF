@@ -74,6 +74,14 @@ stages:
           includePreviewVersions: true
 
       - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: restore
+          feedsToUse: config
+          nugetConfigPath: NuGet.config
+          projects: ${{ parameters.testProjects }}
+
+      - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 25
         inputs:
