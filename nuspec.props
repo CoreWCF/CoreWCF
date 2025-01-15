@@ -10,8 +10,8 @@
     <PackageProjectUrl>https://github.com/CoreWCF/CoreWCF</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconFullPath>$(ProjectDir)/Documentation/branding/web_92dpi_avatar_256_transparentbackground.png</PackageIconFullPath>
-    <PackageReadmeFile>$(ProjectDir)/README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -25,5 +25,10 @@
   <!-- Add package to enable SourceLink metadata -->
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(ProjectDir)README.md" Pack="true" PackagePath=""/>
+    <None Include="$(ProjectDir)/Documentation/branding/web_92dpi_avatar_256_transparentbackground.png" Pack="true" PackagePath="icon.png"/>
   </ItemGroup>
 </Project>
