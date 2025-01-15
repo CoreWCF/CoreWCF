@@ -96,4 +96,19 @@
   </PropertyGroup>
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
   <Import Project="$(ProjectDir)nuspec.props" Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)nuspec.props')" />
+
+  <ItemGroup Condition="$(IsTestProject)">
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="coverlet.collector" Version="6.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <!-- System.Reflection.Metadata is a transitive dependency of xunit.runner.visualstudio which pulls in
+         a vulnerable version of System.Collections.Immutable so updating Metadata to prevent vulnerability warnings -->
+    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+  </ItemGroup>
 </Project>
