@@ -26,7 +26,7 @@ public class Project : IDisposable
     public string ProjectArguments { get; set; }
     public string ProjectGuid { get; set; }
     public string TemplateOutputDir { get; set; }
-    public string TargetFramework { get; set; } = "net6.0";
+    public string TargetFramework { get; set; } = "net8.0";
     public string RuntimeIdentifier { get; set; } = string.Empty;
     public static DevelopmentCertificate DevCert { get; } = DevelopmentCertificate.Create(AppContext.BaseDirectory);
 
