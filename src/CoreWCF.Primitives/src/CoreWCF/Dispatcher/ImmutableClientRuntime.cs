@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using CoreWCF.Runtime;
+using CoreWCF.Telemetry;
 
 namespace CoreWCF.Dispatcher
 {
@@ -13,7 +14,7 @@ namespace CoreWCF.Dispatcher
         private readonly IChannelInitializer[] _channelInitializers;
         private readonly IClientMessageInspector[] _messageInspectors;
         private readonly Dictionary<string, ProxyOperationRuntime> _operations;
-
+        private readonly Dictionary<string, ActionMetadata> _actionMappings;
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {
             _channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);
@@ -29,13 +30,21 @@ namespace CoreWCF.Dispatcher
             //this.addTransactionFlowProperties = behavior.AddTransactionFlowProperties;
 
             _operations = new Dictionary<string, ProxyOperationRuntime>();
-
+            _actionMappings = new Dictionary<string, ActionMetadata>();
             for (int i = 0; i < behavior.Operations.Count; i++)
             {
                 ClientOperation operation = behavior.Operations[i];
                 ProxyOperationRuntime operationRuntime = new ProxyOperationRuntime(operation, this);
                 _operations.Add(operation.Name, operationRuntime);
             }
+
+            foreach (var clientOperation in behavior.ClientOperations)
+            {
+                _actionMappings[clientOperation.Action] = new ActionMetadata(
+                    contractName: $"{behavior.ContractNamespace}{behavior.ContractName}",
+                    operationName: clientOperation.Name);
+            }
+
 
             CorrelationCount = _messageInspectors.Length + behavior.MaxParameterInspectors;
         }
@@ -93,6 +102,8 @@ namespace CoreWCF.Dispatcher
             int offset = MessageInspectorCorrelationOffset;
             try
             {
+                rpc.Request.Properties.Add(TelemetryContextMessageProperty.Name, new TelemetryContextMessageProperty(_actionMappings));
+
                 for (int i = 0; i < _messageInspectors.Length; i++)
                 {
                     rpc.Correlation[offset + i] = _messageInspectors[i].BeforeSendRequest(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy);
@@ -179,7 +190,7 @@ namespace CoreWCF.Dispatcher
                 }
                 else
                 {
-                    // did not find the right operation, will not know how 
+                    // did not find the right operation, will not know how
                     // to invoke the method.
                     return null;
                 }
