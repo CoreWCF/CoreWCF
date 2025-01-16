@@ -29,7 +29,7 @@ stages:
             imageName: 'windows-latest'
             targetFramework: 'net472'
             testArgs: ''
-            dotnetSdk: '8.0.x'
+            dotnetSdk: '9.0.x'
             artifactName: 'Windows${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
@@ -66,20 +66,21 @@ stages:
           path: $(System.DefaultWorkingDirectory)/bin
 
       - task: UseDotNet@2
-        displayName: 'Use .NET sdk $(dotnetSdk)'
+        displayName: 'Use .NET sdk 9.0.x'
+        inputs:
+          packageType: sdk
+          version: 9.0.x
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+          includePreviewVersions: true
+
+      - task: UseDotNet@2
+        displayName: 'Use Additional .NET sdk $(dotnetSdk)'
+        condition: and(succeeded(), ne(variables.dotnetSdk, '9.0.x'))
         inputs:
           packageType: sdk
           version: $(dotnetSdk)
           installationPath: $(Agent.ToolsDirectory)/dotnet
           includePreviewVersions: true
-
-      - task: DotNetCoreCLI@2
-        displayName: Restore
-        inputs:
-          command: restore
-          feedsToUse: config
-          nugetConfigPath: NuGet.config
-          projects: ${{ parameters.testProjects }}
 
       - task: DotNetCoreCLI@2
         displayName: Run Tests
