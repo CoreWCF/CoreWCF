@@ -59,8 +59,8 @@ namespace CoreWCF.Queue.Tests
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
 
-            Assert.True(transport.CallCount > 1);
-            Assert.True(handshakeCallCount == 0);
+            Assert.True(transport.CallCount > 1, $"CallCount should have been > 1, but was {transport.CallCount}");
+            Assert.Equal(0, handshakeCallCount);
         }
 
         [Fact]
@@ -85,8 +85,8 @@ namespace CoreWCF.Queue.Tests
             await Task.Delay(100);
             await messageReceiver.StopPumpAsync(default);
 
-            Assert.True(transport.CallCount > 1);
-            Assert.True(handshakeCallCount == 0);
+            Assert.True(transport.CallCount > 1, $"CallCount should have been > 1, but was {transport.CallCount}");
+            Assert.Equal(0, handshakeCallCount);
         }
     }
 }
