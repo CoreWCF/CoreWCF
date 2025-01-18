@@ -22,10 +22,6 @@
   <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
-  <!-- Add package to enable SourceLink metadata -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="$(ProjectDir)README.md" Pack="true" PackagePath=""/>

@@ -61,5 +61,6 @@ stages:
           command: 'build'
           projects: ${{ parameters.solutions }}
           arguments: '--no-restore -c $(configuration)'
+
       - publish: $(System.DefaultWorkingDirectory)/bin
         artifact: $(artifactName)

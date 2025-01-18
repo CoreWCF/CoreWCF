@@ -10,7 +10,8 @@ namespace CoreWCF.Queue.Tests.Fakes
 {
     internal class FakeQueueTransport : IQueueTransport
     {
-        public int CallCount { get; private set; }
+        private int _callCount;
+        public int CallCount => _callCount;
         public int ConcurrencyLevel => 1;
         private readonly CallType _callType;
 
@@ -22,7 +23,7 @@ namespace CoreWCF.Queue.Tests.Fakes
         public async ValueTask<QueueMessageContext> ReceiveQueueMessageContextAsync(CancellationToken cancellationToken)
         {
             await Task.Delay(10, cancellationToken);
-            CallCount++;
+            Interlocked.Increment(ref _callCount);
 
             if (_callType == CallType.ThrowException)
                 throw new OperationCanceledException();
