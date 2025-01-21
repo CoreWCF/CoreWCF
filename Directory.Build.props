@@ -70,9 +70,6 @@
   </PropertyGroup>
 
   <!-- Git versioning related items and properties -->
-  <PropertyGroup>
-    <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
-  </PropertyGroup>
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
       <Version>3.6.141</Version>
