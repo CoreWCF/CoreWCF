@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <!-- Set up some common paths -->
-	<PropertyGroup>
+  <PropertyGroup>
     <CommonPath>$(SourceDir)Common/src/</CommonPath>
     <UnitTestCommonProjectPath>$(SourceDir)Common/UnitTests.Common/UnitTests.Common.csproj</UnitTestCommonProjectPath>
     <ParentFolder>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))</ParentFolder>
-	</PropertyGroup>
+  </PropertyGroup>
 
   <!-- Set up some properties describing the build -->
   <PropertyGroup>
@@ -37,8 +37,6 @@
   <PropertyGroup>
     <TestTargetFrameworks>net8.0;net9.0</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
-    <AspNetCoreVersion>$(TargetFramework.Replace('net', ''))</AspNetCoreVersion>
-    <AspNetCoreVersion>$(AspNetCoreVersion).*-*</AspNetCoreVersion>
   </PropertyGroup>
 
   <!-- UT concurrency -->
@@ -72,7 +70,6 @@
   <!-- Git versioning related items and properties -->
   <ItemGroup Condition="!($(IsTestProject) OR $(IsSampleProject))">
     <PackageReference Include="Nerdbank.GitVersioning">
-      <Version>3.6.141</Version>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- Include license file in packages -->
@@ -83,7 +80,7 @@
   <!-- Configuring strong name signing -->
   <PropertyGroup Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)corewcf.snk')">
     <AssemblyOriginatorKeyFile>$(ProjectDir)corewcf.snk</AssemblyOriginatorKeyFile>
-	  <SignAssembly>true</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
 
@@ -93,20 +90,19 @@
   </PropertyGroup>
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
   <Import Project="$(ProjectDir)nuspec.props" Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)nuspec.props')" />
-
   <ItemGroup Condition="$(IsTestProject)">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="coverlet.collector" Version="6.0.3">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
+    <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <!-- System.Reflection.Metadata is a transitive dependency of xunit.runner.visualstudio which pulls in
-         a vulnerable version of System.Collections.Immutable so updating Metadata to prevent vulnerability warnings -->
-    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+         a vulnerable version of System.Collections.Immutable so updating Metadata to prevent vulnerability warnings --><!--
+    <PackageReference Include="System.Reflection.Metadata" />-->
   </ItemGroup>
 </Project>

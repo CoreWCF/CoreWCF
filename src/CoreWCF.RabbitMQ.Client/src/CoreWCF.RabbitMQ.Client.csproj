@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.1" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
 </Project>
