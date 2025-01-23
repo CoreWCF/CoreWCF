@@ -10,8 +10,8 @@
     <IsTestProject Condition=" '$(TargetFramework)' == 'net472' ">false</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="Xunit.StaFact" Version="1.1.11" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <PackageReference Include="Xunit.StaFact" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <Compile Remove="@(Compile)" />
@@ -28,8 +28,8 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
-    <PackageReference Include="System.ServiceModel.UnixDomainSocket" Version="8.1.1" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.1" />
+    <PackageReference Include="System.ServiceModel.UnixDomainSocket" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
 </Project>

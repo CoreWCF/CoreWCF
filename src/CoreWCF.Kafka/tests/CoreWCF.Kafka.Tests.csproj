@@ -12,15 +12,15 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.8.0" />
-    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="Confluent.Kafka" />
+    <PackageReference Include="Docker.DotNet" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
