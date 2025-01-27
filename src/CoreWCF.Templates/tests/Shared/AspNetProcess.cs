@@ -11,8 +11,8 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
-using AngleSharp.Dom.Html;
-using AngleSharp.Parser.Html;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using Microsoft.AspNetCore.Internal;
 using Microsoft.AspNetCore.Server.IntegrationTesting;
 using Microsoft.Extensions.CommandLineUtils;
@@ -127,7 +127,7 @@ public class AspNetProcess : IDisposable
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var parser = new HtmlParser();
-        var html = await parser.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var html = await parser.ParseDocumentAsync(await response.Content.ReadAsStreamAsync());
 
         foreach (IHtmlLinkElement styleSheet in html.GetElementsByTagName("link"))
         {
@@ -308,7 +308,7 @@ public class AspNetProcess : IDisposable
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var parser = new HtmlParser();
-        var html = await parser.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var html = await parser.ParseDocumentAsync(await response.Content.ReadAsStreamAsync());
         Assert.Contains(html.Links, x => x.InnerHtml == $"{ListeningUri}Service.svc?wsdl");
         Assert.Contains(html.Links, x => x.InnerHtml == $"{ListeningUri}Service.svc?singleWsdl");
     }

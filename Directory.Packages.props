@@ -84,7 +84,7 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.1" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
   </ItemGroup>
-  <ItemGroup Condition="!$(IsTestProject)">
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
     <PackageVersion Include="Microsoft.AspNetCore.Connections.Abstractions" Version="2.1.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(NeedsOlderServiceModel)' != 'true'">
@@ -109,7 +109,7 @@
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.12" />
   </ItemGroup>
-  <PropertyGroup Condition="$(IsTestProject) AND ('$(TargetFramework)' != 'net472') AND ('$(TargetFramework)' != 'netstandard2.0')">
+  <PropertyGroup Condition="('$(IsTestProject)' == 'true') AND ('$(TargetFramework)' != 'net472') AND ('$(TargetFramework)' != 'netstandard2.0')">
     <AspNetCoreVersion>$([System.Text.RegularExpressions.Regex]::Match($(TargetFramework), 'net(\d+\.\d+)').Groups[1].Value)</AspNetCoreVersion>
     <AspNetCoreVersion>$(AspNetCoreVersion).*-*</AspNetCoreVersion>
     <AspNetCoreVersion Condition="'$(AspNetCoreVersion)' == '.*-*'">3.1.*-*</AspNetCoreVersion>
@@ -119,7 +119,7 @@
          use a floating version for package dependencies -->
     <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
   </PropertyGroup>
-  <ItemGroup Condition="$(IsTestProject) AND ('$(TargetFramework)' != 'net472') AND ('$(TargetFramework)' != 'netstandard2.0')">
+  <ItemGroup Condition="('$(IsTestProject)' == 'true') AND ('$(TargetFramework)' != 'net472') AND ('$(TargetFramework)' != 'netstandard2.0')">
     <PackageVersion Include="Microsoft.AspNetCore.Connections.Abstractions" Version="$(AspNetCoreVersion)" />
     <!--<PackageVersion Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="$(AspNetCoreVersion)"/>-->
     <!--<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(AspNetCoreVersion)" />-->
