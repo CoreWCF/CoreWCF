@@ -424,14 +424,6 @@ namespace CoreWCF.Dispatcher
                     }
 
                     _activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
-                    try
-                    {
-                        WcfInstrumentationActivitySource.Options!.Enrich?.Invoke(_activity, "BeforeSendReply", reply);
-                    }
-                    catch (Exception ex)
-                    {
-                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
-                    }
                 }
 
                 _activity.Stop();
@@ -692,21 +684,6 @@ namespace CoreWCF.Dispatcher
 
         private Activity CreateActivity(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            try
-            {
-                if (WcfInstrumentationActivitySource.Options == null ||
-                    WcfInstrumentationActivitySource.Options.IncomingRequestFilter?.Invoke(request) == false)
-                {
-                    WcfInstrumentationEventSource.Log.RequestIsFilteredOut();
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                WcfInstrumentationEventSource.Log.RequestFilterException(ex);
-                return null;
-            }
-
             var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
                 WcfInstrumentationActivitySource.IncomingRequestActivityName,
                 ActivityKind.Server);
@@ -733,11 +710,7 @@ namespace CoreWCF.Dispatcher
 
                     activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
                     activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
-
-                    if (WcfInstrumentationActivitySource.Options.SetSoapMessageVersion)
-                    {
-                        activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
-                    }
+                    activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
 
                     var localAddressUri = channel.LocalAddress?.Uri;
                     if (localAddressUri != null)
@@ -746,16 +719,6 @@ namespace CoreWCF.Dispatcher
                         activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, localAddressUri.Port);
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
                         activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
-                    }
-
-                    try
-                    {
-                        WcfInstrumentationActivitySource.Options.Enrich?.Invoke(activity, "AfterReceiveRequest",
-                            request);
-                    }
-                    catch (Exception ex)
-                    {
-                        WcfInstrumentationEventSource.Log.EnrichmentException(ex);
                     }
                 }
             }
