@@ -72,7 +72,7 @@ Here are the steps to release a new version:
        dotnet outdated -u -vl Minor -inc Microsoft.AspNetCore -inc Microsoft.CodeAnalysis -inc System CoreWCF.sln
        dotnet outdated -u -inc Microsoft.NET CoreWCF.sln
        dotnet outdated -u -vl Major -inc Microsoft.IdentityModel CoreWCF.sln
-       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System CoreWCF.sln
+       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System -exc RabbitMQ CoreWCF.sln
    ```
 
    Check and manually update the version of `Nerdbank.GitVersioning` if needed. The version is specified in [Directory.Build.props](/Directory.Build.props).
