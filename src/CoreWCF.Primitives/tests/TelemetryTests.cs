@@ -18,6 +18,7 @@ using Xunit;
 
 namespace CoreWCF.Primitives.Tests;
 
+[Collection("TelemetryTests")]
 public class TelemetryTests
 {
     [Fact]
