@@ -77,8 +77,11 @@ public class TelemetryTests
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", stoppedActivity.OperationName);
         Assert.Equal("http://tempuri.org/ISimpleService/Echo", startedActivity.DisplayName);
         Assert.Equal("http://tempuri.org/ISimpleService/Echo", stoppedActivity.DisplayName);
+        Assert.Equal(ActivityKind.Server, startedActivity.Kind);
+        Assert.Equal(ActivityKind.Server, stoppedActivity.Kind);
         Assert.Equal(startedActivity.RootId, stoppedActivity.RootId);
         Assert.Equal(startedActivity.SpanId, stoppedActivity.SpanId);
+        Assert.Equal(startedActivity.TraceId, stoppedActivity.TraceId);
 
         var startedTags = startedActivity.Tags.ToList();
         var stoppedTags = stoppedActivity.Tags.ToList();
