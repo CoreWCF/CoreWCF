@@ -18,25 +18,23 @@ using Xunit;
 
 namespace CoreWCF.Primitives.Tests;
 
-[Collection("TelemetryTests")]
 public class TelemetryTests
 {
     [Fact]
-    public static async Task Basic_Telemetry_Test()
+    public async Task Basic_Telemetry_Test()
     {
         var startedActivites = new List<Activity>();
         var stoppedActivites = new List<Activity>();
 
         using var listener = new ActivityListener
         {
-            ShouldListenTo = _ => true,
+            ShouldListenTo = _ => false,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
             ActivityStarted = activity => startedActivites.Add(activity),
             ActivityStopped = activity => stoppedActivites.Add(activity)
         };
 
 
-        ActivitySource.AddActivityListener(listener);
         string serviceAddress = "http://localhost/dummy";
         var services = new ServiceCollection();
         services.AddLogging();
@@ -64,7 +62,11 @@ public class TelemetryTests
         IServiceChannelDispatcher dispatcher =
             serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
         var requestContext = TestRequestContext.Create(serviceAddress);
+
+        ActivitySource.AddActivityListener(listener);
+        listener.ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives";
         dispatcher.DispatchAsync(requestContext).Wait();
+        listener.ShouldListenTo = _ => false;
         Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
         requestContext.ValidateReply();
 
