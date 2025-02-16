@@ -16,8 +16,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
+[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]
 namespace CoreWCF.Primitives.Tests;
 
+[Collection("TelemetryTests")]
 public class TelemetryTests
 {
     [Fact]
