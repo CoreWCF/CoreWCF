@@ -112,6 +112,11 @@ namespace CoreWCF.Channels
                     await context.ChallengeAsync(scheme);
                     return;
                 }
+
+                if (authenticateResult?.Principal != null)
+                {
+                    context.User = authenticateResult.Principal;
+                }
             }
 
             if (!context.WebSockets.IsWebSocketRequest)
