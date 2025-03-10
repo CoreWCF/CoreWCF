@@ -144,6 +144,13 @@ namespace Helpers
             return binding;
         }
 
+        public static NetHttpBinding GetBufferedModeNetHttpBinding()
+        {
+            var binding = new NetHttpBinding();
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
         public static NetHttpBinding GetStreamedModeWebSocketBinding()
         {
             var binding = new NetHttpBinding
