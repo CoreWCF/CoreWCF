@@ -61,6 +61,7 @@ body:
       - RabbitMQ
       - MSMQ
       - Kafka
+      - UnixDomainSocket
       - CustomBinding
   validations:
     required: true  
@@ -87,9 +88,11 @@ body:
     label: Which .NET version
     description: Which .NET version are you using?
     options:
-      - .NET 6
-      - .NET 7
-      - .NET Framework      
+      - .NET 8
+      - .NET 9
+      - .NET 10
+      - .NET Framework
+      - Other
   validations:
     required: true
 
