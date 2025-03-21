@@ -9,8 +9,6 @@
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <!-- This is due to a problem with using System.ServiceModel.Federation 8.x on .NET Framework -->
-    <NeedsOlderServiceModel>true</NeedsOlderServiceModel>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="IsExternalInit">

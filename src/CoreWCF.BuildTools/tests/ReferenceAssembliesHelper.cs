@@ -27,11 +27,11 @@ internal static class ReferenceAssembliesHelper
             .Union(ParsePackageReferences(coreWcfWebHttpCsprojPath))
             .Union(new[]
             {
-                new PackageIdentity("System.ServiceModel.Primitives", "4.10.0"),
-                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.1.3"),
-                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.1.2")
+                new PackageIdentity("System.ServiceModel.Primitives", "8.1.2"),
+                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.3.0"),
+                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.3.0")
             }).ToImmutableArray();
-        return ReferenceAssemblies.Default.AddPackages(packages);
+        return ReferenceAssemblies.Net.Net80.AddPackages(packages);
     });
 
     private static IEnumerable<PackageIdentity> ParsePackageReferences(string csprojPath)
