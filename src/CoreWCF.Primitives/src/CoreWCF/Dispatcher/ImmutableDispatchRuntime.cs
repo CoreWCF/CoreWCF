@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Diagnostics;
 using CoreWCF.Runtime;
+using CoreWCF.Telemetry;
 
 namespace CoreWCF.Dispatcher
 {
@@ -24,6 +26,8 @@ namespace CoreWCF.Dispatcher
         private readonly ThreadBehavior _thread;
         private readonly MessageRpcErrorHandler _processMessageNonCleanupError;
         private readonly MessageRpcErrorHandler _processMessageCleanupError;
+
+        private Activity? _activity;
 
         internal ImmutableDispatchRuntime(DispatchRuntime dispatch)
         {
@@ -409,6 +413,22 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
+            if (_activity != null)
+            {
+                var reply = rpc.Reply;
+                if (_activity.IsAllDataRequested && reply != null)
+                {
+                    if (reply.IsFault)
+                    {
+                        _activity.SetStatus(ActivityStatusCode.Error);
+                    }
+
+                    _activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                }
+
+                _activity.Stop();
+            }
+
             BeforeSendReply(rpc, ref exception, ref thereIsAnUnhandledException);
 
             if (rpc.Operation.IsOneWay)
@@ -571,6 +591,8 @@ namespace CoreWCF.Dispatcher
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
 
+            _activity = CreateActivity(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy, rpc.InstanceContext);
+
             AfterReceiveRequest(ref rpc);
 
             await _concurrency.LockInstanceAsync(rpc);
@@ -660,6 +682,50 @@ namespace CoreWCF.Dispatcher
             return rpc;
         }
 
+        private Activity CreateActivity(ref Message request, IClientChannel channel, InstanceContext instanceContext)
+        {
+            var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+                WcfInstrumentationActivitySource.IncomingRequestActivityName,
+                ActivityKind.Server);
+
+            if (activity != null)
+            {
+                string action;
+                if (!string.IsNullOrEmpty(request.Headers.Action))
+                {
+                    action = request.Headers.Action;
+                    activity.DisplayName = action;
+                }
+                else
+                {
+                    action = string.Empty;
+                }
+
+                if (activity.IsAllDataRequested)
+                {
+                    activity.SetTag(WcfInstrumentationConstants.RpcSystemTag,
+                        WcfInstrumentationConstants.WcfSystemValue);
+
+                    var actionMetadata = GetActionMetadata(request, action);
+
+                    activity.SetTag(WcfInstrumentationConstants.RpcServiceTag, actionMetadata.ContractName);
+                    activity.SetTag(WcfInstrumentationConstants.RpcMethodTag, actionMetadata.OperationName);
+                    activity.SetTag(WcfInstrumentationConstants.SoapMessageVersionTag, request.Version.ToString());
+
+                    var localAddressUri = channel.LocalAddress?.Uri;
+                    if (localAddressUri != null)
+                    {
+                        activity.SetTag(WcfInstrumentationConstants.NetHostNameTag, localAddressUri.Host);
+                        activity.SetTag(WcfInstrumentationConstants.NetHostPortTag, localAddressUri.Port);
+                        activity.SetTag(WcfInstrumentationConstants.WcfChannelSchemeTag, localAddressUri.Scheme);
+                        activity.SetTag(WcfInstrumentationConstants.WcfChannelPathTag, localAddressUri.LocalPath);
+                    }
+                }
+            }
+
+            return activity;
+        }
+
         private async Task ProcessError(MessageRpc rpc)
         {
             try
@@ -690,6 +756,23 @@ namespace CoreWCF.Dispatcher
             }
 
             await ProcessMessageCleanupAsync(rpc);
+        }
+
+        private static ActionMetadata GetActionMetadata(Message request, string action)
+        {
+            ActionMetadata? actionMetadata = null;
+            if (request.Properties.TryGetValue(TelemetryContextMessageProperty.Name, out var telemetryContextProperty))
+            {
+                var actionMappings = (telemetryContextProperty as TelemetryContextMessageProperty)?.ActionMappings;
+                if (actionMappings != null && actionMappings.TryGetValue(action, out var metadata))
+                {
+                    actionMetadata = metadata;
+                }
+            }
+
+            return actionMetadata ?? new ActionMetadata(
+                contractName: null,
+                operationName: action);
         }
 
         // Logic for knowing when to close stuff:
