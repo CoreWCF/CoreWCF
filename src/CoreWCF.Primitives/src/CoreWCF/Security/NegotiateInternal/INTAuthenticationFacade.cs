@@ -8,8 +8,6 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     internal interface INTAuthenticationFacade
     {
-        object Instance { get; }
-
         bool IsCompleted { get; }
 
         string Protocol { get; }
