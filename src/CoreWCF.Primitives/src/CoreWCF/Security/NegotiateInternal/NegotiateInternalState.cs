@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -16,7 +15,6 @@ namespace CoreWCF.Security.NegotiateInternal
         // https://www.gnu.org/software/gss/reference/gss.pdf
         private const uint GSS_S_NO_CRED = 7 << 16;
 
-        private static readonly MethodInfo s_getIdentity;
 
         private static readonly FieldInfo s_statusCode;
         private static readonly FieldInfo s_statusException;
@@ -43,11 +41,6 @@ namespace CoreWCF.Security.NegotiateInternal
                 s_gssMinorStatus = s_gssExceptionType.GetField("_minorStatus", BindingFlags.Instance | BindingFlags.NonPublic);
             }
 
-            Type negoStreamPalType = secAssembly.GetType("System.Net.Security.NegotiateStreamPal", throwOnError: true);
-            s_getIdentity = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
-                info.Name.Equals("GetIdentity")).Single();
-            GetException = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
-                info.Name.Equals("CreateExceptionFromError")).Single();
         }
 
         public NegotiateInternalState()
@@ -86,7 +79,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
                 // TODO: Update after corefx changes
                 error = (Exception)(s_statusException.GetValue(securityStatus)
-                    ?? GetException.Invoke(null, new[] { securityStatus }));
+                    ?? _ntAuthentication.CreateExceptionFromError(securityStatus));
                 var errorCode = (NegotiateInternalSecurityStatusErrorCode)s_statusCode.GetValue(securityStatus);
 
                 // TODO: Remove after corefx changes
@@ -142,9 +135,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public bool IsValidContext => _ntAuthentication.IsValidContext;
 
-        public static MethodInfo GetException { get; private set; }
-
-        public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { _ntAuthentication.Instance });
+        public IIdentity GetIdentity() => _ntAuthentication.GetIdentity();
 
         public byte[] Encrypt(byte[] input)
         {
