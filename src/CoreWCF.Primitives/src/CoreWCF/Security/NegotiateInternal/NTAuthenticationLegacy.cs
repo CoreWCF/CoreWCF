@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System;
 using System.Linq;
+using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
@@ -19,6 +20,8 @@ namespace CoreWCF.Security.NegotiateInternal
         protected static readonly MethodInfo s_protocol;
         protected static readonly MethodInfo s_closeContext;
         protected static readonly MethodInfo s_encrypt;
+        protected static readonly MethodInfo s_getIdentity;
+        protected static readonly MethodInfo s_createExceptionFromError;
 
         public object Instance { get; }
 
@@ -45,6 +48,14 @@ namespace CoreWCF.Security.NegotiateInternal
                 info.Name.Equals("Encrypt")).Single();
             s_isValidContext = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
             info.Name.Equals("get_IsValidContext")).Single();
+
+            Assembly secAssembly = typeof(AuthenticationException).Assembly;
+
+            Type negoStreamPalType = secAssembly.GetType("System.Net.Security.NegotiateStreamPal", throwOnError: true);
+            s_getIdentity = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
+                info.Name.Equals("GetIdentity")).Single();
+            s_createExceptionFromError = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
+                info.Name.Equals("CreateExceptionFromError")).Single();
         }
 
         protected static object CreateInstance()
@@ -82,5 +93,9 @@ namespace CoreWCF.Security.NegotiateInternal
             output = (byte[])parameters[3];
             return totalBytes;
         }
+
+        public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { Instance });
+
+        public Exception CreateExceptionFromError(object securityStatus) => (Exception) s_createExceptionFromError.Invoke(null, new[] { securityStatus });
     }
 }
