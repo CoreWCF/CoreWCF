@@ -12,11 +12,17 @@ namespace CoreWCF.Security.NegotiateInternal
     {
         string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error);
 
+        byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error);
+
         bool IsCompleted { get; }
+
+        bool IsValidContext { get; }
 
         string Protocol { get; }
 
         IIdentity GetIdentity();
+
+        byte[] Encrypt(byte[] input);
     }
 
     internal enum BlobErrorType
