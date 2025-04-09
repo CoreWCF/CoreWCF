@@ -23,7 +23,7 @@ namespace CoreWCF.Security.NegotiateInternal
         protected static readonly MethodInfo s_getIdentity;
         protected static readonly MethodInfo s_createExceptionFromError;
 
-        public object Instance { get; }
+        protected object Instance { get; }
 
         public bool IsCompleted => (bool)s_isCompleted.Invoke(Instance, Array.Empty<object>());
 
