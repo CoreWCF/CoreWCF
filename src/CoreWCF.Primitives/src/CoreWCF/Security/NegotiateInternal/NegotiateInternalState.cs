@@ -4,44 +4,13 @@
 using System;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
-using System.Security.Authentication;
 using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
     internal class NegotiateInternalState : INegotiateInternalState
     {
-        // https://www.gnu.org/software/gss/reference/gss.pdf
-        private const uint GSS_S_NO_CRED = 7 << 16;
-
-
-        private static readonly FieldInfo s_statusCode;
-        private static readonly FieldInfo s_statusException;
-        private static readonly FieldInfo s_gssMinorStatus;
-        private static readonly Type s_gssExceptionType;
-
         private readonly INTAuthenticationFacade _ntAuthentication;
-
-        static NegotiateInternalState()
-        {
-            Assembly secAssembly = typeof(AuthenticationException).Assembly;
-
-            //TODO this fails in framework
-            Type securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
-            // securityStatusType.get
-            s_statusCode = securityStatusType.GetField("ErrorCode");
-            s_statusException = securityStatusType.GetField("Exception");
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Type interopType = secAssembly.GetType("Interop", throwOnError: true);
-                Type netNativeType = interopType.GetNestedType("NetSecurityNative", BindingFlags.NonPublic | BindingFlags.Static);
-                s_gssExceptionType = netNativeType.GetNestedType("GssApiException", BindingFlags.NonPublic);
-                s_gssMinorStatus = s_gssExceptionType.GetField("_minorStatus", BindingFlags.Instance | BindingFlags.NonPublic);
-            }
-
-        }
 
         public NegotiateInternalState()
         {
@@ -52,30 +21,11 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             try
             {
-                byte[] blob = _ntAuthentication.GetOutgoingBlob(incomingBlob, false, out object securityStatus);
+                byte[] blob = _ntAuthentication.GetOutgoingBlob(incomingBlob, out var securityStatus);
 
-                // TODO: Update after corefx changes
-                error = (Exception)(s_statusException.GetValue(securityStatus)
-                    ?? _ntAuthentication.CreateExceptionFromError(securityStatus));
-                var errorCode = (NegotiateInternalSecurityStatusErrorCode)s_statusCode.GetValue(securityStatus);
+                var errorCode = securityStatus.ErrorCode;
 
-                // TODO: Remove after corefx changes
-                // The linux implementation always uses InternalError;
-                if (errorCode == NegotiateInternalSecurityStatusErrorCode.InternalError
-                    && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    && s_gssExceptionType.IsInstanceOfType(error))
-                {
-                    uint majorStatus = (uint)error.HResult;
-                    uint minorStatus = (uint)s_gssMinorStatus.GetValue(error);
-
-                    // Remap specific errors
-                    if (majorStatus == GSS_S_NO_CRED && minorStatus == 0)
-                    {
-                        errorCode = NegotiateInternalSecurityStatusErrorCode.UnknownCredentials;
-                    }
-
-                    error = new Exception($"An authentication exception occurred (0x{majorStatus:X}/0x{minorStatus:X}).", error);
-                }
+                error = securityStatus.Exception;
 
                 if (errorCode == NegotiateInternalSecurityStatusErrorCode.OK
                     || errorCode == NegotiateInternalSecurityStatusErrorCode.ContinueNeeded
