@@ -6,7 +6,7 @@ using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
-    internal interface INTAuthenticationFacade
+    internal interface INTAuthenticationFacade : IDisposable
     {
         bool IsCompleted { get; }
 
@@ -17,8 +17,6 @@ namespace CoreWCF.Security.NegotiateInternal
         byte[] GetOutgoingBlob(byte[] incomingBlob, bool throwOnError, out object statusCode);
 
         int Encrypt(byte[] input, ref byte[] output);
-
-        void CloseContext();
 
         IIdentity GetIdentity();
 

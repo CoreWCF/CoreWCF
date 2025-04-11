@@ -73,7 +73,7 @@ namespace CoreWCF.Security.NegotiateInternal
             return blob;
         }
 
-        public virtual void CloseContext()
+        public virtual void Dispose()
         {
             s_closeContext.Invoke(Instance, Array.Empty<object>());
         }
