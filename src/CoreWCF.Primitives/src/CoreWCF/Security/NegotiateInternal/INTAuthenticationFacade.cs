@@ -14,7 +14,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         bool IsValidContext { get; }
 
-        byte[] GetOutgoingBlob(byte[] incomingBlob, bool throwOnError, out object statusCode);
+        byte[] GetOutgoingBlob(byte[] incomingBlob, out NegotiateInternalSecurityStatusPal status);
 
         int Encrypt(byte[] input, ref byte[] output);
 
