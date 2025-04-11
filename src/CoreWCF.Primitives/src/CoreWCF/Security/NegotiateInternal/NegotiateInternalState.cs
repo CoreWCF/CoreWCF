@@ -48,29 +48,6 @@ namespace CoreWCF.Security.NegotiateInternal
             _ntAuthentication = NTAuthenticationFacade.Build();
         }
 
-        // Copied rather than reflected to remove the IsCompleted -> CloseContext check.
-        // The client doesn't need the context once auth is complete, but the server does.
-        // I'm not sure why it auto-closes for the client given that the client closes it just a few lines later.
-        // https://github.com/dotnet/corefx/blob/a3ab91e10045bb298f48c1d1f9bd5b0782a8ac46/src/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/AuthenticationHelper.NtAuth.cs#L134
-        public string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error)
-        {
-            byte[] decodedIncomingBlob = null;
-            if (incomingBlob != null && incomingBlob.Length > 0)
-            {
-                decodedIncomingBlob = Convert.FromBase64String(incomingBlob);
-            }
-
-            byte[] decodedOutgoingBlob = GetOutgoingBlob(decodedIncomingBlob, out status, out error);
-
-            string outgoingBlob = null;
-            if (decodedOutgoingBlob != null && decodedOutgoingBlob.Length > 0)
-            {
-                outgoingBlob = Convert.ToBase64String(decodedOutgoingBlob);
-            }
-
-            return outgoingBlob;
-        }
-
         public byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error)
         {
             try

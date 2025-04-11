@@ -10,8 +10,6 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     internal interface INegotiateInternalState : IDisposable
     {
-        string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error);
-
         byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error);
 
         bool IsCompleted { get; }
