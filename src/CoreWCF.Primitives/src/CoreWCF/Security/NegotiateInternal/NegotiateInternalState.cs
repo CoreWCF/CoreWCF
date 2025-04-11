@@ -71,11 +71,7 @@ namespace CoreWCF.Security.NegotiateInternal
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(input));
             }
 
-            byte[] _writeBuffer = new byte[4];
-            int totalBytes = _ntAuthentication.Encrypt(input, ref _writeBuffer);
-            byte[] result = new byte[totalBytes - 4];
-            Buffer.BlockCopy(_writeBuffer, 4, result, 0, result.Length);
-            return result;
+            return _ntAuthentication.Encrypt(input);
         }
 
         public void Dispose() => _ntAuthentication.Dispose();

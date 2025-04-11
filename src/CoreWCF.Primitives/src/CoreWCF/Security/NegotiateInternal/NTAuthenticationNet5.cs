@@ -54,6 +54,6 @@ namespace CoreWCF.Security.NegotiateInternal
             return expression.Compile();
         }
 
-        public override int Encrypt(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
+        protected override int EncryptInternal(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
     }
 }

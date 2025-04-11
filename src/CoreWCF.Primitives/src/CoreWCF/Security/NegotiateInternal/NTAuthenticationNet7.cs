@@ -12,6 +12,6 @@ namespace CoreWCF.Security.NegotiateInternal
          */
         private static readonly EncryptInvoker s_encryptInvoker = BuildEncrypt();
 
-        public override int Encrypt(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
+        protected override int EncryptInternal(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
     }
 }

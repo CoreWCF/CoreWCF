@@ -130,7 +130,16 @@ namespace CoreWCF.Security.NegotiateInternal
             s_closeContext.Invoke(Instance, Array.Empty<object>());
         }
 
-        public virtual int Encrypt(byte[] input, ref byte[] output)
+        public byte[] Encrypt(byte[] input)
+        {
+            byte[] _writeBuffer = new byte[4];
+            int totalBytes = EncryptInternal(input, ref _writeBuffer);
+            byte[] result = new byte[totalBytes - 4];
+            Buffer.BlockCopy(_writeBuffer, 4, result, 0, result.Length);
+            return result;
+        }
+
+        protected virtual int EncryptInternal(byte[] input, ref byte[] output)
         {
             /*
              * internal int Encrypt(
