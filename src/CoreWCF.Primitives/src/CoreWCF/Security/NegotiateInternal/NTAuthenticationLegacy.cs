@@ -148,6 +148,6 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { Instance });
 
-        public Exception CreateExceptionFromError(object securityStatus) => (Exception) s_createExceptionFromError.Invoke(null, new[] { securityStatus });
+        private Exception CreateExceptionFromError(object securityStatus) => (Exception) s_createExceptionFromError.Invoke(null, new[] { securityStatus });
     }
 }

@@ -19,7 +19,5 @@ namespace CoreWCF.Security.NegotiateInternal
         int Encrypt(byte[] input, ref byte[] output);
 
         IIdentity GetIdentity();
-
-        Exception CreateExceptionFromError(object securityStatus);
     }
 }
