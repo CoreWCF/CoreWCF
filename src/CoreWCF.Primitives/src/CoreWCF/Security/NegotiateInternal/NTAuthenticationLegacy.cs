@@ -47,7 +47,7 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             s_constructor = s_ntAuthenticationType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
             s_getOutgoingBlob = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
-                info.Name.Equals("GetOutgoingBlob") && info.ToString().Equals("Byte[] GetOutgoingBlob(Byte[], Boolean, System.Net.NegotiateInternalSecurityStatusPal ByRef)")).Single();
+                info.Name.Equals("GetOutgoingBlob") && info.ToString().Equals("Byte[] GetOutgoingBlob(Byte[], Boolean, System.Net.SecurityStatusPal ByRef)")).Single();
             s_isCompleted = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
                 info.Name.Equals("get_IsCompleted")).Single();
             s_protocol = s_ntAuthenticationType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(info =>
@@ -68,7 +68,7 @@ namespace CoreWCF.Security.NegotiateInternal
                 info.Name.Equals("CreateExceptionFromError")).Single();
 
             //TODO this fails in framework
-            Type securityStatusType = secAssembly.GetType("System.Net.NegotiateInternalSecurityStatusPal", throwOnError: true);
+            Type securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
             // securityStatusType.get
             s_statusCode = securityStatusType.GetField("ErrorCode");
             s_statusException = securityStatusType.GetField("Exception");
