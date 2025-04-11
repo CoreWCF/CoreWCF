@@ -16,7 +16,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         byte[] GetOutgoingBlob(byte[] incomingBlob, out NegotiateInternalSecurityStatusPal status);
 
-        int Encrypt(byte[] input, ref byte[] output);
+        byte[] Encrypt(byte[] input);
 
         IIdentity GetIdentity();
     }
