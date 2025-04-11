@@ -31,10 +31,7 @@ namespace CoreWCF.Channels
             }
             catch (OperationCanceledException)
             {
-                // TODO: Fix the timeout value reported
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(
-                                                SR.Format(SR.WaitForMessageTimedOut, TimeSpan.Zero),
-                                                TimeoutHelper.CreateEnterTimedOutException(TimeSpan.Zero)));
+                return null;
             }
             finally
             {

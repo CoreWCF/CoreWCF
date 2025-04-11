@@ -101,11 +101,16 @@ namespace CoreWCF.Channels
 
             public async Task<Message> ReceiveAsync(CancellationToken token)
             {
-                // TODO: Apply timeouts
+                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(token, timeoutCts.Token);
+                var combinedToken = combinedCts.Token;
+
                 Message message;
                 ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
                 for (; ; )
                 {
+                    combinedToken.ThrowIfCancellationRequested();
+                    
                     System.IO.Pipelines.ReadResult readResult = await _connection.Input.ReadAsync(token);
                     if (readResult.IsCompleted || readResult.Buffer.Length == 0)
                     {
