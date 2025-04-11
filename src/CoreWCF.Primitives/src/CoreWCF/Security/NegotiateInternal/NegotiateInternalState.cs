@@ -151,7 +151,7 @@ namespace CoreWCF.Security.NegotiateInternal
             return result;
         }
 
-        public void Dispose() => _ntAuthentication.CloseContext();
+        public void Dispose() => _ntAuthentication.Dispose();
 
         private bool IsCredentialError(NegotiateInternalSecurityStatusErrorCode error) => error == NegotiateInternalSecurityStatusErrorCode.LogonDenied ||
                 error == NegotiateInternalSecurityStatusErrorCode.UnknownCredentials ||
