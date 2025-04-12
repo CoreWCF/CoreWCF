@@ -37,7 +37,7 @@ namespace CoreWCF.Security.NegotiateInternal
                 "GetOutgoingBlob".Equals(m.Name, StringComparison.Ordinal) &&
                 typeof(byte[]).Equals(m.ReturnType));
 
-            getOutgoingBlobInvoker = new LambdaExpressionBuilder(
+            getOutgoingBlobInvoker = LambdaExpressionBuilder.BuildFor(
                 negotiateAuthenticationType,
                 getOutgoingBlob).Compile();
         }
@@ -91,7 +91,9 @@ namespace CoreWCF.Security.NegotiateInternal
 
             var internalStatusCode = ToErrorCode((int)statusCode);
 
-            IsValidContext = internalStatusCode is NegotiateInternalSecurityStatusErrorCode.OK or NegotiateInternalSecurityStatusErrorCode.ContinueNeeded or NegotiateInternalSecurityStatusErrorCode.CompleteNeeded;
+            IsValidContext = internalStatusCode is NegotiateInternalSecurityStatusErrorCode.OK
+                or NegotiateInternalSecurityStatusErrorCode.ContinueNeeded
+                or NegotiateInternalSecurityStatusErrorCode.CompleteNeeded;
 
             Exception error = null;
 
@@ -105,18 +107,16 @@ namespace CoreWCF.Security.NegotiateInternal
             return result;
         }
 
-        private static bool IsNegotiateAuthenticationStatusCodeSuccessful(int statusCode)
-        {
-            // Completed || ContinueNeeded
-            return statusCode == 0 || statusCode == 1;
-        }
-
         public void Dispose()
         {
             _negotiateAuthentication.Dispose();
         }
 
-        public static NegotiateInternalSecurityStatusErrorCode ToErrorCode(int inputValue)
+        /// <summary>
+        /// Convert the NegotiateAuthenticationStatusCode int value into the (likely corresponding)
+        /// NegotiateInternalSecurityStatusErrorCode value
+        /// </summary>
+        private static NegotiateInternalSecurityStatusErrorCode ToErrorCode(int inputValue)
         {
             // https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthenticationstatuscode?view=net-8.0
             return inputValue switch
