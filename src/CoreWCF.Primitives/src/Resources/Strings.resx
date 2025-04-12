@@ -9726,4 +9726,10 @@
   <data name="OnlySetIdentityOnce" xml:space="preserve">
     <value>EndpointDispatcher.Identity can only be set once.</value>
   </data>
+  <data name="BufferWriterAdvancedTooFar" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer, which has a size of {0}.</value>
+  </data>
+  <data name="BufferMaximumSizeExceeded" xml:space="preserve">
+    <value>Cannot allocate a buffer of size {0}.</value>
+  </data>
 </root>

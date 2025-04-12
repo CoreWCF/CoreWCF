@@ -68,9 +68,7 @@ namespace CoreWCF.Security.NegotiateInternal
             // System.Net.Security.NegotiateAuthenticationStatusCode Wrap(ReadOnlySpan<byte> input, System.Buffers.IBufferWriter<byte> outputWriter, bool requestEncryption, out bool isEncrypted);
             var writer = new ArrayBufferWriter<byte>();
             var statusCode = (int)((dynamic)_negotiateAuthentication).Wrap(input, writer, false, out bool isEncrypted);
-            var output = writer._buffer;
-
-            Array.Resize(ref output, writer.WrittenCount);
+            var output = writer.WrittenMemory.ToArray();
 
             return output;
         }
