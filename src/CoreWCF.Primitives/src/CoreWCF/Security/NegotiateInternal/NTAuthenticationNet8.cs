@@ -11,40 +11,39 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     internal class NTAuthenticationNet8 : INTAuthenticationFacade
     {
-        private static readonly object[] serverOptions;
-        private static readonly Type negotiateAuthenticationType;
-        private static readonly Type negotiateAuthenticationStatusCodeType;
-        private static readonly MethodInfo getOutgoingBlob;
-
         // value should match the Windows sspicli NTE_FAIL value
         // defined in winerror.h
         private const int NTE_FAIL = unchecked((int)0x80090020);
 
-        private static readonly Delegate getOutgoingBlobInvoker;
+        private static readonly object[] s_serverOptions;
+        private static readonly Type s_negotiateAuthenticationType;
+        private static readonly Type s_negotiateAuthenticationStatusCodeType;
+        private static readonly MethodInfo s_getOutgoingBlob;
+        private static readonly Delegate s_getOutgoingBlobInvoker;
 
         static NTAuthenticationNet8()
         {
             var securityAssembly = typeof(System.Net.Security.NegotiateStream).Assembly;
             var serverOptionsType = securityAssembly.GetType("System.Net.Security.NegotiateAuthenticationServerOptions", true);
 
-            serverOptions = new object[1] { Activator.CreateInstance(serverOptionsType) };
+            s_serverOptions = new object[1] { Activator.CreateInstance(serverOptionsType) };
 
-            negotiateAuthenticationType = securityAssembly.GetType("System.Net.Security.NegotiateAuthentication", true);
+            s_negotiateAuthenticationType = securityAssembly.GetType("System.Net.Security.NegotiateAuthentication", true);
 
-            negotiateAuthenticationStatusCodeType = securityAssembly.GetType("System.Net.Security.NegotiateAuthenticationStatusCode", true);
+            s_negotiateAuthenticationStatusCodeType = securityAssembly.GetType("System.Net.Security.NegotiateAuthenticationStatusCode", true);
 
-            getOutgoingBlob = negotiateAuthenticationType.GetMethods().Single(m =>
+            s_getOutgoingBlob = s_negotiateAuthenticationType.GetMethods().Single(m =>
                 "GetOutgoingBlob".Equals(m.Name, StringComparison.Ordinal) &&
                 typeof(byte[]).Equals(m.ReturnType));
 
-            getOutgoingBlobInvoker = LambdaExpressionBuilder.BuildFor(
-                negotiateAuthenticationType,
-                getOutgoingBlob).Compile();
+            s_getOutgoingBlobInvoker = LambdaExpressionBuilder.BuildFor(
+                s_negotiateAuthenticationType,
+                s_getOutgoingBlob).Compile();
         }
 
         private static IDisposable NewNegotiateAuthentication()
         {
-            return (IDisposable)Activator.CreateInstance(negotiateAuthenticationType, serverOptions);
+            return (IDisposable)Activator.CreateInstance(s_negotiateAuthenticationType, s_serverOptions);
         }
 
         private readonly IDisposable _negotiateAuthentication;
@@ -83,8 +82,8 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             // https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthentication.getoutgoingblob?view=net-8.0#system-net-security-negotiateauthentication-getoutgoingblob(system-readonlyspan((system-byte))-system-net-security-negotiateauthenticationstatuscode@)
             // byte[]? GetOutgoingBlob(ReadOnlySpan<byte> incomingBlob, out System.Net.Security.NegotiateAuthenticationStatusCode statusCode);
-            object statusCode = Activator.CreateInstance(negotiateAuthenticationStatusCodeType);
-            var result = (byte[]) getOutgoingBlobInvoker.DynamicInvoke(
+            object statusCode = Activator.CreateInstance(s_negotiateAuthenticationStatusCodeType);
+            var result = (byte[]) s_getOutgoingBlobInvoker.DynamicInvoke(
                 _negotiateAuthentication,
                 incomingBlob,
                 statusCode);
