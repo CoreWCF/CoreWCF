@@ -18,7 +18,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         private const int DefaultInitialBufferSize = 256;
 
-        public T[] _buffer;
+        private T[] _buffer;
         private int _index;
 
 
@@ -239,12 +239,12 @@ namespace CoreWCF.Security.NegotiateInternal
 
         private static void ThrowInvalidOperationException_AdvancedTooFar(int capacity)
         {
-            throw new InvalidOperationException(SR.Format("SR.BufferWriterAdvancedTooFar", capacity));
+            throw new InvalidOperationException(SR.Format(SR.BufferWriterAdvancedTooFar, capacity));
         }
 
         private static void ThrowOutOfMemoryException(uint capacity)
         {
-            throw new OutOfMemoryException(SR.Format("SR.BufferMaximumSizeExceeded", capacity));
+            throw new OutOfMemoryException(SR.Format(SR.BufferMaximumSizeExceeded, capacity));
         }
     }
 }
