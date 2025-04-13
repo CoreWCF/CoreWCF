@@ -12,48 +12,20 @@ namespace CoreWCF.Security.NegotiateInternal
     {
         protected delegate int EncryptInvoker(object instance, byte[] buffer, ref byte[] output);
 
-        /*
-         * int Encrypt(
-         *     ReadOnlySpan<byte> buffer, 
-         *     [NotNull] ref byte[]? output, 
-         *     uint sequenceNumber)
-         */
-        private static readonly EncryptInvoker s_encryptInvoker = BuildEncrypt(Expression.Constant(0U));
+        protected static readonly Delegate s_encryptInvoker = LambdaExpressionBuilder.BuildFor(s_ntAuthenticationType, s_encrypt).Compile();
 
-        protected static EncryptInvoker BuildEncrypt(params Expression[] otherParameters)
+        protected override int EncryptInternal(byte[] input, ref byte[] output)
         {
-            /* This method build a function equivalent to:
-             * 
-             * (object instance, byte[] buffer, ref byte[] output) => 
-             *     ((NTAuthentication) instance).Encrypt((ReadOnlySpan<byte>) buffer.AsSpan(), output, ...*otherParameters*)
-             *                                                                                          
+            /*
+             * int Encrypt(
+             *     ReadOnlySpan<byte> buffer, 
+             *     [NotNull] ref byte[]? output, 
+             *     uint sequenceNumber)
              */
-            ParameterExpression instanceParameter = Expression.Parameter(typeof(object));
-            ParameterExpression bufferParameter = Expression.Parameter(typeof(byte[]));
-            ParameterExpression outputParameter = Expression.Parameter(typeof(byte[]).MakeByRefType());
-
-            UnaryExpression typedInstance = Expression.TypeAs(instanceParameter, s_ntAuthenticationType);
-
-            MethodInfo asSpan = typeof(MemoryExtensions)
-                .GetMethods()
-                .Single(m => m.Name == "AsSpan" && m.ToString() == "System.Span`1[T] AsSpan[T](T[])").
-                MakeGenericMethod(typeof(byte));
-
-
-            UnaryExpression bufferSpan = Expression.Convert(
-                Expression.Call(asSpan, bufferParameter),
-                typeof(ReadOnlySpan<byte>));
-
-            MethodCallExpression call = Expression.Call(
-                typedInstance,
-                s_encrypt,
-                Enumerable.Concat(new Expression[] { bufferSpan, outputParameter }, otherParameters));
-
-            var expression = Expression.Lambda<EncryptInvoker>(call, instanceParameter, bufferParameter, outputParameter);
-
-            return expression.Compile();
+            object[] parameters = new object[] { Instance, input, output, 0U };
+            int totalBytes = (int)s_encryptInvoker.DynamicInvoke(parameters);
+            output = (byte[])parameters[2];
+            return totalBytes;
         }
-
-        protected override int EncryptInternal(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
     }
 }
