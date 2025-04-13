@@ -83,10 +83,11 @@ namespace CoreWCF.Security.NegotiateInternal
             // https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthentication.getoutgoingblob?view=net-8.0#system-net-security-negotiateauthentication-getoutgoingblob(system-readonlyspan((system-byte))-system-net-security-negotiateauthenticationstatuscode@)
             // byte[]? GetOutgoingBlob(ReadOnlySpan<byte> incomingBlob, out System.Net.Security.NegotiateAuthenticationStatusCode statusCode);
             object statusCode = Activator.CreateInstance(s_negotiateAuthenticationStatusCodeType);
+
+            object[] parameters = new object[] { _negotiateAuthentication, incomingBlob, statusCode };
             var result = (byte[]) s_getOutgoingBlobInvoker.DynamicInvoke(
-                _negotiateAuthentication,
-                incomingBlob,
-                statusCode);
+parameters);
+            statusCode = parameters[2];
 
             var internalStatusCode = ToErrorCode((int)statusCode);
 
