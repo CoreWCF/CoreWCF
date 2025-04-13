@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,7 @@ namespace CoreWCF.Security.NegotiateInternal
         private static readonly Type s_negotiateAuthenticationStatusCodeType;
         private static readonly MethodInfo s_getOutgoingBlob;
         private static readonly Delegate s_getOutgoingBlobInvoker;
+        private static readonly Type s_arrayBufferWriterOfByteType;
 
         static NTAuthenticationNet8()
         {
@@ -39,6 +41,10 @@ namespace CoreWCF.Security.NegotiateInternal
             s_getOutgoingBlobInvoker = LambdaExpressionBuilder.BuildFor(
                 s_negotiateAuthenticationType,
                 s_getOutgoingBlob).Compile();
+
+            var memoryAssembly = typeof(IBufferWriter<>).Assembly;
+            s_arrayBufferWriterOfByteType = memoryAssembly.GetType("System.Buffers.ArrayBufferWriter`1", true).MakeGenericType(typeof(byte));
+
         }
 
         private static IDisposable NewNegotiateAuthentication()
@@ -65,9 +71,9 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             // https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthentication.wrap?view=net-8.0
             // System.Net.Security.NegotiateAuthenticationStatusCode Wrap(ReadOnlySpan<byte> input, System.Buffers.IBufferWriter<byte> outputWriter, bool requestEncryption, out bool isEncrypted);
-            var writer = new ArrayBufferWriter<byte>();
-            var statusCode = (int)((dynamic)_negotiateAuthentication).Wrap(input, writer, false, out bool isEncrypted);
-            var output = writer.WrittenMemory.ToArray();
+            var bufferWriter = (IBufferWriter<byte>) Activator.CreateInstance(s_arrayBufferWriterOfByteType);
+            var statusCode = (int)((dynamic)_negotiateAuthentication).Wrap(input, bufferWriter, false, out bool isEncrypted);
+            var output = ((ReadOnlyMemory<byte>)((dynamic) bufferWriter).WrittenMemory).ToArray();
 
             return output;
         }
