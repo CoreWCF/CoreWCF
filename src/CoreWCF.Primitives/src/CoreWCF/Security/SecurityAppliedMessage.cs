@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Tokens;
@@ -145,6 +146,12 @@ namespace CoreWCF.Security
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBadStateException(nameof(OnWriteBodyContents)));
             }
+        }
+
+        public override Task OnWriteMessageAsync(XmlDictionaryWriter writer)
+        {
+            OnWriteMessage(writer);
+            return Task.CompletedTask;
         }
 
         protected override void OnWriteMessage(XmlDictionaryWriter writer)

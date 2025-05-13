@@ -39,6 +39,12 @@ namespace BasicHttp
             yield return new[] { typeof(BasicHttpTransportWithMessageCredentialWithUserName<CustomAsynchronousTestValidator>) };
         }
 
+        public static IEnumerable<object[]> GetStreamedTestsVariations()
+        {
+            yield return new[] { typeof(BasicHttpStreamedTransportWithMessageCredentialWithUserName<CustomTestValidator>) };
+            yield return new[] { typeof(BasicHttpStreamedTransportWithMessageCredentialWithUserName<CustomAsynchronousTestValidator>) };
+        }
+
         [Theory, Description("transport-security-with-basic-authentication")]
         [MemberData(nameof(GetTestsVariations))]
         public void BasicHttpRequestReplyWithTransportMessageEchoString(Type startupType)
@@ -50,6 +56,35 @@ namespace BasicHttp
             {
                 host.Start();
                 System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetBufferedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
+                BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
+                    new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
+                factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                {
+                    CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                };
+                ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                clientCredentials.UserName.UserName = "testuser@corewcf";
+                clientCredentials.UserName.Password = "abab014eba271b2accb05ce0a8ce37335cce38a30f7d39025c713c2b8037d920";
+                ClientContract.IEchoService channel = factory.CreateChannel();
+                ((IChannel)channel).Open();
+                string result = channel.EchoString(testString);
+                Assert.Equal(testString, result);
+                ((IChannel)channel).Close();
+            }
+        }
+
+        [Theory, Description("streamed-transport-security-with-basic-authentication")]
+        [MemberData(nameof(GetStreamedTestsVariations))]
+        public void BasicHttpStreamedRequestReplyWithTransportMessageEchoString(Type startupType)
+        {
+            ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).AllowSynchronousIO().Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.BasicHttpBinding BasicHttpBinding = ClientHelper.GetStreamedModeBinding(System.ServiceModel.BasicHttpSecurityMode.TransportWithMessageCredential);
                 BasicHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.BasicHttpMessageCredentialType.UserName;
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(BasicHttpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/BasicHttpWcfService/basichttp.svc")));
@@ -363,6 +398,16 @@ namespace BasicHttp
                 srvCredentials.UserNameAuthentication.CustomUserNamePasswordValidator =
                     new TUserNamePasswordValidator();
                 host.Description.Behaviors.Add(srvCredentials);
+            }
+        }
+
+        internal class BasicHttpStreamedTransportWithMessageCredentialWithUserName<TUserNamePasswordValidator> : BasicHttpTransportWithMessageCredentialWithUserName<TUserNamePasswordValidator>
+            where TUserNamePasswordValidator : UserNamePasswordValidator, new()
+        {
+            public override CoreWCF.Channels.Binding ChangeBinding(BasicHttpBinding basicBinding)
+            {
+                basicBinding.TransferMode = TransferMode.Streamed;
+                return basicBinding;
             }
         }
 

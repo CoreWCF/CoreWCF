@@ -124,6 +124,16 @@ namespace Helpers
             return binding;
         }
 
+        public static BasicHttpBinding GetStreamedModeBinding(BasicHttpSecurityMode mode)
+        {
+            var binding = new BasicHttpBinding(mode)
+            {
+                TransferMode = TransferMode.Streamed
+            };
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
         public static BasicHttpBinding GetMtomStreamedModeBinding()
         {
             var binding = new BasicHttpBinding
