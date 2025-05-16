@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Templates.Test.Helpers;
@@ -23,6 +24,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     public static class Frameworks
     {
+        public const string Net10 = "net10.0";
         public const string Net9 = "net9.0";
         public const string Net8 = "net8.0";
         public const string Net48 = "net48";
@@ -124,6 +126,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
         IEnumerable<TestVariation> GetFrameworksVariations()
         {
             yield return TestVariation.New();
+            yield return TestVariation.New().Framework(Frameworks.Net10);
             yield return TestVariation.New().Framework(Frameworks.Net9);
             yield return TestVariation.New().Framework(Frameworks.Net8);
 
@@ -139,26 +142,26 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
         IEnumerable<TestVariation> GetHttpsVariations(TestVariation testVariation)
         {
-            yield return (TestVariation)testVariation.Clone();
-            yield return ((TestVariation)testVariation.Clone()).NoHttps();
+            yield return testVariation.Clone();
+            yield return testVariation.Clone().NoHttps();
         }
 
         IEnumerable<TestVariation> GetNoWsdlVariations(TestVariation testVariation)
         {
-            yield return (TestVariation)testVariation.Clone();
-            yield return ((TestVariation)testVariation.Clone()).NoWsdl();
+            yield return testVariation.Clone();
+            yield return testVariation.Clone().NoWsdl();
         }
 
         IEnumerable<TestVariation> GetUseProgramMainVariations(TestVariation testVariation)
         {
-            yield return (TestVariation)testVariation.Clone();
-            yield return ((TestVariation)testVariation.Clone()).UseProgramMain();
+            yield return testVariation.Clone();
+            yield return testVariation.Clone().UseProgramMain();
         }
 
         IEnumerable<TestVariation> GetUseOperationInvokerGeneratorVariations(TestVariation testVariation)
         {
-            yield return (TestVariation)testVariation.Clone();
-            yield return ((TestVariation)testVariation.Clone()).UseOperationInvokerGenerator();
+            yield return testVariation.Clone();
+            yield return testVariation.Clone().UseOperationInvokerGenerator();
         }
 
         foreach (var frameworksVariation in GetFrameworksVariations())
@@ -226,7 +229,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
             }
             else
             {
-                await aspNetProcess.AssertStatusCode("/Service.svc", System.Net.HttpStatusCode.BadRequest);
+                await aspNetProcess.AssertStatusCode("/Service.svc", HttpStatusCode.BadRequest);
             }
         }
 
@@ -245,7 +248,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
             }
             else
             {
-                await aspNetProcess.AssertStatusCode("/Service.svc", System.Net.HttpStatusCode.BadRequest);
+                await aspNetProcess.AssertStatusCode("/Service.svc", HttpStatusCode.BadRequest);
             }
         }
     }
