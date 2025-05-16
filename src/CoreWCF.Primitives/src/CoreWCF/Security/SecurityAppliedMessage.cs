@@ -148,10 +148,63 @@ namespace CoreWCF.Security
             }
         }
 
-        public override Task OnWriteMessageAsync(XmlDictionaryWriter writer)
+        public override async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
-            OnWriteMessage(writer);
-            return Task.CompletedTask;
+            // For Kerb one shot, the channel binding will be need to be fished out of the message, cached and added to the
+            // token before calling ISC.
+
+            AttachChannelBindingTokenIfFound();
+
+            EnsureUniqueSecurityApplication();
+
+            MessagePrefixGenerator prefixGenerator = new MessagePrefixGenerator(writer);
+            _securityHeader.StartSecurityApplication();
+
+            Headers.Add(_securityHeader);
+
+            InnerMessage.WriteStartEnvelope(writer);
+
+            Headers.RemoveAt(Headers.Count - 1);
+
+            _securityHeader.ApplyBodySecurity(writer, prefixGenerator);
+
+            InnerMessage.WriteStartHeaders(writer);
+            _securityHeader.ApplySecurityAndWriteHeaders(Headers, writer, prefixGenerator);
+
+            _securityHeader.RemoveSignatureEncryptionIfAppropriate();
+
+            _securityHeader.CompleteSecurityApplication();
+            _securityHeader.WriteHeader(writer, Version);
+            await writer.WriteEndElementAsync();
+
+            if (_fullBodyFragment != null)
+            {
+                ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_fullBodyFragment, 0, _fullBodyFragmentLength);
+            }
+            else
+            {
+                if (_startBodyFragment != null)
+                {
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_startBodyFragment.GetBuffer(), 0, (int)_startBodyFragment.Length);
+                }
+                else
+                {
+                    OnWriteStartBody(writer);
+                }
+
+                OnWriteBodyContents(writer);
+
+                if (_endBodyFragment != null)
+                {
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_endBodyFragment.GetBuffer(), 0, (int)_endBodyFragment.Length);
+                }
+                else
+                {
+                    await writer.WriteEndElementAsync();
+                }
+            }
+
+            await writer.WriteEndElementAsync();
         }
 
         protected override void OnWriteMessage(XmlDictionaryWriter writer)
@@ -264,8 +317,8 @@ namespace CoreWCF.Security
 
             XmlDictionaryWriter encryptingWriter = XmlDictionaryWriter.CreateTextWriter(Stream.Null);
             // The XmlSerializer body formatter would add a
-            // document declaration to the body fragment when a fresh writer 
-            // is provided. Hence, insert a dummy element here and capture 
+            // document declaration to the body fragment when a fresh writer
+            // is provided. Hence, insert a dummy element here and capture
             // the body contents as a fragment.
             encryptingWriter.WriteStartElement("a");
             MemoryStream ms = new MemoryStream();
