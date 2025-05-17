@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using CoreWCF.Description;
 using CoreWCF.Dispatcher;
 using CoreWCF.IdentityModel.Claims;
@@ -19,6 +19,8 @@ namespace CoreWCF
         {
             _allowedRoles = allowedRoles;
         }
+
+        public IReadOnlyList<string> AllowedRoles => _allowedRoles?.ToArray() ?? Array.Empty<string>();
 
         public void BuildClaim(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
