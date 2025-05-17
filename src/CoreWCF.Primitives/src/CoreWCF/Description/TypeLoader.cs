@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using CoreWCF.Channels;
@@ -208,8 +209,7 @@ namespace CoreWCF.Description
         //This needs proper review.
         private void AddAuthorizeOperations(ContractDescription contractDesc, bool implIsCallback, ContractReflectionInfo reflectionInfo)
         {
-
-            for(int i=0; i< contractDesc.Operations.Count; i++)
+            for (int i = 0; i < contractDesc.Operations.Count; i++)
             {
                 OperationDescription opDesc = contractDesc.Operations[i];
                 if (opDesc.DeclaringContract != contractDesc)
@@ -223,14 +223,49 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IAuthorizeOperation> behaviors)
                     {
                         KeyedByTypeCollection<IAuthorizeOperation> toAdd =
-                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
+                            GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
-                            // Do not add to the passed in behaviors as that will drop any duplicates
-                            // which we do not want. If there are multiple conflicting instances on the
-                            // same operation, we need to fail, otherwise there's a risk of the intended
-                            // security authorization constraints silently being ignored.
-                            opDesc.AuthorizeOperation.Add(toAdd[j]);
+                            IAuthorizeOperation attribute = toAdd[j];
+                            Type attributeType = attribute.GetType();
+
+                            // Handle AuthorizeRoleAttribute specifically
+                            if (attribute is AuthorizeRoleAttribute newRoleAttr)
+                            {
+                                // Check for existing AuthorizeRoleAttribute
+                                var existingRoleAttr = opDesc.AuthorizeOperation.Find<AuthorizeRoleAttribute>();
+                                if (existingRoleAttr != null)
+                                {
+                                    // Compare allowed roles
+                                    bool rolesMatch = newRoleAttr.AllowedRoles.SequenceEqual(existingRoleAttr.AllowedRoles);
+                                    if (rolesMatch)
+                                    {
+                                        // Skip duplicate
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        // Throw error for conflicting roles
+                                        throw new InvalidOperationException(
+                                            $"Conflicting AuthorizeRoleAttribute roles on operation {opDesc.Name}. " +
+                                            $"Existing: {string.Join(", ", existingRoleAttr.AllowedRoles)}, " +
+                                            $"New: {string.Join(", ", newRoleAttr.AllowedRoles)}");
+                                    }
+                                }
+                                else
+                                {
+                                    // Add if not exists
+                                    opDesc.AuthorizeOperation.Add(newRoleAttr);
+                                }
+                            }
+                            else
+                            {
+                                // Do not add to the passed in behaviors as that will drop any duplicates
+                                // which we do not want. If there are multiple conflicting instances on the
+                                // same operation, we need to fail, otherwise there's a risk of the intended
+                                // security authorization constraints silently being ignored.
+                                opDesc.AuthorizeOperation.Add(attribute);
+                            }
                         }
                     });
             }
