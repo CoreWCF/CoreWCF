@@ -22,7 +22,7 @@ namespace CoreWCF.Description
         private static readonly Type[] s_messageContractMemberAttributes = {
             typeof(MessageHeaderAttribute),
             typeof(MessageBodyMemberAttribute),
-            typeof(MessagePropertyAttribute),
+            typeof(CoreWCF.MessagePropertyAttribute),
         };
         private static readonly Type[] s_formatterAttributes = {
             typeof(XmlSerializerFormatAttribute),
@@ -1562,8 +1562,7 @@ namespace CoreWCF.Description
                                                             XmlName defaultName,
                                                             int parameterIndex)
         {
-            MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
-            XmlName propertyName = attr.IsNameSetExplicit ? new XmlName(attr.Name) : defaultName;
+            XmlName propertyName = GetXmlName(attrProvider, defaultName);
             MessagePropertyDescription propertyDescription = new MessagePropertyDescription(propertyName.EncodedName)
             {
                 Index = parameterIndex
@@ -1575,6 +1574,22 @@ namespace CoreWCF.Description
             }
 
             return propertyDescription;
+
+            static XmlName GetXmlName(ICustomAttributeProvider attrProvider, XmlName defaultName)
+            {
+                CoreWCF.MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<CoreWCF.MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
+                if (attr is { IsNameSetExplicit: true })
+                {
+                    return new XmlName(attr.Name);
+                }
+                CoreWCF.Description.MessagePropertyAttribute legacyAttr = ServiceReflector.GetSingleAttribute<CoreWCF.Description.MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
+                if (legacyAttr is { IsNameSetExplicit: true })
+                {
+                    return new XmlName(legacyAttr.Name);
+                }
+                
+                return defaultName;
+            }
         }
 
         internal static XmlName GetReturnValueName(XmlName methodName)
