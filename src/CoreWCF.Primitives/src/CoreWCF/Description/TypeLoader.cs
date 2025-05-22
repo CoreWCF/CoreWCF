@@ -1575,6 +1575,10 @@ namespace CoreWCF.Description
 
             return propertyDescription;
 
+            // This function determines the XML name for a message property. It first checks for the presence
+            // of the new CoreWCF.MessagePropertyAttribute. If the attribute is found and its name is explicitly set,
+            // it uses that name. If not, it falls back to checking for the legacy CoreWCF.Description.MessagePropertyAttribute.
+            // If neither attribute is found or their names are not explicitly set, it defaults to the provided defaultName.
             static XmlName GetXmlName(ICustomAttributeProvider attrProvider, XmlName defaultName)
             {
                 CoreWCF.MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<CoreWCF.MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
