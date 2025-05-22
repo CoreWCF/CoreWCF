@@ -37,7 +37,7 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.SAMLUnableToResolveSignatureKey, "issuer")));
             }
 
-            var samlSecurityToken = new IdentityModel.Tokens.SamlSecurityToken(assertion)
+            var samlSecurityToken = new SamlSecurityToken(assertion)
             {
                 SigningToken = SamlSerializer.ResolveSecurityToken(securityKeyIdentifier, outOfBandTokenResolver)
             };
