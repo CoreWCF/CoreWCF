@@ -1901,7 +1901,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    public struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
         public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
@@ -1984,7 +1984,7 @@ namespace CoreWCF.Channels
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
             {
-                string message = SR.XmlBufferQuotaExceeded;
+                string message = SRCommon.XmlBufferQuotaExceeded;
                 Exception inner = new QuotaExceededException(message);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
             }

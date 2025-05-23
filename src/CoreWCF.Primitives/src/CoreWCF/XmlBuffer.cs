@@ -51,7 +51,7 @@ namespace CoreWCF
             }
 
             int initialBufferSize = Math.Min(512, maxBufferSize);
-            _stream = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, initialBufferSize, maxBufferSize,
+            _stream = new BufferManagerOutputStream(SRCommon.XmlBufferQuotaExceeded, initialBufferSize, maxBufferSize,
                 BufferManager.CreateBufferManager(0, int.MaxValue));
             _sections = new List<Section>(1);
         }
