@@ -237,7 +237,8 @@ namespace CoreWCF.Description
                                 if (existingRoleAttr != null)
                                 {
                                     // Compare allowed roles
-                                    bool rolesMatch = newRoleAttr.AllowedRoles.SequenceEqual(existingRoleAttr.AllowedRoles);
+                                    // Since the order of allowed roles does not matter, use an order-insensitive comparison
+                                    bool rolesMatch = new HashSet<string>(newRoleAttr.AllowedRoles).SetEquals(new HashSet<string>(existingRoleAttr.AllowedRoles));
                                     if (rolesMatch)
                                     {
                                         // Skip duplicate

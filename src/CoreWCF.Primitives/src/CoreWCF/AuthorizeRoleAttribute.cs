@@ -20,7 +20,7 @@ namespace CoreWCF
             _allowedRoles = allowedRoles;
         }
 
-        public IReadOnlyList<string> AllowedRoles => _allowedRoles?.ToArray() ?? Array.Empty<string>();
+        public IReadOnlyList<string> AllowedRoles => _allowedRoles ?? Array.Empty<string>();
 
         public void BuildClaim(OperationDescription operationDescription, DispatchOperation dispatchOperation)
         {
