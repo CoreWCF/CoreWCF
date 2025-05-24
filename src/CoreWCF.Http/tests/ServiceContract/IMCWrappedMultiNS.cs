@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -66,7 +66,6 @@ namespace ServiceContract
         [System.ServiceModel.MessageProperty]
         public string e;
     }
-
 
     [System.ServiceModel.MessageContract(WrapperName = "M", WrapperNamespace = "http://new")]
     public class MCMultiNS2
