@@ -17,6 +17,11 @@ namespace CoreWCF.OpenApi
         public Type Contract { get; set; }
 
         /// <summary>
+        /// The URI the contract is registered on.
+        /// </summary>
+        public Uri Address { get; set; }
+
+        /// <summary>
         /// Default format of the response.
         /// </summary>
         public WebMessageFormat ResponseFormat { get; set; }
