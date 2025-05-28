@@ -27,8 +27,7 @@ namespace CoreWCF.Channels
         private AspNetCoreReplyChannel _replyChannel;
         private Task<IServiceChannelDispatcher> _replyChannelDispatcherTask;
         private IServiceChannelDispatcher _replyChannelDispatcher;
-
-        private static bool _maxRequestBodySizeWarningEmitted = false;
+        private bool _maxRequestBodySizeWarningEmitted = false;
 
         public RequestDelegateHandler(IServiceDispatcher serviceDispatcher, IServiceScopeFactory servicesScopeFactory)
         {
@@ -156,12 +155,15 @@ namespace CoreWCF.Channels
                 return;
             }
 
-            long desiredMaxRequestBodySize = _httpSettings.MaxReceivedMessageSize;
-
-            var logger = context.RequestServices.GetService(typeof(ILogger<RequestDelegateHandler>)) as ILogger<RequestDelegateHandler>;
-
             var maxRequestBodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
-            if (maxRequestBodySizeFeature != null && maxRequestBodySizeFeature.MaxRequestBodySize != null)
+            if (maxRequestBodySizeFeature is null)
+            {
+                return;
+            }
+
+            long desiredMaxRequestBodySize = _httpSettings.MaxReceivedMessageSize;
+            
+            if (maxRequestBodySizeFeature.MaxRequestBodySize != null)
             {
                 if (maxRequestBodySizeFeature.MaxRequestBodySize < desiredMaxRequestBodySize)
                 {
@@ -171,7 +173,8 @@ namespace CoreWCF.Channels
                     }
                     else if (!_maxRequestBodySizeWarningEmitted)
                     {
-                        logger?.LogWarning($"Unable to increase MaxRequestBodySize (Kestrel/HttpSys) because the property is read-only. The current limit is {maxRequestBodySizeFeature.MaxRequestBodySize} bytes.");
+                        var logger = context.RequestServices.GetService<ILogger<RequestDelegateHandler>>();
+                        logger?.LogWarning(SR.MaxRequestBodySizeIsReadOnlyLogFormat, maxRequestBodySizeFeature.MaxRequestBodySize);
                         _maxRequestBodySizeWarningEmitted = true;
                     }
                 }
