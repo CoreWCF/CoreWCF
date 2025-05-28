@@ -34,8 +34,14 @@
   </PropertyGroup>
 
   <!-- UT -->
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'true'">
+    <IsVSPreviewVersion Condition=" '$(DevEnvDir)' != '' and $(DevEnvDir.Contains('Preview')) ">true</IsVSPreviewVersion>
+  </PropertyGroup>
+  
   <PropertyGroup>
-    <TestTargetFrameworks>net8.0;net9.0;net10.0</TestTargetFrameworks>
+    <PreviewDotNetTfm>net10.0</PreviewDotNetTfm>
+    <TestTargetFrameworks>net8.0;net9.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="('$(BuildingInsideVisualStudio)' != 'true') OR ('$(IsVSPreviewVersion)' == 'true')">$(TestTargetFrameworks);$(PreviewDotNetTfm)</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
   </PropertyGroup>
 
