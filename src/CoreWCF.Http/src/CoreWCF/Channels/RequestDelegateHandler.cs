@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CoreWCF.Channels
 {
@@ -26,6 +27,7 @@ namespace CoreWCF.Channels
         private AspNetCoreReplyChannel _replyChannel;
         private Task<IServiceChannelDispatcher> _replyChannelDispatcherTask;
         private IServiceChannelDispatcher _replyChannelDispatcher;
+        private bool _maxRequestBodySizeWarningEmitted = false;
 
         public RequestDelegateHandler(IServiceDispatcher serviceDispatcher, IServiceScopeFactory servicesScopeFactory)
         {
@@ -99,6 +101,8 @@ namespace CoreWCF.Channels
 
         internal async Task HandleRequest(HttpContext context)
         {
+            EnsureMaxRequestBodySize(context);
+
             if (IsAuthenticationRequired)
             {
                 string scheme = _httpSettings.AuthenticationScheme == AuthenticationSchemes.None
@@ -141,6 +145,39 @@ namespace CoreWCF.Channels
                 var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress, _servicesScopeFactory.CreateScope().ServiceProvider);
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
+            }
+        }
+
+        private void EnsureMaxRequestBodySize(HttpContext context)
+        {
+            if (_httpSettings is null)
+            {
+                return;
+            }
+
+            var maxRequestBodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+            if (maxRequestBodySizeFeature is null)
+            {
+                return;
+            }
+
+            long desiredMaxRequestBodySize = _httpSettings.MaxReceivedMessageSize;
+            
+            if (maxRequestBodySizeFeature.MaxRequestBodySize != null)
+            {
+                if (maxRequestBodySizeFeature.MaxRequestBodySize < desiredMaxRequestBodySize)
+                {
+                    if (!maxRequestBodySizeFeature.IsReadOnly)
+                    {
+                        maxRequestBodySizeFeature.MaxRequestBodySize = desiredMaxRequestBodySize;
+                    }
+                    else if (!_maxRequestBodySizeWarningEmitted)
+                    {
+                        var logger = context.RequestServices.GetService<ILogger<RequestDelegateHandler>>();
+                        logger?.LogWarning(SR.MaxRequestBodySizeIsReadOnlyLogFormat, maxRequestBodySizeFeature.MaxRequestBodySize);
+                        _maxRequestBodySizeWarningEmitted = true;
+                    }
+                }
             }
         }
 
