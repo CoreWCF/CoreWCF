@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -192,7 +193,11 @@ namespace CoreWCF.Security
 
         public abstract void ApplyBodySecurity(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator);
 
+        public abstract ValueTask ApplyBodySecurityAsync(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator);
+
         public abstract void ApplySecurityAndWriteHeaders(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator);
+
+        public abstract ValueTask ApplySecurityAndWriteHeadersAsync(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator);
 
         protected virtual bool HasSignedEncryptedMessagePart => false;
 

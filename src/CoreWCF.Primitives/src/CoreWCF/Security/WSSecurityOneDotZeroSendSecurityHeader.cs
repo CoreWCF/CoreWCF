@@ -6,6 +6,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Description;
@@ -162,6 +163,50 @@ namespace CoreWCF.Security
             return headerId;
         }
 
+        private async ValueTask<(string, byte[])> GetSignatureHashAsync(MessageHeader header, string headerId, IPrefixGenerator prefixGenerator, XmlDictionaryWriter writer)
+        {
+            HashStream hashStream = TakeHashStream();
+            XmlDictionaryWriter effectiveWriter;
+            XmlBuffer canonicalBuffer = null;
+
+            if (writer.CanCanonicalize)
+            {
+                effectiveWriter = writer;
+            }
+            else
+            {
+                canonicalBuffer = new XmlBuffer(int.MaxValue);
+                effectiveWriter = canonicalBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
+            }
+
+            effectiveWriter.StartCanonicalization(hashStream, false, null);
+
+            header.WriteStartHeader(effectiveWriter, Version);
+            if (headerId == null)
+            {
+                headerId = GenerateId();
+                StandardsManager.IdManager.WriteIdAttribute(effectiveWriter, headerId);
+            }
+            header.WriteHeaderContents(effectiveWriter, Version);
+            await effectiveWriter.WriteEndElementAsync();
+            effectiveWriter.EndCanonicalization();
+            await effectiveWriter.FlushAsync();
+
+            if (!ReferenceEquals(effectiveWriter, writer))
+            {
+                Fx.Assert(canonicalBuffer != null, "Canonical buffer cannot be null.");
+                canonicalBuffer.CloseSection();
+                canonicalBuffer.Close();
+                XmlDictionaryReader dicReader = canonicalBuffer.GetReader(0);
+                await writer.WriteNodeAsync(dicReader, false);
+                dicReader.Close();
+            }
+
+            var hash = hashStream.FlushHashAndGetValue();
+
+            return (headerId, hash);
+        }
+
         private string GetSignatureStream(MessageHeader header, string headerId, IPrefixGenerator prefixGenerator, XmlDictionaryWriter writer, out Stream stream)
         {
             stream = new MemoryStream();
@@ -206,6 +251,50 @@ namespace CoreWCF.Security
             return headerId;
         }
 
+        private async ValueTask<(string, Stream)> GetSignatureStreamAsync(MessageHeader header, string headerId, IPrefixGenerator prefixGenerator, XmlDictionaryWriter writer)
+        {
+            Stream stream = new MemoryStream();
+            XmlDictionaryWriter effectiveWriter;
+            XmlBuffer canonicalBuffer = null;
+
+            if (writer.CanCanonicalize)
+            {
+                effectiveWriter = writer;
+            }
+            else
+            {
+                canonicalBuffer = new XmlBuffer(int.MaxValue);
+                effectiveWriter = canonicalBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
+            }
+
+            effectiveWriter.StartCanonicalization(stream, false, null);
+
+            header.WriteStartHeader(effectiveWriter, Version);
+            if (headerId == null)
+            {
+                headerId = GenerateId();
+                StandardsManager.IdManager.WriteIdAttribute(effectiveWriter, headerId);
+            }
+            header.WriteHeaderContents(effectiveWriter, Version);
+            await effectiveWriter.WriteEndElementAsync();
+            effectiveWriter.EndCanonicalization();
+            await effectiveWriter.FlushAsync();
+
+            if (!ReferenceEquals(effectiveWriter, writer))
+            {
+                Fx.Assert(canonicalBuffer != null, "Canonical buffer cannot be null.");
+                canonicalBuffer.CloseSection();
+                canonicalBuffer.Close();
+                XmlDictionaryReader dicReader = canonicalBuffer.GetReader(0);
+                await writer.WriteNodeAsync(dicReader, false);
+                dicReader.Close();
+            }
+
+            stream.Position = 0;
+
+            return (headerId, stream);
+        }
+
         private void AddReference(string id, Stream contents)
         {
             var reference = new System.Security.Cryptography.Xml.Reference(contents)
@@ -221,7 +310,22 @@ namespace CoreWCF.Security
         {
             // No transforms added to Reference as the digest value has already been calculated
             headerId = GetSignatureHash(header, headerId, prefixGenerator, writer, out byte[] hashValue);
-            var reference = new System.Security.Cryptography.Xml.Reference
+            var reference = new Reference
+            {
+                DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm,
+                DigestValue = hashValue,
+                Id = headerId
+            };
+            _signedXml.AddReference(reference);
+        }
+
+        private async ValueTask AddSignatureReferenceAsync(MessageHeader header, string headerId, IPrefixGenerator prefixGenerator, XmlDictionaryWriter writer)
+        {
+            // No transforms added to Reference as the digest value has already been calculated
+            var (generatedHeaderId, hashValue) = await GetSignatureHashAsync(header, headerId, prefixGenerator, writer);
+            headerId = generatedHeaderId;
+
+            var reference = new Reference
             {
                 DigestMethod = AlgorithmSuite.DefaultDigestAlgorithm,
                 DigestValue = hashValue,
@@ -272,6 +376,50 @@ namespace CoreWCF.Security
             }
         }
 
+        private async ValueTask ApplySecurityAndWriteHeaderAsync(MessageHeader header, string headerId, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
+        {
+            if (!RequireMessageProtection && ShouldSignToHeader)
+            {
+                if ((header.Name == XD.AddressingDictionary.To.Value) &&
+                    (header.Namespace == Message.Version.Addressing.Namespace))
+                {
+                    if (_toHeaderStream == null)
+                    {
+                        var (generatedHeaderId, stream) = await GetSignatureStreamAsync(header, headerId, prefixGenerator, writer);
+                        headerId = generatedHeaderId;
+
+                        _toHeaderStream = stream;
+                        _toHeaderId = headerId;
+                    }
+                    else
+                    {
+                        // More than one 'To' header is specified in the message.
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.TransportSecuredMessageHasMoreThanOneToHeader));
+                    }
+
+                    return;
+                }
+            }
+
+            MessagePartProtectionMode protectionMode = GetProtectionMode(header);
+            switch (protectionMode)
+            {
+                case MessagePartProtectionMode.None:
+                    header.WriteHeader(writer, Version);
+                    return;
+                case MessagePartProtectionMode.Sign:
+                    await AddSignatureReferenceAsync(header, headerId, prefixGenerator, writer);
+                    return;
+                case MessagePartProtectionMode.SignThenEncrypt:
+                case MessagePartProtectionMode.Encrypt:
+                case MessagePartProtectionMode.EncryptThenSign:
+                    throw new PlatformNotSupportedException();
+                default:
+                    Fx.Assert("Invalid MessagePartProtectionMode");
+                    return;
+            }
+        }
+
         public override void ApplySecurityAndWriteHeaders(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
         {
             string[] headerIds;
@@ -295,6 +443,33 @@ namespace CoreWCF.Security
                 if (header != this)
                 {
                     ApplySecurityAndWriteHeader(header, headerIds?[i], writer, prefixGenerator);
+                }
+            }
+        }
+
+        public override async ValueTask ApplySecurityAndWriteHeadersAsync(MessageHeaders headers, XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
+        {
+            string[] headerIds;
+            if (RequireMessageProtection || ShouldSignToHeader)
+            {
+                headerIds = headers.GetHeaderAttributes(UtilityStrings.IdAttribute,
+                    StandardsManager.IdManager.DefaultIdNamespaceUri);
+            }
+            else
+            {
+                headerIds = null;
+            }
+            for (int i = 0; i < headers.Count; i++)
+            {
+                MessageHeader header = headers.GetMessageHeader(i);
+                if (Version.Addressing == AddressingVersion.None && header.Namespace == AddressingVersion.None.Namespace)
+                {
+                    continue;
+                }
+
+                if (header != this)
+                {
+                    await ApplySecurityAndWriteHeaderAsync(header, headerIds?[i], writer, prefixGenerator);
                 }
             }
         }
@@ -324,6 +499,39 @@ namespace CoreWCF.Security
                     else
                     {
                         message.WriteBodyToSign(ms);
+                    }
+
+                    ms.Position = 0;
+                    AddReference("#" + message.BodyId, ms);
+                    return;
+                case MessagePartProtectionMode.SignThenEncrypt:
+                    throw new PlatformNotSupportedException();
+                case MessagePartProtectionMode.Encrypt:
+                    throw new PlatformNotSupportedException();
+                case MessagePartProtectionMode.EncryptThenSign:
+                    throw new PlatformNotSupportedException();
+                default:
+                    Fx.Assert("Invalid MessagePartProtectionMode");
+                    return;
+            }
+        }
+
+        public override async ValueTask ApplyBodySecurityAsync(XmlDictionaryWriter writer, IPrefixGenerator prefixGenerator)
+        {
+            SecurityAppliedMessage message = SecurityAppliedMessage;
+            switch (message.BodyProtectionMode)
+            {
+                case MessagePartProtectionMode.None:
+                    return;
+                case MessagePartProtectionMode.Sign:
+                    var ms = new MemoryStream();
+                    if (CanCanonicalizeAndFragment(writer))
+                    {
+                        await message.WriteBodyToSignWithFragmentsAsync(ms, false, null, writer);
+                    }
+                    else
+                    {
+                        await message.WriteBodyToSignAsync(ms);
                     }
 
                     ms.Position = 0;
