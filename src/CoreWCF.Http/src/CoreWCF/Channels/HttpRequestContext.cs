@@ -531,6 +531,7 @@ namespace CoreWCF.Channels
 
                     IPAddress remoteIPAddress = request.HttpContext.Connection.RemoteIpAddress;
                     int remotePort = request.HttpContext.Connection.RemotePort;
+                    remotePort &= 0x0FFFF; // Ensure port is a valid 16-bit value. Work around for dotnet/aspnetcore#62128
 
                     if (remoteIPAddress != null)
                     {
