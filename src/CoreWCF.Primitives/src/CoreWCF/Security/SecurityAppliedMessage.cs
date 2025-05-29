@@ -150,6 +150,14 @@ namespace CoreWCF.Security
 
         public override async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
         {
+            // With NetFx the writer passed to SecurityAppliedMessage.OnWriteMessageAsync is of type XmlUtf8TextWriter which doesn't implement WriteEndElementAsync.
+            // On .NET, the type is XmlDictionaryAsyncCheckWriter which wraps XmlUtf8TextWriter, both of which do implement WriteEndElementAsync.
+            if (Environment.Version.MajorRevision < 8)
+            {
+                OnWriteMessage(writer);
+                return;
+            }
+
             // For Kerb one shot, the channel binding will be need to be fished out of the message, cached and added to the
             // token before calling ISC.
 
