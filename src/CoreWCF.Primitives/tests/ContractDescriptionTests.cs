@@ -15,6 +15,12 @@ namespace CoreWCF.Primitives.Tests
             ContractDescription.GetContract<MessagePropertyService>(typeof(IMessagePropertyService));
         }
 
+        [Fact]
+        public void ValidateContractCanBeConstructed_WhenUsingInheritance()
+        {
+            ContractDescription.GetContract<WhenUsingInheritance.ServiceV2>(typeof(WhenUsingInheritance.IServiceV2));
+        }
+
         public class MessagePropertyService : IMessagePropertyService
         {
             public SimpleResponse Request(SimpleRequest request)
@@ -59,6 +65,33 @@ namespace CoreWCF.Primitives.Tests
             public string stringParam;
             [System.ServiceModel.MessageProperty(Name = PropertyName)]
             public string stringProperty;
+        }
+    }
+
+    internal class WhenUsingInheritance
+    {
+        [ServiceContract]
+        public interface IService
+        {
+            [OperationContract]
+            void Operation1();
+        }
+
+        public class Service : IService
+        {
+            [AuthorizeRole("RoleName")]
+            public void Operation1()
+            {
+            }
+        }
+
+        [ServiceContract]
+        public interface IServiceV2 : IService
+        {
+        }
+
+        public class ServiceV2 : Service, IServiceV2
+        {
         }
     }
 }
