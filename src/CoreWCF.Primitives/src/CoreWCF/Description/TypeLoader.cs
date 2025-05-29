@@ -223,7 +223,7 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IAuthorizeOperation> behaviors)
                     {
                         KeyedByTypeCollection<IAuthorizeOperation> toAdd =
-                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
+                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType, true);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
                             // Do not add to the passed in behaviors as that will drop any duplicates
@@ -262,7 +262,7 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                     {
                         KeyedByTypeCollection<IOperationBehavior> toAdd =
-                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType);
+                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType, false);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
                             behaviors.Add(toAdd[j]);
@@ -277,7 +277,7 @@ namespace CoreWCF.Description
                         delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                         {
                             KeyedByTypeCollection<IOperationBehavior> toAdd =
-                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null);
+                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null, false);
                             for (int j = 0; j < toAdd.Count; j++)
                             {
                                 behaviors.Add(toAdd[j]);
@@ -428,7 +428,7 @@ namespace CoreWCF.Description
             return knownTypes;
         }
 
-        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType)
+        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType, bool attributeMustBeOnImplType)
         {
             var result = new KeyedByTypeCollection<TOperation>();
             var ifaceMap = default(InterfaceMapping);
@@ -452,25 +452,25 @@ namespace CoreWCF.Description
                 }
             }
             MethodInfo opMethod = opDesc.OperationMethod;
-            ProcessOpMethod(opMethod, true, opDesc, result, ifaceMap, useImplAttrs);
+            ProcessOpMethod(opMethod, true, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             if (opDesc.SyncMethod != null && opDesc.BeginMethod != null)
             {
-                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             else if (opDesc.SyncMethod != null && opDesc.TaskMethod != null)
             {
-                ProcessOpMethod(opDesc.TaskMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.TaskMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             else if (opDesc.TaskMethod != null && opDesc.BeginMethod != null)
             {
-                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             return result;
         }
 
         private void ProcessOpMethod<IOperation>(MethodInfo opMethod, bool canHaveBehaviors,
                              OperationDescription opDesc, KeyedByTypeCollection<IOperation> result,
-                             InterfaceMapping ifaceMap, bool useImplAttrs)
+                             InterfaceMapping ifaceMap, bool useImplAttrs, Type implType)
         {
             MethodInfo method = null;
             if (useImplAttrs)
@@ -483,7 +483,7 @@ namespace CoreWCF.Description
                     MethodInfo implMethod = ifaceMap.TargetMethods[methodIndex];
                     // C++ allows you to create abstract classes that have missing interface method
                     // implementations, which shows up as nulls in the interfacemapping
-                    if (implMethod != null)
+                    if (implMethod != null && (implType == null || implMethod.DeclaringType == implType))
                     {
                         method = implMethod;
                     }
