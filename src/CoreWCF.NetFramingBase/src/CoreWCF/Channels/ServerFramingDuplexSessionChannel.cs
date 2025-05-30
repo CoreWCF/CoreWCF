@@ -64,7 +64,28 @@ namespace CoreWCF.Channels
             IApplicationLifetime appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
             _applicationStoppingRegistration = appLifetime.ApplicationStopping.Register(() =>
             {
-                _ = CloseAsync();
+                // Use a discard and don't wait on the task so that multiple clients can close their channels
+                // simultaneously without waiting for each other. This prevents serializing of closing connected
+                // clients. As we're discarding the task results, we must make sure to handle any exceptions inside
+                // the task to avoid unhandled exceptions.
+                _ = Task.Run(async () =>
+                {
+                    // If the application is stopping, we should close the channel gracefully.
+                    // This will ensure that any pending messages are processed before closing.
+                    if (State == CommunicationState.Opened)
+                    {
+                        try
+                        {
+                            await CloseAsync();
+                        }
+                        catch (Exception)
+                        {
+                            // Catch any exceptions that occur during close to avoid unhandled exceptions
+                            // As we're shutting down, exceptions closing the channel have no consequences
+                            // TODO: When bringing back EventSource logging, log the exception here
+                        }
+                    }
+                });
             });
         }
 
