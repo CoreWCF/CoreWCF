@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net.Sockets;
@@ -26,23 +27,39 @@ namespace CoreWCF.Channels.Framing
         private class NamedPipeExceptionConvertingPipeReader : PipeReader
         {
             private PipeReader _input;
+            private bool _isComplete;
 
             public NamedPipeExceptionConvertingPipeReader(PipeReader input) => _input = input;
 
             public override void AdvanceTo(SequencePosition consumed) => _input.AdvanceTo(consumed);
             public override void AdvanceTo(SequencePosition consumed, SequencePosition examined) => _input.AdvanceTo(consumed, examined);
             public override void CancelPendingRead() => _input.CancelPendingRead();
-            public override void Complete(Exception exception = null) => _input.Complete(exception);
+            public override void Complete(Exception exception = null)
+            {
+                _input.Complete(exception);
+                _isComplete = true;
+            }
+
             public override async ValueTask<ReadResult> ReadAsync(CancellationToken cancellationToken = default)
             {
                 try
                 {
+                    if (_isComplete)
+                    {
+                        return new ReadResult(ReadOnlySequence<byte>.Empty, false, true);
+                    }
+
                     return await _input.ReadAsync(cancellationToken);
                 }
                 catch(SocketException socketException)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
                         ConvertReceiveException(socketException), TraceEventType.Error);
+                }
+                catch (InvalidOperationException ioe)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
+                        ConvertTransferException(new SocketException(UnsafeNativeMethods.WSAECONNABORTED), ioe, aborted: false), TraceEventType.Error);
                 }
             }
 
