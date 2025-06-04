@@ -25,15 +25,15 @@ public class TelemetryTests
     [Fact]
     public async Task Basic_Telemetry_Test()
     {
-        var startedActivites = new List<Activity>();
-        var stoppedActivites = new List<Activity>();
+        var startedActivities = new List<Activity>();
+        var stoppedActivities = new List<Activity>();
 
         using var listener = new ActivityListener
         {
             ShouldListenTo = _ => false,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
-            ActivityStarted = activity => startedActivites.Add(activity),
-            ActivityStopped = activity => stoppedActivites.Add(activity)
+            ActivityStarted = activity => startedActivities.Add(activity),
+            ActivityStopped = activity => stoppedActivities.Add(activity)
         };
 
 
