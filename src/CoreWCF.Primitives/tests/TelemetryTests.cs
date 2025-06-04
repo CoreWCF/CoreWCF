@@ -90,8 +90,8 @@ public class TelemetryTests
 
         var startedTags = startedActivity.Tags.ToList();
         var stoppedTags = stoppedActivity.Tags.ToList();
-        Assert.True(startedTags.Count == 7);
-        Assert.True(stoppedTags.Count == 7);
+        Assert.Equal(7, startedTags.Count);
+        Assert.Equal(7, stoppedTags.Count);
 
         Assert.Equal("rpc.system", startedTags[0].Key);
         Assert.Equal("dotnet_wcf", startedTags[0].Value);
