@@ -15,6 +15,7 @@ namespace CoreWCF.Dispatcher
         private readonly IClientMessageInspector[] _messageInspectors;
         private readonly Dictionary<string, ProxyOperationRuntime> _operations;
         private readonly Dictionary<string, ActionMetadata> _actionMappings;
+
         internal ImmutableClientRuntime(ClientRuntime behavior)
         {
             _channelInitializers = EmptyArray<IChannelInitializer>.ToArray(behavior.ChannelInitializers);

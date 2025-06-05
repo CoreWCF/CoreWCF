@@ -11,7 +11,7 @@ internal sealed class ActionMetadata
         OperationName = operationName;
     }
 
-    public string? ContractName { get; set; }
+    public string ContractName { get; set; }
 
     public string OperationName { get; set; }
 }

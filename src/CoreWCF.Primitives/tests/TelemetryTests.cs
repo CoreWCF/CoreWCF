@@ -72,11 +72,11 @@ public class TelemetryTests
         Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
         requestContext.ValidateReply();
 
-        Assert.Single(startedActivites);
-        Assert.Single(stoppedActivites);
+        Assert.Single(startedActivities);
+        Assert.Single(stoppedActivities);
 
-        var startedActivity = startedActivites[0];
-        var stoppedActivity = stoppedActivites[0];
+        var startedActivity = startedActivities[0];
+        var stoppedActivity = stoppedActivities[0];
 
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", startedActivity.OperationName);
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", stoppedActivity.OperationName);
