@@ -22,7 +22,7 @@ namespace CoreWCF.Description
         private static readonly Type[] s_messageContractMemberAttributes = {
             typeof(MessageHeaderAttribute),
             typeof(MessageBodyMemberAttribute),
-            typeof(MessagePropertyAttribute),
+            typeof(CoreWCF.MessagePropertyAttribute),
         };
         private static readonly Type[] s_formatterAttributes = {
             typeof(XmlSerializerFormatAttribute),
@@ -212,15 +212,24 @@ namespace CoreWCF.Description
             for(int i=0; i< contractDesc.Operations.Count; i++)
             {
                 OperationDescription opDesc = contractDesc.Operations[i];
+                if (opDesc.DeclaringContract != contractDesc)
+                {
+                    continue;
+                }
+
                 Type targetIface = implIsCallback ? opDesc.DeclaringContract.CallbackContractType : opDesc.DeclaringContract.ContractType;
                 ApplyServiceInheritance(
                     opDesc.AuthorizeOperation,
                     delegate (Type currentType, KeyedByTypeCollection<IAuthorizeOperation> behaviors)
                     {
                         KeyedByTypeCollection<IAuthorizeOperation> toAdd =
-                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType);
+                        GetIOperationAttributesFromType<IAuthorizeOperation>(opDesc, targetIface, currentType, true);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
+                            // Do not add to the passed in behaviors as that will drop any duplicates
+                            // which we do not want. If there are multiple conflicting instances on the
+                            // same operation, we need to fail, otherwise there's a risk of the intended
+                            // security authorization constraints silently being ignored.
                             opDesc.AuthorizeOperation.Add(toAdd[j]);
                         }
                     });
@@ -253,7 +262,7 @@ namespace CoreWCF.Description
                     delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                     {
                         KeyedByTypeCollection<IOperationBehavior> toAdd =
-                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType);
+                            GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, currentType, false);
                         for (int j = 0; j < toAdd.Count; j++)
                         {
                             behaviors.Add(toAdd[j]);
@@ -268,7 +277,7 @@ namespace CoreWCF.Description
                         delegate (Type currentType, KeyedByTypeCollection<IOperationBehavior> behaviors)
                         {
                             KeyedByTypeCollection<IOperationBehavior> toAdd =
-                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null);
+                                GetIOperationAttributesFromType<IOperationBehavior>(opDesc, targetIface, null, false);
                             for (int j = 0; j < toAdd.Count; j++)
                             {
                                 behaviors.Add(toAdd[j]);
@@ -419,7 +428,7 @@ namespace CoreWCF.Description
             return knownTypes;
         }
 
-        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType)
+        private KeyedByTypeCollection<TOperation> GetIOperationAttributesFromType<TOperation>(OperationDescription opDesc, Type targetIface, Type implType, bool attributeMustBeOnImplType)
         {
             var result = new KeyedByTypeCollection<TOperation>();
             var ifaceMap = default(InterfaceMapping);
@@ -443,25 +452,25 @@ namespace CoreWCF.Description
                 }
             }
             MethodInfo opMethod = opDesc.OperationMethod;
-            ProcessOpMethod(opMethod, true, opDesc, result, ifaceMap, useImplAttrs);
+            ProcessOpMethod(opMethod, true, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             if (opDesc.SyncMethod != null && opDesc.BeginMethod != null)
             {
-                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             else if (opDesc.SyncMethod != null && opDesc.TaskMethod != null)
             {
-                ProcessOpMethod(opDesc.TaskMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.TaskMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             else if (opDesc.TaskMethod != null && opDesc.BeginMethod != null)
             {
-                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs);
+                ProcessOpMethod(opDesc.BeginMethod, false, opDesc, result, ifaceMap, useImplAttrs, attributeMustBeOnImplType ? implType : null);
             }
             return result;
         }
 
         private void ProcessOpMethod<IOperation>(MethodInfo opMethod, bool canHaveBehaviors,
                              OperationDescription opDesc, KeyedByTypeCollection<IOperation> result,
-                             InterfaceMapping ifaceMap, bool useImplAttrs)
+                             InterfaceMapping ifaceMap, bool useImplAttrs, Type implType)
         {
             MethodInfo method = null;
             if (useImplAttrs)
@@ -474,7 +483,7 @@ namespace CoreWCF.Description
                     MethodInfo implMethod = ifaceMap.TargetMethods[methodIndex];
                     // C++ allows you to create abstract classes that have missing interface method
                     // implementations, which shows up as nulls in the interfacemapping
-                    if (implMethod != null)
+                    if (implMethod != null && (implType == null || implMethod.DeclaringType == implType))
                     {
                         method = implMethod;
                     }
@@ -1553,8 +1562,7 @@ namespace CoreWCF.Description
                                                             XmlName defaultName,
                                                             int parameterIndex)
         {
-            MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
-            XmlName propertyName = attr.IsNameSetExplicit ? new XmlName(attr.Name) : defaultName;
+            XmlName propertyName = GetXmlName(attrProvider, defaultName);
             MessagePropertyDescription propertyDescription = new MessagePropertyDescription(propertyName.EncodedName)
             {
                 Index = parameterIndex
@@ -1566,6 +1574,26 @@ namespace CoreWCF.Description
             }
 
             return propertyDescription;
+
+            // This function determines the XML name for a message property. It first checks for the presence
+            // of the new CoreWCF.MessagePropertyAttribute. If the attribute is found and its name is explicitly set,
+            // it uses that name. If not, it falls back to checking for the legacy CoreWCF.Description.MessagePropertyAttribute.
+            // If neither attribute is found or their names are not explicitly set, it defaults to the provided defaultName.
+            static XmlName GetXmlName(ICustomAttributeProvider attrProvider, XmlName defaultName)
+            {
+                CoreWCF.MessagePropertyAttribute attr = ServiceReflector.GetSingleAttribute<CoreWCF.MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
+                if (attr is { IsNameSetExplicit: true })
+                {
+                    return new XmlName(attr.Name);
+                }
+                CoreWCF.Description.MessagePropertyAttribute legacyAttr = ServiceReflector.GetSingleAttribute<CoreWCF.Description.MessagePropertyAttribute>(attrProvider, s_messageContractMemberAttributes);
+                if (legacyAttr is { IsNameSetExplicit: true })
+                {
+                    return new XmlName(legacyAttr.Name);
+                }
+                
+                return defaultName;
+            }
         }
 
         internal static XmlName GetReturnValueName(XmlName methodName)

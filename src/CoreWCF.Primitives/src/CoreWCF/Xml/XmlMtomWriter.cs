@@ -18,7 +18,7 @@ namespace CoreWCF.Xml
         void SetOutput(Stream stream, Encoding encoding, int maxSizeInBytes, string startInfo, string boundary, string startUri, bool writeMessageHeaders, bool ownsStream);
     }
 
-    internal class XmlMtomWriter : XmlDictionaryWriter, IXmlMtomWriterInitializer
+    internal class XmlMtomWriter : XmlDictionaryWriter, IXmlMtomWriterInitializer, IAsyncXmlWriter
     {
         public static XmlDictionaryWriter Create(Stream stream, Encoding encoding, int maxSizeInBytes, string startInfo) => Create(stream, encoding, maxSizeInBytes, startInfo, null, null, true, true);
 

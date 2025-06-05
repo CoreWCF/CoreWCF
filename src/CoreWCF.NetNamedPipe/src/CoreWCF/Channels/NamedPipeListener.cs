@@ -40,6 +40,7 @@ namespace CoreWCF.Channels
             _logger = options.ApplicationServices.GetRequiredService<ILogger<NamedPipeListener>>();
             _framingConnectionLogger = options.ApplicationServices.GetService<ILogger<FramingConnection>>();
             _transportConnectionManager = new TransportConnectionManager();
+            AddNamedPipeListenOptionsToConnectionContext(options);
             options.UseConnectionHandler<NetMessageFramingConnectionHandler>();
             _connectionDelegate = ((IConnectionBuilder)options).Build();
             PipeUri.Validate(options.BaseAddress);

@@ -103,6 +103,7 @@ namespace Helpers
                 logging.AddProvider(new ExceptionCapturingLoggerProvider(new XunitLoggerProvider(outputHelper, callerMethodName)));
                 logging.AddFilter("Default", LogLevel.Debug);
                 logging.AddFilter("Microsoft", LogLevel.Debug);
+                logging.AddFilter("Microsoft.AspNetCore.DataProtection", LogLevel.None);
                 logging.SetMinimumLevel(LogLevel.Debug);
             })
 #else

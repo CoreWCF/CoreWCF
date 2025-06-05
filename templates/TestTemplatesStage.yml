@@ -26,13 +26,6 @@ stages:
         path: $(System.DefaultWorkingDirectory)/bin
 
     - task: UseDotNet@2
-      displayName: 'Use .NET 6 sdk'
-      inputs:
-        packageType: sdk
-        version: '6.0.x'
-        installationPath: $(Agent.ToolsDirectory)/dotnet
-
-    - task: UseDotNet@2
       displayName: 'Use .NET 8 sdk'
       inputs:
         packageType: sdk
@@ -45,7 +38,14 @@ stages:
         packageType: sdk
         version: '9.0.x'
         installationPath: $(Agent.ToolsDirectory)/dotnet
-        includePreviewVersions: true                       
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 10 sdk'
+      inputs:
+        packageType: sdk
+        version: '10.0.x'
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+        includePreviewVersions: true                               
 
     - task: PowerShell@2
       inputs:

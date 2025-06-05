@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Tokens;
@@ -147,6 +148,73 @@ namespace CoreWCF.Security
             }
         }
 
+        public override async Task OnWriteMessageAsync(XmlDictionaryWriter writer)
+        {
+            // With NetFx the writer passed to SecurityAppliedMessage.OnWriteMessageAsync is of type XmlUtf8TextWriter which doesn't implement WriteEndElementAsync.
+            // On .NET, the type is XmlDictionaryAsyncCheckWriter which wraps XmlUtf8TextWriter, both of which do implement WriteEndElementAsync.
+            if (Environment.Version.MajorRevision < 8)
+            {
+                OnWriteMessage(writer);
+                return;
+            }
+
+            // For Kerb one shot, the channel binding will be need to be fished out of the message, cached and added to the
+            // token before calling ISC.
+
+            AttachChannelBindingTokenIfFound();
+
+            EnsureUniqueSecurityApplication();
+
+            MessagePrefixGenerator prefixGenerator = new MessagePrefixGenerator(writer);
+            _securityHeader.StartSecurityApplication();
+
+            Headers.Add(_securityHeader);
+
+            InnerMessage.WriteStartEnvelope(writer);
+
+            Headers.RemoveAt(Headers.Count - 1);
+
+            await _securityHeader.ApplyBodySecurityAsync(writer, prefixGenerator);
+
+            InnerMessage.WriteStartHeaders(writer);
+            await _securityHeader.ApplySecurityAndWriteHeadersAsync(Headers, writer, prefixGenerator);
+
+            _securityHeader.RemoveSignatureEncryptionIfAppropriate();
+
+            _securityHeader.CompleteSecurityApplication();
+            _securityHeader.WriteHeader(writer, Version);
+            await writer.WriteEndElementAsync();
+
+            if (_fullBodyFragment != null)
+            {
+                ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_fullBodyFragment, 0, _fullBodyFragmentLength);
+            }
+            else
+            {
+                if (_startBodyFragment != null)
+                {
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_startBodyFragment.GetBuffer(), 0, (int)_startBodyFragment.Length);
+                }
+                else
+                {
+                    OnWriteStartBody(writer);
+                }
+
+                OnWriteBodyContents(writer);
+
+                if (_endBodyFragment != null)
+                {
+                    ((IFragmentCapableXmlDictionaryWriter)writer).WriteFragment(_endBodyFragment.GetBuffer(), 0, (int)_endBodyFragment.Length);
+                }
+                else
+                {
+                    await writer.WriteEndElementAsync();
+                }
+            }
+
+            await writer.WriteEndElementAsync();
+        }
+
         protected override void OnWriteMessage(XmlDictionaryWriter writer)
         {
             // For Kerb one shot, the channel binding will be need to be fished out of the message, cached and added to the
@@ -257,8 +325,8 @@ namespace CoreWCF.Security
 
             XmlDictionaryWriter encryptingWriter = XmlDictionaryWriter.CreateTextWriter(Stream.Null);
             // The XmlSerializer body formatter would add a
-            // document declaration to the body fragment when a fresh writer 
-            // is provided. Hence, insert a dummy element here and capture 
+            // document declaration to the body fragment when a fresh writer
+            // is provided. Hence, insert a dummy element here and capture
             // the body contents as a fragment.
             encryptingWriter.WriteStartElement("a");
             MemoryStream ms = new MemoryStream();
@@ -302,6 +370,22 @@ namespace CoreWCF.Security
             _state = BodyState.Signed;
         }
 
+        public async ValueTask WriteBodyToSignAsync(Stream canonicalStream)
+        {
+            SetBodyId();
+
+            _fullBodyBuffer = new XmlBuffer(int.MaxValue);
+            XmlDictionaryWriter canonicalWriter = _fullBodyBuffer.OpenSection(XmlDictionaryReaderQuotas.Max);
+            canonicalWriter.StartCanonicalization(canonicalStream, false, null);
+            WriteInnerMessageWithId(canonicalWriter);
+            canonicalWriter.EndCanonicalization();
+            await canonicalWriter.FlushAsync();
+            _fullBodyBuffer.CloseSection();
+            _fullBodyBuffer.Close();
+
+            _state = BodyState.Signed;
+        }
+
         public void WriteBodyToSignThenEncrypt(Stream canonicalStream, EncryptedData encryptedData, SymmetricAlgorithm algorithm)
         {
             XmlBuffer buffer = new XmlBuffer(int.MaxValue);
@@ -335,7 +419,7 @@ namespace CoreWCF.Security
             encryptedData.Id = _securityHeader.GenerateId();
 
             _startBodyFragment = new MemoryStream();
-            BufferedOutputStream bodyContentFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
+            BufferedOutputStream bodyContentFragment = new BufferManagerOutputStream(SRCommon.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
             _endBodyFragment = new MemoryStream();
 
             writer.StartCanonicalization(stream, includeComments, inclusivePrefixes);
@@ -367,12 +451,31 @@ namespace CoreWCF.Security
             IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
 
             SetBodyId();
-            BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SR.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
+            BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SRCommon.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
             writer.StartCanonicalization(stream, includeComments, inclusivePrefixes);
             fragmentingWriter.StartFragment(fullBodyFragment, false);
             WriteStartInnerMessageWithId(writer);
             InnerMessage.WriteBodyContents(writer);
             writer.WriteEndElement();
+            fragmentingWriter.EndFragment();
+            writer.EndCanonicalization();
+
+            _fullBodyFragment = fullBodyFragment.ToArray(out _fullBodyFragmentLength);
+
+            _state = BodyState.Signed;
+        }
+
+        public async ValueTask WriteBodyToSignWithFragmentsAsync(Stream stream, bool includeComments, string[] inclusivePrefixes, XmlDictionaryWriter writer)
+        {
+            IFragmentCapableXmlDictionaryWriter fragmentingWriter = (IFragmentCapableXmlDictionaryWriter)writer;
+
+            SetBodyId();
+            BufferedOutputStream fullBodyFragment = new BufferManagerOutputStream(SRCommon.XmlBufferQuotaExceeded, 1024, int.MaxValue, _securityHeader.StreamBufferManager);
+            writer.StartCanonicalization(stream, includeComments, inclusivePrefixes);
+            fragmentingWriter.StartFragment(fullBodyFragment, false);
+            WriteStartInnerMessageWithId(writer);
+            await InnerMessage.WriteBodyContentsAsync(writer);
+            await writer.WriteEndElementAsync();
             fragmentingWriter.EndFragment();
             writer.EndCanonicalization();
 

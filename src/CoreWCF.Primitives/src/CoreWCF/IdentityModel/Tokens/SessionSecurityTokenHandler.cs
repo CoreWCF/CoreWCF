@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Claims;
 using System.Xml;
@@ -23,6 +24,8 @@ namespace CoreWCF.IdentityModel.Tokens
     /// </summary>
     public class SessionSecurityTokenHandler : SecurityTokenHandler
     {
+        private static readonly string s_useBinaryFormatter = "CoreWCF.IdentityModel.Tokens.UseBinaryFormatter";
+
         private const string DefaultCookieElementName = "Cookie";
         private const string DefaultCookieNamespace = "http://schemas.microsoft.com/ws/2006/05/security";
         private const string SecureConversationTokenIdentifier = "http://schemas.microsoft.com/ws/2006/05/servicemodel/tokens/SecureConversation";
@@ -250,8 +253,8 @@ namespace CoreWCF.IdentityModel.Tokens
         /// <returns>Instance of SessionSecurityToken.</returns>
         public virtual SecurityToken ReadToken(byte[] token, SecurityTokenResolver tokenResolver)
         {
-            // Our implementation of ReadToken( byte[] ) will always return null. We make the above call not to 
-            // break SharePoint. SharePoint has overridden ReadToken(byte[] token) and expect the SessionAuthenticationModule to 
+            // Our implementation of ReadToken( byte[] ) will always return null. We make the above call not to
+            // break SharePoint. SharePoint has overridden ReadToken(byte[] token) and expect the SessionAuthenticationModule to
             // call that. So SessionAuthenticationModule will calls this method which does the correct thing.
             using (XmlReader reader = XmlDictionaryReader.CreateTextReader(token, XmlDictionaryReaderQuotas.Max))
             {
@@ -263,7 +266,7 @@ namespace CoreWCF.IdentityModel.Tokens
         /// Reads the SessionSecurityToken from the given reader.
         /// </summary>
         /// <param name=nameof(reader)>XmlReader over the SessionSecurityToken.</param>
-        /// <returns>An instance of <see cref="SessionSecurityToken"/>.</returns> 
+        /// <returns>An instance of <see cref="SessionSecurityToken"/>.</returns>
         /// <exception cref="ArgumentNullException">The input argument 'reader' is null.</exception>
         /// <exception cref="SecurityTokenException">The 'reader' is not positioned at a SessionSecurityToken
         /// or the SessionSecurityToken cannot be read.</exception>
@@ -278,7 +281,7 @@ namespace CoreWCF.IdentityModel.Tokens
         /// </summary>
         /// <param name=nameof(reader)>XmlReader over the SessionSecurityToken.</param>
         /// <param name="tokenResolver">SecurityTokenResolver that can used to resolve SessionSecurityToken.</param>
-        /// <returns>An instance of <see cref="SessionSecurityToken"/>.</returns> 
+        /// <returns>An instance of <see cref="SessionSecurityToken"/>.</returns>
         /// <exception cref="ArgumentNullException">The input argument 'reader' is null.</exception>
         /// <exception cref="SecurityTokenException">The 'reader' is not positioned at a SessionSecurityToken
         /// or the SessionSecurityToken cannot be read.</exception>
@@ -342,7 +345,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             //
             // The token can be a renewed token, in which case we need to know the
-            // instance id, which will be the secondary key to the context id for 
+            // instance id, which will be the secondary key to the context id for
             // cache lookups
             //
             if (dicReader.IsStartElement(instance, ns))
@@ -386,11 +389,7 @@ namespace CoreWCF.IdentityModel.Tokens
                     //
                     byte[] decodedCookie = ApplyTransforms(encodedCookie, false);
 
-                    using (MemoryStream ms = new MemoryStream(decodedCookie))
-                    {
-                        BinaryFormatter formatter = new BinaryFormatter();
-                        securityContextToken = formatter.Deserialize(ms) as SecurityToken;
-                    }
+                    securityContextToken = DeserializeSecurityToken(decodedCookie);
 
                     SessionSecurityToken sessionToken = securityContextToken as SessionSecurityToken;
                     if (sessionToken != null && sessionToken.ContextId != contextId)
@@ -480,7 +479,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         /// <summary>
         /// Gets the transforms that will be applied to the cookie.
-        /// </summary>        
+        /// </summary>
         public ReadOnlyCollection<CookieTransform> Transforms { get; private set; }
 
         /// <summary>
@@ -566,7 +565,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             // We consider SessionTokens with String.Empty as the endpoint Id to be
-            // globally scoped tokens. This in insecure, we are allowing this only 
+            // globally scoped tokens. This in insecure, we are allowing this only
             // for compatibility with customers who have overriden SessionSecurityTokenHandler.
             if (!string.IsNullOrEmpty(token.EndpointId))
             {
@@ -582,10 +581,10 @@ namespace CoreWCF.IdentityModel.Tokens
         }
 
         /// <summary>
-        /// Checks the valid time of a SecurityToken. 
+        /// Checks the valid time of a SecurityToken.
         /// </summary>
         /// <remarks>
-        /// The token is invalid if the securityToken.ValidFrom &gt; DateTime.UtcNow OR securityToken.ValidTo &lt; DateTime.UtcNow 
+        /// The token is invalid if the securityToken.ValidFrom &gt; DateTime.UtcNow OR securityToken.ValidTo &lt; DateTime.UtcNow
         /// </remarks>
         /// <param name=nameof(token)>The <see cref="SessionSecurityToken"/> to validate.</param>
         /// <exception cref="ArgumentNullException">Thrown if 'securityToken' is null.</exception>
@@ -722,15 +721,7 @@ namespace CoreWCF.IdentityModel.Tokens
             if (!sessionToken.IsReferenceMode)
             {
                 dicWriter.WriteStartElement(CookieElementName, CookieNamespace);
-                byte[] cookie;
-
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(ms, token);
-                    cookie = ms.ToArray();
-                }
-
+                byte[] cookie = SerializeSecurityToken(token);
                 cookie = ApplyTransforms(cookie, true);
                 dicWriter.WriteBase64(cookie, 0, cookie.Length);
                 dicWriter.WriteEndElement();
@@ -740,5 +731,73 @@ namespace CoreWCF.IdentityModel.Tokens
             dicWriter.Flush();
         }
 
+        private static byte[] SerializeSecurityToken(SecurityToken token)
+        {
+            if (Environment.Version.Major < 9)
+            {
+                // Use the new default which is now DataContractSerialization unless an AppContext.Switch is set to force using BinaryFormatter
+                if (AppContext.TryGetSwitch(s_useBinaryFormatter, out var value) && value)
+                {
+                    return SerializeWithBinaryFormatter();
+                }
+
+                return SerializeWithDataContractSerializer();
+            }
+
+            return SerializeWithDataContractSerializer();
+
+            byte[] SerializeWithBinaryFormatter()
+            {
+                using MemoryStream ms = new();
+                BinaryFormatter formatter = new();
+                formatter.Serialize(ms, token);
+                return ms.ToArray();
+            }
+
+            byte[] SerializeWithDataContractSerializer()
+            {
+                using MemoryStream ms = new();
+                DataContractSerializer serializer = new(typeof(SecurityToken));
+                XmlDictionaryWriter binaryDictionaryWriter = XmlDictionaryWriter.CreateBinaryWriter(ms);
+                serializer.WriteObject(binaryDictionaryWriter, token);
+                binaryDictionaryWriter.Flush();
+                return ms.ToArray();
+            }
+        }
+
+        private static SecurityToken DeserializeSecurityToken(byte[] bytes)
+        {
+            if (Environment.Version.Major < 9)
+            {
+                if (AppContext.TryGetSwitch(s_useBinaryFormatter, out bool value) && value)
+                {
+                    return DeserializeWithBinaryFormatter();
+                }
+                try
+                {
+                    return DeserializeWithDataContractSerializer();
+                }
+                catch
+                {
+                    return DeserializeWithBinaryFormatter();
+                }
+            }
+
+            return DeserializeWithDataContractSerializer();
+
+            SecurityToken DeserializeWithDataContractSerializer()
+            {
+                DataContractSerializer serializer = new(typeof(SecurityToken));
+                XmlDictionaryReader binaryDictionaryReader = XmlDictionaryReader.CreateBinaryReader(bytes, 0, bytes.Length, CoreWCF.XD.Dictionary, XmlDictionaryReaderQuotas.Max);
+                return serializer.ReadObject(binaryDictionaryReader) as SecurityToken;
+            }
+
+            SecurityToken DeserializeWithBinaryFormatter()
+            {
+                using MemoryStream ms = new(bytes);
+                BinaryFormatter formatter = new();
+                return formatter.Deserialize(ms) as SecurityToken;
+            }
+        }
     }
 }

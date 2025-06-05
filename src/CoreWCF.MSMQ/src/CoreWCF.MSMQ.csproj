@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSMQ.Messaging" Version="1.0.4" />
+    <PackageReference Include="MSMQ.Messaging" />
   </ItemGroup>
 
   <ItemGroup>

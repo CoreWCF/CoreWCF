@@ -102,6 +102,19 @@ namespace Services
         }
     }
 
+    public class MessageContractAsyncOnlyStreamInOutService : IMessageContractStreamInReturnService
+    {
+        public MessageContractStreamOneIntHeader Operation(MessageContractStreamNoHeader input)
+        {
+            string value = ServiceHelper.GetStringFrom(input.stream);
+            var msg = new MessageContractStreamOneIntHeader
+            {
+                input = ServiceHelper.GetAsyncStreamWithStringBytes(value)
+            };
+            return msg;
+        }
+    }
+
     public class MessageContractStreamMutipleOperationsService : IMessageContractStreamMutipleOperationsService
     {
         public MessageContractStreamNoHeader Operation1(MessageContractStreamOneStringHeader input)

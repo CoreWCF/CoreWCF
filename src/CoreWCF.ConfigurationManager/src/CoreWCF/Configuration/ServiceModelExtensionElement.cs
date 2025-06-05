@@ -7,7 +7,6 @@ using System.Xml;
 
 namespace CoreWCF.Configuration
 {
-    [ConfigurationPermission(SecurityAction.InheritanceDemand, Unrestricted = true)]
     public abstract class ServiceModelExtensionElement : ServiceModelConfigurationElement
     {
         public string ExtensionCollectionName { get; protected internal set; }
@@ -29,7 +28,7 @@ namespace CoreWCF.Configuration
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(from));
             }
         }
-        
+
         internal void DeserializeInternal(XmlReader reader, bool serializeCollectionKey)
         {
             DeserializeElement(reader, serializeCollectionKey);

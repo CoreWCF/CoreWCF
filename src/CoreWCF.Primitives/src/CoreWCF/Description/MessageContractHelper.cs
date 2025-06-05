@@ -67,8 +67,9 @@ namespace CoreWCF.Description
         {
             foreach (Attribute attr in memberInfo.GetCustomAttributes())
             {
-                if ((attr.GetType() == typeof(MessagePropertyAttribute))
-                    || (string.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0))
+                if (attr.GetType() == typeof(CoreWCF.MessagePropertyAttribute)
+                    || attr.GetType() == typeof(MessagePropertyAttribute)
+                    || string.Compare(attr.GetType().FullName, ServiceReflector.SMMessagePropertyAttributeFullName, true) == 0)
                 {
                     return true;
                 }

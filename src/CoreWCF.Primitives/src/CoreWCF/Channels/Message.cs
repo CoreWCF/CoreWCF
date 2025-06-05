@@ -11,6 +11,7 @@ using System.Xml;
 using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using CoreWCF.Xml;
 
 namespace CoreWCF.Channels
 {
@@ -748,7 +749,14 @@ namespace CoreWCF.Channels
             // otherwise EnsureWriteMessageState would get called twice. Also see OnWriteMessage()
             // for the example.
             await OnWriteBodyContentsAsync(writer);
-            WriteMessagePostamble(writer);
+            if (writer.SupportsAsync())
+            {
+                await WriteMessagePostambleAsync(writer);
+            }
+            else
+            {
+                WriteMessagePostamble(writer);
+            }
         }
 
         private void EnsureWriteMessageState(XmlDictionaryWriter writer)
@@ -827,6 +835,15 @@ namespace CoreWCF.Channels
             {
                 writer.WriteEndElement();
                 writer.WriteEndElement();
+            }
+        }
+
+        internal async Task WriteMessagePostambleAsync(XmlDictionaryWriter writer)
+        {
+            if (Version.Envelope != EnvelopeVersion.None)
+            {
+                await writer.WriteEndElementAsync();
+                await writer.WriteEndElementAsync();
             }
         }
 
@@ -1173,7 +1190,15 @@ namespace CoreWCF.Channels
         {
             WriteMessagePreamble(writer);
             await OnWriteBodyContentsAsync(writer);
-            WriteMessagePostamble(writer);
+
+            if (writer.SupportsAsync())
+            {
+                await WriteMessagePostambleAsync(writer);
+            }
+            else
+            {
+                WriteMessagePostamble(writer);
+            }
         }
 
         internal override Task OnWriteBodyContentsAsync(XmlDictionaryWriter writer)
@@ -1876,7 +1901,7 @@ namespace CoreWCF.Channels
         }
     }
 
-    public struct XmlAttributeHolder
+    internal struct XmlAttributeHolder
     {
         public static XmlAttributeHolder[] emptyArray = Array.Empty<XmlAttributeHolder>();
 
@@ -1959,7 +1984,7 @@ namespace CoreWCF.Channels
             int byteCount = s.Length * sizeof(char);
             if (byteCount > maxSizeOfHeaders)
             {
-                string message = SR.XmlBufferQuotaExceeded;
+                string message = SRCommon.XmlBufferQuotaExceeded;
                 Exception inner = new QuotaExceededException(message);
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
             }

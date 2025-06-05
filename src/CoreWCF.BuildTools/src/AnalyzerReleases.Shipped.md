@@ -43,3 +43,11 @@ Rule ID | Category | Severity | Notes
 COREWCF_0103 | OperationParameterInjectionGenerator | Error | COREWCF_0103_OperationParameterInjectionGenerator
 COREWCF_0300 | OperationInvokerGenerator | Error | COREWCF_0300_OperationInvokerGenerator
 COREWCF_0104 | OperationParameterInjectionGenerator | Error  | COREWCF_0104_OperationParameterInjectionGenerator
+
+## Release 1.7.0
+
+### Changed Rules
+
+Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+--------|--------------|--------------|--------------|--------------|-------
+COREWCF_0300 | PrivateServiceContractAnalyzer | Error | OperationInvokerGenerator | Error | PrivateServiceContractAnalyzer__03XX

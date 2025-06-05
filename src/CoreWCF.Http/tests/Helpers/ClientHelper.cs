@@ -9,6 +9,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Text;
 using ClientContract;
+using CoreWCF.Http.Tests.Helpers;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Helpers
@@ -123,10 +124,39 @@ namespace Helpers
             return binding;
         }
 
+        public static BasicHttpBinding GetStreamedModeBinding(BasicHttpSecurityMode mode)
+        {
+            var binding = new BasicHttpBinding(mode)
+            {
+                TransferMode = TransferMode.Streamed
+            };
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
+        public static BasicHttpBinding GetMtomStreamedModeBinding()
+        {
+            var binding = new BasicHttpBinding
+            {
+                MaxReceivedMessageSize = 1024 * 110,
+                TransferMode = TransferMode.Streamed,
+                MessageEncoding = WSMessageEncoding.Mtom
+            };
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
         public static NetHttpBinding GetBufferedModeWebSocketBinding()
         {
             var binding = new NetHttpBinding();
             binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+            ApplyDebugTimeouts(binding);
+            return binding;
+        }
+
+        public static NetHttpBinding GetBufferedModeNetHttpBinding()
+        {
+            var binding = new NetHttpBinding();
             ApplyDebugTimeouts(binding);
             return binding;
         }
@@ -201,7 +231,21 @@ namespace Helpers
         {
             if (string.IsNullOrEmpty(s))
             {
-                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+                throw new ArgumentNullException("input cannot be null to make GetMessageContractStreamNoHeader");
+            }
+
+            Stream streamWithStringBytes = GetStreamWithStringBytes(s);
+            return new MessageContractStreamNoHeader
+            {
+                stream = streamWithStringBytes
+            };
+        }
+
+        public static MessageContractStreamNoHeader GetMessageContractAsyncStreamNoHeader(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                throw new ArgumentNullException("input cannot be null to make GetMessageContractStreamNoHeader");
             }
 
             Stream streamWithStringBytes = GetStreamWithStringBytes(s);
@@ -215,7 +259,7 @@ namespace Helpers
         {
             if (string.IsNullOrEmpty(s))
             {
-                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamNoHeader");
+                throw new ArgumentNullException("input cannot be null to make GetMessageContractStreamNoHeader");
             }
 
             Stream streamWithStringBytes = GetStreamWithStringBytes(s);
@@ -229,7 +273,7 @@ namespace Helpers
         {
             if (string.IsNullOrEmpty(s))
             {
-                throw new ArgumentNullException("input cannot bindingElement null to make GetMessageContractStreamTwoHeaders");
+                throw new ArgumentNullException("input cannot be null to make GetMessageContractStreamTwoHeaders");
             }
             Stream streamWithStringBytes = GetStreamWithStringBytes(s);
             return new MessageContractStreamTwoHeaders

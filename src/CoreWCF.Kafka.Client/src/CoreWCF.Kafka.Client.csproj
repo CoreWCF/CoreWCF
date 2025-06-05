@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>CoreWCF.Kafka.Client</AssemblyName>
     <PackageId>CoreWCF.Kafka.Client</PackageId>
     <RootNamespace />
@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.5.2" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="6.2.0" />
+    <PackageReference Include="Confluent.Kafka" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
 </Project>

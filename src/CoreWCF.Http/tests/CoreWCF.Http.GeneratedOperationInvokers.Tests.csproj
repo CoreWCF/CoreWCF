@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="CoreWCF.Http.Tests.csproj" />
+  <Import Project="CoreWCF.Http.Tests.proj" />
   <PropertyGroup>
     <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>

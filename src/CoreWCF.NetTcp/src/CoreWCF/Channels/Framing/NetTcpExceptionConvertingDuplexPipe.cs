@@ -7,6 +7,7 @@ using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
 
 namespace CoreWCF.Channels.Framing
 {
@@ -41,6 +42,25 @@ namespace CoreWCF.Channels.Framing
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
                         ConvertReceiveException(socketException), TraceEventType.Error);
+                }
+                catch(ConnectionResetException cre)
+                {
+                    if (cre.InnerException is SocketException socketException)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelper(
+                            ConvertTransferException(socketException, cre, false), TraceEventType.Error);
+                    }
+                    var exception = DiagnosticUtility.ExceptionUtility.ThrowHelper(
+                        cre, TraceEventType.Error);
+                    if (exception == cre)
+                    {
+                        // If we returned the same exception as was caught, rethrow to preserve the stack trace
+                        throw;
+                    }
+                    else
+                    {
+                        throw exception;
+                    }
                 }
             }
 

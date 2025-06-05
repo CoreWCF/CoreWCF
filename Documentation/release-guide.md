@@ -72,7 +72,7 @@ Here are the steps to release a new version:
        dotnet outdated -u -vl Minor -inc Microsoft.AspNetCore -inc Microsoft.CodeAnalysis -inc System CoreWCF.sln
        dotnet outdated -u -inc Microsoft.NET CoreWCF.sln
        dotnet outdated -u -vl Major -inc Microsoft.IdentityModel CoreWCF.sln
-       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System CoreWCF.sln
+       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System -exc RabbitMQ CoreWCF.sln
    ```
 
    Check and manually update the version of `Nerdbank.GitVersioning` if needed. The version is specified in [Directory.Build.props](/Directory.Build.props).
@@ -99,15 +99,17 @@ Here are the steps to release a new version:
 
    This creates the release/vX.Y release branch and updates the main branch to use the vX.(Y+1) version.
 
-6. Push the main and release/vX.Y branches to GitHub so it reflects the changes made by NerdBank GitVersion.
-7. Stabilization occurs in the release branch.
-8. Commits should be made in the main branch and are cherry-picked into release/vX.Y if needed.
-9. Build release packages and tag vX.Y.Z from the release/vX.Y branch.
+6. Update the version.json file for any preview packages to match the main version.json file. As of January 2025 this is only the NetNamedPipe project, but that should change in the future. Search for any version.json files to be certain.
+
+7. Push the main and release/vX.Y branches to GitHub so it reflects the changes made by NerdBank GitVersion.
+8. Stabilization occurs in the release branch.
+9. Commits should be made in the main branch and are cherry-picked into release/vX.Y if needed.
+10. Build release packages and tag vX.Y.Z from the release/vX.Y branch.
 
    ```dos
        git tag -a -m "CoreWCF vX.Y.Z" vX.Y.Z
        git push upstream tag vX.Y.Z
    ```
 
-10. Push package and symbol package to NuGet.
-11. Delete the release/vX.Y branch.
+11. Push package and symbol package to NuGet.
+12. Delete the release/vX.Y branch.

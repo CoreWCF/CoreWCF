@@ -547,8 +547,11 @@ namespace CoreWCF.Dispatcher
         private void ValidateAuthorizedClaims(MessageRpc rpc)
         {
             if (AuthorizeClaims.IsEmpty || AuthorizeClaims.Keys.Count == 0)
+            {
                 return;
-            if (rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies == null)
+            }
+
+            if (rpc.OperationContext?.ServiceSecurityContext?.AuthorizationContext == null)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
             }
@@ -556,32 +559,26 @@ namespace CoreWCF.Dispatcher
             foreach (var eachAuthClaim in AuthorizeClaims)
             {
                 List<Claim> allClaims = eachAuthClaim.Value;
-                if(!IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationPolicies, allClaims))
+                if(!IsClaimFound(rpc.OperationContext?.ServiceSecurityContext.AuthorizationContext.ClaimSets, allClaims))
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(AuthorizationBehavior.CreateAccessDeniedFaultException());
                 }
             }
         }
 
-        private bool IsClaimFound(ReadOnlyCollection<IAuthorizationPolicy> policies, List<Claim> anyClaims)
+        private bool IsClaimFound(ReadOnlyCollection<IdentityModel.Claims.ClaimSet> claimSets, List<Claim> anyClaims)
         {
-            foreach (var policy in policies)
+            foreach (var claim in anyClaims)
             {
-                if(policy is UnconditionalPolicy)
+                foreach (var claimSet in claimSets)
                 {
-                    var claimSets = ((UnconditionalPolicy)policy).Issuances;
-                    foreach (var claim in anyClaims)
+                    if (claimSet.ContainsClaim(claim))
                     {
-                        foreach (var claimSet in claimSets)
-                        {
-                            if (claimSet.ContainsClaim(claim))
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
             }
+
             return false;
         }
     }

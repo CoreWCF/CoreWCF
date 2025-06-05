@@ -5,21 +5,17 @@ using System;
 
 namespace CoreWCF.Description
 {
+    [Obsolete("Use CoreWCF.MessagePropertyAttribute instead. This will be removed in a future release.")]
     [AttributeUsage(CoreWCFAttributeTargets.MessageMember, Inherited = false)]
     public sealed class MessagePropertyAttribute : Attribute
     {
         private string _name;
 
-        public MessagePropertyAttribute()
-        {
-        }
+        public MessagePropertyAttribute() { }
 
         public string Name
         {
-            get
-            {
-                return _name;
-            }
+            get => _name;
             set
             {
                 IsNameSetExplicit = true;

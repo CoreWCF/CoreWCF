@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <AssemblyName>CoreWCF.RabbitMQ.Client</AssemblyName>
     <PackageId>CoreWCF.RabbitMQ.Client</PackageId>
     <RootNamespace />
@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="6.2.0" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
 </Project>

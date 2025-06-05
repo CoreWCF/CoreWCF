@@ -127,7 +127,7 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        public ConcurrentDictionary<string,List<Claim>> AuthorizeClaims //need help with naming
+        public ConcurrentDictionary<string,List<Claim>> AuthorizeClaims
         {
             get { return _authorizeClaims; }
             set

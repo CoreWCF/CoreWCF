@@ -42,6 +42,9 @@ namespace CoreWCF.Http.Tests
         [InlineData("NetHttpBinding", "Text", LargeRequestByteArrayLength)]
         [InlineData("NetHttpBinding", "Mtom", LargeRequestByteArrayLength)]
         [InlineData("NetHttpBinding", "Binary", LargeRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Text", LargeRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Mtom", LargeRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Binary", LargeRequestByteArrayLength)]
         [InlineData("BasicHttpBinding", "Text", SmallRequestByteArrayLength)]
         [InlineData("BasicHttpBinding", "Mtom", SmallRequestByteArrayLength)]
         [InlineData("WSHttpBinding", "Text", SmallRequestByteArrayLength)]
@@ -51,6 +54,9 @@ namespace CoreWCF.Http.Tests
         [InlineData("NetHttpBinding", "Text", SmallRequestByteArrayLength)]
         [InlineData("NetHttpBinding", "Mtom", SmallRequestByteArrayLength)]
         [InlineData("NetHttpBinding", "Binary", SmallRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Text", SmallRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Mtom", SmallRequestByteArrayLength)]
+        [InlineData("WebSocketNetHttpBinding", "Binary", SmallRequestByteArrayLength)]
         public void EchoByteArray(string bindingType, string messageEncoding, int bytesCount)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output)
@@ -132,6 +138,12 @@ namespace CoreWCF.Http.Tests
                 var wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, securityMode: System.ServiceModel.SecurityMode.None);
                 wsHttpBinding.MessageEncoding = ParseEnum<System.ServiceModel.WSMessageEncoding>(messageEncoding);
                 binding = wsHttpBinding;
+            }
+            else if (bindingType == "NetHttpBinding")
+            {
+                var netHttpBinding = ClientHelper.GetBufferedModeNetHttpBinding();
+                netHttpBinding.MessageEncoding = ParseEnum<System.ServiceModel.NetHttpMessageEncoding>(messageEncoding);
+                binding = netHttpBinding;
             }
             else
             {

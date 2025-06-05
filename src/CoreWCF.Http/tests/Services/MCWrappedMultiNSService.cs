@@ -14,4 +14,22 @@ namespace Services
             return new MC2MultiNS();
         }
     }
+
+    public class ServerWrappedMultipleNSService2 : IMCWrappedMultiNS2
+    {
+        public MC2MultiNS2 M(MCMultiNS2 msg)
+        {
+            Assert.NotNull(msg);
+            return new MC2MultiNS2();
+        }
+    }
+
+    public class ServerWrappedMultipleNSService3 : IMCWrappedMultiNS3
+    {
+        public MC2MultiNS3 M(MCMultiNS3 msg)
+        {
+            Assert.NotNull(msg);
+            return new MC2MultiNS3();
+        }
+    }
 }
