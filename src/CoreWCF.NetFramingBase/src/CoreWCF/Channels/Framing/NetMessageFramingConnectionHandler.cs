@@ -174,7 +174,7 @@ namespace CoreWCF.Channels.Framing
             }
             else
             {
-                await connection.SendFaultAsync(FramingEncodingString.EndpointNotFoundFault, ServiceDefaults.SendTimeout, TransportDefaults.MaxDrainSize);
+                await connection.SendFaultAsync(FramingEncodingString.EndpointNotFoundFault, TransportDefaults.MaxDrainSize, connection.ChannelInitializationCancellationToken);
             }
         }
 

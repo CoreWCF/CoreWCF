@@ -60,9 +60,10 @@ namespace CoreWCF.Channels.Framing
                         // see if we need to send back a framing fault
                         if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
                         {
-                            // TODO: Timeouts
-                            await connection.SendFaultAsync(framingFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,
-                                 ConnectionOrientedTransportDefaults.MaxViaSize + ConnectionOrientedTransportDefaults.MaxContentTypeSize);
+                            await connection.SendFaultAsync(
+                                framingFault,
+                                ConnectionOrientedTransportDefaults.MaxViaSize + ConnectionOrientedTransportDefaults.MaxContentTypeSize,
+                                connection.ChannelInitializationCancellationToken);
                         }
 
                         return; // Completing the returned Task causes the connection to be closed if needed and cleans everything up.
@@ -85,8 +86,10 @@ namespace CoreWCF.Channels.Framing
                     // connection.ServiceDispatcher is null until later middleware layers are executed.
                     if (connection.ServiceDispatcher == null)
                     {
-                        await connection.SendFaultAsync(FramingEncodingString.EndpointNotFoundFault, Timeout.InfiniteTimeSpan/*GetRemainingTimeout()*/,
-                            ConnectionOrientedTransportDefaults.MaxViaSize + ConnectionOrientedTransportDefaults.MaxContentTypeSize);
+                        await connection.SendFaultAsync(
+                            FramingEncodingString.EndpointNotFoundFault,
+                            ConnectionOrientedTransportDefaults.MaxViaSize + ConnectionOrientedTransportDefaults.MaxContentTypeSize,
+                            connection.ChannelInitializationCancellationToken);
                         return;
                     }
 
