@@ -96,7 +96,7 @@ namespace CoreWCF.Channels
             {
                 string address = listenOptions.SocketPath;
                 var baseAddress = new Uri($"net.uds://{address}/");
-                _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
+                _logger.LogDebug("Adding base address {baseAddress} to ServiceBuilderOptions", baseAddress);
                 _serviceBuilder.BaseAddresses.Add(baseAddress);
             }
 

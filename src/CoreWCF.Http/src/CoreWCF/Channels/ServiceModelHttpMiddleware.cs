@@ -94,7 +94,7 @@ namespace CoreWCF.Channels
                     }
                     if (binding.Elements.Find<HttpTransportBindingElement>() == null)
                     {
-                        _logger.LogDebug($"Binding for address {dispatcher.BaseAddress} is not an HTTP[S] binding so skipping");
+                        _logger.LogDebug("Binding for address {baseAddress} is not an HTTP[S] binding so skipping", dispatcher.BaseAddress);
                         continue; // Not an HTTP(S) dispatcher
                     }
 
@@ -192,7 +192,7 @@ namespace CoreWCF.Channels
                 }
                 else
                 {
-                    _logger.LogWarning("RequestContext missing delegate with key " + RestorePathsDelegateItemName);
+                    _logger.LogWarning("RequestContext missing delegate with key {key}", RestorePathsDelegateItemName);
                 }
 
                 return _next(reqContext);
