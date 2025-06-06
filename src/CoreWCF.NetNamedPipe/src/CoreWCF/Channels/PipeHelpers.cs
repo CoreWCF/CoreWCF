@@ -413,14 +413,14 @@ namespace CoreWCF.Channels
                 for (int i = 0; i < allowedSids.Count; i++)
                 {
                     SecurityIdentifier allowedSid = allowedSids[i];
-                    logger.LogDebug($"Adding ACL allow SID {allowedSid} to security identifiers");
+                    logger.LogDebug("Adding ACL allow SID {allowedSid} to security identifiers", allowedSid);
                     dacl.AddAccess(AccessControlType.Allow, allowedSid,
                         clientAccessRights, InheritanceFlags.None, PropagationFlags.None);
                 }
             }
 
             var processLogonSid = SecurityUtils.GetProcessLogonSid();
-            logger.LogDebug($"Adding ACL allow Process Logon SID {processLogonSid} to security identifiers");
+            logger.LogDebug("Adding ACL allow Process Logon SID {processLogonSid} to security identifiers", processLogonSid);
             dacl.AddAccess(AccessControlType.Allow, processLogonSid, accessRights, InheritanceFlags.None, PropagationFlags.None);
 
             // In WCF there is code here to grant access to the current app container SID if running in an

@@ -48,7 +48,7 @@ namespace CoreWCF.Configuration
             {
                 if (!transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                 {
-                    logger.LogDebug($"Calling {transportServiceBuilder.GetType().FullName}.Configure");
+                    logger.LogDebug("Calling {builderType}.Configure", transportServiceBuilder.GetType().FullName);
                     transportServiceBuilder.Configure(app);
                     transportServiceBuilderSeenTypes.Add(transportServiceBuilder.GetType());
                 }
@@ -62,7 +62,7 @@ namespace CoreWCF.Configuration
                     // Check if this transport service builder type has already been used in this app
                     if (transportServiceBuilder != null && !transportServiceBuilderSeenTypes.Contains(transportServiceBuilder.GetType()))
                     {
-                        logger.LogDebug($"Calling {transportServiceBuilder.GetType().FullName}.Configure");
+                        logger.LogDebug("Calling {builderType}.Configure", transportServiceBuilder.GetType().FullName);
                         transportServiceBuilder.Configure(app);
                         transportServiceBuilderSeenTypes.Add(transportServiceBuilder.GetType());
                     }

@@ -275,7 +275,7 @@ namespace CoreWCF.Dispatcher
                 if (logger.IsEnabled(LogLevel.Debug))
                 {
                     var expr = GetDebugString(finalBlock).Trim();
-                    logger.LogDebug("{0} {1}\n{2}", method.DeclaringType, method.ToString(), expr) ;
+                    logger.LogDebug("{methodType} {method}\n{expr}", method.DeclaringType, method.ToString(), expr);
                 }
 
                 return lambda.Compile();
