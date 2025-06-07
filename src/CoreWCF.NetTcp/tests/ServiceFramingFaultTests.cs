@@ -71,8 +71,8 @@ namespace CoreWCF.NetTcp.Tests
                     channel.EchoString(testString);
                 });
                 Assert.IsType<System.ServiceModel.QuotaExceededException>(communicationException.InnerException);
-                Assert.Empty(exceptionRecorder.Exceptions);
                 ServiceHelper.CloseServiceModelObjects((System.ServiceModel.IClientChannel)channel, factory);
+                Assert.Empty(exceptionRecorder.Exceptions);
             }
         }
 

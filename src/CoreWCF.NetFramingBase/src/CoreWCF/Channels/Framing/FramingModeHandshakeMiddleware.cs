@@ -33,6 +33,7 @@ namespace CoreWCF.Channels.Framing
             catch (Microsoft.AspNetCore.Connections.ConnectionResetException) { }
             catch (CoreWCF.Security.SecurityNegotiationException) { } // TODO: Work out where this needs to be caught
             catch (System.IO.IOException) { } // TODO: Work out where this needs to be caught
+            catch (CommunicationException) { } // TODO: Work out how this is logged in WCF and replicate
         }
 
         public async Task OnConnectedCoreAsync(FramingConnection connection)
