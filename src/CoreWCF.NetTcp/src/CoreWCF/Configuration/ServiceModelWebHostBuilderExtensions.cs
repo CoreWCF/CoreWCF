@@ -189,11 +189,23 @@ namespace CoreWCF.Configuration
         {
             builder.Use(next =>
             {
-                return (ConnectionContext context) =>
+                tcpListenOptions.Use(innerNext =>
                 {
-                    context.Features.Set<NetFramingListenOptions>(tcpListenOptions);
-                    return next(context);
-                };
+                    return (ConnectionContext context) =>
+                    {
+                        context.Features.Set<NetFramingListenOptions>(tcpListenOptions);
+                        return innerNext(context);
+                    };
+                });
+                tcpListenOptions.Use(_ =>
+                {
+                    return (ConnectionContext context) =>
+                    {
+                        return next(context);
+                    };
+                });
+                var tcpListenOptionsMiddleware = ((IConnectionBuilder)tcpListenOptions).Build();
+                return tcpListenOptionsMiddleware;
             });
         }
 

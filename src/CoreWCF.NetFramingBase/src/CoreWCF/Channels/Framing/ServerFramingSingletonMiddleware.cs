@@ -74,14 +74,16 @@ namespace CoreWCF.Channels.Framing
                                     case UpgradeState.VerifyingUpgradeRequest:
                                         if (connection.StreamUpgradeAcceptor == null)
                                         {
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, timeoutHelper.RemainingTime(), TransportDefaults.MaxDrainSize);
+                                            connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                                 new ProtocolException(SR.Format(SR.UpgradeRequestToNonupgradableService, decoder.Upgrade)));
                                         }
 
                                         if (!connection.StreamUpgradeAcceptor.CanUpgrade(decoder.Upgrade))
                                         {
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, timeoutHelper.RemainingTime(), TransportDefaults.MaxDrainSize);
+                                            connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(SR.Format(SR.UpgradeProtocolNotSupported, decoder.Upgrade)));
                                         }
 
