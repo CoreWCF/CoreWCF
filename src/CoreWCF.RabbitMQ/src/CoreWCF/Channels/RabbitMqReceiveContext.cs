@@ -30,7 +30,7 @@ namespace CoreWCF.Channels
         protected override async Task OnAbandonAsync(CancellationToken token)
         {
             await Task.Run(() =>
-                _logger.LogError($"Dispatch failed for message with delivery tag: {_deliveryTag}"),
+                _logger.LogError("Dispatch failed for message with delivery tag: {deliveryTag}", _deliveryTag),
                 token);
 
             if (!_isAutoAck)

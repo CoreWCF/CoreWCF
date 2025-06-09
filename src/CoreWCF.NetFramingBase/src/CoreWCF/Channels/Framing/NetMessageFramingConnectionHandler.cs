@@ -102,7 +102,7 @@ namespace CoreWCF.Channels.Framing
                     _serviceDispatcher ??= dispatcher;
                     HandshakeDelegate handshake = BuildHandshakeDelegateForDispatcher(_serviceDispatcher);
 
-                    logger.LogDebug($"Registering URI {dispatcher.BaseAddress} with NetMessageFramingConnectionHandler");
+                    logger.LogDebug("Registering URI {baseAddress} with NetMessageFramingConnectionHandler", dispatcher.BaseAddress);
                     addressTable.RegisterUri(dispatcher.BaseAddress, cotbe.HostNameComparisonMode, handshake);
                 }
             }
