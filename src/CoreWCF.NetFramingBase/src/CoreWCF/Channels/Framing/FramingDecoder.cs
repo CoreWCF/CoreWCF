@@ -527,16 +527,9 @@ namespace CoreWCF.Channels.Framing
                     }
                     catch (CommunicationException e)
                     {
-                        // see if we need to send back a framing fault
-                        if (FramingEncodingString.TryGetFaultString(e, out string framingFault))
-                        {
-                            // TODO: Drain the rest of the data and send a fault then close the connection
-                            //byte[] drainBuffer = new byte[128];
-                            //InitialServerConnectionReader.SendFault(
-                            //    Connection, framingFault, drainBuffer, GetRemainingTimeout(),
-                            //    MaxViaSize + MaxContentTypeSize);
-                            //base.Close(GetRemainingTimeout());
-                        }
+                        // Need to call inputPipe.AdvanceTo so that the code that handles the exception
+                        // can send the fault and drain the input pipe by calling ReadAsync again.
+                        inputPipe.AdvanceTo(buffer.Start);
                         throw;
                     }
 
