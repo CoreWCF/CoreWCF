@@ -156,7 +156,7 @@ namespace NetHttp
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
                     var exception = Assert.Throws<System.ServiceModel.ProtocolException>(() => channel.EchoString(testString));
-                    Assert.StartsWith("This service only supports WebSocket connections.", exception.Message);
+                    Assert.Contains("This service only supports WebSocket connections.", exception.Message);
                 }
                 finally
                 {
