@@ -5,26 +5,19 @@ using CoreWCF;
 
 namespace ServiceContract
 {
-    internal static partial class Constants
-    {
-        public const string DUPLEX_TESTSERVICE_NAME = nameof(IDuplexTestService);
-        public const string DUPLEX_TESTCALLBACK_NAME = nameof(IDuplexTestCallback);
-        public const string DUPLEX_OPERATION_BASE = NS + DUPLEX_TESTSERVICE_NAME + "/";
-    }
-
-    [ServiceContract(Namespace = Constants.NS, Name = Constants.DUPLEX_TESTCALLBACK_NAME, SessionMode = SessionMode.Allowed)]
+    [ServiceContract(Namespace = Constants.NS, Name = nameof(IDuplexTestCallback), SessionMode = SessionMode.Allowed)]
     public interface IDuplexTestCallback
     {
-        [OperationContract(Name = "AddMessage", Action = Constants.DUPLEX_OPERATION_BASE + "AddMessage",
-            ReplyAction = Constants.DUPLEX_OPERATION_BASE + "AddMessageResponse")]
+        [OperationContract(Name = "AddMessage", Action = Constants.NS + nameof(IDuplexTestService) + "/AddMessage",
+            ReplyAction = Constants.NS + nameof(IDuplexTestService) + "/AddMessageResponse")]
         void AddMessage(string message);
     }
 
-    [ServiceContract(Namespace = Constants.NS, Name = Constants.DUPLEX_TESTSERVICE_NAME, CallbackContract = typeof(IDuplexTestCallback))]
+    [ServiceContract(Namespace = Constants.NS, Name = nameof(IDuplexTestService), CallbackContract = typeof(IDuplexTestCallback))]
     public interface IDuplexTestService
     {
-        [OperationContract(Name = "EchoString", Action = Constants.DUPLEX_OPERATION_BASE + "EchoString",
-            ReplyAction = Constants.DUPLEX_OPERATION_BASE + "EchoStringResponse")]
+        [OperationContract(Name = "EchoString", Action = Constants.NS + nameof(IDuplexTestService) + "/AddMessage",
+            ReplyAction = Constants.NS + nameof(IDuplexTestService) + "/AddMessage")]
         string EchoString(string echo);
     }
 }

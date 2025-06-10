@@ -7,7 +7,7 @@ using CoreWCF;
 
 namespace ServiceContract
 {
-    internal static partial class Constants
+    internal static class Constants
     {
         public const string NS = "http://tempuri.org/";
         public const string ECHOSERVICE_NAME = nameof(IEchoService);
