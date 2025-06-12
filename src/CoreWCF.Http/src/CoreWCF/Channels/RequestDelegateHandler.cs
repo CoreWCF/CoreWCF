@@ -125,6 +125,13 @@ namespace CoreWCF.Channels
 
             if (!context.WebSockets.IsWebSocketRequest)
             {
+                if (WebSocketOptions != null && _replyChannelDispatcher == null && _replyChannelDispatcherTask == null)
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    context.Features.Get<IHttpResponseFeature>().ReasonPhrase = SR.WebSocketEndpointOnlySupportWebSocketError;
+                    return;
+                }
+
                 if (_replyChannelDispatcher == null)
                 {
                     _replyChannelDispatcher = await _replyChannelDispatcherTask;
