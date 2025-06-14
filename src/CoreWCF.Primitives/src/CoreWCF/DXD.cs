@@ -103,7 +103,7 @@ namespace CoreWCF
         }
     }
 
-    public class SecureConversationDec2005Dictionary : SecureConversationDictionary
+    internal class SecureConversationDec2005Dictionary : SecureConversationDictionary
     {
         public XmlDictionaryString RequestSecurityContextRenew;
         public XmlDictionaryString RequestSecurityContextRenewResponse;
