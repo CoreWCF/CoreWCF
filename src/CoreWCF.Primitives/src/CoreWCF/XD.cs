@@ -1058,7 +1058,7 @@ namespace CoreWCF
         }
     }
 
-    public class SecureConversationDictionary
+    internal class SecureConversationDictionary
     {
         public XmlDictionaryString Namespace;
         public XmlDictionaryString DerivedKeyToken;
