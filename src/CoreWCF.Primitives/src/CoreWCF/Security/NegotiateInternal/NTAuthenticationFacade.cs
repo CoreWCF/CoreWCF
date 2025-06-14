@@ -12,6 +12,7 @@ namespace CoreWCF.Security.NegotiateInternal
         internal static INTAuthenticationFacade Build() =>
             s_AssemblyMajorVersion switch
             {
+                >= 8 => new NTAuthenticationNet8(),
                 >= 7 => new NTAuthenticationNet7(),
                 >= 5 => new NTAuthenticationNet5(),
                 _ => new NTAuthenticationLegacy()
