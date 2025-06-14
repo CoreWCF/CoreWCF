@@ -476,5 +476,36 @@ namespace DependencyInjection
                 s_disposalCountWaitable.Wait(maxWaitDeadline - DateTime.Now);
             }
         }
+
+        [Fact]
+        public static void ServiceType_WithoutDefaultConstructor_ShowsTypeNameInException()
+        {
+            // Arrange & Act
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                ServiceDescription.GetService<ServiceWithoutDefaultConstructor>();
+            });
+
+            // Assert
+            Assert.Contains(typeof(ServiceWithoutDefaultConstructor).FullName, exception.Message);
+            Assert.Contains("does not have a default (parameter-less) constructor", exception.Message);
+        }
+    }
+
+    // Test service class without default constructor
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
+    internal class ServiceWithoutDefaultConstructor : ISimpleService
+    {
+        private readonly string _dependency;
+
+        public ServiceWithoutDefaultConstructor(string dependency)
+        {
+            _dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
+        }
+
+        public string Echo(string echo)
+        {
+            return echo;
+        }
     }
 }
