@@ -167,7 +167,7 @@ namespace CoreWCF.Description
             if (!InvokerUtil.HasDefaultConstructor(typeof(TService)))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
-                    SR.SFxNoDefaultConstructor));
+                    SR.Format(SR.SFxNoDefaultConstructor, typeof(TService).FullName)));
             }
 
             return (TService)InvokerUtil.GenerateCreateInstanceDelegate(typeof(TService))();
