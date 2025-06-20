@@ -89,7 +89,11 @@ namespace CoreWCF.Http.Tests.DependencyInjection
                 app.UseServiceModel(builder =>
                 {
                     // This will fail because ServiceWithNoDefaultConstructor is not in DI and has no default constructor
-                    builder.AddService<ServiceWithNoDefaultConstructor>();
+                    // Using ServiceOptions to enable exception detail in faults so we can verify the error message
+                    builder.AddService<ServiceWithNoDefaultConstructor>(options =>
+                    {
+                        options.DebugBehavior.IncludeExceptionDetailInFaults = true;
+                    });
                     builder.AddServiceEndpoint<ServiceWithNoDefaultConstructor, ITestService>(new BasicHttpBinding(), "/testservice");
                 });
             }
