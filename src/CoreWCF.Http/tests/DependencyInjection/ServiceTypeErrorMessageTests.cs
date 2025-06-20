@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,38 +38,12 @@ namespace CoreWCF.Http.Tests.DependencyInjection
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/testservice")));
                 ITestService channel = factory.CreateChannel();
                 
-                // Assert - Making a request should throw an exception with the service type name
-                var exception = Assert.ThrowsAny<Exception>(() => channel.GetData("test"));
-                
-                // Output detailed exception information for debugging
-                _output.WriteLine($"Exception type: {exception.GetType().FullName}");
-                _output.WriteLine($"Exception message: {exception.Message}");
-                if (exception.InnerException != null)
-                {
-                    _output.WriteLine($"Inner exception type: {exception.InnerException.GetType().FullName}");
-                    _output.WriteLine($"Inner exception message: {exception.InnerException.Message}");
-                }
+                // Assert - Making a request should throw a FaultException with the service type name
+                var exception = Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() => channel.GetData("test"));
                 
                 // Verify that the error message contains the full type name
-                // The exception might be wrapped, so check the entire exception chain
-                string fullExceptionMessage = GetFullExceptionMessage(exception);
-                _output.WriteLine($"Full exception message: {fullExceptionMessage}");
-                
-                // Check for the full name in the exception message
-                Assert.Contains(typeof(ServiceWithNoDefaultConstructor).FullName, fullExceptionMessage);
+                Assert.Contains(typeof(ServiceWithNoDefaultConstructor).FullName, exception.Detail.Message);
             }
-        }
-
-        private static string GetFullExceptionMessage(Exception exception)
-        {
-            var messages = new List<string>();
-            var current = exception;
-            while (current != null)
-            {
-                messages.Add(current.Message);
-                current = current.InnerException;
-            }
-            return string.Join(" ", messages);
         }
 
         private class StartupWithProblematicService
