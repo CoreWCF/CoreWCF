@@ -54,20 +54,12 @@ namespace CoreWCF.Http.Tests.DependencyInjection
             
             using (host)
             {
-                // Act - Start the host (this should succeed)
-                host.Start();
-                
-                // Create a client to make a request that will trigger service instantiation
-                System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
-                var factory = new System.ServiceModel.ChannelFactory<ITestService>(httpBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/testservice")));
-                ITestService channel = factory.CreateChannel();
-                
-                // Assert - Making a request should throw a FaultException with the service type name
-                var exception = Assert.Throws<System.ServiceModel.FaultException<System.ServiceModel.ExceptionDetail>>(() => channel.GetData("test"));
+                // Act & Assert - Starting the host should throw InvalidOperationException for singleton services
+                // because singletons are instantiated immediately when the host starts
+                var exception = Assert.Throws<InvalidOperationException>(() => host.Start());
                 
                 // Verify that the error message contains the full type name
-                Assert.Contains(typeof(SingletonServiceWithNoDefaultConstructor).FullName, exception.Detail.Message);
+                Assert.Contains(typeof(SingletonServiceWithNoDefaultConstructor).FullName, exception.Message);
             }
         }
 
