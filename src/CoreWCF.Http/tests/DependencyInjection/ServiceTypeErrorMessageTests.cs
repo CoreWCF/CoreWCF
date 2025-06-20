@@ -56,10 +56,8 @@ namespace CoreWCF.Http.Tests.DependencyInjection
                 string fullExceptionMessage = GetFullExceptionMessage(exception);
                 _output.WriteLine($"Full exception message: {fullExceptionMessage}");
                 
-                // Check for both the full name and just the class name
-                Assert.True(fullExceptionMessage.Contains(typeof(ServiceWithNoDefaultConstructor).FullName) ||
-                           fullExceptionMessage.Contains("ServiceWithNoDefaultConstructor"),
-                           $"Expected service type name to be in exception message. Full message: {fullExceptionMessage}");
+                // Check for the full name in the exception message
+                Assert.Contains(typeof(ServiceWithNoDefaultConstructor).FullName, fullExceptionMessage);
             }
         }
 
