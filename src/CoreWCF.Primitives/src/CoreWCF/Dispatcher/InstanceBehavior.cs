@@ -17,10 +17,12 @@ namespace CoreWCF.Dispatcher
         private readonly IInstanceProvider _provider;
         private readonly InstanceContext _singleton;
         private readonly ImmutableDispatchRuntime _immutableRuntime;
+        private readonly Type _serviceType;
 
         internal InstanceBehavior(DispatchRuntime dispatch, ImmutableDispatchRuntime immutableRuntime)
         {
             _immutableRuntime = immutableRuntime;
+            _serviceType = dispatch.Type;
             _initializers = EmptyArray<IInstanceContextInitializer>.ToArray(dispatch.InstanceContextInitializers);
             _provider = dispatch.InstanceProvider;
             _singleton = dispatch.SingletonInstanceContext;
@@ -38,7 +40,8 @@ namespace CoreWCF.Dispatcher
 
                     if (!hasDefaultConstructor)
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
+                            SR.Format(SR.SFxNoDefaultConstructor, dispatch.Type?.FullName ?? "Unknown")));
                     }
                 }
 
@@ -173,7 +176,8 @@ namespace CoreWCF.Dispatcher
         {
             if (_provider == null)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
+                    SR.Format(SR.SFxNoDefaultConstructor, _serviceType?.FullName ?? "Unknown")));
             }
 
             return _provider.GetInstance(instanceContext);
@@ -183,7 +187,8 @@ namespace CoreWCF.Dispatcher
         {
             if (_provider == null)
             {
-                throw TraceUtility.ThrowHelperError(new InvalidOperationException(SR.SFxNoDefaultConstructor), request);
+                throw TraceUtility.ThrowHelperError(new InvalidOperationException(
+                    SR.Format(SR.SFxNoDefaultConstructor, _serviceType?.FullName ?? "Unknown")), request);
             }
 
             return _provider.GetInstance(instanceContext, request);

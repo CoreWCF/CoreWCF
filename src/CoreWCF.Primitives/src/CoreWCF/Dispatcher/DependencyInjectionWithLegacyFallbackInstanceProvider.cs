@@ -98,9 +98,10 @@ namespace CoreWCF.Dispatcher
                 CreateInstanceDelegate createInstance = InvokerUtil.GenerateCreateInstanceDelegate(_serviceType);
                 _getInstanceDelegate = _ => createInstance();
             }
-            else // Fallback to returning null if not in DI and no default constructor
+            else // Fallback to throwing exception if not in DI and no default constructor
             {
-                _getInstanceDelegate = _ => null;
+                _getInstanceDelegate = _ => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(
+                    SR.Format(SR.SFxNoDefaultConstructor, _serviceType.FullName)));
             }
 
             return _getInstanceDelegate(instanceContext);
