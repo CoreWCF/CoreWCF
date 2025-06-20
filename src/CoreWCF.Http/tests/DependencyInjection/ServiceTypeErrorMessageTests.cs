@@ -108,11 +108,7 @@ namespace CoreWCF.Http.Tests.DependencyInjection
                 app.UseServiceModel(builder =>
                 {
                     // This will fail because SingletonServiceWithNoDefaultConstructor is not in DI and has no default constructor
-                    // Using ServiceOptions to enable exception detail in faults so we can verify the error message
-                    builder.AddService<SingletonServiceWithNoDefaultConstructor>(options =>
-                    {
-                        options.DebugBehavior.IncludeExceptionDetailInFaults = true;
-                    });
+                    builder.AddService<SingletonServiceWithNoDefaultConstructor>();
                     builder.AddServiceEndpoint<SingletonServiceWithNoDefaultConstructor, ITestService>(new BasicHttpBinding(), "/testservice");
                 });
             }
