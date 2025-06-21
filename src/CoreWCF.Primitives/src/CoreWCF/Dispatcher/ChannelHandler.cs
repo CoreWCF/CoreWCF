@@ -236,7 +236,7 @@ namespace CoreWCF.Dispatcher
         private RequestContext GetSessionOpenNotificationRequestContext()
         {
             Fx.Assert(_sessionOpenNotification != null, "this.sessionOpenNotification should not be null.");
-            Message message = Message.CreateMessage(_binder.Channel.GetProperty<MessageVersion>(), OperationDescription.SessionOpenedAction);
+            Message message = Message.CreateMessage(_binder.Channel.GetProperty<MessageVersion>() ?? _messageVersion, OperationDescription.SessionOpenedAction);
             Fx.Assert(LocalAddress != null, "this.LocalAddress should not be null.");
             message.Headers.To = LocalAddress.Uri;
             _sessionOpenNotification.UpdateMessageProperties(message.Properties);

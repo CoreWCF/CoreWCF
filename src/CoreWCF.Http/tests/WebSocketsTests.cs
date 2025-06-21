@@ -167,6 +167,34 @@ namespace NetHttp
             }
         }
 
+        [Fact]
+        public void WebSocket_Http_VerifyWebSocketsUsed()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupCreateNotificationOnConnection>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IVerifyWebSockets> factory = null;
+                ClientContract.IVerifyWebSockets channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IVerifyWebSockets>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri(GetNetHttpBufferedServiceUri(host))));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    bool responseFromService = channel.ValidateWebSocketsUsed();
+                    Assert.True(responseFromService, String.Format("Response from the service was not expected. Expected: 'True' but got {0}", responseFromService));
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
         //[Fact]
         //public void NetHttpWebSocketsStreamedTransferMode()
         //{
@@ -254,6 +282,28 @@ namespace NetHttp
                     var binding = new NetHttpBinding();
                     binding.WebSocketSettings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
                     builder.AddServiceEndpoint<Services.DuplexTestService, ServiceContract.IDuplexTestService>(binding, DuplexPath);
+                });
+            }
+        }
+
+        public class StartupCreateNotificationOnConnection
+        {
+            public const string BufferedPath = "/nethttp.svc/buffered";
+
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.VerifyWebSockets>();
+                    var binding = new NetHttpBinding();
+                    binding.WebSocketSettings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
+                    binding.WebSocketSettings.CreateNotificationOnConnection = true;
+                    builder.AddServiceEndpoint<Services.VerifyWebSockets, ServiceContract.IVerifyWebSockets>(binding, BufferedPath);
                 });
             }
         }
