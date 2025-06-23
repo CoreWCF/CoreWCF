@@ -39,7 +39,7 @@ stages:
     - task: AzureCLI@2
       displayName: 'Sign Packages'
       inputs:
-        azureSubscription: $(SignConnectionName)
+        azureSubscription: 'CoreWCF DNF Signing'
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
@@ -58,7 +58,7 @@ stages:
     - task: AzureCLI@2
       displayName: 'Sign symbol packages'
       inputs:
-        azureSubscription: $(SignConnectionName)
+        azureSubscription: 'CoreWCF DNF Signing'
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
