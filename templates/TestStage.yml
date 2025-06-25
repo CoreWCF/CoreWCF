@@ -94,6 +94,13 @@ stages:
           installationPath: $(Agent.ToolsDirectory)/dotnet
           includePreviewVersions: true
 
+      - script: |
+          "%ProgramFiles%\IIS Express\IisExpressAdminCmd.exe" setupdefaulturls
+        name: SetupIISExpressCertificates
+        displayName: Setup IIS Express certificates for HTTPS tests
+        condition: eq(variables.imageName, 'windows-latest')
+        continueOnError: true
+
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 30
