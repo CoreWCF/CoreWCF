@@ -43,7 +43,7 @@ stages:
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
-          dotnet sign code azure-key-vault `
+          .\sign code azure-key-vault `
           "**/*.nupkg" `
           --base-directory "$(Pipeline.Workspace)\BuildPackages" `
           --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
@@ -62,7 +62,7 @@ stages:
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
-          dotnet sign code azure-key-vault `
+          .\sign code azure-key-vault `
           "**/*.snupkg" `
           --base-directory "$(Pipeline.Workspace)\BuildPackages" `
           --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
