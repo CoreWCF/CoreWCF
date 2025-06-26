@@ -51,7 +51,7 @@ stages:
           --description "CoreWCF" `
           --description-url "https://github.com/CoreWCF/CoreWCF" `
           --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
-          --azure-key-vault-url "$(SignKeyVaultUrl)"
+          --azure-key-vault-url "$(SignKeyVaultUrl)" `
           -v Information
 
     # Signing symbol packages
@@ -70,7 +70,7 @@ stages:
           --description "CoreWCF" `
           --description-url "https://github.com/CoreWCF/CoreWCF" `
           --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
-          --azure-key-vault-url "$(SignKeyVaultUrl)"
+          --azure-key-vault-url "$(SignKeyVaultUrl)" `
           -v Information
 
     - publish: $(Pipeline.Workspace)/BuildPackages
