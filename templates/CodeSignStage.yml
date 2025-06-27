@@ -32,40 +32,47 @@ stages:
       inputs:
         command: custom
         custom: tool
-        arguments: install --tool-path . sign --version 0.9.0-beta.23127.3
+        arguments: install --tool-path . sign --version 0.9.1-beta.25278.1
       displayName: Install SignTool tool
       
-    # Run the signing command
-    - pwsh: |
-        .\sign code azure-key-vault `
-        "**/*.nupkg" `
-        --base-directory "$(Pipeline.Workspace)\BuildPackages" `
-        --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
-        --publisher-name "CoreWCF" `
-        --description "CoreWCF" `
-        --description-url "https://github.com/CoreWCF/CoreWCF" `
-        --azure-key-vault-tenant-id "$(SignTenantId)" `
-        --azure-key-vault-client-id "$(SignClientId)" `
-        --azure-key-vault-client-secret '$(SignClientSecret)' `
-        --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
-        --azure-key-vault-url "$(SignKeyVaultUrl)"
-      displayName: Sign packages
+    # Signing packages
+    - task: AzureCLI@2
+      displayName: 'Sign Packages'
+      inputs:
+        azureSubscription: 'CoreWCF DNF Signing'
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          .\sign code azure-key-vault `
+          "**/*.nupkg" `
+          --base-directory "$(Pipeline.Workspace)\BuildPackages" `
+          --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
+          --publisher-name "CoreWCF" `
+          --description "CoreWCF" `
+          --description-url "https://github.com/CoreWCF/CoreWCF" `
+          --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
+          --azure-key-vault-url "$(SignKeyVaultUrl)" `
+          -v Information
 
-    - pwsh: |
-        .\sign code azure-key-vault `
-        "**/*.snupkg" `
-        --base-directory "$(Pipeline.Workspace)\BuildPackages" `
-        --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
-        --publisher-name "CoreWCF" `
-        --description "CoreWCF" `
-        --description-url "https://github.com/CoreWCF/CoreWCF" `
-        --azure-key-vault-tenant-id "$(SignTenantId)" `
-        --azure-key-vault-client-id "$(SignClientId)" `
-        --azure-key-vault-client-secret '$(SignClientSecret)' `
-        --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
-        --azure-key-vault-url "$(SignKeyVaultUrl)"
-      displayName: Sign symbol packages
-      
+    # Signing symbol packages
+    - task: AzureCLI@2
+      displayName: 'Sign symbol packages'
+      inputs:
+        azureSubscription: 'CoreWCF DNF Signing'
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          .\sign code azure-key-vault `
+          "**/*.snupkg" `
+          --base-directory "$(Pipeline.Workspace)\BuildPackages" `
+          --file-list "$(Pipeline.Workspace)\config\filelist.txt" `
+          --publisher-name "CoreWCF" `
+          --description "CoreWCF" `
+          --description-url "https://github.com/CoreWCF/CoreWCF" `
+          --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
+          --azure-key-vault-url "$(SignKeyVaultUrl)" `
+          -v Information
+
     - publish: $(Pipeline.Workspace)/BuildPackages
       displayName: Publish Signed Packages
       artifact: SignedPackages

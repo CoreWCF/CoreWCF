@@ -97,7 +97,7 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        _logger.LogWarning("RequestContext missing delegate with key " + RestorePathsDelegateItemName);
+                        _logger.LogWarning("RequestContext missing delegate with key {key}", RestorePathsDelegateItemName);
                     }
 
                     return _next(reqContext);
@@ -108,7 +108,7 @@ namespace CoreWCF.Channels
             {
                 void MapMetadata(IApplicationBuilder app, string path, Func<RequestDelegate, RequestDelegate> middleware)
                 {
-                    _logger.LogInformation($"Configuring metadata to {path}");
+                    _logger.LogInformation("Configuring metadata to {path}", path);
                     app.Use(middleware);
                 }
 
@@ -255,7 +255,7 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        _logger.LogWarning("RequestContext missing delegate with key " + RestorePathsDelegateItemName);
+                        _logger.LogWarning("RequestContext missing delegate with key {key}", RestorePathsDelegateItemName);
                     }
 
                     return _next(reqContext);

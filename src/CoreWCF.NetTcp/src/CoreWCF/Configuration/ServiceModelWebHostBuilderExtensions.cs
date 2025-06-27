@@ -189,11 +189,23 @@ namespace CoreWCF.Configuration
         {
             builder.Use(next =>
             {
-                return (ConnectionContext context) =>
+                tcpListenOptions.Use(innerNext =>
                 {
-                    context.Features.Set<NetFramingListenOptions>(tcpListenOptions);
-                    return next(context);
-                };
+                    return (ConnectionContext context) =>
+                    {
+                        context.Features.Set<NetFramingListenOptions>(tcpListenOptions);
+                        return innerNext(context);
+                    };
+                });
+                tcpListenOptions.Use(_ =>
+                {
+                    return (ConnectionContext context) =>
+                    {
+                        return next(context);
+                    };
+                });
+                var tcpListenOptionsMiddleware = ((IConnectionBuilder)tcpListenOptions).Build();
+                return tcpListenOptionsMiddleware;
             });
         }
 
@@ -228,7 +240,7 @@ namespace CoreWCF.Configuration
                 if (endpoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
                     address = $"[{address}]";
                 var baseAddress = new Uri($"net.tcp://{address}:{endpoint.Port}/");
-                _logger.LogDebug($"Adding base address {baseAddress} to ServiceBuilderOptions");
+                _logger.LogDebug("Adding base address {baseAddress} to ServiceBuilderOptions", baseAddress);
                 _serviceBuilder.BaseAddresses.Add(baseAddress);
             }
 

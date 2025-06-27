@@ -22,6 +22,8 @@ namespace NetHttp
             => string.Format(NetHttpServiceBaseUriFormat, webHost.GetHttpPort());
         private static string GetNetHttpBufferedServiceUri(IWebHost webHost)
             => string.Concat(GetNetHttpServiceBaseUri(webHost), Startup.BufferedPath);
+        private static string GetNetHttpDuplexServiceUri(IWebHost webHost)
+            => string.Concat(GetNetHttpServiceBaseUri(webHost), StartupUsingDuplexService.DuplexPath);
 
         private readonly ITestOutputHelper _output;
 
@@ -136,6 +138,35 @@ namespace NetHttp
             }
         }
 
+        [Fact]
+        public void WebSocketEndpointReturnBadRequestForHttpRequest()
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupUsingDuplexService>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.BasicHttpBinding binding = new System.ServiceModel.BasicHttpBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri(GetNetHttpDuplexServiceUri(host))));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    var exception = Assert.Throws<System.ServiceModel.ProtocolException>(() => channel.EchoString(testString));
+                    Assert.Contains("This service only supports WebSocket connections.", exception.Message);
+                }
+                finally
+                {
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
         //[Fact]
         //public void NetHttpWebSocketsStreamedTransferMode()
         //{
@@ -202,6 +233,27 @@ namespace NetHttp
                 {
                     builder.AddService<Services.EchoService>();
                     builder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(binding, path);
+                });
+            }
+        }
+
+        public class StartupUsingDuplexService
+        {
+            public const string DuplexPath = "/nethttp.svc/duplex";
+
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.DuplexTestService>();
+                    var binding = new NetHttpBinding();
+                    binding.WebSocketSettings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
+                    builder.AddServiceEndpoint<Services.DuplexTestService, ServiceContract.IDuplexTestService>(binding, DuplexPath);
                 });
             }
         }
