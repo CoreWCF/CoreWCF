@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
@@ -27,6 +28,26 @@ namespace CoreWCF.Channels
             }
 
             return new WrappingBufferManager(InternalBufferManager.Create(maxBufferPoolSize, maxBufferSize));
+        }
+
+        public static implicit operator MemoryPool<byte>(BufferManager bufferManager)
+        {
+            if (bufferManager is WrappingBufferManager wrappingBufferManager)
+            {
+                return wrappingBufferManager.InternalBufferManager;
+            }
+
+            throw new InvalidCastException();
+        }
+
+        public static implicit operator BufferManager(MemoryPool<byte> memoryPool)
+        {
+            if (memoryPool is InternalBufferManager internalBufferManager)
+            {
+                return new WrappingBufferManager(internalBufferManager);
+            }
+
+            throw new InvalidCastException();
         }
 
         internal static InternalBufferManager GetInternalBufferManager(BufferManager bufferManager)
@@ -80,26 +101,35 @@ namespace CoreWCF.Channels
         private class WrappingInternalBufferManager : InternalBufferManager
         {
             private readonly BufferManager _innerBufferManager;
-
             public WrappingInternalBufferManager(BufferManager innerBufferManager)
             {
                 _innerBufferManager = innerBufferManager;
             }
-
             public override void Clear()
             {
                 _innerBufferManager.Clear();
             }
-
             public override void ReturnBuffer(byte[] buffer)
             {
                 _innerBufferManager.ReturnBuffer(buffer);
             }
-
             public override byte[] TakeBuffer(int bufferSize)
             {
                 return _innerBufferManager.TakeBuffer(bufferSize);
             }
+
+            public override IMemoryOwner<byte> Rent(int minBufferSize = -1)
+                => GetMemoryPool().Rent(minBufferSize);
+
+
+            protected override void Dispose(bool disposing)
+            {
+
+            }
+
+            public override int MaxBufferSize => GetMemoryPool().MaxBufferSize;
+
+            private MemoryPool<byte> GetMemoryPool() => _innerBufferManager;
         }
     }
 }
