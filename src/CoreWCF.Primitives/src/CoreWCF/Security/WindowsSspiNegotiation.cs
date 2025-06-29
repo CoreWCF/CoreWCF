@@ -17,9 +17,9 @@ namespace CoreWCF.Security
     /// </summary>
     internal class WindowsSspiNegotiation : ISspiNegotiation
     {
-        private readonly NegotiateInternalState _negotiateState;
+        private readonly INegotiateInternalState _negotiateState;
 
-        public WindowsSspiNegotiation(NegotiateInternalState passedNegotiateState)
+        public WindowsSspiNegotiation(INegotiateInternalState passedNegotiateState)
         {
             _negotiateState = passedNegotiateState;
         }
