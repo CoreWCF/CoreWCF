@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -113,22 +115,59 @@ namespace CoreWCF.Channels
                     return;
                 }
 
-                HttpInput httpInput = requestContext.GetHttpInput(true);
-                (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
-                if ((requestMessage == null) && (requestException == null))
+                try
                 {
-                    await requestContext.SendResponseAndCloseAsync(System.Net.HttpStatusCode.BadRequest);
-                    return;
-                }
+                    HttpInput httpInput = requestContext.GetHttpInput(true);
+                    (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
+                    if ((requestMessage == null) && (requestException == null))
+                    {
+                        await requestContext.SendResponseAndCloseAsync(System.Net.HttpStatusCode.BadRequest);
+                        return;
+                    }
 
-                requestContext.SetMessage(requestMessage, requestException);
-                if (requestMessage != null)
+                    requestContext.SetMessage(requestMessage, requestException);
+                    if (requestMessage != null)
+                    {
+                        requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
+                    }
+
+                    await ChannelDispatcher.DispatchAsync(requestContext);
+                    await requestContext.ReplySent;
+                }
+                catch (Exception ex)
                 {
-                    requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
-                }
+                    await HandleProcessInboundException(ex, requestContext);
+                }  
+            }
+        }
 
-                await ChannelDispatcher.DispatchAsync(requestContext);
-                await requestContext.ReplySent;
+        private static async Task HandleProcessInboundException(Exception ex, HttpRequestContext requestContext)
+        {
+            if (Fx.IsFatal(ex))
+            {
+                return;
+            }
+
+            if (ex is ProtocolException)
+            {
+                ProtocolException protocolException = (ProtocolException)ex;
+                HttpStatusCode statusCode = HttpStatusCode.BadRequest;
+                string statusDescription = string.Empty;
+                if (protocolException.Data.Contains(HttpChannelUtilities.HttpStatusCodeExceptionKey))
+                {
+                    statusCode = (HttpStatusCode)protocolException.Data[HttpChannelUtilities.HttpStatusCodeExceptionKey];
+                    protocolException.Data.Remove(HttpChannelUtilities.HttpStatusCodeExceptionKey);
+                }
+                if (protocolException.Data.Contains(HttpChannelUtilities.HttpStatusDescriptionExceptionKey))
+                {
+                    statusDescription = (string)protocolException.Data[HttpChannelUtilities.HttpStatusDescriptionExceptionKey];
+                    protocolException.Data.Remove(HttpChannelUtilities.HttpStatusDescriptionExceptionKey);
+                }
+                await requestContext.SendResponseAndCloseAsync(statusCode, statusDescription);
+            }
+            else
+            {
+                await requestContext.SendResponseAndCloseAsync(HttpStatusCode.BadRequest);
             }
         }
     }
