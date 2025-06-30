@@ -116,6 +116,32 @@ namespace BasicHttp
             }
         }
 
+        [Fact]
+        public void ContentTypeMismatchThrowsProtocolException()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.ProtocolException exception = Assert.Throws<System.ServiceModel.ProtocolException>(() =>
+                {
+                    System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
+                    httpBinding.MessageEncoding = System.ServiceModel.WSMessageEncoding.Mtom;
+                    var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));
+                    ClientContract.IEchoService channel = factory.CreateChannel();
+                    try
+                    {
+                        channel.EchoString("Hello");
+                    }
+                    finally
+                    {
+                        ServiceHelper.CloseServiceModelObjects((System.ServiceModel.Channels.IChannel)channel, factory);
+                    }                    
+                });
+            }
+        }
+
         internal class Startup
         {
             public void ConfigureServices(IServiceCollection services)
