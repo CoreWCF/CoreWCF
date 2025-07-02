@@ -28,12 +28,12 @@ namespace BasicHttp
         // Unstable on NET472
 #else
         [Fact]
-        public void InvokeTaskBaseAsycn()
+        public async Task InvokeTaskBaseAsycn()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestPrimitives>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/TaskPrimitives/basichttp.svc")));
@@ -62,30 +62,35 @@ namespace BasicHttp
                 tasks[19] = channel.GetTimeSpan();
                 tasks[20] = channel.GetGuid();
                 tasks[21] = channel.GetEnum();
-                Task.WaitAll(tasks);
+                await Task.WhenAll(tasks);
 
-                Assert.Equal(12600, ((Task<int>)tasks[0]).Result);
-                Assert.Equal(124, ((Task<byte>)tasks[1]).Result);
-                Assert.Equal(-124, ((Task<sbyte>)tasks[2]).Result);
-                Assert.Equal(567, ((Task<short>)tasks[3]).Result);
-                Assert.Equal(112, ((Task<ushort>)tasks[4]).Result);
-                Assert.Equal(588.1200, ((Task<double>)tasks[5]).Result);
-                Assert.Equal(12566, (double)((Task<uint>)tasks[6]).Result);
-                Assert.Equal(12566, ((Task<long>)tasks[7]).Result);
-                Assert.Equal(12566, (double)((Task<ulong>)tasks[8]).Result);
-                Assert.Equal('r', ((Task<char>)tasks[9]).Result);
-                Assert.True(((Task<bool>)tasks[10]).Result);
-                Assert.Equal(12566, ((Task<float>)tasks[11]).Result);
-                Assert.Equal(12566.4565m, ((Task<decimal>)tasks[12]).Result);
-                Assert.Equal("Hello Seattle", ((Task<string>)tasks[13]).Result);
-                Assert.Equal(TestDateTime, ((Task<DateTime>)tasks[14]).Result);
-                Assert.Equal(2, ((Task<int[][]>)tasks[15]).Result.Length);
-                Assert.Equal(20, ((Task<float[]>)tasks[16]).Result.Length);
-                Assert.Equal(10, ((Task<byte[]>)tasks[17]).Result.Length);
-                Assert.Equal(100, ((Task<int?>)tasks[18]).Result);
-                Assert.Equal("00:00:05", ((Task<TimeSpan>)tasks[19]).Result.ToString());
-                Assert.Equal("7a1c7e9a-f4ce-4861-852c-c05ec59fad4d", ((Task<Guid>)tasks[20]).Result.ToString());
-                Assert.Equal(Color.Blue, ((Task<Color>)tasks[21]).Result);
+                Assert.Equal(12600, await (Task<int>)tasks[0]);
+                Assert.Equal(124, await (Task<byte>)tasks[1]);
+                Assert.Equal(-124, await (Task<sbyte>)tasks[2]);
+                Assert.Equal(567, await (Task<short>)tasks[3]);
+                Assert.Equal(112, await (Task<ushort>)tasks[4]);
+                Assert.Equal(588.1200, await (Task<double>)tasks[5]);
+                Assert.Equal(12566, (double)await (Task<uint>)tasks[6]);
+                Assert.Equal(12566, await (Task<long>)tasks[7]);
+                Assert.Equal(12566, (double)await (Task<ulong>)tasks[8]);
+                Assert.Equal('r', await (Task<char>)tasks[9]);
+                Assert.True(await (Task<bool>)tasks[10]);
+                Assert.Equal(12566, await (Task<float>)tasks[11]);
+                Assert.Equal(12566.4565m, await (Task<decimal>)tasks[12]);
+                Assert.Equal("Hello Seattle", await (Task<string>)tasks[13]);
+                Assert.Equal(TestDateTime, await (Task<DateTime>)tasks[14]);
+                var intArrays = await (Task<int[][]>)tasks[15];
+                Assert.Equal(2, intArrays.Length);
+                var floatArray = await (Task<float[]>)tasks[16];
+                Assert.Equal(20, floatArray.Length);
+                var byteArray = await (Task<byte[]>)tasks[17];
+                Assert.Equal(10, byteArray.Length);
+                Assert.Equal(100, await (Task<int?>)tasks[18]);
+                var timeSpan = await (Task<TimeSpan>)tasks[19];
+                Assert.Equal("00:00:05", timeSpan.ToString());
+                var guid = await (Task<Guid>)tasks[20];
+                Assert.Equal("7a1c7e9a-f4ce-4861-852c-c05ec59fad4d", guid.ToString());
+                Assert.Equal(Color.Blue, await (Task<Color>)tasks[21]);
             }
         }
 #endif
