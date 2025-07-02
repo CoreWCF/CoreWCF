@@ -28,13 +28,13 @@ namespace CoreWCF.Http.Tests
 #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 #endif
-        public void BasicHttpRequestReplyEchoString()
+        public async Task BasicHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);
             IWebHost host = ServiceHelper.CreateHttpSysBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri("http://localhost/Temporary_Listen_Addresses/CoreWCFTestServices/BasicWcfService/basichttp.svc")));
@@ -45,7 +45,7 @@ namespace CoreWCF.Http.Tests
                 // and causes the host to write to the ILogger after the test has ended
                 // which causes xunit to abort the test run. See dotnet/aspnetcore#30828
                 var cts = new CancellationTokenSource();
-                host.StopAsync(cts.Token).GetAwaiter().GetResult();
+                await host.StopAsync(cts.Token);
                 cts.Cancel();
                 cts.Dispose();
             }

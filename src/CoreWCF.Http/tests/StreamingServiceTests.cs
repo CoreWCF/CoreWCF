@@ -42,7 +42,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("MessageContractStreamInOutService", false)]
         [InlineData("MessageContractStreamMutipleOperationsService", false)]
         [InlineData("AsyncOnlyMtomStreamingService", true)] // XmlMtomReader still uses sync IO. Writing should be fully async.
-        public void StreamingInputOutputTest(string method, bool allowSynchronousIo)
+        public async Task StreamingInputOutputTest(string method, bool allowSynchronousIo)
         {
             IWebHostBuilder builder = ServiceHelper.CreateWebHostBuilder<Startup>(_output);
 
@@ -55,14 +55,14 @@ namespace CoreWCF.Http.Tests
             Startup._method = method;
             using (_host)
             {
-                _host.Start();
+                await _host.StartAsync();
                 switch (method)
                 {
                     case "VoidStreamService":
                         VoidStreamService();
                         break;
                     case "StreamStreamAsyncService":
-                        StreamStreamAsyncService();
+                        await StreamStreamAsyncServiceAsync();
                         break;
                     case "RefStreamService":
                         RefStreamService();
@@ -113,6 +113,16 @@ namespace CoreWCF.Http.Tests
             Stream input = new ClientHelper.NoneSerializableStream();
             ClientHelper.PopulateStreamWithStringBytes(input, TestString);
             string response = ClientHelper.GetStringFrom(clientProxy.TwoWayMethodAsync(input).GetAwaiter().GetResult());
+            Assert.Equal(TestString, response);
+        }
+
+        private async Task StreamStreamAsyncServiceAsync()
+        {
+            IStreamStreamAsyncService clientProxy = GetProxy<IStreamStreamAsyncService>();
+            Stream input = new ClientHelper.NoneSerializableStream();
+            ClientHelper.PopulateStreamWithStringBytes(input, TestString);
+            Stream result = await clientProxy.TwoWayMethodAsync(input);
+            string response = ClientHelper.GetStringFrom(result);
             Assert.Equal(TestString, response);
         }
 
