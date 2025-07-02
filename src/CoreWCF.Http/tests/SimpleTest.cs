@@ -56,10 +56,12 @@ namespace BasicHttp
             }
         }
 
-        [Fact]
-        public void BasicHttpNonGenericConfigureServiceHostBaseEchoString()
+        [Theory]
+        [InlineData(3000)]
+        [InlineData(10000)]
+        public void BasicHttpNonGenericConfigureServiceHostBaseEchoString(int length)
         {
-            string testString = new('a', 3000);
+            string testString = new string('a', length);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfiguration>(_output).Build();
             using (host)
             {
