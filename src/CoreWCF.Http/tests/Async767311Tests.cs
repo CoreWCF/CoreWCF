@@ -60,11 +60,8 @@ namespace CoreWCF.Http.Tests
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
                 _output.WriteLine("Message sent via Async, waiting for handle to be signaled");
                 
-                // Convert WaitOne() to async polling
-                while (!asyncResult.IsCompleted)
-                {
-                    await Task.Delay(10);
-                }
+                // Use AsyncWaitHandle in an async-compatible way
+                await Task.Run(() => asyncResult.AsyncWaitHandle.WaitOne());
                 
                 _output.WriteLine("Wait handle has been signaled");
                 string strB = clientAsync_.EndEchoString(asyncResult);
@@ -118,11 +115,8 @@ namespace CoreWCF.Http.Tests
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, callback, null);
                 _output.WriteLine("Message sent via Async, waiting for callback");
                 
-                // Convert WaitOne() to async polling
-                while (!autoEvent.WaitOne(0))
-                {
-                    await Task.Delay(10);
-                }
+                // Use AutoResetEvent in an async-compatible way
+                await Task.Run(() => autoEvent.WaitOne());
                 
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
