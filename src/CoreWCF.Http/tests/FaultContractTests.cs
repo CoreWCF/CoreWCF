@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -25,12 +26,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void FaultOnDiffContractAndOps()
+        public async Task FaultOnDiffContractAndOps()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestFaultOpContract>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/FaultOnDiffContractsAndOpsService.svc")));
@@ -101,7 +102,7 @@ namespace CoreWCF.Http.Tests
                 //Variation_TwoWayAsyncMethod
                 try
                 {
-                    string response = channel.TwoWayAsync_MethodAsync("").GetAwaiter().GetResult();
+                    string response = await channel.TwoWayAsync_MethodAsync("");
                 }
                 catch (Exception e)
                 {
@@ -189,12 +190,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("somefault")]
         [InlineData("outerfault")]
         [InlineData("complexfault")]
-        public void DatacontractFaults(string f)
+        public async Task DatacontractFaults(string f)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFault>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/DatacontractFaults.svc")));
@@ -249,7 +250,7 @@ namespace CoreWCF.Http.Tests
 
                 try
                 {
-                    string response = channel.TwoWayAsync_Method(f).GetAwaiter().GetResult();
+                    string response = await channel.TwoWayAsync_Method(f);
                     Assert.Fail($"Error, Client received: {response}");
                 }
                 catch (Exception e)

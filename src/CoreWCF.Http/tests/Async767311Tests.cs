@@ -29,12 +29,12 @@ namespace CoreWCF.Http.Tests
         public string clientResult = "Async call was valid";
 
         [Fact]
-        public void Variation_EndMethod()
+        public async Task Variation_EndMethod()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
@@ -47,19 +47,22 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void Variation_WaitMethod()
+        public async Task Variation_WaitMethod()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
                 _output.WriteLine("Testing [Variation_WaitMethod]");
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
                 _output.WriteLine("Message sent via Async, waiting for handle to be signaled");
+                
+                // Use AsyncWaitHandle directly
                 asyncResult.AsyncWaitHandle.WaitOne();
+                
                 _output.WriteLine("Wait handle has been signaled");
                 string strB = clientAsync_.EndEchoString(asyncResult);
                 Assert.Equal(clientResult, strB);
@@ -98,12 +101,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void Variation_CallbackMethod()
+        public async Task Variation_CallbackMethod()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<IClientAsync_767311>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/SyncService.svc")));
                 IClientAsync_767311 clientAsync_ = factory.CreateChannel();
@@ -111,7 +114,10 @@ namespace CoreWCF.Http.Tests
                 AsyncCallback callback = new AsyncCallback(CallbackResults);
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, callback, null);
                 _output.WriteLine("Message sent via Async, waiting for callback");
-                autoEvent.WaitOne();
+                
+                bool signaled = autoEvent.WaitOne(TimeSpan.FromSeconds(30));
+                Assert.True(signaled, "WaitOne timed out after 30 seconds");
+                
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
                 _output.WriteLine(text);

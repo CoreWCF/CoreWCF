@@ -62,12 +62,12 @@ public class TelemetryTests
         Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
         IChannel mockChannel = new MockReplyChannel(serviceProvider);
         IServiceChannelDispatcher dispatcher =
-            serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
         var requestContext = TestRequestContext.Create(serviceAddress);
 
         ActivitySource.AddActivityListener(listener);
         listener.ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives";
-        dispatcher.DispatchAsync(requestContext).Wait();
+        await dispatcher.DispatchAsync(requestContext);
         listener.ShouldListenTo = _ => false;
         Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
         requestContext.ValidateReply();
