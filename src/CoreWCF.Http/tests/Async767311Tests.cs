@@ -115,8 +115,11 @@ namespace CoreWCF.Http.Tests
                 IAsyncResult result = clientAsync_.BeginEchoString(clientString, callback, null);
                 _output.WriteLine("Message sent via Async, waiting for callback");
                 
-                // Use AutoResetEvent in an async-compatible way
-                await Task.Run(() => autoEvent.WaitOne());
+                bool signaled = autoEvent.WaitOne(TimeSpan.FromSeconds(30));
+                if (!signaled)
+                {
+                    Assert.True(false, "WaitOne timed out after 30 seconds");
+                }
                 
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
