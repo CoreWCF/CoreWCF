@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.ServiceModel;
+using System.Threading.Tasks;
 using ClientContract;
 using CoreWCF.Configuration;
 using Helpers;

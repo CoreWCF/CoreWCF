@@ -6,6 +6,7 @@ using System.IO;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -133,7 +134,7 @@ namespace ConnectionHandler
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    System.Threading.Tasks.Task<bool> resultTask = channel.WaitForSecondRequestAsync();
+                    Task<bool> resultTask = channel.WaitForSecondRequestAsync();
                     Thread.Sleep(TimeSpan.FromSeconds(1));
                     channel.SecondRequest();
                     bool waitResult = await resultTask;

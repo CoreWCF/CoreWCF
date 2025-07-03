@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Http.Tests.Helpers;
 using Helpers;
