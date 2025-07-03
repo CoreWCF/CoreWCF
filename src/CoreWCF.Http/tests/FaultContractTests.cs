@@ -190,12 +190,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("somefault")]
         [InlineData("outerfault")]
         [InlineData("complexfault")]
-        public void DatacontractFaults(string f)
+        public async Task DatacontractFaults(string f)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestDataContractFault>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/DatacontractFaults.svc")));
