@@ -130,7 +130,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 System.ServiceModel.ChannelFactory<IAsyncService> factory = null;
                 IAsyncService channel = null;
-                host.Start();
+                await host.StartAsync();
                 try
                 {
                     System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
