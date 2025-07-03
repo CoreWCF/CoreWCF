@@ -116,10 +116,7 @@ namespace CoreWCF.Http.Tests
                 _output.WriteLine("Message sent via Async, waiting for callback");
                 
                 bool signaled = autoEvent.WaitOne(TimeSpan.FromSeconds(30));
-                if (!signaled)
-                {
-                    Assert.True(false, "WaitOne timed out after 30 seconds");
-                }
+                Assert.True(signaled, "WaitOne timed out after 30 seconds");
                 
                 _output.WriteLine("Event has been signalled");
                 string text = clientAsync_.EndEchoString(result);
