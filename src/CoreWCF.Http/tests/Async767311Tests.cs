@@ -60,8 +60,8 @@ namespace CoreWCF.Http.Tests
                 IAsyncResult asyncResult = clientAsync_.BeginEchoString(clientString, null, null);
                 _output.WriteLine("Message sent via Async, waiting for handle to be signaled");
                 
-                // Use AsyncWaitHandle in an async-compatible way
-                await Task.Run(() => asyncResult.AsyncWaitHandle.WaitOne());
+                // Use AsyncWaitHandle directly
+                asyncResult.AsyncWaitHandle.WaitOne();
                 
                 _output.WriteLine("Wait handle has been signaled");
                 string strB = clientAsync_.EndEchoString(asyncResult);
