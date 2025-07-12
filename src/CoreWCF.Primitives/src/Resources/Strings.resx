@@ -9714,4 +9714,13 @@
   <data name="WebHostRequired" xml:space="preserve">
     <value>WebHost required for the CoreWCF service configuration. Use IApplicationBuilder.UseServiceModel instead.</value>
   </data>
+  <data name="PublicKeyNotFoundInX509SecurityKey" xml:space="preserve">
+    <value>PublicKey is not found in the X509SecurityKey. SignatureMethod is {0}</value>
+  </data>
+  <data name="SignatureMethodNotSupported" xml:space="preserve">
+    <value>SignatureMethod {0} is not supported.</value>
+  </data>
+  <data name="SamlRSANotSupported" xml:space="preserve">
+    <value>RSA keys in SAML tokens not supported.</value>
+  </data>
 </root>

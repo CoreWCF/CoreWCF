@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Tokens
         {
             Fx.Assert(samlSecurityToken != null, "SamlSecurityToken can't be null");
             WrappedSamlSecurityToken = samlSecurityToken;
-            Assertion = WrappedSamlSecurityToken.Assertion;
+            Initialize(samlSecurityToken.Assertion);
             _keys = keys;
         }
 
