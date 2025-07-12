@@ -21,7 +21,7 @@ namespace CoreWCF.IdentityModel.Tokens.Saml
         }
 
         /// <summary>
-        /// Gets the ValueTupe of the SecurityKeyIdentifier
+        /// Gets the ValueType of the SecurityKeyIdentifier
         /// </summary>
         public string ValueType { get; }
 
