@@ -16,13 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="CoreWCF.machine.config" buildAction="None">
+    <None Include="CoreWCF.machine.config">
       <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-    </Content>
-    <Content Include="CoreWCF.ConfigurationManager.targets" PackagePath="build/CoreWCF.ConfigurationManager.targets" />
+      <PackagePath>contentFiles/any/netstandard2.0/CoreWCF.machine.config</PackagePath>
+    </None>
+    <Content Include="CoreWCF.ConfigurationManager.targets" PackagePath="buildTransitive/CoreWCF.ConfigurationManager.targets" />
   </ItemGroup>
   <ItemGroup Label="FilesToCopy">
   </ItemGroup>
