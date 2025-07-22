@@ -10,7 +10,6 @@ using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.Net;
 using System.Net.Security;
-using System.Security.Authentication;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -1576,5 +1575,111 @@ namespace CoreWCF.Security
     internal static class EmptyReadOnlyCollection<T>
     {
         public static ReadOnlyCollection<T> Instance = new ReadOnlyCollection<T>(new List<T>());
+    }
+
+    internal class Sha1CryptoProviderFactory : Microsoft.IdentityModel.Tokens.CryptoProviderFactory
+    {
+        public Sha1CryptoProviderFactory() : base(new Microsoft.IdentityModel.Tokens.InMemoryCryptoProviderCache(new Microsoft.IdentityModel.Tokens.CryptoProviderCacheOptions()))
+        {
+        }
+
+        public Sha1CryptoProviderFactory(Microsoft.IdentityModel.Tokens.ICryptoProvider cryptoProvider)
+        {
+            CustomCryptoProvider = cryptoProvider;
+        }
+
+        public override Microsoft.IdentityModel.Tokens.SignatureProvider CreateForSigning(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return null;
+            else
+                return base.CreateForSigning(key, algorithm);
+        }
+
+        public override Microsoft.IdentityModel.Tokens.SignatureProvider CreateForVerifying(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+            {
+                return new RSASha1SignatureProvider(key, algorithm);
+            }
+            else
+                return base.CreateForVerifying(key, algorithm);
+        }
+
+        public override HashAlgorithm CreateHashAlgorithm(string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return SHA1.Create();
+
+            return base.CreateHashAlgorithm(algorithm);
+        }
+
+        public override bool IsSupportedAlgorithm(string algorithm)
+        {
+
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return true;
+            else if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return true;
+            else
+                return base.IsSupportedAlgorithm(algorithm);
+        }
+
+        public override bool IsSupportedAlgorithm(string algorithm, Microsoft.IdentityModel.Tokens.SecurityKey key)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return true;
+            else if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return true;
+            else
+                return base.IsSupportedAlgorithm(algorithm, key);
+        }
+
+        public override void ReleaseHashAlgorithm(HashAlgorithm hashAlgorithm)
+        {
+            hashAlgorithm.Dispose();
+        }
+
+        public override void ReleaseSignatureProvider(Microsoft.IdentityModel.Tokens.SignatureProvider signatureProvider)
+        {
+            if (CustomCryptoProvider != null)
+                CustomCryptoProvider.Release(signatureProvider);
+            else
+                signatureProvider.Dispose();
+        }
+    }
+
+    internal class RSASha1SignatureProvider : Microsoft.IdentityModel.Tokens.SignatureProvider
+    {
+        private Microsoft.IdentityModel.Tokens.X509SecurityKey _key;
+
+        public RSASha1SignatureProvider(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm) : base(key, algorithm)
+        {
+            _key = key as Microsoft.IdentityModel.Tokens.X509SecurityKey;
+        }
+
+        public override byte[] Sign(byte[] input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Verify(byte[] input, byte[] signature)
+        {
+            RSA rsa = _key.PublicKey as RSA;
+            if (rsa == null)
+                return false;
+
+            // TODO: dispose of the hash, use pool
+            SHA1 sha1 = SHA1.Create();
+            byte[] hash = sha1.ComputeHash(input);
+            if (rsa.VerifyHash(hash, signature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
+                return true;
+
+            return false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+        }
     }
 }

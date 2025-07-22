@@ -35,6 +35,7 @@
     <PackageVersion Include="Microsoft.Build" Version="17.11.4" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.7.8" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <!--<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0"/>-->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.2" />
@@ -51,9 +52,9 @@
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.11" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="8.6.1" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.6.1" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens.Saml" Version="8.6.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.WsFederation" Version="8.12.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.12.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens.Saml" Version="8.12.1" />
     <PackageVersion Include="MSMQ.Messaging" Version="1.0.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="RabbitMQ.Client" Version="6.8.1" />
