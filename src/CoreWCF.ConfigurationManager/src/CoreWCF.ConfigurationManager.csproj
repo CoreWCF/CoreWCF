@@ -24,7 +24,7 @@
       <Pack>true</Pack>
       <PackagePath>content/CoreWCF.machine.config</PackagePath>
     </None>
-    <Content Include="CoreWCF.ConfigurationManager.targets" PackagePath="build/CoreWCF.ConfigurationManager.targets" />
+    <Content Include="CoreWCF.ConfigurationManager.targets" PackagePath="buildTransitive/CoreWCF.ConfigurationManager.targets" />
   </ItemGroup>
   <ItemGroup Label="FilesToCopy">
   </ItemGroup>
