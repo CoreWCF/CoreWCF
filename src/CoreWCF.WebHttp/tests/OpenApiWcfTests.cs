@@ -31,7 +31,7 @@ namespace CoreWCF.WebHttp.Tests
                 .GetProperty("openapi")
                 .GetString();
 
-            Assert.Equal("3.0.1", version);
+            Assert.Equal("3.0.4", version);
         }
 
         // Info
