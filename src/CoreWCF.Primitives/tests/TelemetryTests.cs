@@ -72,11 +72,10 @@ public class TelemetryTests
         Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
         requestContext.ValidateReply();
 
-        Assert.Single(startedActivities);
-        Assert.Single(stoppedActivities);
-
-        var startedActivity = startedActivities[0];
-        var stoppedActivity = stoppedActivities[0];
+        // Other tests running in parallel may have started activities, so we filter for the specific activity we expect
+        // and verify there's only one of the activity we expect.
+        var startedActivity = Assert.Single(startedActivities, a => a.DisplayName == "http://tempuri.org/ISimpleService/Echo");
+        var stoppedActivity = Assert.Single(stoppedActivities, a => a.DisplayName == "http://tempuri.org/ISimpleService/Echo");
 
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", startedActivity.OperationName);
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", stoppedActivity.OperationName);
