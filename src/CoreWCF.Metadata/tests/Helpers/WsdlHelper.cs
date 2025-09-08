@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.Xml;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -56,6 +58,8 @@ namespace CoreWCF.Metadata.Tests.Helpers
             ValidateServiceAddress(generatedWsdlTxt, endpointAddress);
             // Modify expected wsdl file to use the passed in location
             expectedWsdlTxt = FixLocationAddress(expectedWsdlTxt, endpointAddress);
+            // Modify expected wsdl file to use the current user's UPN if the expected wsdl contains a UPN placeholder
+            expectedWsdlTxt = FixUpnAddress(expectedWsdlTxt);
             // Canonicalize both WSDL's so that comparison is semantic and not literal. This is because things like attributes in XML
             // are unordered unless canonicalized.
             generatedWsdlTxt = CanonicalizeXml(generatedWsdlTxt);
@@ -325,6 +329,52 @@ namespace CoreWCF.Metadata.Tests.Helpers
             }
 
             return xmlDoc.InnerXml;
+        }
+
+        private static string FixUpnAddress(string originalXml)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(originalXml);
+            XPathNavigator navigator = xmlDoc.CreateNavigator();
+            XmlNamespaceManager manager = new XmlNamespaceManager(navigator.NameTable);
+            manager.AddNamespace("wsa10ns", "http://www.w3.org/2005/08/addressing"); // AddressingVersion.WSAddressing10
+            manager.AddNamespace("idns", "http://schemas.xmlsoap.org/ws/2006/02/addressingidentity");
+
+            var navs = navigator.Select("//wsa10ns:EndpointReference/idns:Identity/idns:Upn", manager);
+            if (navs.Count == 0)
+            {
+                return originalXml;
+            }
+
+            var currentSpn = GetCurrentUserSpn();
+            foreach (XPathNavigator nav in navs)
+            {
+                if (nav.Value == "PLACE\\holder")
+                {
+                    nav.SetValue(currentSpn);
+                }
+            }
+
+            return xmlDoc.InnerXml;
+        }
+
+        private static string GetCurrentUserSpn()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Assert.Fail("This test should only be run on Windows");
+            }
+            if (Interop.Secur32.GetCurrentUpn(out string upnName))
+            {
+                return upnName;
+            }
+
+#pragma warning disable CA1416 // Validate platform compatibility - Assert.Fail already protects against this
+            using (var wid = WindowsIdentity.GetCurrent())
+            {
+                return wid.Name;
+            }
+#pragma warning restore CA1416 // Validate platform compatibility
         }
 
         private static string CanonicalizeXml(string rawXmlTxt)

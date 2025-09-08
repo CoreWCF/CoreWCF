@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -81,6 +82,16 @@ namespace CoreWCF.Channels
                 // Need to update base addresses as ServiceBuilder was opened by wrapping WrappingIServer
                 var framingOptionsSetup = _serviceProvider.GetRequiredService<NetTcpFramingOptionsSetup>();
                 framingOptionsSetup.UpdateServiceBuilderBaseAddresses();
+                var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>() as ICommunicationObject;
+                if (serviceBuilder.State == CommunicationState.Opened)
+                {
+                    // Need to resolve the UriPrefixTable as the service builder was already opened
+                    // before we could hook up NetMessageFramingConnectionHandler.OnServiceBuilderOpened
+                    // to be called when the service builder is opened. As UriPrefixTable is internal
+                    // to NetFramingBase, it was also registered as its implemented interface type which
+                    // allows us to resolve it here.
+                    _ = _serviceProvider.GetRequiredService<IEnumerable<KeyValuePair<BaseUriWithWildcard, HandshakeDelegate>>>();
+                }
             }
         }
 

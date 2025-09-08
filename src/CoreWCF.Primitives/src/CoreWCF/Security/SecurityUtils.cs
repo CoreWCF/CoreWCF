@@ -10,6 +10,7 @@ using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.Net;
 using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -182,7 +183,7 @@ namespace CoreWCF.Security
             }
         }
 
-    
+
 
         internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
         {
@@ -267,18 +268,28 @@ namespace CoreWCF.Security
 
         internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
         {
+            // This is used by SspiNegotiationTokenAuthenticator to calculate the
+            // DefaultServiceBinding value. On Linux, we cannot use the current Windows Identity,
+            // so we will return an Spn based on the machine name. It's quite a bit of work to
+            // get Windows authentication to work on Linux, so if a developer has gone to that
+            // kind of effort to use Windows authentication on Linux, they can provide an
+            // explicit value to SspiNegotiationTokenAuthenticator.DefaultServiceBinding and
+            // this code won't be needed.
             EndpointIdentity identity = null;
             using (WindowsIdentity self = WindowsIdentity.GetCurrent())
             {
                 bool isSystemAccount = IsSystemAccount(self);
-                if (spnOnly || isSystemAccount)
+                if (spnOnly || isSystemAccount || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    identity = EndpointIdentity.CreateSpnIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
+                    // If we're running on a non-Windows platform, we can't use the current Windows identity.
+                    // If we're running on Windows and the current identity is a system account, we also can't use it.
+                    // In both cases, we create an SPN identity based on the machine name.
+                    identity = new SpnEndpointIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
                 }
                 else
                 {
-                    // Save windowsIdentity for delay lookup
-                    identity = new UpnEndpointIdentity(CloneWindowsIdentityIfNecessary(self));
+                    // Fallback to using the current WindowsIdentity Name, which will be in the form DOMAIN\username.
+                    identity = new UpnEndpointIdentity(self.Name);
                 }
             }
 
@@ -438,7 +449,7 @@ namespace CoreWCF.Security
             SecurityKey unwrappingSecurityKey = unwrappingToken.SecurityKeys[0];
             string wrappingAlgorithm = keyClause.EncryptionMethod;
             byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
-            //TODO, check value for XmlDictionaryString Symmetric or else 
+            //TODO, check value for XmlDictionaryString Symmetric or else
             return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
                XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
                     );
@@ -459,7 +470,7 @@ namespace CoreWCF.Security
             // No KeyUsage extension means most usages are permitted including key exchange.
             // See RFC 5280 section 4.2.1.3 (Key Usage) for details. If the extension is non-critical
             // then it's non-enforcing and meant as an aid in choosing the best certificate when
-            // there are multiple certificates to choose from. 
+            // there are multiple certificates to choose from.
             if (keyUsageExtension == null || !keyUsageExtension.Critical)
             {
                 return true;
