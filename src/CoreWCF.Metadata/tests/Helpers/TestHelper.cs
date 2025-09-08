@@ -24,6 +24,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             Action<IServiceCollection> configureServices = null,
             Action<HttpClient> configureHttpClient = null,
             string endpointAddress = null,
+            Action<ServiceHostBase> configureServiceHost = null,
             [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
                  where TService : class
@@ -33,6 +34,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 EndpointRelativePath,
                 configureServices,
                 output,
+                configureServiceHost,
                 callerMethodName)
                 .Build();
 
@@ -146,6 +148,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 EndpointRelativePath,
                 configureServices,
                 output,
+                null,
                 callerMethodName)
                 .Build();
 
@@ -231,6 +234,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 EndpointRelativePath,
                 configureServices,
                 output,
+                null,
                 callerMethodName)
                 .Build();
 

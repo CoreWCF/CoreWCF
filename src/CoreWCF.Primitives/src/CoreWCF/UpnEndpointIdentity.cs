@@ -13,7 +13,6 @@ namespace CoreWCF
     {
         private SecurityIdentifier _upnSid;
         private bool _hasUpnSidBeenComputed;
-        private WindowsIdentity _windowsIdentity;
         private readonly object _thisLock = new object();
 
         public UpnEndpointIdentity(string upnName)
@@ -40,66 +39,6 @@ namespace CoreWCF
             }
 
             Initialize(identity);
-        }
-
-        internal UpnEndpointIdentity(WindowsIdentity windowsIdentity)
-        {
-            _windowsIdentity = windowsIdentity ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(windowsIdentity));
-            _upnSid = windowsIdentity.User;
-            _hasUpnSidBeenComputed = true;
-        }
-
-        internal override void EnsureIdentityClaim()
-        {
-            if (_windowsIdentity != null)
-            {
-                lock (_thisLock)
-                {
-                    if (_windowsIdentity != null)
-                    {
-                        Initialize(Claim.CreateUpnClaim(GetUpnFromWindowsIdentity(_windowsIdentity)));
-                        _windowsIdentity.Dispose();
-                        _windowsIdentity = null;
-                    }
-                }
-            }
-        }
-
-        private string GetUpnFromWindowsIdentity(WindowsIdentity windowsIdentity)
-        {
-            string downlevelName = null;
-            string upnName = null;
-
-            try
-            {
-                downlevelName = windowsIdentity.Name;
-
-                if (IsMachineJoinedToDomain())
-                {
-                    upnName = GetUpnFromDownlevelName(downlevelName);
-                }
-            }
-            catch (Exception e)
-            {
-                if (Fx.IsFatal(e))
-                {
-                    throw;
-                }
-            }
-
-            // if the AD cannot be queried for the fully qualified domain name,
-            // fall back to the downlevel UPN name
-            return upnName ?? downlevelName;
-        }
-
-        private bool IsMachineJoinedToDomain()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        private string GetUpnFromDownlevelName(string downlevelName)
-        {
-            throw new PlatformNotSupportedException();
         }
 
         internal override void WriteContentsTo(XmlDictionaryWriter writer)

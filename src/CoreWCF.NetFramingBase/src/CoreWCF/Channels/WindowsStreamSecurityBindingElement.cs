@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Net.Security;
+using System.Security.Principal;
+using System.Xml;
+using CoreWCF.Description;
 using CoreWCF.Security;
 
 namespace CoreWCF.Channels
 {
-    public class WindowsStreamSecurityBindingElement : StreamUpgradeBindingElement
+    public class WindowsStreamSecurityBindingElement : StreamUpgradeBindingElement, ITransportTokenAssertionProvider, IPolicyExportExtension
     {
         private ProtectionLevel _protectionLevel;
 
@@ -51,7 +54,6 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
-
             if (typeof(T) == typeof(ISecurityCapabilities))
             {
                 return (T)(object)new SecurityCapabilities(true, true, true, _protectionLevel, _protectionLevel);
@@ -64,6 +66,39 @@ namespace CoreWCF.Channels
             {
                 return context.GetInnerProperty<T>();
             }
+        }
+
+        #region ITransportTokenAssertionProvider Members
+
+        public XmlElement GetTransportTokenAssertion()
+        {
+            XmlDocument document = new XmlDocument();
+            XmlElement assertion =
+                document.CreateElement(TransportPolicyConstants.DotNetFramingPrefix,
+                TransportPolicyConstants.WindowsTransportSecurityName,
+                TransportPolicyConstants.DotNetFramingNamespace);
+            XmlElement protectionLevelElement = document.CreateElement(TransportPolicyConstants.DotNetFramingPrefix,
+                TransportPolicyConstants.ProtectionLevelName, TransportPolicyConstants.DotNetFramingNamespace);
+            protectionLevelElement.AppendChild(document.CreateTextNode(this.ProtectionLevel.ToString()));
+            assertion.AppendChild(protectionLevelElement);
+            return assertion;
+        }
+
+        #endregion
+
+        void IPolicyExportExtension.ExportPolicy(MetadataExporter exporter, PolicyConversionContext context)
+        {
+            if (exporter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(exporter));
+            }
+
+            if (context == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
+            }
+
+            SecurityBindingElement.ExportPolicyForTransportTokenAssertionProviders(exporter, context);
         }
     }
 }

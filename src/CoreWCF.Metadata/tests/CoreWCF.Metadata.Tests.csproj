@@ -29,6 +29,7 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Http\src\CoreWCF.Http.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.NetNamedPipe\src\CoreWCF.NetNamedPipe.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +42,12 @@
     <None Update="HelpPages\*.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../CoreWCF.NetFramingBase/src/Interop/**/*.cs">
+      <Link>Interop/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

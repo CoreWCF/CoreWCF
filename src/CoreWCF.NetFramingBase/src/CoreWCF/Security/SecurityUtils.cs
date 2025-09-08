@@ -2,20 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
+using System.Net;
+using System.Net.Security;
+using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+using System.Security.Principal;
 using System.Threading;
+using System.Threading.Tasks;
+using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Claims;
 using CoreWCF.IdentityModel.Selectors;
-using System.ComponentModel;
-using System.Security.Authentication;
-using System.Net.Security;
-using System.Net;
-using CoreWCF.Channels;
-using System.Globalization;
-using System.Security.Principal;
 using CoreWCF.IdentityModel.Tokens;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -49,38 +51,56 @@ namespace CoreWCF.Security
 
         internal static EndpointIdentity CreateWindowsIdentity()
         {
+            return CreateWindowsIdentity(false);
+        }
+
+        internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
+        {
             EndpointIdentity identity = null;
-            using (WindowsIdentity self = WindowsIdentity.GetCurrent())
+            WindowsIdentity self = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsIdentity.GetCurrent() : null;
+            using (self)
             {
-                bool isSystemAccount = IsSystemAccount(self);
-                if (isSystemAccount)
+                if (self is null || spnOnly || IsSystemAccount(self))
                 {
+                    // If we're running on a non-Windows platform, we can't use the current Windows identity.
+                    // If we're running on Windows and the current identity is a system account, we also can't use it.
+                    // In both cases, we create an SPN identity based on the machine name.
+                    // This is used for Net.Tcp services that don't have a configured identity.
+                    // The SPN will be used to authenticate the service to clients.
                     identity = new SpnEndpointIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
                 }
                 else
                 {
-                    // As far as I can tell, this is only used when generating the WSDL. It calls GetProperty<EndpointIdentity>
-                    // on the configured binding and uses the identity in the WSDL. Currently the security upgrade in the WSDL is broken
-                    // for Net.Tcp so this code path is currently dead. Once that is fixed, we'll end up hitting this problem.
-                    // We need to decide how to handle this. On .NET Framework UpnEndpointIdentity uses some native Win32 apis
-                    // to fetch the current users UPN. Options to fix this are:
-                    // 1. Use System.DirectoryServices.AccountManagement.UserPrincipal to get the UPN. This didn't work me (@mconnew)
-                    //    when testing it on Windows. I believe this is caused by being Azure AD joined and not traditional on premise
-                    //    Domain joined.
-                    // 2. Keep using the win32 api behind a runtime check for OS which only calls it on Windows.
-                    // 3. Require an explicitly set identity. This could potentially be a breaking change as upgrading the CoreWCF
-                    //    version could result in failing to provide the WSDL at all if not provided.
-                    // On Linux, it's unlikely that Windows auth is being used as you don't have a concept of the current logged
-                    // in Windows user. In that scenario, we can probably say you have to explicitly configure the identity when
-                    // configuring your service which will skip the lookup.
-                    throw new PlatformNotSupportedException();
-                    
-                    // Save windowsIdentity for delay lookup
-                    //identity = new UpnEndpointIdentity(CloneWindowsIdentityIfNecessary(self));
+                    // This is used when generating the WSDL. It calls GetProperty<EndpointIdentity>
+                    // on the configured binding and uses the identity in the WSDL. It's also used by
+                    // SspiNegotiationTokenAuthenticator to calculate the DefaultServiceBinding value.
+                    // On Linux, we cannot use the current Windows Identity, so we will return an Spn
+                    // based on the machine name. It's quite a bit of work to get Windows authentication
+                    // to work on Linux, so if a developer has gone to that kind of effort to use
+                    // Windows authentication on Linux, they can provide an explicit endpoint identity
+                    // in the service configuration (or manually set DefaultServiceBinding) and this
+                    // code won't be needed.
+                    var upn = GetUpnNameWithFallback(self.Name);
+                    identity = new UpnEndpointIdentity(upn);
                 }
             }
 
             return identity;
+        }
+
+        private static string GetUpnNameWithFallback(string downlevelName)
+        {
+            // There is no managed API to get the UPN name, so we have to P/Invoke. This will only work on Windows.
+            // If we're not on Windows, we just return the downlevel name. If someone is using Windows auth on Linux
+            // they should be using an explicit endpoint identity.
+            if (Interop.Secur32.GetCurrentUpn(out string upnName))
+            {
+                return upnName;
+            }
+
+            // If the AD cannot be queried for the fully qualified domain name,
+            // fall back to the downlevel UPN name
+            return downlevelName;
         }
 
         private static bool IsSystemAccount(WindowsIdentity self)
