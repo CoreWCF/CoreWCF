@@ -20,7 +20,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task BasicHttpRequestReplyEchoString()
         {
             AppContext.SetSwitch("CoreWCF.RemoveKeyValuePairFromWsdl", true);
