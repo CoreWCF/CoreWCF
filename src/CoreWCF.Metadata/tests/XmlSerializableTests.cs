@@ -19,7 +19,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [NetCoreOnlyFact] // DataSet outputs different Schema on NetFx (WSDL v1.0 ver WSDL v2.0)
+        [SupportedNetCoreFact] // DataSet outputs different Schema on NetFx (WSDL v1.0 ver WSDL v2.0)
         public async Task SystemDataTest()
         {
             await TestHelper.RunSingleWsdlTestAsync<SystemDataService, ISystemDataService>(new BasicHttpBinding(), _output);

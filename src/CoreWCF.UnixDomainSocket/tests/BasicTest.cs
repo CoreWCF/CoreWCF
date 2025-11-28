@@ -168,7 +168,7 @@ namespace CoreWCF.UnixDomainSocket.Tests
         }
 
         [Fact]
-        private void BasicCertAsTransport()
+        public void BasicCertAsTransport()
         {
             string testString = new string('a', 3000);
             IHost host = ServiceHelper.CreateWebHostBuilder<StartupForUnixDomainSocketTransportCertificate>(_output, LinuxSocketFilepath);

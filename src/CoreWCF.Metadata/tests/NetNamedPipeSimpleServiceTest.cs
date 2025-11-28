@@ -19,7 +19,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [WindowsOnlyFact]
+        [WindowsSkipUnsupportedNetVersionFact]
         public async Task NetNamedPipeBindingSecurityNoneRequestReplyEchoString()
             {
             // The NetNamedPipeBinding is only available on Windows, so we use a WindowsOnlyFact attribute.
@@ -28,7 +28,7 @@ namespace CoreWCF.Metadata.Tests
 #pragma warning restore CA1416 // Validate platform compatibility
         }
 
-        [WindowsOnlyFact]
+        [WindowsSkipUnsupportedNetVersionFact]
         public async Task NetNamedPipeBindingSecurityTransportRequestReplyEchoString()
         {
             // The NetNamedPipeBinding is only available on Windows, so we use a WindowsOnlyFact attribute.
@@ -37,7 +37,7 @@ namespace CoreWCF.Metadata.Tests
 #pragma warning restore CA1416 // Validate platform compatibility
         }
 
-        [WindowsOnlyFact]
+        [WindowsSkipUnsupportedNetVersionFact]
         public async Task NetNamedPipeBindingSecurityTransportExplicitUpnRequestReplyEchoString()
         {
             // The NetNamedPipeBinding is only available on Windows, so we use a WindowsOnlyFact attribute.

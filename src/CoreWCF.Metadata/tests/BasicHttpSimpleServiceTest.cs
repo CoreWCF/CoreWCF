@@ -19,7 +19,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task BasicHttpRequestReplyEchoString()
         {
             await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(new BasicHttpBinding(), _output);

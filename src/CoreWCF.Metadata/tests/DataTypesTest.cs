@@ -20,7 +20,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task CollectionsDataContract()
         {
             AppContext.SetSwitch("CoreWCF.RemoveKeyValuePairFromWsdl", true);
@@ -28,19 +28,19 @@ namespace CoreWCF.Metadata.Tests
             AppContext.SetSwitch("CoreWCF.RemoveKeyValuePairFromWsdl", false);
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task PrimitivesDataContract()
         {
             await TestHelper.RunSingleWsdlTestAsync<PrimitivesService, IPrimitivesService>(new BasicHttpBinding(), _output);
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task ComplexTypesWithCollectionsDataContract()
         {
             await TestHelper.RunSingleWsdlTestAsync<ComplexTypesWithCollectionsService, IComplexTypesWithCollectionsService>(new BasicHttpBinding(), _output);
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task CollectionOfKeyValuePairDataContract()
         {
             await TestHelper.RunSingleWsdlTestAsync<CollectionOfKeyValuePairDataService, ICollectionOfKeyValuePairDataService>(new BasicHttpBinding(), _output);
