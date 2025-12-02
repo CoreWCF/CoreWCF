@@ -38,12 +38,20 @@ namespace CoreWCF.Metadata.Tests.Helpers
             }
 
             Assert.StartsWith(XmlDeclaration, generatedWsdlTxt);
+#if NET10_0_OR_GREATER
+            var xmlFileName = Path.Combine("Wsdls", "net10.0", Path.GetFileNameWithoutExtension(sourceFilePath) + "." + callerMethodName + ".xml");
+#else
             var xmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + "." + callerMethodName + ".xml");
+#endif
             if (!File.Exists(xmlFileName))
             {
                 // If sourceFilename.methodname.xml doesn't exist, then look for sourceFilename.xml. This enables use of a single expected wsdl file
                 // for multiple tests in a single test class.
+#if NET10_0_OR_GREATER
+                var classXmlFileName = Path.Combine("Wsdls", "net10.0", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
+#else
                 var classXmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
+#endif
                 if (!File.Exists(classXmlFileName))
                 {
                     Assert.Fail($"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
@@ -84,12 +92,20 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 generatedWsdlTxt = await response.Content.ReadAsStringAsync();
             }
 
+#if NET10_0_OR_GREATER
+            var xmlFileName = Path.Combine("Wsdls", "net10.0", Path.GetFileNameWithoutExtension(sourceFilePath) + "." + callerMethodName + ".xml");
+#else
             var xmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + "." + callerMethodName + ".xml");
+#endif
             if (!File.Exists(xmlFileName))
             {
                 // If sourceFilename.methodname.xml doesn't exist, then look for sourceFilename.xml. This enables use of a single expected wsdl file
                 // for multiple tests in a single test class.
+#if NET10_0_OR_GREATER
+                var classXmlFileName = Path.Combine("Wsdls", "net10.0", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
+#else
                 var classXmlFileName = Path.Combine("Wsdls", Path.GetFileNameWithoutExtension(sourceFilePath) + ".xml");
+#endif
                 if (!File.Exists(classXmlFileName))
                 {
                     Assert.Fail($"Unable to find expected wsdl file at {xmlFileName} or {classXmlFileName}");
