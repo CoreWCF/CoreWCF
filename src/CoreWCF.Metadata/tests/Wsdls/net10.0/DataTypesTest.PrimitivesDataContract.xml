@@ -1,0 +1,672 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="PrimitivesService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <wsdl:types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+      <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/"/>
+      <xs:element name="EchoUri">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" nillable="true" type="xs:anyURI"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUriResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoUriResult" nillable="true" type="xs:anyURI"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoSbyte">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" nillable="true" type="q1:ArrayOfbyte" xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoSbyteResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoSbyteResult" nillable="true" type="q2:ArrayOfbyte" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoBool">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:boolean"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoBoolResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoBoolResult" type="xs:boolean"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDateTime">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:dateTime"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDateTimeResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoDateTimeResult" type="xs:dateTime"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDecimal">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:decimal"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDecimalResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoDecimalResult" type="xs:decimal"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDouble">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:double"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoDoubleResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoDoubleResult" type="xs:double"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoFloat">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:float"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoFloatResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoFloatResult" type="xs:float"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoInt">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:int"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoIntResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoIntResult" type="xs:int"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoLong">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:long"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoLongResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoLongResult" type="xs:long"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoShort">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:short"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoShortResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoShortResult" type="xs:short"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoString">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" nillable="true" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoStringResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoStringResult" nillable="true" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoByte">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:unsignedByte"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoByteResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoByteResult" type="xs:unsignedByte"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUint">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:unsignedInt"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUintResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoUintResult" type="xs:unsignedInt"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUlong">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:unsignedLong"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUlongResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoUlongResult" type="xs:unsignedLong"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUshort">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="xs:unsignedShort"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoUshortResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoUshortResult" type="xs:unsignedShort"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoChar">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="q3:char" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoCharResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoCharResult" type="q4:char" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoTimeSpan">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="q5:duration" xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoTimeSpanResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoTimeSpanResult" type="q6:duration" xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoGuid">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="data" type="q7:guid" xmlns:q7="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EchoGuidResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="EchoGuidResult" type="q8:guid" xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/">
+      <xs:element name="anyType" nillable="true" type="xs:anyType"/>
+      <xs:element name="anyURI" nillable="true" type="xs:anyURI"/>
+      <xs:element name="base64Binary" nillable="true" type="xs:base64Binary"/>
+      <xs:element name="boolean" nillable="true" type="xs:boolean"/>
+      <xs:element name="byte" nillable="true" type="xs:byte"/>
+      <xs:element name="dateTime" nillable="true" type="xs:dateTime"/>
+      <xs:element name="decimal" nillable="true" type="xs:decimal"/>
+      <xs:element name="double" nillable="true" type="xs:double"/>
+      <xs:element name="float" nillable="true" type="xs:float"/>
+      <xs:element name="int" nillable="true" type="xs:int"/>
+      <xs:element name="long" nillable="true" type="xs:long"/>
+      <xs:element name="QName" nillable="true" type="xs:QName"/>
+      <xs:element name="short" nillable="true" type="xs:short"/>
+      <xs:element name="string" nillable="true" type="xs:string"/>
+      <xs:element name="unsignedByte" nillable="true" type="xs:unsignedByte"/>
+      <xs:element name="unsignedInt" nillable="true" type="xs:unsignedInt"/>
+      <xs:element name="unsignedLong" nillable="true" type="xs:unsignedLong"/>
+      <xs:element name="unsignedShort" nillable="true" type="xs:unsignedShort"/>
+      <xs:element name="char" nillable="true" type="tns:char"/>
+      <xs:simpleType name="char">
+        <xs:restriction base="xs:int"/>
+      </xs:simpleType>
+      <xs:element name="duration" nillable="true" type="tns:duration"/>
+      <xs:simpleType name="duration">
+        <xs:restriction base="xs:duration">
+          <xs:pattern value="\-?P(\d*D)?(T(\d*H)?(\d*M)?(\d*(\.\d*)?S)?)?"/>
+          <xs:minInclusive value="-P10675199DT2H48M5.4775808S"/>
+          <xs:maxInclusive value="P10675199DT2H48M5.4775807S"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:element name="guid" nillable="true" type="tns:guid"/>
+      <xs:simpleType name="guid">
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:attribute name="FactoryType" type="xs:QName"/>
+      <xs:attribute name="Id" type="xs:ID"/>
+      <xs:attribute name="Ref" type="xs:IDREF"/>
+      <xs:simpleType name="dateOnly">
+        <xs:restriction base="xs:date">
+          <xs:pattern value="([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="timeOnly">
+        <xs:restriction base="xs:time">
+          <xs:pattern value="([01][0-9]|2[0-3]):([0-5][0-9])(:([0-5][0-9])(\.[0-9]{1,7})?)?" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+      <xs:complexType name="ArrayOfbyte">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="byte" type="xs:byte"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="ArrayOfbyte" nillable="true" type="tns:ArrayOfbyte"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="PrimitivesService_EchoUri_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUri"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUri_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUriResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoSbyte_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoSbyte"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoSbyte_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoSbyteResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoBool_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoBool"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoBool_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoBoolResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDateTime_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDateTime"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDateTime_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDateTimeResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDecimal_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDecimal"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDecimal_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDecimalResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDouble_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDouble"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoDouble_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoDoubleResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoFloat_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoFloat"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoFloat_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoFloatResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoInt_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoInt"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoInt_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoIntResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoLong_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoLong"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoLong_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoLongResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoShort_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoShort"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoShort_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoShortResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoString_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoString"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoString_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoStringResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoByte_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoByte"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoByte_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoByteResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUint_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUint"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUint_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUintResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUlong_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUlong"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUlong_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUlongResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUshort_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUshort"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoUshort_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoUshortResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoChar_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoChar"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoChar_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoCharResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoTimeSpan_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoTimeSpan"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoTimeSpan_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoTimeSpanResponse"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoGuid_InputMessage">
+    <wsdl:part name="parameters" element="tns:EchoGuid"/>
+  </wsdl:message>
+  <wsdl:message name="PrimitivesService_EchoGuid_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EchoGuidResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="PrimitivesService">
+    <wsdl:operation name="EchoUri">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoUri" message="tns:PrimitivesService_EchoUri_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoUriResponse" message="tns:PrimitivesService_EchoUri_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoSbyte">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoSbyte" message="tns:PrimitivesService_EchoSbyte_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoSbyteResponse" message="tns:PrimitivesService_EchoSbyte_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoBool">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoBool" message="tns:PrimitivesService_EchoBool_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoBoolResponse" message="tns:PrimitivesService_EchoBool_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDateTime">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoDateTime" message="tns:PrimitivesService_EchoDateTime_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoDateTimeResponse" message="tns:PrimitivesService_EchoDateTime_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDecimal">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoDecimal" message="tns:PrimitivesService_EchoDecimal_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoDecimalResponse" message="tns:PrimitivesService_EchoDecimal_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDouble">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoDouble" message="tns:PrimitivesService_EchoDouble_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoDoubleResponse" message="tns:PrimitivesService_EchoDouble_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoFloat">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoFloat" message="tns:PrimitivesService_EchoFloat_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoFloatResponse" message="tns:PrimitivesService_EchoFloat_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoInt">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoInt" message="tns:PrimitivesService_EchoInt_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoIntResponse" message="tns:PrimitivesService_EchoInt_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoLong">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoLong" message="tns:PrimitivesService_EchoLong_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoLongResponse" message="tns:PrimitivesService_EchoLong_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoShort">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoShort" message="tns:PrimitivesService_EchoShort_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoShortResponse" message="tns:PrimitivesService_EchoShort_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoString">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoString" message="tns:PrimitivesService_EchoString_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoStringResponse" message="tns:PrimitivesService_EchoString_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoByte">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoByte" message="tns:PrimitivesService_EchoByte_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoByteResponse" message="tns:PrimitivesService_EchoByte_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUint">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoUint" message="tns:PrimitivesService_EchoUint_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoUintResponse" message="tns:PrimitivesService_EchoUint_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUlong">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoUlong" message="tns:PrimitivesService_EchoUlong_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoUlongResponse" message="tns:PrimitivesService_EchoUlong_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUshort">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoUshort" message="tns:PrimitivesService_EchoUshort_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoUshortResponse" message="tns:PrimitivesService_EchoUshort_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoChar">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoChar" message="tns:PrimitivesService_EchoChar_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoCharResponse" message="tns:PrimitivesService_EchoChar_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoTimeSpan">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoTimeSpan" message="tns:PrimitivesService_EchoTimeSpan_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoTimeSpanResponse" message="tns:PrimitivesService_EchoTimeSpan_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="EchoGuid">
+      <wsdl:input wsaw:Action="http://tempuri.org/PrimitivesService/EchoGuid" message="tns:PrimitivesService_EchoGuid_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/PrimitivesService/EchoGuidResponse" message="tns:PrimitivesService_EchoGuid_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_PrimitivesService" type="tns:PrimitivesService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="EchoUri">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoUri" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoSbyte">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoSbyte" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoBool">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoBool" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDateTime">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoDateTime" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDecimal">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoDecimal" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoDouble">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoDouble" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoFloat">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoFloat" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoInt">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoInt" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoLong">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoLong" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoShort">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoShort" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoString">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoString" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoByte">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoByte" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUint">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoUint" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUlong">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoUlong" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoUshort">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoUshort" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoChar">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoChar" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoTimeSpan">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoTimeSpan" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EchoGuid">
+      <soap:operation soapAction="http://tempuri.org/PrimitivesService/EchoGuid" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PrimitivesService">
+    <wsdl:port name="BasicHttpBinding_PrimitivesService" binding="tns:BasicHttpBinding_PrimitivesService">
+      <soap:address location="http://localhost/TestService/api"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
