@@ -39,11 +39,12 @@ stages:
         nugetConfigPath: NuGet.config
         projects: ${{ parameters.solutions }}
 
-    - task: SonarCloudPrepare@1
+    - task: SonarCloudPrepare@4
       displayName: 'Prepare analysis on SonarCloud'
       inputs:
         SonarCloud: SonarCloud
         organization: corewcf
+        scannerMode: dotnet
         projectKey: CoreWCF_CoreWCF
         projectName: 'CoreWCF Code Analysis'
         extraProperties: |
@@ -73,15 +74,16 @@ stages:
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
 
-    - task: SonarCloudAnalyze@1
+    - task: SonarCloudAnalyze@4
       displayName: 'Run SonarCloud analysis'
       condition: not(eq(variables['build.reason'], 'PullRequest'))
 
-    - task: SonarCloudPublish@1
+    - task: SonarCloudPublish@4
       displayName: 'Publish results on build summary'
       inputs:
         pollingTimeoutSec: '300'
       condition: not(eq(variables['build.reason'], 'PullRequest'))
+
     - bash: |
         echo 'Cleaning up docker services...'
         docker compose down --rmi all
