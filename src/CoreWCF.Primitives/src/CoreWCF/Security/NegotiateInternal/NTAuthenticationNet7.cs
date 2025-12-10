@@ -5,13 +5,17 @@ namespace CoreWCF.Security.NegotiateInternal
 {
     internal class NTAuthenticationNet7 : NTAuthenticationNet5
     {
-        /*
-         * int Encrypt(
-         *     ReadOnlySpan<byte> buffer,
-         *     [NotNull] ref byte[]? output)
-         */
-        private static readonly EncryptInvoker s_encryptInvoker = BuildEncrypt();
-
-        public override int Encrypt(byte[] input, ref byte[] output) => s_encryptInvoker(Instance, input, ref output);
+        protected override int EncryptInternal(byte[] input, ref byte[] output)
+        {
+            /*
+             * int Encrypt(
+             *     ReadOnlySpan<byte> buffer,
+             *     [NotNull] ref byte[]? output)
+             */
+            object[] parameters = new object[] { Instance, input, output };
+            int totalBytes = (int)s_encryptInvoker.DynamicInvoke(parameters);
+            output = (byte[])parameters[2];
+            return totalBytes;
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace CoreWCF.Security
         private LdapSettings _ldapSettings;
 
         // SafeFreeCredentials credentialsHandle;
-        private NegotiateInternalState _negotiateHandler;
+        private INegotiateInternalState _negotiateHandler;
         public SpnegoTokenAuthenticator()
             : base()
         {
@@ -81,7 +81,7 @@ namespace CoreWCF.Security
             base.OpenAsync(token);
             if (_negotiateHandler == null)
             {
-                _negotiateHandler = (NegotiateInternal.NegotiateInternalState)new NegotiateInternal.NegotiateInternalStateFactory().CreateInstance();
+                _negotiateHandler = new NegotiateInternalStateFactory().CreateInstance();
             }
 
             return Task.CompletedTask;
@@ -161,6 +161,6 @@ namespace CoreWCF.Security
             return authenticator.ValidateTokenAsync(token);
         }
 
-        private NegotiateInternalState GetNegotiateState() => (NegotiateInternalState)new NegotiateInternalStateFactory().CreateInstance();
+        private INegotiateInternalState GetNegotiateState() => new NegotiateInternalStateFactory().CreateInstance();
     }
 }
