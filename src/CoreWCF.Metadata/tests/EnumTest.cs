@@ -17,7 +17,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task BasicHttpRequestEnumType() => await TestHelper.RunSingleWsdlTestAsync<Services.EnumService, ServiceContract.IEnumService>(new BasicHttpBinding(), _output);
     }
 }

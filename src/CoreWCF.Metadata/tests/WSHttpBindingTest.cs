@@ -23,7 +23,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [NetCoreOnlyFact] // Windows auth not supported on NetFx
+        [SupportedNetCoreFact] // Windows auth not supported on NetFx
         public async Task TransportWithMessageCredentials_MultiAuth()
         {
             var bindingEndpointMap = new Dictionary<string, Binding>
@@ -42,7 +42,7 @@ namespace CoreWCF.Metadata.Tests
             return binding;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task TransportWithMessageCredentials_CertificateAuth_NoSecurityContext()
         {
             WSHttpBinding binding = new WSHttpBinding(SecurityMode.TransportWithMessageCredential);
@@ -51,7 +51,7 @@ namespace CoreWCF.Metadata.Tests
             await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(binding, _output);
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task TransportWithMessageCredentials_CertAuth_MultiSecurityAlgo()
         {
             var bindingEndpointMap = new Dictionary<string, Binding>

@@ -19,7 +19,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task NetTcpBindingSecurityNoneRequestReplyEchoString()
         {
             await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(new NetTcpBinding(SecurityMode.None), _output);
