@@ -1102,8 +1102,8 @@ namespace CoreWCF.Dispatcher
     {
         public ValueTask<(object returnValue, object[] outputs)> InvokeAsync(object instance, object[] inputs)
         {
-            string p0;
-            p0 = inputs[0] == null ? default(string) : (string)inputs[0];
+            string? p0;
+            p0 = inputs[0] == null ? default(string?) : (string?)inputs[0];
             uint? p1;
             p1 = inputs[1] == null ? default(uint?) : (uint?)inputs[1];
             System.DateTime? p2;
