@@ -16,7 +16,12 @@ public sealed partial class OperationInvokerGenerator
         private readonly OperationInvokerSourceGenerationContext _sourceGenerationContext;
         private readonly SourceGenerationSpec _generationSpec;
 
-        // SymbolDisplayFormat that excludes nullable annotations to match reflection-based key generation
+        /// <summary>
+        /// SymbolDisplayFormat that excludes nullable annotations to match reflection-based key generation.
+        /// Reflection-based MethodInfo does not expose nullable reference type annotations, so we need to
+        /// exclude them from the generated key to ensure the source generator key matches the runtime key.
+        /// This prevents PlatformNotSupportedException when UseGeneratedOperationInvokers is enabled.
+        /// </summary>
         private static readonly SymbolDisplayFormat s_methodDisplayFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
