@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,12 +20,16 @@ namespace CoreWCF.Channels
     {
         private NetNamedPipeOptions _serverOptions;
         private ILoggerFactory _loggerFactory;
+        private IServiceBuilder _serviceBuilder;
+        private IServiceProvider _serviceProvider;
         private NamedPipeTransportManager _namedPipeListener;
 
-        public NetNamedPipeHostedService(IOptions<NetNamedPipeOptions> options, IServer server, IServiceBuilder serviceBuilder, ILoggerFactory loggerFactory)
+        public NetNamedPipeHostedService(IOptions<NetNamedPipeOptions> options, IServiceBuilder serviceBuilder, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             _serverOptions = options.Value ?? new NetNamedPipeOptions();
             _loggerFactory = loggerFactory;
+            _serviceBuilder = serviceBuilder;
+            _serviceProvider = serviceProvider;
             foreach (var listenOptions in _serverOptions.CodeBackedListenOptions)
             {
                 serviceBuilder.BaseAddresses.Add(listenOptions.BaseAddress);
@@ -32,6 +38,15 @@ namespace CoreWCF.Channels
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            if (_serviceBuilder.State == CommunicationState.Opened)
+            {
+                // Need to resolve the UriPrefixTable as the service builder was already opened
+                // before we could hook up NetMessageFramingConnectionHandler.OnServiceBuilderOpened
+                // to be called when the service builder is opened. As UriPrefixTable is internal
+                // to NetFramingBase, it was also registered as its implemented interface type which
+                // allows us to resolve it here.
+                _ = _serviceProvider.GetRequiredService<IEnumerable<KeyValuePair<BaseUriWithWildcard, HandshakeDelegate>>>();
+            }
             _namedPipeListener = new NamedPipeTransportManager(_loggerFactory);
             await _namedPipeListener.BindAsync(_serverOptions.CodeBackedListenOptions, cancellationToken);
         }

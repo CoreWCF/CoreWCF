@@ -52,7 +52,7 @@ stages:
           --description-url "https://github.com/CoreWCF/CoreWCF" `
           --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
           --azure-key-vault-url "$(SignKeyVaultUrl)" `
-          -v Information
+          -v Trace
 
     # Signing symbol packages
     - task: AzureCLI@2
@@ -71,7 +71,7 @@ stages:
           --description-url "https://github.com/CoreWCF/CoreWCF" `
           --azure-key-vault-certificate "$(SignKeyVaultCertificate)" `
           --azure-key-vault-url "$(SignKeyVaultUrl)" `
-          -v Information
+          -v Trace
 
     - publish: $(Pipeline.Workspace)/BuildPackages
       displayName: Publish Signed Packages

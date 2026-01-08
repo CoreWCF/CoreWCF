@@ -30,12 +30,12 @@ namespace CoreWCF.Http.Tests
         [InlineData("ServiceOpWithMultipleTasks_WithTask")]
         [InlineData("SimpleOperationThrowingFault")]
         [InlineData("SimpleOperationThrowingFault_WithTask")]
-        public void ServiceOp_ThrowsFaultException(string serviceOpType)
+        public async Task ServiceOp_ThrowsFaultException(string serviceOpType)
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 ClientContract.IAggregateExceptionService sampleServiceClient = ClientHelper.GetProxy<ClientContract.IAggregateExceptionService>(host);
                 try
                 {
@@ -47,7 +47,7 @@ namespace CoreWCF.Http.Tests
                         case "SimpleOperationThrowingFault_WithTask":
                             {
                                 Task task = sampleServiceClient.SimpleOperationThrowingFaultAsync();
-                                task.Wait();
+                                await task;
                                 break;
                             }
                         case "ServiceOpWithMultipleTasks":
@@ -56,7 +56,7 @@ namespace CoreWCF.Http.Tests
                         case "ServiceOpWithMultipleTasks_WithTask":
                             {
                                 Task task2 = sampleServiceClient.ServiceOpWithMultipleTasksAsync();
-                                task2.Wait();
+                                await task2;
                                 break;
                             }
                         case "ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTask":
@@ -65,7 +65,7 @@ namespace CoreWCF.Http.Tests
                         case "ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTask_WithTask":
                             {
                                 Task task3 = sampleServiceClient.ServiceOpWithChainedTasks_ThrowFaultExceptionInOneTaskAsync();
-                                task3.Wait();
+                                await task3;
                                 break;
                             }
                     }

@@ -28,14 +28,14 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void VariousCollections()
+        public async Task VariousCollections()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 ClientContract.ITaskCollectionsTest collectionsTest = null;
                 System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest> channelFactory = null;
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 channelFactory = new System.ServiceModel.ChannelFactory<ClientContract.ITaskCollectionsTest>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/TaskCollectionsTest.svc")));
@@ -48,39 +48,42 @@ namespace CoreWCF.Http.Tests
                 array[2] = collectionsTest.GetSet();
                 array[3] = collectionsTest.GetQueue();
                 array[4] = collectionsTest.GetStack();
-                Task.WaitAll(array, TimeSpan.FromSeconds(30));
+                await Task.WhenAll(array);
 
                 bool flag = true;
                 Task<Dictionary<string, int>> task = array[0] as Task<Dictionary<string, int>>;
-                Assert.True(task.Result.ContainsKey("Sam"));
-                Assert.True(task.Result.ContainsKey("Sara"));
-                if (!task.Result.ContainsKey("Sam") || !task.Result.ContainsKey("Sara"))
+                var dictionary = await task;
+                Assert.True(dictionary.ContainsKey("Sam"));
+                Assert.True(dictionary.ContainsKey("Sara"));
+                if (!dictionary.ContainsKey("Sam") || !dictionary.ContainsKey("Sara"))
                 {
                     flag = false;
                     _output.WriteLine("Expected collection to contain Sara and Sam.");
                     _output.WriteLine("Actual Result");
-                    foreach (string text in task.Result.Keys)
+                    foreach (string text in dictionary.Keys)
                     {
                         _output.WriteLine(text);
                     }
                 }
 
                 Task<LinkedList<int>> task2 = array[1] as Task<LinkedList<int>>;
-                Assert.Contains(100, task2.Result);
-                Assert.Contains(40, task2.Result);
-                if (!task2.Result.Contains(100) || !task2.Result.Contains(40))
+                var linkedList = await task2;
+                Assert.Contains(100, linkedList);
+                Assert.Contains(40, linkedList);
+                if (!linkedList.Contains(100) || !linkedList.Contains(40))
                 {
                     flag = false;
                     _output.WriteLine("Expected collection to contain 100 and 40.");
                     _output.WriteLine("Actual Result");
-                    foreach (int num in task2.Result)
+                    foreach (int num in linkedList)
                     {
                         _output.WriteLine(num.ToString());
                     }
                 }
 
                 Task<HashSet<Book>> task3 = array[2] as Task<HashSet<Book>>;
-                foreach (Book book in task3.Result)
+                var hashSet = await task3;
+                foreach (Book book in hashSet)
                 {
                     Assert.False(!book.Name.Equals("Whoa") && !book.Name.Equals("Dipper"));
                     if (!book.Name.Equals("Whoa") && !book.Name.Equals("Dipper"))
@@ -92,28 +95,30 @@ namespace CoreWCF.Http.Tests
                 }
 
                 Task<Queue<string>> task4 = array[3] as Task<Queue<string>>;
-                Assert.True(task4.Result.Contains("Panasonic"));
-                Assert.True(task4.Result.Contains("Kodak"));
-                if (!task4.Result.Contains("Panasonic") || !task4.Result.Contains("Kodak"))
+                var queue = await task4;
+                Assert.True(queue.Contains("Panasonic"));
+                Assert.True(queue.Contains("Kodak"));
+                if (!queue.Contains("Panasonic") || !queue.Contains("Kodak"))
                 {
                     flag = false;
                     _output.WriteLine("Expected collection to contain Panasonic and Kodak.");
                     _output.WriteLine("Actual Result");
-                    foreach (string text2 in task4.Result)
+                    foreach (string text2 in queue)
                     {
                         _output.WriteLine(text2);
                     }
                 }
 
                 Task<Stack<byte>> task5 = array[4] as Task<Stack<byte>>;
-                Assert.True(task5.Result.Contains(45));
-                Assert.True(task5.Result.Contains(10));
-                if (!task5.Result.Contains(45) || !task5.Result.Contains(10))
+                var stack = await task5;
+                Assert.True(stack.Contains(45));
+                Assert.True(stack.Contains(10));
+                if (!stack.Contains(45) || !stack.Contains(10))
                 {
                     flag = false;
                     _output.WriteLine("Expected collection to contain 45 and 10.");
                     _output.WriteLine("Actual Result");
-                    foreach (byte b in task5.Result)
+                    foreach (byte b in stack)
                     {
                         _output.WriteLine(b.ToString());
                     }

@@ -6,6 +6,7 @@ using System.IO;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
@@ -118,14 +119,14 @@ namespace ConnectionHandler
         }
 
         [Fact]
-        public void ConcurrentNetTcpClientConnection()
+        public async Task ConcurrentNetTcpClientConnection()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
                 ClientContract.ITestService channel = null;
-                host.Start();
+                await host.StartAsync();
                 try
                 {
                     System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();
@@ -133,10 +134,10 @@ namespace ConnectionHandler
                         new System.ServiceModel.EndpointAddress(host.GetNetTcpAddressInUse() + Startup.NoSecurityRelativePath));
                     channel = factory.CreateChannel();
                     ((IChannel)channel).Open();
-                    System.Threading.Tasks.Task<bool> resultTask = channel.WaitForSecondRequestAsync();
+                    Task<bool> resultTask = channel.WaitForSecondRequestAsync();
                     Thread.Sleep(TimeSpan.FromSeconds(1));
                     channel.SecondRequest();
-                    bool waitResult = resultTask.GetAwaiter().GetResult();
+                    bool waitResult = await resultTask;
                     Assert.True(waitResult, $"SecondRequest wasn't executed concurrently");
                     ((IChannel)channel).Close();
                     factory.Close();

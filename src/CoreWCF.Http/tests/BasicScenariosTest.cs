@@ -26,12 +26,12 @@ namespace CoreWCF.Http.Tests
         }
 
         [Fact]
-        public void BasicScenariosAndOps()
+        public async Task BasicScenariosAndOps()
         {
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
-                host.Start();
+                await host.StartAsync();
                 System.ServiceModel.BasicHttpBinding httpBinding = ClientHelper.GetBufferedModeBinding();
                 var factory = new System.ServiceModel.ChannelFactory<ClientContract.ITestBasicScenarios>(httpBinding,
                     new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/ITestBasicScenariosService.svc")));
@@ -74,7 +74,7 @@ namespace CoreWCF.Http.Tests
                 //Variation_sting TestMethodasync
                 ID = 1;
                 name = "Async";
-                result = channel2.TestMethodAsync(ID, name).GetAwaiter().GetResult();
+                result = await channel2.TestMethodAsync(ID, name);
                 Assert.NotNull(result);
                 Assert.Equal(result, name);
             }

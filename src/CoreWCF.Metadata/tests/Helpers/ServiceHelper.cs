@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 using Xunit;
+using CoreWCF;
 
 #if NET472
 using System.Security.Authentication;
@@ -34,6 +35,7 @@ namespace Helpers
         internal static IWebHostBuilder CreateHttpWebHostBuilderWithMetadata<TService, TContract>(Binding binding, string url,
             Action<IServiceCollection> configureServices = null,
             ITestOutputHelper outputHelper = default,
+            Action<ServiceHostBase> configureHost = null,
             string callerMethodName = "")
             where TService : class
         {
@@ -41,7 +43,7 @@ namespace Helpers
             var customBinding = new CustomBinding(binding);
             ApplyDebugTimeouts(customBinding);
             var transportScheme = binding.Scheme;
-            return CreateWebHostBuilder(outputHelper, new[] { transportScheme }, callerMethodName)
+            return CreateWebHostBuilder<TService>(outputHelper, new[] { transportScheme }, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
@@ -58,10 +60,22 @@ namespace Helpers
                             options.BaseAddresses.Clear();
                             foreach(var scheme in portHelper.Schemes)
                             {
-                                options.BaseAddresses.Add(new Uri($"{scheme}://localhost:{portHelper.GetPortForScheme(scheme)}"));
+                                if (scheme != Uri.UriSchemeNetPipe)
+                                {
+                                    options.BaseAddresses.Add(new Uri($"{scheme}://localhost:{portHelper.GetPortForScheme(scheme)}"));
+                                }
+                                else
+                                {
+                                    // NetPipe doesn't use a port, so just add the pipe name
+                                    options.BaseAddresses.Add(new Uri($"{scheme}://localhost/{typeof(TService).Name}/"));
+                                }
                             }
                         });
                         serviceBuilder.AddServiceEndpoint<TService, TContract>(customBinding, url);
+                        if (configureHost != null)
+                        {
+                            serviceBuilder.ConfigureServiceHostBase<TService>(configureHost);
+                        }
                     });
                     var serviceMetadataBehavior = app.ApplicationServices.GetRequiredService<CoreWCF.Description.ServiceMetadataBehavior>();
                     if (transportScheme == Uri.UriSchemeHttp)
@@ -89,7 +103,7 @@ namespace Helpers
             var customBinding2 = new CustomBinding(binding2);
             ApplyDebugTimeouts(customBinding2);
             var transportScheme2 = binding1.Scheme;
-            return CreateWebHostBuilder(outputHelper, new[] { transportScheme1, transportScheme2 }, callerMethodName)
+            return CreateWebHostBuilder<TService1>(outputHelper, new[] { transportScheme1, transportScheme2 }, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
@@ -156,7 +170,7 @@ namespace Helpers
         {
             // Presume all bindings are the same type
             var transportSchemes = bindingEndpointMap.Values.Select(binding => binding.Scheme).ToArray();
-            return CreateWebHostBuilder(outputHelper, transportSchemes, callerMethodName)
+            return CreateWebHostBuilder<TService>(outputHelper, transportSchemes, callerMethodName)
                 .InlineStartup((IServiceCollection services) =>
                 {
                     services.AddServiceModelServices()
@@ -211,6 +225,13 @@ namespace Helpers
 
         internal static string GetEndpointBaseAddress(IWebHost host, string transportScheme)
         {
+
+            if (transportScheme == Uri.UriSchemeNetPipe)
+            {
+                var serviceBuilder = host.Services.GetRequiredService<IServiceBuilder>();
+                return serviceBuilder.BaseAddresses.Single(a => a.Scheme == Uri.UriSchemeNetPipe).ToString();
+            }
+
             var portHelper = host.Services.GetRequiredService<ListeningPortHelper>();
             IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(a => new Uri(a));
             var listeningPort = portHelper.GetPortForScheme(transportScheme);
@@ -230,7 +251,7 @@ namespace Helpers
             return baseAddressUriBuilder.Uri.ToString();
         }
 
-        private static IWebHostBuilder CreateWebHostBuilder(ITestOutputHelper outputHelper, IEnumerable<string> transportSchemes, string callerMethodName)
+        private static IWebHostBuilder CreateWebHostBuilder<TService>(ITestOutputHelper outputHelper, IEnumerable<string> transportSchemes, string callerMethodName) where TService : class
         {
             var schemesCollection = new HashSet<string>(transportSchemes, StringComparer.OrdinalIgnoreCase);
             var host = WebHost.CreateDefaultBuilder(Array.Empty<string>());
@@ -293,6 +314,24 @@ namespace Helpers
                     });
                 });
             }
+
+#if NET8_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+            {
+#endif // NET8_0_OR_GREATER
+                if (schemesCollection.Contains(Uri.UriSchemeNetPipe))
+                {
+                    host.UseNetNamedPipe(netPipeOptions =>
+                    {
+                        netPipeOptions.Listen($"net.pipe://localhost/{typeof(TService).Name}/", pipeOptions =>
+                        {
+                            listeningPortHelper.AddSchemeToPortDelegate(Uri.UriSchemeNetPipe, () => 0);
+                        });
+                    });
+                }
+#if NET8_0_OR_GREATER
+            }
+#endif // NET8_0_OR_GREATER
 
             return host;
         }

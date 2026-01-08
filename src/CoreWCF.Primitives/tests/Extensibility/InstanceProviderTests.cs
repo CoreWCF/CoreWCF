@@ -16,7 +16,7 @@ namespace Extensibility
     public class InstanceProviderTests
     {
         [Fact]
-        public void InstanceProviderCalledTest()
+        public async Task InstanceProviderCalledTest()
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
@@ -25,7 +25,7 @@ namespace Extensibility
             ISimpleService channel = factory.CreateChannel();
             string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
-            instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
+            await instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10));
             Assert.Equal(1, instanceProvider.GetInstanceCallCount);
             Assert.Equal(1, instanceProvider.ReleaseInstanceCallCount);
             ((System.ServiceModel.Channels.IChannel)channel).Close();
@@ -34,7 +34,7 @@ namespace Extensibility
         }
 
         [Fact]
-        public void InstanceProviderReleaseCalledWithCorrectObjectTest()
+        public async Task InstanceProviderReleaseCalledWithCorrectObjectTest()
         {
             var instanceProvider = new TestInstanceProvider();
             var behavior = new TestServiceBehavior { InstanceProvider = instanceProvider };
@@ -44,7 +44,7 @@ namespace Extensibility
             ((System.ServiceModel.Channels.IChannel)channel).Open();
             string echo = channel.Echo("hello");
             Assert.Equal("hello", echo);
-            instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10)).Wait();
+            await instanceProvider.WaitForReleaseAsync(TimeSpan.FromSeconds(10));
             Assert.True(instanceProvider.InstanceHashCode > 0); ;
             Assert.Equal(instanceProvider.ReleasedInstanceHashCode, instanceProvider.InstanceHashCode);
             ((System.ServiceModel.Channels.IChannel)channel).Close();

@@ -55,10 +55,8 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
-        public async void UseSynchronizationContextTrueWithoutSynchronizationContextTestAsync()
+        public async Task UseSynchronizationContextTrueWithoutSynchronizationContextTestAsync()
         {
-            // Method must be async void as a change in xunit 2.7.0 no longer sets a sync context
-            // if the method returns a Task. Switching to async void reverts to previous behavior.
             await RunWithoutSynchronizationContextAsync(async () =>
             {
                 Assert.Null(SynchronizationContext.Current);
@@ -88,10 +86,8 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [Fact]
-        public async void UseSynchronizationContextFalseWithoutSynchronizationContextTestAsync()
+        public async Task UseSynchronizationContextFalseWithoutSynchronizationContextTestAsync()
         {
-            // Method must be async void as a change in xunit 2.7.0 no longer sets a sync context
-            // if the method returns a Task. Switching to async void reverts to previous behavior.
             await RunWithoutSynchronizationContextAsync(async () =>
             {
                 Assert.Null(SynchronizationContext.Current);
@@ -130,7 +126,7 @@ namespace CoreWCF.NetTcp.Tests
             {
                 System.ServiceModel.ChannelFactory<IAsyncService> factory = null;
                 IAsyncService channel = null;
-                host.Start();
+                await host.StartAsync();
                 try
                 {
                     System.ServiceModel.NetTcpBinding binding = ClientHelper.GetBufferedModeBinding();

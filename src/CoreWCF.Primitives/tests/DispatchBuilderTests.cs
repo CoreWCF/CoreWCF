@@ -42,9 +42,9 @@ namespace DispatchBuilder
             Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
             Assert.Equal(serviceAddress, serviceDispatcher.BaseAddress.ToString());
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
-            IServiceChannelDispatcher dispatcher = serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel).Result;
+            IServiceChannelDispatcher dispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
             var requestContext = TestRequestContext.Create(serviceAddress);
-            dispatcher.DispatchAsync(requestContext).Wait();
+            await dispatcher.DispatchAsync(requestContext);
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }

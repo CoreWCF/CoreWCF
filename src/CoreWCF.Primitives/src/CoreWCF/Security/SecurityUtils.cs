@@ -10,7 +10,7 @@ using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.Net;
 using System.Net.Security;
-using System.Security.Authentication;
+using System.Runtime.InteropServices;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -183,7 +183,7 @@ namespace CoreWCF.Security
             }
         }
 
-    
+
 
         internal static ReadOnlyCollection<SecurityKey> CreateSymmetricSecurityKeys(byte[] key)
         {
@@ -268,18 +268,28 @@ namespace CoreWCF.Security
 
         internal static EndpointIdentity CreateWindowsIdentity(bool spnOnly)
         {
+            // This is used by SspiNegotiationTokenAuthenticator to calculate the
+            // DefaultServiceBinding value. On Linux, we cannot use the current Windows Identity,
+            // so we will return an Spn based on the machine name. It's quite a bit of work to
+            // get Windows authentication to work on Linux, so if a developer has gone to that
+            // kind of effort to use Windows authentication on Linux, they can provide an
+            // explicit value to SspiNegotiationTokenAuthenticator.DefaultServiceBinding and
+            // this code won't be needed.
             EndpointIdentity identity = null;
             using (WindowsIdentity self = WindowsIdentity.GetCurrent())
             {
                 bool isSystemAccount = IsSystemAccount(self);
-                if (spnOnly || isSystemAccount)
+                if (spnOnly || isSystemAccount || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    identity = EndpointIdentity.CreateSpnIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
+                    // If we're running on a non-Windows platform, we can't use the current Windows identity.
+                    // If we're running on Windows and the current identity is a system account, we also can't use it.
+                    // In both cases, we create an SPN identity based on the machine name.
+                    identity = new SpnEndpointIdentity(string.Format(CultureInfo.InvariantCulture, "host/{0}", DnsCache.MachineName));
                 }
                 else
                 {
-                    // Save windowsIdentity for delay lookup
-                    identity = new UpnEndpointIdentity(CloneWindowsIdentityIfNecessary(self));
+                    // Fallback to using the current WindowsIdentity Name, which will be in the form DOMAIN\username.
+                    identity = new UpnEndpointIdentity(self.Name);
                 }
             }
 
@@ -439,7 +449,7 @@ namespace CoreWCF.Security
             SecurityKey unwrappingSecurityKey = unwrappingToken.SecurityKeys[0];
             string wrappingAlgorithm = keyClause.EncryptionMethod;
             byte[] unwrappedKey = unwrappingSecurityKey.DecryptKey(wrappingAlgorithm, wrappedKey);
-            //TODO, check value for XmlDictionaryString Symmetric or else 
+            //TODO, check value for XmlDictionaryString Symmetric or else
             return new WrappedKeySecurityToken(SecurityUtils.GenerateId(), unwrappedKey, wrappingAlgorithm,
                XmlDictionaryString.Empty, unwrappingToken, wrappingTokenReference, wrappedKey, unwrappingSecurityKey
                     );
@@ -460,7 +470,7 @@ namespace CoreWCF.Security
             // No KeyUsage extension means most usages are permitted including key exchange.
             // See RFC 5280 section 4.2.1.3 (Key Usage) for details. If the extension is non-critical
             // then it's non-enforcing and meant as an aid in choosing the best certificate when
-            // there are multiple certificates to choose from. 
+            // there are multiple certificates to choose from.
             if (keyUsageExtension == null || !keyUsageExtension.Critical)
             {
                 return true;
@@ -1576,5 +1586,111 @@ namespace CoreWCF.Security
     internal static class EmptyReadOnlyCollection<T>
     {
         public static ReadOnlyCollection<T> Instance = new ReadOnlyCollection<T>(new List<T>());
+    }
+
+    internal class Sha1CryptoProviderFactory : Microsoft.IdentityModel.Tokens.CryptoProviderFactory
+    {
+        public Sha1CryptoProviderFactory() : base(new Microsoft.IdentityModel.Tokens.InMemoryCryptoProviderCache(new Microsoft.IdentityModel.Tokens.CryptoProviderCacheOptions()))
+        {
+        }
+
+        public Sha1CryptoProviderFactory(Microsoft.IdentityModel.Tokens.ICryptoProvider cryptoProvider)
+        {
+            CustomCryptoProvider = cryptoProvider;
+        }
+
+        public override Microsoft.IdentityModel.Tokens.SignatureProvider CreateForSigning(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return null;
+            else
+                return base.CreateForSigning(key, algorithm);
+        }
+
+        public override Microsoft.IdentityModel.Tokens.SignatureProvider CreateForVerifying(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+            {
+                return new RSASha1SignatureProvider(key, algorithm);
+            }
+            else
+                return base.CreateForVerifying(key, algorithm);
+        }
+
+        public override HashAlgorithm CreateHashAlgorithm(string algorithm)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return SHA1.Create();
+
+            return base.CreateHashAlgorithm(algorithm);
+        }
+
+        public override bool IsSupportedAlgorithm(string algorithm)
+        {
+
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return true;
+            else if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return true;
+            else
+                return base.IsSupportedAlgorithm(algorithm);
+        }
+
+        public override bool IsSupportedAlgorithm(string algorithm, Microsoft.IdentityModel.Tokens.SecurityKey key)
+        {
+            if (algorithm == "http://www.w3.org/2000/09/xmldsig#rsa-sha1")
+                return true;
+            else if (algorithm == "http://www.w3.org/2000/09/xmldsig#sha1")
+                return true;
+            else
+                return base.IsSupportedAlgorithm(algorithm, key);
+        }
+
+        public override void ReleaseHashAlgorithm(HashAlgorithm hashAlgorithm)
+        {
+            hashAlgorithm.Dispose();
+        }
+
+        public override void ReleaseSignatureProvider(Microsoft.IdentityModel.Tokens.SignatureProvider signatureProvider)
+        {
+            if (CustomCryptoProvider != null)
+                CustomCryptoProvider.Release(signatureProvider);
+            else
+                signatureProvider.Dispose();
+        }
+    }
+
+    internal class RSASha1SignatureProvider : Microsoft.IdentityModel.Tokens.SignatureProvider
+    {
+        private Microsoft.IdentityModel.Tokens.X509SecurityKey _key;
+
+        public RSASha1SignatureProvider(Microsoft.IdentityModel.Tokens.SecurityKey key, string algorithm) : base(key, algorithm)
+        {
+            _key = key as Microsoft.IdentityModel.Tokens.X509SecurityKey;
+        }
+
+        public override byte[] Sign(byte[] input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Verify(byte[] input, byte[] signature)
+        {
+            RSA rsa = _key.PublicKey as RSA;
+            if (rsa == null)
+                return false;
+
+            // TODO: dispose of the hash, use pool
+            SHA1 sha1 = SHA1.Create();
+            byte[] hash = sha1.ComputeHash(input);
+            if (rsa.VerifyHash(hash, signature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
+                return true;
+
+            return false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+        }
     }
 }

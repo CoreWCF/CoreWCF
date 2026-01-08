@@ -27,4 +27,10 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="..\src\CoreWCF.ConfigurationManager.csproj" />
   </ItemGroup>
+
+  <Import Project="..\src\CoreWCF.ConfigurationManager.targets" Condition="Exists('..\src\CoreWCF.ConfigurationManager.targets')" />
+  <ItemGroup>
+    <_CoreWCFConfigFiles Remove="@(_CoreWCFConfigFiles)" />
+    <_CoreWCFConfigFiles Include="..\src\CoreWCF.machine.config" />
+  </ItemGroup>
 </Project>

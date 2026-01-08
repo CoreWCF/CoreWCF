@@ -384,27 +384,36 @@ namespace CoreWCF.Runtime
             object[] state = new object[2];
             var tcs = new TaskCompletionSource<TResult>(state);
             state[0] = tcs;
+            state[1] = default(CancellationTokenRegistration);
             CancellationTokenRegistration registration = token.Register(OnCancellation<TResult>, state);
             state[1] = registration;
-            task.ContinueWith((antecedent, obj) =>
+            if (token.IsCancellationRequested)
             {
-                object[] stateArr = (object[])obj;
-                var tcsObj = (TaskCompletionSource<TResult>)stateArr[0];
-                var tokenRegistration = (CancellationTokenRegistration)stateArr[1];
-                tokenRegistration.Dispose();
-                if (antecedent.IsFaulted)
+                registration.Dispose();
+                tcs.TrySetCanceled();
+            }
+            else
+            {
+                task.ContinueWith((antecedent, obj) =>
                 {
-                    tcsObj.TrySetException(antecedent.Exception.InnerException);
-                }
-                else if (antecedent.IsCanceled)
-                {
-                    tcsObj.TrySetCanceled();
-                }
-                else
-                {
-                    tcsObj.TrySetResult(antecedent.Result);
-                }
-            }, state, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
+                    object[] stateArr = (object[])obj;
+                    var tcsObj = (TaskCompletionSource<TResult>)stateArr[0];
+                    var tokenRegistration = (CancellationTokenRegistration)stateArr[1];
+                    tokenRegistration.Dispose();
+                    if (antecedent.IsFaulted)
+                    {
+                        tcsObj.TrySetException(antecedent.Exception.InnerException);
+                    }
+                    else if (antecedent.IsCanceled)
+                    {
+                        tcsObj.TrySetCanceled();
+                    }
+                    else
+                    {
+                        tcsObj.TrySetResult(antecedent.Result);
+                    }
+                }, state, CancellationToken.None, TaskContinuationOptions.HideScheduler, TaskScheduler.Default);
+            }
 
             return tcs.Task;
         }

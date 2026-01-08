@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
+using CoreWCF.Dispatcher;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -16,7 +17,6 @@ namespace CoreWCF.Channels.Framing
 {
     public class NetMessageFramingConnectionHandler : ConnectionHandler
     {
-        private readonly IServiceBuilder _serviceBuilder;
         private readonly IDispatcherBuilder _dispatcherBuilder;
         private readonly HandshakeDelegate _handshake;
         private readonly ILogger _framingLogger;
@@ -27,12 +27,14 @@ namespace CoreWCF.Channels.Framing
 
         public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder, ILogger<FramingConnection> framingLogger)
         {
-            _serviceBuilder = serviceBuilder;
             _dispatcherBuilder = dispatcherBuilder;
             _handshake = BuildHandshake(handshakeBuilder);
             _framingLogger = framingLogger;
             _services = handshakeBuilder.HandshakeServices;
-            serviceBuilder.Opened += OnServiceBuilderOpened;
+            if (serviceBuilder.State == CommunicationState.Created)
+            {
+                serviceBuilder.Opened += OnServiceBuilderOpened;
+            }
         }
 
         private void OnServiceBuilderOpened(object sender, EventArgs e)
@@ -142,6 +144,11 @@ namespace CoreWCF.Channels.Framing
                 {
                     streamUpgradeProvider.OpenAsync().GetAwaiter().GetResult();
                     securityCapabilities = upgradeBindingElements[0].GetProperty<ISecurityCapabilities>(bindingContext);
+                    var identity = (streamUpgradeProvider as StreamSecurityUpgradeProvider)?.Identity;
+                    if (identity != null)
+                    {
+                        TryApplyIdentityToChannelDispatchers(dispatcher.Host.ChannelDispatchers, identity);
+                    }
                 }
             }
             return (connection) =>
@@ -161,6 +168,17 @@ namespace CoreWCF.Channels.Framing
                 connection.TransferMode = transferMode;
                 return Task.CompletedTask;
             };
+        }
+
+        private static void TryApplyIdentityToChannelDispatchers(ChannelDispatcherCollection channelDispatchers, EndpointIdentity identity)
+        {
+            foreach (ChannelDispatcher channelDispatcher in channelDispatchers)
+            {
+                foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
+                {
+                    endpointDispatcher.Identity = identity;
+                }
+            }
         }
 
         private static async Task PerformServiceHandshake(IFramingConnectionHandshakeBuilder configuration, FramingConnection connection, HandshakeDelegate next)

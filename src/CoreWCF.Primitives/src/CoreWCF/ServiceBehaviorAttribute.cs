@@ -45,7 +45,7 @@ namespace CoreWCF
         }
 
         private ConcurrencyMode _concurrencyMode;
-        private readonly bool _ensureOrderedDispatch = false;
+        private bool _ensureOrderedDispatch = false;
         private string _configurationName;
         private InstanceContextMode _instanceMode;
         private object _wellKnownSingleton;  // if the user passes an object to the ServiceHost, it is stored here
@@ -122,6 +122,13 @@ namespace CoreWCF
 
                 _concurrencyMode = value;
             }
+        }
+
+        [DefaultValue(false)]
+        public bool EnsureOrderedDispatch
+        {
+            get { return _ensureOrderedDispatch; }
+            set { _ensureOrderedDispatch = value; }
         }
 
         [DefaultValue(InstanceContextMode.PerSession)]

@@ -3,15 +3,12 @@
 
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Net;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
-using CoreWCF.Description;
 using CoreWCF.IdentityModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Selectors;
@@ -24,44 +21,15 @@ namespace CoreWCF.Channels
 {
     internal class UnixPosixIdentitySecurityUpgradeProvider : StreamSecurityUpgradeProvider
     {
-        private EndpointIdentity _identity;
-
         public UnixPosixIdentitySecurityUpgradeProvider(UnixPosixIdentityBindingElement bindingElement, BindingContext context)
             : base(context.Binding)
         {
             Scheme = context.Binding.Scheme;
-            SecurityCredentialsManager credentialProvider = context.BindingParameters.Find<SecurityCredentialsManager>();
-            if (credentialProvider == null)
-            {
-                credentialProvider = new ServiceCredentials();
-            }
         }
 
         public string Scheme { get; }
 
-        public override EndpointIdentity Identity
-        {
-            get
-            {
-                if (ServerCredential != null)
-                {
-                    if (_identity == null)
-                    {
-                        lock (ThisLock)
-                        {
-                            if (_identity == null)
-                            {
-                                _identity = SecurityUtils.CreateWindowsIdentity(ServerCredential);
-                            }
-                        }
-                    }
-                }
-                return _identity;
-            }
-        }
-
-        private NetworkCredential ServerCredential { get; set; }
-
+        public override EndpointIdentity Identity => null;
 
         public override StreamUpgradeAcceptor CreateUpgradeAcceptor()
         {
@@ -86,11 +54,6 @@ namespace CoreWCF.Channels
         protected override void OnOpened()
         {
             base.OnOpened();
-
-            if (ServerCredential == null)
-            {
-                ServerCredential = CredentialCache.DefaultNetworkCredentials;
-            }
         }
 
         internal class UnixPosixIdentitySecurityUpgradeAcceptor : StreamSecurityUpgradeAcceptor

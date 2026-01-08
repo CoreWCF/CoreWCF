@@ -3,7 +3,15 @@
   <ItemGroup>
     <_CoreWCFConfigFiles Include="$(MSBuildThisFileDirectory)\..\contentFiles\any\netstandard2.0\CoreWCF.machine.config" />
   </ItemGroup>
-  <Target Name="CopyCoreWCFConfigFiles" BeforeTargets="Build">
-    <Copy SourceFiles="@(_CoreWCFConfigFiles)" DestinationFolder="$(TargetDir)" />
+  <Target Name="CopyCoreWCFConfigFiles" BeforeTargets="Build;Publish">
+    <Copy SourceFiles="@(_CoreWCFConfigFiles)" DestinationFolder="$(OutputPath)" />
+  </Target>
+  <Target Name="CopyCoreWCFConfigFilesToPublishDir" BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_CoreWCFConfigFiles)">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
   </Target>
 </Project>

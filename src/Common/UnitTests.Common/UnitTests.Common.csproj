@@ -2,6 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeCommonCode>false</IncludeCommonCode>
+    <!-- Microsoft.NET.Test.Sdk isn't supported on netstandard2.0, but at runtime we run on .net8+ or net472
+         which are suppported by the test SDK. Suppressing the Tfm support build error as it's inconsequential -->
+    <SuppressTfmSupportBuildErrors>true</SuppressTfmSupportBuildErrors>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit" />

@@ -12,6 +12,7 @@ namespace CoreWCF.Dispatcher
         private MessageFilter _addressFilter;
         private MessageFilter _contractFilter;
         private MessageFilter _endpointFilter;
+        private EndpointIdentity _identity;
 
         internal EndpointDispatcher(EndpointAddress address, string contractName, string contractNamespace, string id, bool isSystemEndpoint)
             : this(address, contractName, contractNamespace)
@@ -123,7 +124,7 @@ namespace CoreWCF.Dispatcher
                     return OriginalAddress;
                 }
 
-                if (OriginalAddress != null)
+                if (OriginalAddress != null && _identity == null)
                 {
                     return OriginalAddress;
                 }
@@ -132,12 +133,32 @@ namespace CoreWCF.Dispatcher
                 if (OriginalAddress != null)
                 {
                     builder = new EndpointAddressBuilder(OriginalAddress);
+                    builder.Identity = _identity;
                     return builder.ToEndpointAddress();
                 }
                 else
                 {
                     return null;
                 }
+            }
+        }
+
+        public EndpointIdentity Identity
+        {
+            get { return _identity; }
+            set
+            {
+                if (value != _identity && _identity != null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(value), SR.OnlySetIdentityOnce);
+                }
+
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(value));
+                }
+
+                _identity = value;
             }
         }
 

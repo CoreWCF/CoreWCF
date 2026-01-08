@@ -1,12 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Globalization;
 using System.Net;
-using CoreWCF.Channels;
-using System.Security.Principal;
 using System.Security.Claims;
+using System.Security.Principal;
+using CoreWCF.Channels;
 
 namespace CoreWCF.Security
 {
@@ -32,6 +31,7 @@ namespace CoreWCF.Security
                 return CreateWindowsIdentity();
             }
         }
+
         internal static EndpointIdentity CreateWindowsIdentity()
         {
             EndpointIdentity identity = null;
@@ -42,6 +42,7 @@ namespace CoreWCF.Security
 
             return identity;
         }
+
         private static class NetworkCredentialHelper
         {
             internal static bool IsDefault(NetworkCredential credential)
@@ -69,11 +70,8 @@ namespace CoreWCF.Security
 
         internal static void AddProcessIdClaim(ClaimsIdentity claimsIdentity, uint processId)
         {
-            claimsIdentity.AddClaim(new Claim(CoreWCF.IdentityModel.Claims.ClaimTypes.ProcessId, processId.ToString()));;
+            claimsIdentity.AddClaim(new Claim(CoreWCF.IdentityModel.Claims.ClaimTypes.ProcessId, processId.ToString()));
         }
     }
-
-   
-
 }
 
