@@ -16,6 +16,15 @@ public sealed partial class OperationInvokerGenerator
         private readonly OperationInvokerSourceGenerationContext _sourceGenerationContext;
         private readonly SourceGenerationSpec _generationSpec;
 
+        // SymbolDisplayFormat that excludes nullable annotations to match reflection-based key generation
+        private static readonly SymbolDisplayFormat s_methodDisplayFormat = new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeContainingType,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         public Emitter(in OperationInvokerSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
         {
             _sourceGenerationContext = sourceGenerationContext;
@@ -87,7 +96,7 @@ public sealed partial class OperationInvokerGenerator
             _builder.AppendLine($$"""
                                   namespace CoreWCF.Dispatcher
                                   {
-                                      // This class is used to invoke the method {{operationContractSpec.Method.ToDisplayString()}}.
+                                      // This class is used to invoke the method {{operationContractSpec.Method.ToDisplayString(s_methodDisplayFormat)}}.
                                       file sealed class {{operationInvokerTypeName}} : CoreWCF.Dispatcher.IOperationInvoker
                                       {
                                   """);
@@ -209,7 +218,7 @@ public sealed partial class OperationInvokerGenerator
             _builder.AppendLine();
 
             _builder.Append($"{indentor}internal static void RegisterOperationInvoker() => ");
-            _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker(\"{operationContractSpec.Method.ToDisplayString()}\", new {operationInvokerTypeName}());");
+            _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker(\"{operationContractSpec.Method.ToDisplayString(s_methodDisplayFormat)}\", new {operationInvokerTypeName}());");
             indentor.Decrement();
             _builder.AppendLine($"{indentor}}}");
 
