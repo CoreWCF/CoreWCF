@@ -5,6 +5,7 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\**" />
@@ -12,6 +13,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
@@ -25,5 +31,6 @@
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Http/src/CoreWCF.Http.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools/src/CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>
