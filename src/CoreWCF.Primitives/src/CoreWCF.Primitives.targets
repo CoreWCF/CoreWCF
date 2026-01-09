@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">false</EnableCoreWCFOperationInvokerGenerator>
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND
                         '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
