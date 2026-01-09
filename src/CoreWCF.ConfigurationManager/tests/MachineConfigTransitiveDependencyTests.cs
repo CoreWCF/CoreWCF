@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,7 +62,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             string expectedAddress = "net.tcp://localhost:8750/integration-test";
             string expectedEndpointName = "IntegrationTestEndpoint";
             string expectedBindingName = "integrationTestBinding";
-            long expectedMaxReceivedMessageSize = 2147483647;
+            long expectedMaxReceivedMessageSize = int.MaxValue;
             
             string xml = $@"
 <configuration> 
