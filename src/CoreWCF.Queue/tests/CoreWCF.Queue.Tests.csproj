@@ -1,8 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Explicitly disable generated operation invokers for this test project to test the traditional code path -->
-  <PropertyGroup>
-    <EnableCoreWCFOperationInvokerGenerator>false</EnableCoreWCFOperationInvokerGenerator>
-  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
@@ -24,13 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Fakes\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
-      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
-      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
-    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
