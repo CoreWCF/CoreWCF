@@ -27,7 +27,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task SerializeDeserializeJson()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -43,7 +43,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task SerializeDeserializeXml()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -59,7 +59,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task SerializeDeserializeRaw()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

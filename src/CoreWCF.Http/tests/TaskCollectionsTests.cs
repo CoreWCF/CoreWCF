@@ -9,6 +9,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
@@ -30,7 +31,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task VariousCollections()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 ClientContract.ITaskCollectionsTest collectionsTest = null;

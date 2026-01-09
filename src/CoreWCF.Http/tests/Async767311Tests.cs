@@ -31,7 +31,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task Variation_EndMethod()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -49,7 +49,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task Variation_WaitMethod()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -72,7 +72,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task Variation_PollingMethod()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -103,7 +103,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task Variation_CallbackMethod()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

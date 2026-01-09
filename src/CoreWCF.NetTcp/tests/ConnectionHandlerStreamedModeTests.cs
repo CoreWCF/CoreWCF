@@ -28,7 +28,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -57,7 +57,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -86,7 +86,7 @@ namespace ConnectionHandler
         public void MultipleClientsNonConcurrentNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -120,7 +120,7 @@ namespace ConnectionHandler
         public void SingleClientMultipleRequestsNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -150,7 +150,7 @@ namespace ConnectionHandler
         [Fact]
         public void MultipleClientsUsingPooledSocket()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -185,7 +185,7 @@ namespace ConnectionHandler
         [Fact]
         public void SingleClientsUsingPooledSocketForMultipleRequests()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -218,7 +218,7 @@ namespace ConnectionHandler
         public void TwoStreamedServices()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupMultiService>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupMultiService>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.IEchoService> factory1 = null;
@@ -257,7 +257,7 @@ namespace ConnectionHandler
         [Fact(Skip = "Takes a long time to run so don't want in regular test run")]
         public async Task LargeStreamsSucceed()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupStreamedService>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupStreamedService>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.IStreamService> factory = null;

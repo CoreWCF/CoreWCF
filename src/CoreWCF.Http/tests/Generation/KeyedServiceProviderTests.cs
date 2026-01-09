@@ -6,6 +6,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,7 +38,7 @@ public partial class KeyedServiceProviderTests
     [ClassData(typeof(GetInjectedKeyedServiceTestTheoryData))]
     public void InjectedKeyedServiceTests(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();

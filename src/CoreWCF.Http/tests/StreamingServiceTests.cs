@@ -10,6 +10,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,7 +22,7 @@ namespace CoreWCF.Http.Tests
         private readonly ITestOutputHelper _output;
         public const string TestString = "String to test";
         public const string FileToSend = "temp.dat";
-        private IWebHost _host;
+        private IHost _host;
 
         public StreamingServiceTests(ITestOutputHelper output)
         {

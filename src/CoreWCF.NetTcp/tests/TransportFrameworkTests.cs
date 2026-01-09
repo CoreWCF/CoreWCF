@@ -30,7 +30,7 @@ namespace CoreWCF.NetTcp.Tests
         [WindowsOnlyFact]
         public void RemoteEndpointMessageProperty()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

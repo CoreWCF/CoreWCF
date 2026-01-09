@@ -25,7 +25,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task CreatesErrorPageWithDetails()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

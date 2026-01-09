@@ -9,9 +9,9 @@ namespace CoreWCF.RabbitMQ.Tests
 {
     internal class DependencyResolverHelper
     {
-        private readonly IWebHost _webHost;
+        private readonly IHost _webHost;
 
-        public DependencyResolverHelper(IWebHost webHost)
+        public DependencyResolverHelper(IHost webHost)
         {
             _webHost = webHost;
         }

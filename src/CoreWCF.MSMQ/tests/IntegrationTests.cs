@@ -9,6 +9,7 @@ using CoreWCF.MSMQ.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,7 +34,7 @@ namespace CoreWCF.MSMQ.Tests
         [Fact(Skip = "Need msmq")]
         public void ReceiveMessage_ServiceCall_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -49,7 +50,7 @@ namespace CoreWCF.MSMQ.Tests
         public async Task ReceiveMessage_ServiceCall_Fail()
         {
             MessageQueueHelper.PurgeDeadLetter();
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -64,7 +65,7 @@ namespace CoreWCF.MSMQ.Tests
         public async Task ReceiveMessage_ServiceCall_Fail_ShouldSendCustomDeadLetter()
         {
             MessageQueueHelper.PurgeDeadLetter();
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
             {
                 host.Start();

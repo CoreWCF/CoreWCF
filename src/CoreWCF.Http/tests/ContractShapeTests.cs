@@ -6,6 +6,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +25,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void TwowayUsingParamsKeyword()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeParamsServiceStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeParamsServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -51,7 +52,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MuptiOverloadedMethod()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeOverloadsServiceStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<ContractShapeOverloadsServiceStartup>(_output).Build();
             using (host)
             {
                 host.Start();

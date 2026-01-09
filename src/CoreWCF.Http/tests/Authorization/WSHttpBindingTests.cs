@@ -35,7 +35,7 @@ public class WSHttpBindingTests
     [InlineData("WS2007HttpBinding")]
     public void WSHttpBinding_AuthenticatedUser_HavingRequiredScopeValues_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
+        IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
             System.ServiceModel.ChannelFactory<ISecuredService> factory = null;
@@ -66,7 +66,7 @@ public class WSHttpBindingTests
     [InlineData("WS2007HttpBinding")]
     public void WSHttpBinding_UnauthenticatedUser_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithUnauthenticatedUserStartup>(_output).UseSetting("bindingType", bindingType).Build();
+        IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithUnauthenticatedUserStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
             System.ServiceModel.ChannelFactory<ISecuredService> factory = null;
@@ -96,7 +96,7 @@ public class WSHttpBindingTests
     [InlineData("WS2007HttpBinding")]
     public void WSHttpBinding_AuthenticatedUser_MissingScopeValues_Test(string bindingType)
     {
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
+        IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).UseSetting("bindingType", bindingType).Build();
         using (host)
         {
             System.ServiceModel.ChannelFactory<ISecuredService> factory = null;

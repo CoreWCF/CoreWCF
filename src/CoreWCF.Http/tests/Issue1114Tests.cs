@@ -13,6 +13,7 @@ using CoreWCF.IdentityModel.Policy;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,7 +33,7 @@ public class Issue1114Tests
     [Fact]
     public void ServiceAuthorizationBehaviorPerServiceTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_outputHelper).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_outputHelper).Build();
         using (host)
         {
             host.Start();

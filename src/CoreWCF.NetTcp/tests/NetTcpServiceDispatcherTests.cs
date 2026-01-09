@@ -26,7 +26,7 @@ namespace CoreWCF.NetTcp.Tests
         public async Task ValidateListenUriPassedFromTransport()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

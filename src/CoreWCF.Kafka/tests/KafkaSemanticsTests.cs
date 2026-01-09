@@ -31,7 +31,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnce>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -66,7 +66,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitOrderTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -121,7 +121,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitPerMessageTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -157,7 +157,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtMostOnceTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtMostOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtMostOnce>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();

@@ -30,7 +30,7 @@ public class AlwaysUseAuthorizationPolicySupportTests
     [InlineData(typeof(BasicHttpBindingHttpTransportSecurityUseAuthorizationPolicySupportWithAuthenticatedUserAndRequiredScopeValuesStartup))]
     public void CustomBindingSupportsAuthorizationData_AuthenticatedUser_HavingRequiredScopeValues_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();
@@ -48,7 +48,7 @@ public class AlwaysUseAuthorizationPolicySupportTests
     [InlineData(typeof(BasicHttpBindingHttpTransportSecurityUseAuthorizationPolicySupportWithUnauthenticatedUserStartup))]
     public void CustomBindingSupportsAuthorizationData_UnauthenticatedUser_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();
@@ -65,7 +65,7 @@ public class AlwaysUseAuthorizationPolicySupportTests
     [InlineData(typeof(BasicHttpBindingHttpTransportSecurityUseAuthorizationPolicySupportWithAuthenticatedUserButMissingScopeValuesStartup))]
     public void CustomBindingSupportsAuthorizationData_AuthenticatedUser_MissingScopeValues_Test(Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();

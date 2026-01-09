@@ -30,7 +30,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnectionWindowsAuth()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -59,7 +59,7 @@ namespace ConnectionHandler
         public void SimpleNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -88,7 +88,7 @@ namespace ConnectionHandler
         public void MultipleClientsNonConcurrentNetTcpClientConnection()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -121,7 +121,7 @@ namespace ConnectionHandler
         [Fact]
         public async Task ConcurrentNetTcpClientConnection()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -152,7 +152,7 @@ namespace ConnectionHandler
         [Fact]
         public void MultipleClientsUsingPooledSocket()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -187,7 +187,7 @@ namespace ConnectionHandler
         [Fact]
         public void MessageContract()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
