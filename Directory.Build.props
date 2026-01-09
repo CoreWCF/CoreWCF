@@ -94,6 +94,16 @@
     <CoverletOutput Condition="'$(CoverletOutputDir)' != '' AND '$(CoverletOutput)' == ''">$(CoverletOutputDir)/$(MSBuildProjectName).xml</CoverletOutput>
     <CoverletOutputFormat Condition="'$(CoverletOutputFormat)' == ''">cobertura</CoverletOutputFormat>
   </PropertyGroup>
+
+  <!-- Enable operation invoker generator for test projects -->
+  <PropertyGroup Condition="$(IsTestProject)">
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
+  <ItemGroup Condition="$(IsTestProject)">
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator to the source generator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
+
   <Import Project="$(ProjectDir)resources.props" Condition="Exists('$(ProjectDir)resources.props')" />
   <Import Project="$(ProjectDir)nuspec.props" Condition="!($(IsTestProject) OR $(IsSampleProject)) AND Exists('$(ProjectDir)nuspec.props')" />
   <ItemGroup Condition="$(IsTestProject)">
