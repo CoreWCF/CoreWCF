@@ -10,6 +10,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,7 +29,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task BasicScenariosAndOps()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -83,7 +84,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task BadRequest400ResponseAsync()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

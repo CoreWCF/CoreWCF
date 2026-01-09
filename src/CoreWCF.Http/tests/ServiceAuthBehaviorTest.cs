@@ -15,6 +15,7 @@ using Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -55,7 +56,7 @@ namespace CoreWCF.Http.Tests
         public void BasicHttpRequestReplyEchoWithServiceBehavior(Type type)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
                 host.Start();
@@ -73,7 +74,7 @@ namespace CoreWCF.Http.Tests
         public void AccessDeniedForBasicHttpRequestReplyEcho(Type type)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder(_output, type).Build();
             using (host)
             {
                 host.Start();
@@ -90,7 +91,7 @@ namespace CoreWCF.Http.Tests
         public void Test_HandleRequest_SetsContextUser_WithAuthenticateAsync()
         {
             string testUser = "TestUser";
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithAuthenticationScheme>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithAuthenticationScheme>(_output).Build();
             using (host)
             {
                 host.Start();

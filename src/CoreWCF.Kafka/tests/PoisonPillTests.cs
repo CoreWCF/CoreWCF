@@ -41,7 +41,7 @@ public class PoisonPillTests : IntegrationTest
     public void PoisonPill_Tests(Type startupType)
     {
         const int messageCount = 100;
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
         using (host)
         {
             host.Start();

@@ -6,6 +6,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
@@ -24,7 +25,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullAction()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;
@@ -46,7 +47,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void NullReplyAction()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
             {
                 InvalidOperationException exception = null;

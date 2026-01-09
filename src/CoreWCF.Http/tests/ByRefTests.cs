@@ -6,6 +6,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +25,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void ByRefParams()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

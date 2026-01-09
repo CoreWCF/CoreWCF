@@ -30,7 +30,7 @@ public class FrameworkServiceTests
     [Fact]
     public async Task AsyncWebGetWorks()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             await host.StartAsync();
@@ -46,7 +46,7 @@ public class FrameworkServiceTests
     [Fact]
     public async Task AsyncWebInvokeWorks()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             await host.StartAsync();
@@ -62,7 +62,7 @@ public class FrameworkServiceTests
     [Fact]
     public async Task CanUseJsonWithFormatNotSetExplicitly()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             await host.StartAsync();

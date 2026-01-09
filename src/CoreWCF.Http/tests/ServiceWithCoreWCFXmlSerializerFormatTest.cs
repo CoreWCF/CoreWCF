@@ -33,7 +33,7 @@ namespace BasicHttp
         [Fact]
         public void BasicScenarioServiceMessageParameter()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

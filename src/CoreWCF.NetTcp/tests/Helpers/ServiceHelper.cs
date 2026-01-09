@@ -119,21 +119,21 @@ namespace Helpers
             .UseStartup<TStartup>();
         }
 
-        public static string GetNetTcpAddressInUse(this IWebHost host)
+        public static string GetNetTcpAddressInUse(this IHost host)
         {
             IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(addr => new Uri(addr, UriKind.Absolute));
             var addressInUse = addresses.Single(uri => uri.Port != 5000 && uri.Port != 5001);
             return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
         }
 
-        public static int GetNetTcpPortInUse(this IWebHost host)
+        public static int GetNetTcpPortInUse(this IHost host)
         {
             System.Collections.Generic.ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
             var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
             return addressInUse.Port;
         }
 
-        public static void AssertNoExceptionsLogged<TException>(this IWebHost host) where TException : Exception
+        public static void AssertNoExceptionsLogged<TException>(this IHost host) where TException : Exception
         {
             var provider = host.Services.GetService<ILoggerProvider>() as ExceptionCapturingLoggerProvider;
             Assert.NotNull(provider);

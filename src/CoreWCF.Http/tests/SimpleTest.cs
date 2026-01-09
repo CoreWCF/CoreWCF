@@ -6,6 +6,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,7 +26,7 @@ namespace BasicHttp
         public void BasicHttpRequestReplyEchoString()
         {
             string testString = new('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -42,7 +43,7 @@ namespace BasicHttp
         public void BasicHttpConfigureServiceHostBaseEchoString()
         {
             string testString = new('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithConfiguration>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithConfiguration>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -60,7 +61,7 @@ namespace BasicHttp
         public void BasicHttpNonGenericConfigureServiceHostBaseEchoString()
         {
             string testString = new('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfiguration>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfiguration>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -88,7 +89,7 @@ namespace BasicHttp
                 Assert.Equal(testString, result);
             }
 
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithAllConfiguration>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithAllConfiguration>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -108,7 +109,7 @@ namespace BasicHttp
         public void BasicHttpNonGenericConfigureServiceHostBaseNotAClassThrows()
         {
             string testString = new('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfigurationWithInterface>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithNonGenericConfigurationWithInterface>(_output).Build();
             using (host)
             {
                 var exception = Assert.Throws<ArgumentException>(() => host.Start());
@@ -119,7 +120,7 @@ namespace BasicHttp
         [Fact]
         public void ContentTypeMismatchThrowsProtocolException()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

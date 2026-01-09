@@ -96,7 +96,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_KafkaProducerTest_TestVariations))]
     public async Task KafkaProducerTest(Type startupType, ProducerConfig producerConfig)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
         using (host)
         {
             host.Start();
@@ -209,7 +209,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_ClientSideKafkaBindingTests_TestVariations))]
     public void ClientSideKafkaBindingTests(Type startupType, System.ServiceModel.Channels.Binding binding, int port)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
         using (host)
         {
             host.Start();

@@ -9,6 +9,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,11 +19,11 @@ namespace NetHttp
     public class WebSocketsTests
     {
         private const string NetHttpServiceBaseUriFormat = "http://localhost:{0}";
-        private static string GetNetHttpServiceBaseUri(IWebHost webHost)
+        private static string GetNetHttpServiceBaseUri(IHost webHost)
             => string.Format(NetHttpServiceBaseUriFormat, webHost.GetHttpPort());
-        private static string GetNetHttpBufferedServiceUri(IWebHost webHost)
+        private static string GetNetHttpBufferedServiceUri(IHost webHost)
             => string.Concat(GetNetHttpServiceBaseUri(webHost), Startup.BufferedPath);
-        private static string GetNetHttpDuplexServiceUri(IWebHost webHost)
+        private static string GetNetHttpDuplexServiceUri(IHost webHost)
             => string.Concat(GetNetHttpServiceBaseUri(webHost), StartupUsingDuplexService.DuplexPath);
 
         private readonly ITestOutputHelper _output;
@@ -113,7 +114,7 @@ namespace NetHttp
         public void NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -142,7 +143,7 @@ namespace NetHttp
         public void WebSocketEndpointReturnBadRequestForHttpRequest()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupUsingDuplexService>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupUsingDuplexService>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -170,7 +171,7 @@ namespace NetHttp
         [Fact]
         public void WebSocket_Http_VerifyWebSocketsUsed()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupCreateNotificationOnConnection>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupCreateNotificationOnConnection>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IVerifyWebSockets> factory = null;

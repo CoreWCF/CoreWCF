@@ -25,7 +25,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task SslWorks()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilderWithSsl<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilderWithSsl<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

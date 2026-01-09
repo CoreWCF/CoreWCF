@@ -25,7 +25,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void BasicRequestReplySoap()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<BasicValidationSoapTestsStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<BasicValidationSoapTestsStartup>(_output).Build();
             using (host)
             {
                 host.Start();

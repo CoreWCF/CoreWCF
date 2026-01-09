@@ -29,7 +29,7 @@ public class MessageEncodingTests : IntegrationTest
     [InlineData(ServiceModel.Channels.KafkaMessageEncoding.Binary, typeof(StartupBinaryEncoding))]
     public void EncodingTests(ServiceModel.Channels.KafkaMessageEncoding encoding, Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
         using (host)
         {
             host.Start();

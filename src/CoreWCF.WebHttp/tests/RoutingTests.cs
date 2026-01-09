@@ -25,7 +25,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task NoParam()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -39,7 +39,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task NoParamWithEmptyRoot()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithEmptyRoot>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithEmptyRoot>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -53,7 +53,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task PathParam()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -68,7 +68,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task QueryParam()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -83,7 +83,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task Wildcard()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -98,7 +98,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task CompoundPathSegments()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -113,7 +113,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task NamedWildcard()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -128,7 +128,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task DefaultValue()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
