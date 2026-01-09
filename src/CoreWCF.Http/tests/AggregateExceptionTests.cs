@@ -8,6 +8,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceContract;
 using Xunit;
@@ -32,7 +33,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("SimpleOperationThrowingFault_WithTask")]
         public async Task ServiceOp_ThrowsFaultException(string serviceOpType)
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<AggregateExceptionStartup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

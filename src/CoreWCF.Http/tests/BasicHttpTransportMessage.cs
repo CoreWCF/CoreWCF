@@ -51,7 +51,7 @@ namespace BasicHttp
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
@@ -80,7 +80,7 @@ namespace BasicHttp
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).AllowSynchronousIO().Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).AllowSynchronousIO().Build();
             using (host)
             {
                 host.Start();
@@ -107,7 +107,7 @@ namespace BasicHttp
         public void BasicHttpsCustomBindingRequestReplyEchoStringWithHttps()
         {
             string testString = new string('a', 4000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -135,7 +135,7 @@ namespace BasicHttp
         public void BasicHttpsCustomBindingRequestReplyEchoStringWithHttpThrow()
         {
             string testString = new string('a', 4000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<StartupCustomBinding>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -165,7 +165,7 @@ namespace BasicHttp
         {
             ServicePointManager.ServerCertificateValidationCallback += new RemoteCertificateValidationCallback(ValidateCertificate);
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithCertificate>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -192,7 +192,7 @@ namespace BasicHttp
         public void BasicHttpRequestReplyWithTransportMessageCertificateUsingServiceCredentialsEchoString()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -221,7 +221,7 @@ namespace BasicHttp
         public void BasicHttpRequestReplyWithTransportMessageCertificateUsingServiceCredentialsEchoStringThrow()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<BasicHttpTransportWithMessageCredentialWithUserName>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;

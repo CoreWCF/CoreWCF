@@ -26,7 +26,7 @@ public class AsyncContractTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task AsyncOperationContractTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();

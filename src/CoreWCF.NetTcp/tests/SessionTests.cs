@@ -25,7 +25,7 @@ namespace CoreWCF.NetTcp.Tests
         // A basic test to verify that a session gets created and terminated
         public void Test_IsInitiating_IsTerminating()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ISessionTestClient.ISessionTest> factory = null;
@@ -65,7 +65,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void Test_IsInitiating_IsTerminating_Separate_Channels()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ISessionTestClient.ISessionTest> factory = null;
@@ -116,7 +116,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void Test_Negative_Calling_NonInitiating_Method_First()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ISessionTestClient.ISessionTest> factory = null;
@@ -150,7 +150,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void Test_IsInitiating_NonInitiating_Separate_Channels()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ISessionTestClient.ISessionTest> factory = null;

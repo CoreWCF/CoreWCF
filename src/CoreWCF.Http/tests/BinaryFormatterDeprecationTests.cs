@@ -10,6 +10,7 @@ using CoreWCF.IdentityModel.Selectors;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -73,7 +74,7 @@ public class BinaryFormatterDeprecationTests
     public void BinaryFormatterCodePathTests(Type startupType, Func<System.ServiceModel.Channels.Binding> clientBindingFactory)
     {
         string testString = new('a', 3000);
-        IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
+        IHost host = ServiceHelper.CreateHttpsWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();

@@ -30,7 +30,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact(Skip = "Requires RabbitMQ host with SSL")]
         public void ClassicQueueWithTls_SendReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -64,7 +64,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultClassicQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -94,7 +94,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQuorumQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -124,7 +124,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
             using (host)
             {
                 host.Start();

@@ -28,7 +28,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public async Task FaultOnDiffContractAndOps()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -192,7 +192,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("complexfault")]
         public async Task DatacontractFaults(string f)
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

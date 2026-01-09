@@ -35,7 +35,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
         using (host)
         {
             await host.StartAsync();
@@ -74,7 +74,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
         using (host)
         {
             await host.StartAsync();

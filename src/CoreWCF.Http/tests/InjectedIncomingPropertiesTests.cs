@@ -9,6 +9,7 @@ using CoreWCF.Description;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -29,7 +30,7 @@ public partial class InjectedIncomingPropertiesTests
     public void BasicHttpRequestReplyEchoString()
     {
         string testString = new('a', 3000);
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();

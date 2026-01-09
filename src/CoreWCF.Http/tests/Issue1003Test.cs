@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using CoreWCF.Channels;
 using Helpers;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 using Xunit.Abstractions;
 using static WSHttp.SimpleWSHTTPTest;
@@ -50,7 +51,7 @@ namespace CoreWCF.Http.Tests
         public async Task WSHttpRequestReplyWithTransportMessageCertificateWhenSignatureElementWithPrefix()
         {
             ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext>(_outputHelper).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificateNoSecurityContext>(_outputHelper).Build();
             using (host)
             {
                 host.Start();

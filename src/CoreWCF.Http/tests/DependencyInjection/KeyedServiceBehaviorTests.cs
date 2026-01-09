@@ -30,7 +30,7 @@ public class KeyedServiceBehaviorTests
     public void BasicHttpRequestReplyEchoString()
     {
         string testString = "azerty";
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();

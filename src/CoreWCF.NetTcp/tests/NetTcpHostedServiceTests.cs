@@ -33,7 +33,7 @@ namespace CoreWCF.NetTcp.Tests
             // the .NET Generic Host (https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host)
             // It's not available on asp.net core 2.1 so we couldn't test on .NET Framework
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateNonKestrelWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateNonKestrelWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ServiceContract.IDuplexTestService> factory = null;
@@ -75,7 +75,7 @@ namespace CoreWCF.NetTcp.Tests
             // the .NET Generic Host (https://learn.microsoft.com/en-us/dotnet/core/extensions/generic-host)
             // It's not available on asp.net core 2.1 so we couldn't test on .NET Framework
             string currentUserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-            IWebHost host = ServiceHelper.CreateNonKestrelWebHostBuilder<StartupWithTransportSecurity>(_output).Build();
+            IHost host = ServiceHelper.CreateNonKestrelWebHostBuilder<StartupWithTransportSecurity>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ServiceContract.IDuplexTestService> factory = null;

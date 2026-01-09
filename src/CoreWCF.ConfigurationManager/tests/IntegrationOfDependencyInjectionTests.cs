@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -33,7 +34,7 @@ namespace CoreWCF.ConfigurationManager.Tests
 
         private void AddOneEndpointInContainerCore(IPAddress ipAddress, int port, string expectedBaseUri)
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, ipAddress, port).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, ipAddress, port).Build();
             host.Start();
             var resolver = new DependencyResolverHelper(host);
             IServiceBuilder serviceBuilder = resolver.GetService<IServiceBuilder>();

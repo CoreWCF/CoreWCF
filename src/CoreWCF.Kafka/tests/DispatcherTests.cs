@@ -26,7 +26,7 @@ public class DispatcherTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public void DispatchOperationTests()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             host.Start();

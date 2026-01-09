@@ -16,6 +16,7 @@ using Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -50,7 +51,7 @@ namespace WSHttp
         public void WSHttpRequestReplyEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -79,7 +80,7 @@ namespace WSHttp
         public void WSHttpRequestReplyEchoStringTransportSecurity(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportSecurityOnly>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -114,7 +115,7 @@ namespace WSHttp
         public void WSHttpRequestReplyWithTransportMessageEchoStringDemuxFailure(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -158,7 +159,7 @@ namespace WSHttp
         [InlineData("WS2007HttpBinding")]
         public void WSHttpRequestReplyWithTransportMessageEchoStringUserValidationFailure(string bindingType)
         {
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameExpire>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -201,7 +202,7 @@ namespace WSHttp
         public void WSHttpRequestReplyWithTransportMessageEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserName>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -239,7 +240,7 @@ namespace WSHttp
         public void WSHttpRequestReplyWithTransportMessageCustomValidatorEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameAndToken>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithUserNameAndToken>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -277,7 +278,7 @@ namespace WSHttp
         internal void WSHttpRequestReplyWithTransportMessageCertificateEchoString(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithCertificate>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -315,7 +316,7 @@ namespace WSHttp
         internal void WSHttpRequestImpersonateWithKestrel(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithImpersonation>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -355,7 +356,7 @@ namespace WSHttp
         internal void WSHttpRequestImpersonateWithHttpSys(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateHttpsWebHostBuilderWithHttpSys<WSHttpTransportWithImpersonationHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -390,7 +391,7 @@ namespace WSHttp
         public void WSHttpRequestImpersonateFailsWithoutAuthentication(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<WSHttpNoSecurity>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
@@ -429,7 +430,7 @@ namespace WSHttp
         public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication(string bindingType)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilderWithHttpSys<WSHttpNoSecurityHttpSys>(_output).UseSetting("bindingType", bindingType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;

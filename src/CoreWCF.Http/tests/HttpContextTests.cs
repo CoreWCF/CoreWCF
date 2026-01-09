@@ -7,6 +7,7 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -84,7 +85,7 @@ namespace DependencyInjection
         [Fact]
         public void PerCall()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerCallSimpleService>>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerCallSimpleService>>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -99,7 +100,7 @@ namespace DependencyInjection
         [Fact]
         public void PerSession()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerSessionSimpleService>>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup<PerSessionSimpleService>>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -114,7 +115,7 @@ namespace DependencyInjection
         [Fact]
         public void Single()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<SingleSimpleService>>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup<SingleSimpleService>>(_output).Build();
             using (host)
             {
                 host.Start();

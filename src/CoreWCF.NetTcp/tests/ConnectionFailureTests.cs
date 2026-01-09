@@ -31,7 +31,7 @@ namespace CoreWCF.NetTcp.Tests
         public async Task ServiceReceiveTimeoutAbortsChannel()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<ReceiveTimeoutStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<ReceiveTimeoutStartup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -69,7 +69,7 @@ namespace CoreWCF.NetTcp.Tests
         public async Task ServiceChannelInitializationTimeoutTest()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilderWithoutNetTcp<ReceiveTimeoutStartup>(_output)
+            IHost host = ServiceHelper.CreateWebHostBuilderWithoutNetTcp<ReceiveTimeoutStartup>(_output)
                 .UseNetTcp(options =>
                 {
                     options.Listen("net.tcp://localhost:0/", listenOptions =>

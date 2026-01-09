@@ -7,6 +7,7 @@ using CoreWCF.Http.Tests.Helpers;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.HttpSys;
@@ -38,7 +39,7 @@ namespace CoreWCF.Http.Tests
                     options.Limits.MaxRequestBodySize = 10;
                 });
             });
-            IWebHost host = builder.Build();
+            IHost host = builder.Build();
             using (host)
             {
                 host.Start();
@@ -62,7 +63,7 @@ namespace CoreWCF.Http.Tests
                     options.Limits.MaxRequestBodySize = 100_000;
                 });
             });
-            IWebHost host = builder.Build();
+            IHost host = builder.Build();
             using (host)
             {
                 host.Start();
@@ -89,7 +90,7 @@ namespace CoreWCF.Http.Tests
                     options.MaxRequestBodySize = 10;
                 });
             });
-            IWebHost host = builder.Build();
+            IHost host = builder.Build();
             using (host)
             {
                 host.Start();
@@ -116,7 +117,7 @@ namespace CoreWCF.Http.Tests
                     options.MaxRequestBodySize = 100_000;
                 });
             });
-            IWebHost host = builder.Build();
+            IHost host = builder.Build();
             using (host)
             {
                 host.Start();

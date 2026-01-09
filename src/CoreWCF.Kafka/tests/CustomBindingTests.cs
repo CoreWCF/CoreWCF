@@ -34,7 +34,7 @@ public class CustomBindingTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaProducer_WithServerSideCustomBinding_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -66,7 +66,7 @@ public class CustomBindingTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBinding_WithServerSideCustomBinding_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -92,7 +92,7 @@ public class CustomBindingTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientCustomBinding_WithServerSideCustomBinding_Test()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();

@@ -28,7 +28,7 @@ public class TimeoutTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();
@@ -63,7 +63,7 @@ public class TimeoutTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingCustomBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
         using (host)
         {
             await host.StartAsync();

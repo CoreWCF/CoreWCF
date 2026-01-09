@@ -26,7 +26,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void AddMultipleServices()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback).Build();
             using (host)
             {
                 host.Start();

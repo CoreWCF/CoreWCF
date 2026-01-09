@@ -26,7 +26,7 @@ namespace AsyncServices
         public async Task BufferedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -54,7 +54,7 @@ namespace AsyncServices
         public async Task BufferedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -82,7 +82,7 @@ namespace AsyncServices
         public async Task StreamedSynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;
@@ -110,7 +110,7 @@ namespace AsyncServices
         public async Task StreamedAsynchronouslyCompletingTask()
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<Contract.ITaskService> factory = null;

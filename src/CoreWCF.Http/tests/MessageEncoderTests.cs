@@ -28,7 +28,7 @@ namespace CoreWCF.Http.Tests
         public void BinaryMessageEncoderCompressionFormat_EchoString(Type startupType, System.ServiceModel.Channels.Binding clientBinding)
         {
             string testString = new string('a', 3000);
-            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 host.Start();
