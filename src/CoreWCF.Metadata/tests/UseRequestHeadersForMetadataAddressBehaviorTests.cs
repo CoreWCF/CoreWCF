@@ -21,7 +21,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Theory]
+        [TheorySkipOnUnsupportedNetVersion]
         [InlineData("override.local.io:8081", "http://override.local.io:8081")]
         [InlineData("override.local.io", "http://override.local.io")]
         public async Task WithHostHeader(string hostHeader, string expectedEndpointAddress)
@@ -39,7 +39,7 @@ namespace CoreWCF.Metadata.Tests
                 expectedEndpointAddress);
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task WithoutHostHeader()
         {
             await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(new BasicHttpBinding(),

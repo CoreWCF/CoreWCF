@@ -23,7 +23,7 @@ namespace CoreWCF.Metadata.Tests
             _output = output;
         }
 
-        [Fact]
+        [FactSkipUnsupportedNetVersion]
         public async Task XForwardedHeaders()
         {
             await TestHelper.RunSingleWsdlTestAsync<SimpleEchoService, IEchoService>(new BasicHttpBinding(),
