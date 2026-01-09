@@ -16,6 +16,20 @@ public sealed partial class OperationInvokerGenerator
         private readonly OperationInvokerSourceGenerationContext _sourceGenerationContext;
         private readonly SourceGenerationSpec _generationSpec;
 
+        /// <summary>
+        /// SymbolDisplayFormat that excludes nullable annotations to match reflection-based key generation.
+        /// Reflection-based MethodInfo does not expose nullable reference type annotations, so we need to
+        /// exclude them from the generated key to ensure the source generator key matches the runtime key.
+        /// This prevents PlatformNotSupportedException when UseGeneratedOperationInvokers is enabled.
+        /// </summary>
+        private static readonly SymbolDisplayFormat s_methodDisplayFormat = new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeContainingType,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         public Emitter(in OperationInvokerSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
         {
             _sourceGenerationContext = sourceGenerationContext;
@@ -87,7 +101,7 @@ public sealed partial class OperationInvokerGenerator
             _builder.AppendLine($$"""
                                   namespace CoreWCF.Dispatcher
                                   {
-                                      // This class is used to invoke the method {{operationContractSpec.Method.ToDisplayString()}}.
+                                      // This class is used to invoke the method {{operationContractSpec.Method.ToDisplayString(s_methodDisplayFormat)}}.
                                       file sealed class {{operationInvokerTypeName}} : CoreWCF.Dispatcher.IOperationInvoker
                                       {
                                   """);
@@ -209,7 +223,7 @@ public sealed partial class OperationInvokerGenerator
             _builder.AppendLine();
 
             _builder.Append($"{indentor}internal static void RegisterOperationInvoker() => ");
-            _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker(\"{operationContractSpec.Method.ToDisplayString()}\", new {operationInvokerTypeName}());");
+            _builder.AppendLine($"CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers.RegisterOperationInvoker(\"{operationContractSpec.Method.ToDisplayString(s_methodDisplayFormat)}\", new {operationInvokerTypeName}());");
             indentor.Decrement();
             _builder.AppendLine($"{indentor}}}");
 
