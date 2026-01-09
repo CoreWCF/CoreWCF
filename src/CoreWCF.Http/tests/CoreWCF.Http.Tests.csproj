@@ -1,7 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <!-- Explicitly disable generated operation invokers for this test project to test the traditional code path -->
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator>false</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
   <!-- Everything is in the CoreWCF.Http.Tests.proj file so it can be imported by this project
        and CoreWCF.Http.GeneratedOperationInvokers.Tests.csproj. Previously all the logic was in
        this file, but since .NET 9, the build emits a lot of warnings about the SDK being imported
        twice. This prevents those warnings as CoreWCF.Http.Tests.proj has no SDK declared.-->
   <Import Project="CoreWCF.Http.Tests.proj" />
+  <ItemGroup>
+    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>
