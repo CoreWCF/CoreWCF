@@ -5,11 +5,7 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
-  <ItemGroup>
-    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\src\DiagnosticDescriptors.cs" Link="DiagnosticDescriptors.cs" />
   </ItemGroup>

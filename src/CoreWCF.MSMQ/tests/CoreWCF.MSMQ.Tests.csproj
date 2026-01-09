@@ -4,12 +4,7 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <IsPackable>false</IsPackable>
-    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
-
-  <ItemGroup>
-    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\msmqEmptyTestMessage.bin" />
