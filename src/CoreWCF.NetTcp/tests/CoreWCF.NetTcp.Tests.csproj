@@ -5,7 +5,11 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ServiceModel.Primitives" />
     <PackageReference Include="System.ServiceModel.NetTcp" />

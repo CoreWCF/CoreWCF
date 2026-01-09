@@ -4,7 +4,12 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <IsPackable>false</IsPackable>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\msmqEmptyTestMessage.bin" />
@@ -27,6 +32,7 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Queue\src\CoreWCF.Queue.csproj" />
     <ProjectReference Include="..\src\CoreWCF.MSMQ.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>
