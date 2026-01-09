@@ -33,10 +33,13 @@ namespace CoreWCF.Dispatcher
                     .Where(static data => data.ArgumentType == typeof(bool))
                     .ToList();
 
-                return assemblyAttributeArgsData.Count > 0 && assemblyAttributeArgsData[0].Value is true;
+                if (assemblyAttributeArgsData.Count > 0)
+                {
+                    return assemblyAttributeArgsData[0].Value is true;
+                }
             }
 
-            return false;
+            return true;
         });
 
         public OperationInvokerBehavior()

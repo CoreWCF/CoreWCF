@@ -9,6 +9,8 @@
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <!-- Explicitly disable generated operation invokers for this test project to test the traditional code path -->
+    <EnableCoreWCFOperationInvokerGenerator>false</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="IsExternalInit">
