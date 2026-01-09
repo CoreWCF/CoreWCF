@@ -4,7 +4,12 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <IsPackable>false</IsPackable>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" />
@@ -30,6 +35,7 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.Http\src\CoreWCF.Http.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.NetTcp\src\CoreWCF.NetTcp.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.NetNamedPipe\src\CoreWCF.NetNamedPipe.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,7 +4,12 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <IsPackable>false</IsPackable>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <PackageReference Include="Microsoft.AspNetCore" />
@@ -16,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="..\src\CoreWCF.Queue.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,7 +5,11 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" />
   </ItemGroup>
@@ -41,5 +45,6 @@
   <ItemGroup>
     <ProjectReference Include="..\src\CoreWCF.NetNamedPipe.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>
