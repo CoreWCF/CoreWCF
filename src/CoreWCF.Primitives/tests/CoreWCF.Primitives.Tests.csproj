@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <!-- Explicitly disable generated operation invokers for this test project to test the traditional code path -->
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator>false</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
   <PropertyGroup>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -25,5 +29,11 @@
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Http/src/CoreWCF.Http.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>
