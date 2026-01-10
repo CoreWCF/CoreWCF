@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
+using System.IO.Pipelines;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Runtime;
-using Microsoft.Extensions.ObjectPool;
 
 namespace CoreWCF.Channels
 {
@@ -133,11 +134,11 @@ namespace CoreWCF.Channels
                 return IsJsonContentType(contentType);
             }
 
-            public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+            public override ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
             {
-                if (bufferManager == null)
+                if (memoryPool == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(bufferManager)));
+                    throw Fx.Exception.ArgumentNull(nameof(memoryPool));
                 }
 
                 //if (WebTD.JsonMessageDecodingStartIsEnabled())
@@ -149,7 +150,9 @@ namespace CoreWCF.Channels
 
                 JsonBufferedMessageData messageData = TakeBufferedReader();
                 messageData.Encoding = ContentTypeHelpers.GetEncodingFromContentType(contentType, JsonMessageEncoderFactory.s_applicationJsonContentEncoding);
-                messageData.Open(buffer, bufferManager);
+
+                messageData.Open(buffer);
+
                 RecycledMessageState messageState = messageData.TakeMessageState();
                 if (messageState == null)
                 {
@@ -172,7 +175,7 @@ namespace CoreWCF.Channels
                 //    MessageLogger.LogMessage(ref message, MessageLoggingSource.TransportReceive);
                 //}
 
-                return message;
+                return new ValueTask<Message>(message);
             }
 
             public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
@@ -467,16 +470,14 @@ namespace CoreWCF.Channels
 
                 protected override XmlDictionaryReader TakeXmlReader()
                 {
-                    ArraySegment<byte> buffer = Buffer;
-
                     XmlDictionaryReader xmlReader = _readerPool.Take();
                     if (xmlReader == null)
                     {
-                        xmlReader = JsonReaderWriterFactory.CreateJsonReader(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
+                        xmlReader = JsonReaderWriterFactory.CreateJsonReader(PipeReader.Create(ReadOnlyBuffer).AsStream(), _encoding, Quotas, _onClose);
                     }
                     else
                     {
-                        ((IXmlJsonReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
+                        ((IXmlJsonReaderInitializer)xmlReader).SetInput(PipeReader.Create(ReadOnlyBuffer).AsStream(), _encoding, Quotas, _onClose);
                     }
 
                     return xmlReader;

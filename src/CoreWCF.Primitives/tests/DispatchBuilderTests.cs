@@ -150,7 +150,7 @@ namespace DispatchBuilder
 
             IChannel mockChannel = new MockReplyChannel(serviceProvider);
             IServiceChannelDispatcher dispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
-            var requestContext = XmlSerializerTestRequestContext.Create(serviceAddress);
+            var requestContext = await XmlSerializerTestRequestContext.CreateAsync(serviceAddress);
             await dispatcher.DispatchAsync(requestContext);
             Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
             requestContext.ValidateReply();

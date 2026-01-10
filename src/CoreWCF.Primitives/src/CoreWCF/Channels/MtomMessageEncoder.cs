@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipelines;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -359,10 +361,12 @@ namespace CoreWCF.Channels
             return (_version.Envelope == EnvelopeVersion.Soap12) ? TextMessageEncoderFactory.Soap12MediaType : TextMessageEncoderFactory.Soap11MediaType;
         }
 
-        public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+        public override ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
         {
-            if (bufferManager == null)
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
+            if (memoryPool == null)
+            {
+                throw Fx.Exception.ArgumentNull(nameof(memoryPool));
+            }
 
             if (contentType == ContentType)
                 contentType = null;
@@ -374,7 +378,9 @@ namespace CoreWCF.Channels
 
             MtomBufferedMessageData messageData = _factory.TakeBufferedReader(this);
             messageData._contentType = contentType;
-            messageData.Open(buffer, bufferManager);
+
+            messageData.Open(buffer);
+
             RecycledMessageState messageState = messageData.TakeMessageState();
             if (messageState == null)
                 messageState = new RecycledMessageState();
@@ -391,7 +397,7 @@ namespace CoreWCF.Channels
             //         this);
             // }
 
-            return message;
+            return new ValueTask<Message>(message);
         }
 
         public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
@@ -610,18 +616,16 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    ArraySegment<byte> buffer = Buffer;
-
                     XmlDictionaryReader xmlReader = _readerPool.Take();
                     if (_contentType == null || _messageEncoder.IsMTOMContentType(_contentType))
                     {
                         if (xmlReader != null && xmlReader is IXmlMtomReaderInitializer)
                         {
-                            ((IXmlMtomReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
+                            ((IXmlMtomReaderInitializer)xmlReader).SetInput(PipeReader.Create(ReadOnlyBuffer).AsStream(), MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
                         }
                         else
                         {
-                            xmlReader = XmlMtomReader.Create(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
+                            xmlReader = XmlMtomReader.Create(PipeReader.Create(ReadOnlyBuffer).AsStream(), MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
                             // if (WcfEventSource.Instance.ReadPoolMissIsEnabled())
                             // {
                             //     WcfEventSource.Instance.ReadPoolMiss(xmlReader.GetType().Name);
@@ -632,11 +636,11 @@ namespace CoreWCF.Channels
                     {
                         if (xmlReader != null && xmlReader is IXmlTextReaderInitializer)
                         {
-                            ((IXmlTextReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, TextMessageEncoderFactory.GetEncodingFromContentType(_contentType, _messageEncoder._factory.ContentEncodingMap), Quotas, _onClose);
+                            ((IXmlTextReaderInitializer)xmlReader).SetInput(PipeReader.Create(ReadOnlyBuffer).AsStream(), TextMessageEncoderFactory.GetEncodingFromContentType(_contentType, _messageEncoder._factory.ContentEncodingMap), Quotas, _onClose);
                         }
                         else
                         {
-                            xmlReader = XmlDictionaryReader.CreateTextReader(buffer.Array, buffer.Offset, buffer.Count, TextMessageEncoderFactory.GetEncodingFromContentType(_contentType, _messageEncoder._factory.ContentEncodingMap), Quotas, _onClose);
+                            xmlReader = XmlDictionaryReader.CreateTextReader(PipeReader.Create(ReadOnlyBuffer).AsStream(), TextMessageEncoderFactory.GetEncodingFromContentType(_contentType, _messageEncoder._factory.ContentEncodingMap), Quotas, _onClose);
                             // if (WcfEventSource.Instance.ReadPoolMissIsEnabled())
                             // {
                             //     WcfEventSource.Instance.ReadPoolMiss(xmlReader.GetType().Name);

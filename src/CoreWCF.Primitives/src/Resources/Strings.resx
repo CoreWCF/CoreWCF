@@ -9705,6 +9705,9 @@
   <data name="XmlWriterBackedStreamPropertySetNotSupported" xml:space="preserve">
     <value>The set accessor of the '{0}' property is not supported by the stream.</value>
   </data>
+  <data name="MessageEncoderReadMessageArraySegmentIsDeprecated" xml:space="preserve">
+    <value>implementers should implement ReadMessageAsync(ReadOnlySequence&lt;byte&gt; buffer, string contentType) instead.</value>
+  </data>
   <data name="AuthorizationFeaturesAreMutuallyExclusive" xml:space="preserve">
     <value>Invalid configuration. The security of the Binding is configured with ClientCredentialType set to 'InheritedFromHost' which implies that only native ASP.NET Core Authorization will be ran. Applying a custom 'ServiceAuthorizationManager' and/or setting the 'ServiceAuthorizationBehavior.ExternalAuthorizationPolicies' property is not supported. Please see https://learn.microsoft.com/en-us/aspnet/core/security/authorization to configure ASP.NET Core Authorization.</value>
   </data>
@@ -9713,6 +9716,9 @@
   </data>
   <data name="WebHostRequired" xml:space="preserve">
     <value>WebHost required for the CoreWCF service configuration. Use IApplicationBuilder.UseServiceModel instead.</value>
+  </data>
+  <data name="BufferCannotBeEmpty" xml:space="preserve">
+    <value>The buffer cannot be empty</value>
   </data>
   <data name="PublicKeyNotFoundInX509SecurityKey" xml:space="preserve">
     <value>PublicKey is not found in the X509SecurityKey. SignatureMethod is {0}</value>
