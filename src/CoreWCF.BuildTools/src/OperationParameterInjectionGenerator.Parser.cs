@@ -46,7 +46,8 @@ public sealed partial class OperationParameterInjectionGenerator
                     let methodSymbol = symbol as IMethodSymbol
                     select methodSymbol).ToImmutableArray();
 
-                var methodServiceContractAndOperationContractsValues = from method in methods
+                // Query for interface-based service contracts
+                var interfaceBasedContracts = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
                     where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
                     let methodMembers = (from member in @interface.GetMembers()
@@ -56,7 +57,22 @@ public sealed partial class OperationParameterInjectionGenerator
                             _coreWCFOperationContractSymbol)
                         where operationContractAttribute is not null
                         select (MethodMember: methodMember, AttributeData: operationContractAttribute)).ToImmutableArray()
-                    select (Method: method, ServiceContract: @interface, OperationContracts: methodMembers);
+                    select (Method: method, ServiceContract: (INamedTypeSymbol)@interface, OperationContracts: methodMembers);
+
+                // Query for class-based service contracts
+                // For class-based contracts, the method itself has the OperationContract attribute
+                // We treat the method as both the "contract" and the "implementation"
+                var classBasedContracts = from method in methods
+                    let containingType = method.ContainingType
+                    where containingType.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    let operationContractAttribute = method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
+                    where operationContractAttribute is not null
+                    // Create a "virtual" operation contract that represents what the signature should be without injected parameters
+                    let methodMembers = ImmutableArray.Create((MethodMember: method, AttributeData: operationContractAttribute))
+                    select (Method: method, ServiceContract: containingType, OperationContracts: methodMembers);
+
+                // Combine both interface-based and class-based contracts
+                var methodServiceContractAndOperationContractsValues = interfaceBasedContracts.Concat(classBasedContracts);
 
                 var methodMissingOperationServiceContractAndOperationContractsValues =
                     from value in methodServiceContractAndOperationContractsValues
