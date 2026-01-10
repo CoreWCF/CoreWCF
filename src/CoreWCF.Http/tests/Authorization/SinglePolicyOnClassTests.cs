@@ -27,7 +27,7 @@ public class SinglePolicyOnClassTests
     [Fact]
     public void AuthorizeDataOnClass_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -43,7 +43,7 @@ public class SinglePolicyOnClassTests
     [Fact]
     public void AuthorizeDataOnClass_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -58,7 +58,7 @@ public class SinglePolicyOnClassTests
     [Fact]
     public void AuthorizeDataOnClass_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<SinglePolicyOnClassWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();

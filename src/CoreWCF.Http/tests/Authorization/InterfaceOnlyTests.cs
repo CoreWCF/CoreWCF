@@ -32,7 +32,7 @@ public class InterfaceOnlyTests
     [Fact]
     public void InterfaceOnly_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -48,7 +48,7 @@ public class InterfaceOnlyTests
     [Fact]
     public void InterfaceOnly_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -63,7 +63,7 @@ public class InterfaceOnlyTests
     [Fact]
     public void InterfaceOnly_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<InterfaceOnlyWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();

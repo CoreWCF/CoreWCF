@@ -121,7 +121,7 @@ namespace CoreWCF.NetTcp.Tests
         private async Task<TService> RunAsync<TService>()
             where TService : class
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup<TService>>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup<TService>>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<IAsyncService> factory = null;

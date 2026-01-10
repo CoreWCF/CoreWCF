@@ -30,7 +30,7 @@ public class ScopedAuthorizationHandlerTests
     [Fact]
     public void SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_ScopedAuthorizationHandler_Test()
     {
-        IHost host = ServiceHelper
+        IWebHost host = ServiceHelper
             .CreateDefaultWebHostBuilder<
                 SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndScopedAuthorizationHandlerStartup>(
                 _output)
@@ -57,7 +57,7 @@ public class ScopedAuthorizationHandlerTests
     [Fact]
     public void SinglePolicy_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper
+        IWebHost host = ServiceHelper
             .CreateDefaultWebHostBuilder<SinglePolicyOnMethodWithUnauthenticatedUserAndScopedAuthorizationHandlerStartup>(_output)
             .UseDefaultServiceProvider(options =>
             {
@@ -81,7 +81,7 @@ public class ScopedAuthorizationHandlerTests
     [Fact]
     public void SinglePolicy_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper
+        IWebHost host = ServiceHelper
             .CreateDefaultWebHostBuilder<
                 SinglePolicyOnMethodWithAuthenticatedUserButMissingScopeValuesAndScopedAuthorizationHandlerStartup>(_output)
             .UseDefaultServiceProvider(options =>

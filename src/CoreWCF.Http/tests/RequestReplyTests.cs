@@ -8,7 +8,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
@@ -42,7 +41,7 @@ namespace CoreWCF.Http.Tests
                 });
             });
 
-            IHost host = hostBuilder.Build();
+            IWebHost host = hostBuilder.Build();
             using (host)
             {
                 host.Start();

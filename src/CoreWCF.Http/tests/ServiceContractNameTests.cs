@@ -6,7 +6,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceContract;
 using Xunit;
@@ -17,7 +16,7 @@ namespace CoreWCF.Http.Tests
     public class ServiceContractNameTests
     {
         private readonly ITestOutputHelper _output;
-        private IHost _host;
+        private IWebHost _host;
 
         public ServiceContractNameTests(ITestOutputHelper output)
         {

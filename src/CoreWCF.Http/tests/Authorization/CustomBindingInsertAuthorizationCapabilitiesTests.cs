@@ -34,7 +34,7 @@ public class CustomBindingInsertAuthorizationCapabilitiesTests
     [Fact]
     public void CustomBinding_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -50,7 +50,7 @@ public class CustomBindingInsertAuthorizationCapabilitiesTests
     [Fact]
     public void CustomBinding_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -65,7 +65,7 @@ public class CustomBindingInsertAuthorizationCapabilitiesTests
     [Fact]
     public void CustomBinding_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();

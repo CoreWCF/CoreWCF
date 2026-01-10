@@ -28,7 +28,7 @@ public class MultiplePoliciesTests
     [Fact]
     public void MultiplePolicies_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -44,7 +44,7 @@ public class MultiplePoliciesTests
     [Fact]
     public void MultiplePolicies_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<MultiplePoliciesOnOperationContractWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -61,7 +61,7 @@ public class MultiplePoliciesTests
     [InlineData(typeof(MultiplePoliciesOnOperationContractWithAuthenticatedUserButMissingReadScopeValueStartup))]
     public void MultiplePolicies_AuthenticatedUser_ButMissingScopeValues_Test(Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             host.Start();

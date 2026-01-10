@@ -41,7 +41,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionWindowsAuth(Type startupType)
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -72,7 +72,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseWindowsGroups()
         {
             string testString = "a" + PrincipalPermissionMode.UseWindowsGroups + "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseWindowsGroup>(_output).Build();
             AssertForCommon(testString, host);
         }
 
@@ -80,7 +80,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseAlways()
         {
             string testString = "a" + PrincipalPermissionMode.Always + "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseAlways>(_output).Build();
             AssertForCommon(testString, host);
         }
 
@@ -88,7 +88,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientConnectionUseNone()
         {
             string testString = "a" + PrincipalPermissionMode.None + "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<PermissionUseNone>(_output).Build();
             AssertForCommon(testString, host);
         }
 
@@ -96,7 +96,7 @@ namespace CoreWCF.NetTcp.Tests
         public void SimpleNetTcpClientImpersonateUser()
         {
             string sourceString = "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<ImpersonateCallerForAll>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory = null;
@@ -123,7 +123,7 @@ namespace CoreWCF.NetTcp.Tests
             }
         }
 
-        private void AssertForCommon(string sourceString, IHost host)
+        private void AssertForCommon(string sourceString, IWebHost host)
         {
             using (host)
             {

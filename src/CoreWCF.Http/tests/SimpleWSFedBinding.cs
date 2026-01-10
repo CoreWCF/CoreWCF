@@ -11,7 +11,6 @@ using CoreWCF.Security;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
@@ -39,7 +38,7 @@ namespace WSFed
         public void WSFedHttpRequestReplyEchoString(string tokenType, bool isToEstablishSecurityContext, bool isUserIdentity)
         {
             string testString = new string('a', 3000);
-            IHost host;
+            IWebHost host;
             if (!isToEstablishSecurityContext)
             {
                 host = isUserIdentity ? ServiceHelper.CreateHttpsWebHostBuilder<WSFedNoEstablishSecurityContextWithUserIdentity>(_output).Build()

@@ -9,7 +9,6 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ServiceContract;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +18,7 @@ namespace CoreWCF.Http.Tests
     public class ServiceWithContractInheritanceTests
     {
         private readonly ITestOutputHelper _output;
-        private IHost _host;
+        private IWebHost _host;
 
         public ServiceWithContractInheritanceTests(ITestOutputHelper output)
         {

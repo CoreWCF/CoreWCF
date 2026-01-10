@@ -11,7 +11,6 @@ using System.Text;
 using ClientContract;
 using CoreWCF.Http.Tests.Helpers;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 
 namespace Helpers
 {
@@ -303,7 +302,7 @@ namespace Helpers
             return GetStringFrom(stream);
         }
 
-        public static T GetProxy<T>(Microsoft.Extensions.Hosting.IHost host)
+        public static T GetProxy<T>(IWebHost host)
         {
             BasicHttpBinding httpBinding = GetBufferedModeBinding();
             ChannelFactory<T> channelFactory = new ChannelFactory<T>(httpBinding, new EndpointAddress(new Uri($"http://localhost:{host.GetHttpPort()}/BasicWcfService/basichttp.svc")));

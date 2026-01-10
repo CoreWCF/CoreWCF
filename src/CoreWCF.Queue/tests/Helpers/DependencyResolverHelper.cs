@@ -3,16 +3,15 @@
 
 using System;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoreWCF.Queue.Tests.Helpers;
 
 internal class DependencyResolverHelper
 {
-    private readonly IHost _webHost;
+    private readonly IWebHost _webHost;
 
-    public DependencyResolverHelper(IHost webHost)
+    public DependencyResolverHelper(IWebHost webHost)
     {
         _webHost = webHost;
     }

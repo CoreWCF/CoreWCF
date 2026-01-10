@@ -29,7 +29,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
                  where TService : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 binding,
                 EndpointRelativePath,
                 configureServices,
@@ -65,7 +65,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
                 [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService1 : class where TService2 : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService1, TService2, TContract1, TContract2>(
                 binding1,
                 binding2,
                 EndpointRelativePath,
@@ -105,7 +105,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
                 [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 bindingEndpointMap,
                 baseAddresses,
                 output,
@@ -143,7 +143,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
                  where TService : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 binding,
                 EndpointRelativePath,
                 configureServices,
@@ -184,7 +184,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
                 [System.Runtime.CompilerServices.CallerMemberName] string callerMethodName = "",
                 [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "") where TService : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 bindingEndpointMap,
                 baseAddresses,
                 output,
@@ -229,7 +229,7 @@ namespace CoreWCF.Metadata.Tests.Helpers
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "")
                  where TService : class
         {
-            IHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
+            IWebHost host = ServiceHelper.CreateHttpWebHostBuilderWithMetadata<TService, TContract>(
                 binding,
                 EndpointRelativePath,
                 configureServices,

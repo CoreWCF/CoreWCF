@@ -9,7 +9,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
@@ -39,7 +38,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("untypedreplyaction")]
         public void OperationContractActionReplyActionBehaviorTests(string variation)
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();

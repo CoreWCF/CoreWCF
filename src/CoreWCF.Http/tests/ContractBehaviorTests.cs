@@ -8,7 +8,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
@@ -19,7 +18,7 @@ namespace CoreWCF.Http.Tests
     public class ContractBehaviorTests
     {
         private readonly ITestOutputHelper _output;
-        private IHost _host;
+        private IWebHost _host;
 
         public ContractBehaviorTests(ITestOutputHelper output)
         {

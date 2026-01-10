@@ -27,7 +27,7 @@ public class DefaultPolicyTests
     [Fact]
     public void DefaultPolicy_AuthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserAndRequiredClaimValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -43,7 +43,7 @@ public class DefaultPolicyTests
     [Fact]
     public void DefaultPolicy_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -58,7 +58,7 @@ public class DefaultPolicyTests
     [Fact]
     public void DefaultPolicy_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultPolicyWithAuthenticatedUserButMissingScopeClaimValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();

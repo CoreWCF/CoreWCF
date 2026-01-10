@@ -25,7 +25,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task AsyncWebGetWorks()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -41,7 +41,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task AsyncWebInvokeWorks()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
