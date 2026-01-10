@@ -60,9 +60,19 @@ public static class ServiceHelper
             var args = new object[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                args[i] = parameters[i].ParameterType == typeof(IApplicationBuilder) 
-                    ? app 
-                    : app.Services.GetRequiredService(parameters[i].ParameterType);
+                if (parameters[i].ParameterType == typeof(IApplicationBuilder))
+                {
+                    args[i] = app;
+                }
+                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
+                {
+                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
+                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
+                }
+                else
+                {
+                    args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
+                }
             }
             configureMethod.Invoke(startup, args);
         }
@@ -104,9 +114,19 @@ public static class ServiceHelper
             var args = new object[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                args[i] = parameters[i].ParameterType == typeof(IApplicationBuilder) 
-                    ? app 
-                    : app.Services.GetRequiredService(parameters[i].ParameterType);
+                if (parameters[i].ParameterType == typeof(IApplicationBuilder))
+                {
+                    args[i] = app;
+                }
+                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
+                {
+                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
+                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
+                }
+                else
+                {
+                    args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
+                }
             }
             configureMethod.Invoke(startup, args);
         }
@@ -147,9 +167,19 @@ public static class ServiceHelper
             var args = new object[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                args[i] = parameters[i].ParameterType == typeof(IApplicationBuilder) 
-                    ? app 
-                    : app.Services.GetRequiredService(parameters[i].ParameterType);
+                if (parameters[i].ParameterType == typeof(IApplicationBuilder))
+                {
+                    args[i] = app;
+                }
+                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
+                {
+                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
+                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
+                }
+                else
+                {
+                    args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
+                }
             }
             configureMethod.Invoke(startup, args);
         }
