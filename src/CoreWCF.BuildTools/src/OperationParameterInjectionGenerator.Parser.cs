@@ -65,12 +65,14 @@ public sealed partial class OperationParameterInjectionGenerator
 
                 // Query for class-based service contracts
                 // For class-based contracts, we need methods that have:
-                // 1. OperationContract attribute
+                // 1. OperationContract attribute ON THE METHOD
                 // 2. Containing type has ServiceContract attribute
-                // Note: We don't filter for injected parameters here - the matching logic will handle it
+                // 3. Only include if no interfaces have ServiceContract (pure class-based contract)
                 var classBasedContracts = from method in methods
                     let containingType = method.ContainingType
                     where containingType.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    // Exclude methods where the class implements an interface with ServiceContract (those are handled by interfaceBasedContracts)
+                    where !containingType.AllInterfaces.Any(i => i.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null)
                     let operationContractAttribute = method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
                     where operationContractAttribute is not null
                     // For class-based contracts, the method itself serves as the operation contract
@@ -94,8 +96,10 @@ public sealed partial class OperationParameterInjectionGenerator
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
                         value.ServiceContract, value.OperationContracts);
 
+                // Build operation contract specs
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
 
+                // Handle interface-based contracts
                 foreach (var value in methodMissingOperationServiceContractAndOperationContractsValues)
                 {
                     if (!value.Method.ContainingType.IsPartial(out INamedTypeSymbol parentType))
@@ -108,6 +112,50 @@ public sealed partial class OperationParameterInjectionGenerator
                         value.Method.ContainingType, value.MissingOperationContract.MethodMember,
                         value.Method,
                         _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol, value.MissingOperationContract.AttributeData));
+                }
+
+                // Handle pure class-based contracts (class has ServiceContract, no interfaces with ServiceContract)
+                foreach (var method in methods)
+                {
+                    var containingType = method.ContainingType;
+                    
+                    // Check if class has ServiceContract attribute
+                    var classServiceContractAttribute = containingType.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol);
+                    if (classServiceContractAttribute is null)
+                        continue;
+                    
+                    // Skip if class implements any interface with ServiceContract (those are handled above)
+                    bool hasServiceContractInterface = false;
+                    foreach (var iface in containingType.AllInterfaces)
+                    {
+                        if (iface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null)
+                        {
+                            hasServiceContractInterface = true;
+                            break;
+                        }
+                    }
+                    if (hasServiceContractInterface)
+                        continue;
+                    
+                    // Check if method has OperationContract attribute
+                    var operationContractAttribute = method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol);
+                    if (operationContractAttribute is null)
+                        continue;
+                    
+                    // Check if class is partial
+                    if (!containingType.IsPartial(out INamedTypeSymbol parentType))
+                    {
+                        _context.ReportDiagnostic(DiagnosticDescriptors.OperationParameterInjectionGenerator_01XX.RaiseParentClassShouldBePartialError(parentType.Name, method.Name, parentType.Locations[0]));
+                        continue;
+                    }
+                    
+                    // Add spec for class-based contract
+                    // For class-based contracts, both MissingOperationContract and UserProvidedOperationContractImplementation are the same method
+                    // ServiceContract and ServiceContractImplementation are the same class
+                    builder.Add(new OperationContractSpec(containingType,
+                        containingType, method,
+                        method,
+                        _httpContextSymbol, _httpRequestSymbol, _httpResponseSymbol, operationContractAttribute));
                 }
 
                 ImmutableArray<OperationContractSpec> operationContractSpecs = builder.ToImmutable();
