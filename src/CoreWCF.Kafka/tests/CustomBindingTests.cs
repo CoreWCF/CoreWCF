@@ -25,8 +25,8 @@ public class CustomBindingTests : IntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Create></s:Body>"
         + @"</s:Envelope>";
 
-    public CustomBindingTests(ITestOutputHelper output)
-        : base(output)
+    public CustomBindingTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -43,7 +43,7 @@ public class CustomBindingTests : IntegrationTest
             testService.CountdownEvent.Reset(1);
             using var producer = new ProducerBuilder<Null, string>(new ProducerConfig
                 {
-                    BootstrapServers = "localhost:9092",
+                    BootstrapServers = KafkaEx.GetBootstrapServers(),
                     Acks = Acks.All
                 })
                 .SetKeySerializer(Serializers.Null)
@@ -76,7 +76,7 @@ public class CustomBindingTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -106,7 +106,7 @@ public class CustomBindingTests : IntegrationTest
                 customBinding.Elements.Find<ServiceModel.Channels.KafkaTransportBindingElement>();
             transport.CompressionType = CompressionType.Snappy;
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(customBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -143,7 +143,7 @@ public class CustomBindingTests : IntegrationTest
                 var customBinding = new CustomBinding(binding);
                 KafkaTransportBindingElement transport = customBinding.Elements.Find<KafkaTransportBindingElement>();
                 transport.Debug = "all";
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

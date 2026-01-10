@@ -20,8 +20,8 @@ namespace CoreWCF.Kafka.Tests;
 
 public class KafkaSemanticsTests : IntegrationTest
 {
-    public KafkaSemanticsTests(ITestOutputHelper output)
-        : base(output)
+    public KafkaSemanticsTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
     }
 
@@ -41,7 +41,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -76,7 +76,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             for (int i = 0; i < messageCount; i++)
@@ -131,7 +131,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -167,7 +167,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -214,7 +214,7 @@ public class KafkaSemanticsTests : IntegrationTest
                 var transport = customBinding.Elements.Find<KafkaTransportBindingElement>();
                 // transport.AutoCommitIntervalMs = 5000;
                 // transport.Debug = "consumer";
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -240,7 +240,7 @@ public class KafkaSemanticsTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtLeastOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -272,7 +272,7 @@ public class KafkaSemanticsTests : IntegrationTest
                 // we do support disabling auto-commit and commit synchronously per message but as this is discouraged for performance reason,
                 // this configuration requires a CustomBinding
                 transport.EnableAutoCommit = false;
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -299,7 +299,7 @@ public class KafkaSemanticsTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

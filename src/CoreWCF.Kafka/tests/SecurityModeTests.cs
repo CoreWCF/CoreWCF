@@ -27,7 +27,7 @@ public class SecurityModeTests : IntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Create></s:Body>"
         + @"</s:Envelope>";
 
-    public SecurityModeTests(ITestOutputHelper output)
+    public SecurityModeTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
         : base(output )
     {
 

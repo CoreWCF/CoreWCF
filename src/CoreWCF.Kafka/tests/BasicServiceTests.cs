@@ -111,7 +111,7 @@ public class BasicServiceTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
