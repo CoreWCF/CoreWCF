@@ -53,7 +53,6 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
                 .WithEntrypoint("/bin/bash", "-c")
                 .WithCommand("chmod +x /root/.local/share/kafka-secrets/generate-kafka-secrets.sh && /root/.local/share/kafka-secrets/generate-kafka-secrets.sh")
                 .WithNetwork(_network)
-                .WithWaitStrategy(Wait.ForUnixContainer().AddCustomWaitStrategy(new WaitUntilSecretsGenerated()))
                 .Build();
 
             await _generateSecretsContainer.StartAsync();
@@ -104,15 +103,6 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
         {
             await _network.DeleteAsync();
             await _network.DisposeAsync();
-        }
-    }
-
-    private sealed class WaitUntilSecretsGenerated : IWaitUntil
-    {
-        public async Task<bool> UntilAsync(IContainer container)
-        {
-            var exitCode = await container.GetExitCodeAsync();
-            return exitCode == 0;
         }
     }
 }
