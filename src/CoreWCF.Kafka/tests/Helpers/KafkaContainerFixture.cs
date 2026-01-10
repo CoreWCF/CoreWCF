@@ -39,8 +39,16 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
 
         await _network.CreateAsync();
 
-        // Get the path to kafka-secrets directory
-        string secretsPath = Path.Combine(Directory.GetCurrentDirectory(), "kafka-secrets");
+        // Get the path to kafka-secrets directory - it's in the source tree, not the output directory
+        // We need to traverse up from the assembly location to find it
+        string assemblyDir = Path.GetDirectoryName(typeof(KafkaContainerFixture).Assembly.Location);
+        // Go up 4 levels: net8.0 -> CoreWCF.Kafka.Tests -> Debug -> bin -> CoreWCF (repo root)
+        string secretsPath = Path.GetFullPath(Path.Combine(assemblyDir, "..", "..", "..", "..", "src", "CoreWCF.Kafka", "tests", "kafka-secrets"));
+        
+        if (!Directory.Exists(secretsPath))
+        {
+            throw new DirectoryNotFoundException($"Could not find kafka-secrets directory. Searched: {secretsPath}. Assembly location: {assemblyDir}");
+        }
 
         // Generate Kafka secrets first if files don't exist
         if (!File.Exists(Path.Combine(secretsPath, "broker.keystore.jks")))
@@ -83,8 +91,12 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
 
         await _kafkaContainer.StartAsync();
 
-        // Set bootstrap servers
-        BootstrapServers = _kafkaContainer.GetBootstrapAddress();
+        // Set bootstrap servers - need to extract just host:port from the full URI returned by GetBootstrapAddress()
+        var bootstrapAddress = _kafkaContainer.GetBootstrapAddress();
+        // GetBootstrapAddress() returns something like "plaintext://127.0.0.1:32770/"
+        // We need to extract just "127.0.0.1:32770"
+        var uri = new Uri(bootstrapAddress);
+        BootstrapServers = $"{uri.Host}:{uri.Port}";
     }
 
     public async Task DisposeAsync()

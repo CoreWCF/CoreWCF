@@ -28,16 +28,16 @@ public class IntegrationTest : IAsyncLifetime, IClassFixture<KafkaContainerFixtu
             DeadLetterQueueTopic = $"{Topic}-DLQ";
         }
         ConsumerGroup = $"cg-{Guid.NewGuid()}";
-
-        // Set the bootstrap servers for KafkaEx
-        if (!string.IsNullOrEmpty(_containerFixture.BootstrapServers))
-        {
-            KafkaEx.SetBootstrapServers(_containerFixture.BootstrapServers);
-        }
     }
 
     public async Task InitializeAsync()
     {
+        // Set the bootstrap servers for KafkaEx after the fixture has initialized
+        if (!string.IsNullOrEmpty(_containerFixture.BootstrapServers))
+        {
+            KafkaEx.SetBootstrapServers(_containerFixture.BootstrapServers);
+        }
+        
         await KafkaEx.CreateTopicAsync(Output, Topic);
         if (_useDlq)
         {
