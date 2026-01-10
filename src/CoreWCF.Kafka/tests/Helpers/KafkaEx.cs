@@ -34,7 +34,7 @@ internal static class KafkaEx
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Create topic {name}");
-        await AdminClient.Value.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name, NumPartitions = 4 } }, new CreateTopicsOptions()
+        await AdminClient.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name, NumPartitions = 4 } }, new CreateTopicsOptions()
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -43,7 +43,7 @@ internal static class KafkaEx
     public static async Task DeleteTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Delete topic {name}");
-        await AdminClient.Value.DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
+        await AdminClient.DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -57,7 +57,7 @@ internal static class KafkaEx
             GroupId = consumerGroup
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = AdminClient.GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)
@@ -107,7 +107,7 @@ internal static class KafkaEx
             EnablePartitionEof = true
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = AdminClient.GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)

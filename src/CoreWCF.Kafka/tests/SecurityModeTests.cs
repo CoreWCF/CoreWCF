@@ -28,7 +28,7 @@ public class SecurityModeTests : IntegrationTest
         + @"</s:Envelope>";
 
     public SecurityModeTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
-        : base(output )
+        : base(output, containerFixture)
     {
 
     }
