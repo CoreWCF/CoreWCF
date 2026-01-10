@@ -46,6 +46,10 @@ public sealed partial class OperationParameterInjectionGenerator
                     let methodSymbol = symbol as IMethodSymbol
                     select methodSymbol).ToImmutableArray();
 
+                var coreWCFInjectedSymbol = _compilation.GetTypeByMetadataName("CoreWCF.InjectedAttribute");
+                var fromServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.FromServicesAttribute");
+                var fromKeyedServicesSymbol = _compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute");
+
                 // Query for interface-based service contracts
                 var interfaceBasedContracts = from method in methods
                     from @interface in method.ContainingType.AllInterfaces
@@ -57,19 +61,21 @@ public sealed partial class OperationParameterInjectionGenerator
                             _coreWCFOperationContractSymbol)
                         where operationContractAttribute is not null
                         select (MethodMember: methodMember, AttributeData: operationContractAttribute)).ToImmutableArray()
-                    select (Method: method, ServiceContract: (INamedTypeSymbol)@interface, OperationContracts: methodMembers);
+                    select (Method: method, ServiceContract: (INamedTypeSymbol)@interface, OperationContracts: methodMembers, IsClassBased: false);
 
                 // Query for class-based service contracts
-                // For class-based contracts, the method itself has the OperationContract attribute
-                // We treat the method as both the "contract" and the "implementation"
+                // For class-based contracts, we need methods that have:
+                // 1. OperationContract attribute
+                // 2. Containing type has ServiceContract attribute
+                // Note: We don't filter for injected parameters here - the matching logic will handle it
                 var classBasedContracts = from method in methods
                     let containingType = method.ContainingType
                     where containingType.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
                     let operationContractAttribute = method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol)
                     where operationContractAttribute is not null
-                    // Create a "virtual" operation contract that represents what the signature should be without injected parameters
+                    // For class-based contracts, the method itself serves as the operation contract
                     let methodMembers = ImmutableArray.Create((MethodMember: method, AttributeData: operationContractAttribute))
-                    select (Method: method, ServiceContract: containingType, OperationContracts: methodMembers);
+                    select (Method: method, ServiceContract: containingType, OperationContracts: methodMembers, IsClassBased: true);
 
                 // Combine both interface-based and class-based contracts
                 var methodServiceContractAndOperationContractsValues = interfaceBasedContracts.Concat(classBasedContracts);
@@ -79,9 +85,10 @@ public sealed partial class OperationParameterInjectionGenerator
                     let missingOperationContract =
                         value.OperationContracts
                             .SingleOrDefault(x => x.MethodMember.Name == value.Method.Name
-                                                  && x.MethodMember.Parameters.All(p =>
-                                                      value.Method.Parameters.Any(msp =>
-                                                          msp.IsMatchingParameter(p))))
+                                                  && (value.IsClassBased || // For class-based, always match the method itself
+                                                      x.MethodMember.Parameters.All(p =>
+                                                          value.Method.Parameters.Any(msp =>
+                                                              msp.IsMatchingParameter(p)))))
                     where missingOperationContract.MethodMember is not null
                     let nonNullMissingOperationContract = missingOperationContract
                     select (value.Method, MissingOperationContract: nonNullMissingOperationContract,
