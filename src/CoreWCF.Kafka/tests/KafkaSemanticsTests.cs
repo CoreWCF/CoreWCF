@@ -12,6 +12,7 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +32,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceTests(int messageCount)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnce>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -66,7 +67,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitOrderTests(int messageCount)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -121,7 +122,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitPerMessageTests(int messageCount)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -157,7 +158,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtMostOnceTests(int messageCount)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<StartupAtMostOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtMostOnce>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -196,7 +197,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -228,7 +229,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -254,7 +255,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -287,7 +288,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {

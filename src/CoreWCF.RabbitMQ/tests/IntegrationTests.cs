@@ -11,6 +11,7 @@ using CoreWCF.Configuration;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using Xunit;
@@ -33,7 +34,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact(Skip = "Requires RabbitMQ host with SSL")]
         public void ClassicQueueWithTls_SendReceiveMessage_Success()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateHost<ClassicQueueWithTLSStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -68,7 +69,7 @@ namespace CoreWCF.RabbitMQ.Tests
         public void DefaultClassicQueueConfiguration_ReceiveMessage_Success()
         {
             DefaultClassicQueueStartup.SetPort(_containerFixture.Port);
-            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateHost<DefaultClassicQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -99,7 +100,7 @@ namespace CoreWCF.RabbitMQ.Tests
         public void DefaultQuorumQueueConfiguration_ReceiveMessage_Success()
         {
             DefaultQuorumQueueStartup.SetPort(_containerFixture.Port);
-            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateHost<DefaultQuorumQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -130,7 +131,7 @@ namespace CoreWCF.RabbitMQ.Tests
         public void DefaultQueueConfiguration_ReceiveMessage_Success()
         {
             DefaultQueueStartup.SetPort(_containerFixture.Port);
-            IHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateHost<DefaultQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -175,7 +176,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -207,7 +208,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -239,7 +240,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -270,7 +271,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
