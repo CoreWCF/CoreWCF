@@ -3,6 +3,10 @@
   <PropertyGroup>
     <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator to the source generator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND
                         '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
                         '$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND

@@ -77,9 +77,8 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker
-                        // for the operation. This is a bug in the DispatchOperationRuntimeHelpers.GetKey logic or the generator wasn't run.
-                        throw new PlatformNotSupportedException();
+                        // Fallback to reflection-based invoker if generated invoker not found
+                        dispatch.Invoker = new TaskMethodInvoker(_serviceProvider, description.TaskMethod, description.TaskTResult);
                     }
                 }
                 else
@@ -98,11 +97,17 @@ namespace CoreWCF.Dispatcher
                     }
                     else
                     {
-                        // reaching this point means that the operation invoker generator is enabled but we did not succeed to fetch the invoker
-                        // for the operation. This is a bug in the DispatchOperationRuntimeHelpers.GetKey logic or the generator wasn't run.
-                        string requestedKey = DispatchOperationRuntimeHelpers.GetKey(description.SyncMethod);
-                        string availableKeys = string.Join(", ", DispatchOperationRuntimeHelpers.OperationInvokers.Keys);
-                        throw new PlatformNotSupportedException($"Operation invoker not found. Requested key: '{requestedKey}'. Available keys: [{availableKeys}]");
+                        // Fallback to reflection-based invoker if generated invoker not found
+                        if (description.BeginMethod != null)
+                        {
+                            // both sync and async methods are present on the contract
+                            dispatch.Invoker = new SyncMethodInvoker(_serviceProvider, description.SyncMethod);
+                        }
+                        else
+                        {
+                            // only sync method is present on the contract
+                            dispatch.Invoker = new SyncMethodInvoker(_serviceProvider, description.SyncMethod);
+                        }
                     }
                 }
                 else

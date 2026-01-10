@@ -73,7 +73,7 @@ internal static class DiagnosticDescriptors
             title: "Private ServiceContract interface",
             messageFormat: "ServiceContract '{0}' accessibility should at least be internal to generate an OperationInvoker implementation",
             category: nameof(PrivateServiceContractAnalyzer),
-            DiagnosticSeverity.Error,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
         internal static Diagnostic PrivateServiceContractError(string serviceContract, Location location) =>
