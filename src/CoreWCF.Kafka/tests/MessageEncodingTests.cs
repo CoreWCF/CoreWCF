@@ -58,7 +58,11 @@ public class MessageEncodingTests : IntegrationTest
     {
         private readonly KafkaMessageEncoding _messageEncoding;
 
-        public Startup(KafkaMessageEncoding kafkaMessageEncoding = KafkaMessageEncoding.Text)
+        public Startup() : this(KafkaMessageEncoding.Text)
+        {
+        }
+
+        protected Startup(KafkaMessageEncoding kafkaMessageEncoding)
         {
             _messageEncoding = kafkaMessageEncoding;
         }
