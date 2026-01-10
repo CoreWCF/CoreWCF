@@ -1,8 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <!-- Suppress ASPDEPR008: IWebHost is obsolete. Test infrastructure uses IWebHostBuilder.
-         Migration to WebApplication.CreateBuilder() pattern tracked separately. -->
-    <NoWarn>$(NoWarn);ASPDEPR008</NoWarn>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -10,9 +7,6 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
   <PropertyGroup>
-    <!-- Suppress ASPDEPR008: IWebHost is obsolete. Test infrastructure uses IWebHostBuilder.
-         Migration to WebApplication.CreateBuilder() pattern tracked separately. -->
-    <NoWarn>$(NoWarn);ASPDEPR008</NoWarn>
     <IsTestProject Condition=" '$(TargetFramework)' == 'net472' ">false</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
