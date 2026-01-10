@@ -25,7 +25,7 @@ namespace CoreWCF.Http.Tests.DependencyInjection
         public void ServiceWithoutDefaultConstructorAndNotInDI_ShowsServiceTypeInErrorMessage()
         {
             // Arrange - Create a host with a service that has no default constructor and is not registered in DI
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithProblematicService>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithProblematicService>(_output).Build();
             
             using (host)
             {
@@ -50,7 +50,7 @@ namespace CoreWCF.Http.Tests.DependencyInjection
         public void SingletonServiceWithoutDefaultConstructorAndNotInDI_ShowsServiceTypeInErrorMessage()
         {
             // Arrange - Create a host with a singleton service that has no default constructor and is not registered in DI
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupWithProblematicSingletonService>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupWithProblematicSingletonService>(_output).Build();
             
             using (host)
             {

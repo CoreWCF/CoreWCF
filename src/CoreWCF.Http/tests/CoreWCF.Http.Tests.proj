@@ -9,9 +9,6 @@
     <OutputType>Exe</OutputType>
     <GenerateProgramFile>false</GenerateProgramFile>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <!-- Suppress ASPDEPR008: IWebHost is obsolete. Test infrastructure uses IWebHostBuilder extensively.
-         Migration to WebApplication.CreateBuilder() pattern tracked separately. -->
-    <NoWarn>$(NoWarn);ASPDEPR008</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="IsExternalInit">

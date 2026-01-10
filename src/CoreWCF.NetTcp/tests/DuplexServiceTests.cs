@@ -25,7 +25,7 @@ namespace CoreWCF.NetTcp.Tests
         public void DuplexEcho()
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 System.ServiceModel.ChannelFactory<ServiceContract.IDuplexTestService> factory = null;

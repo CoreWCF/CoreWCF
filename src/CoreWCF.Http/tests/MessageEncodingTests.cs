@@ -13,7 +13,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -60,7 +59,7 @@ namespace CoreWCF.Http.Tests
         [InlineData("WebSocketNetHttpBinding", "Binary", SmallRequestByteArrayLength)]
         public void EchoByteArray(string bindingType, string messageEncoding, int bytesCount)
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output)
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output)
                 .UseSetting("bindingType", bindingType)
                 .UseSetting("messageEncoding", messageEncoding)
                 .Build();

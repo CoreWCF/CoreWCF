@@ -47,7 +47,7 @@ public class NotSupportedTests
     [MemberData(nameof(Get_Authorization_Features_Are_Mutually_Exclusive_TestVariations))]
     public void Authorization_Features_Are_Mutually_Exclusive_Test(Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
         {
             using (host)
@@ -61,7 +61,7 @@ public class NotSupportedTests
     [Fact]
     public void Authorization_Features_Missing_AuthorizationService_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<Services.SinglePolicyOnMethodSecuredService>>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<ThrowingStartupMissingAuthorizationService<Services.SinglePolicyOnMethodSecuredService>>(_output).Build();
         var exception = Assert.Throws<NotSupportedException>(() =>
         {
             using (host)

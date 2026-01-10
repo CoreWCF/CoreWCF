@@ -33,7 +33,7 @@ public class AuthorizationTests
     [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserAndRequiredScopeValuesAndCustomWebHttpBindingStartup))]
     public async Task SinglePolicy_AuthenticatedUser_HavingRequiredScopeValues_Test(Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();
@@ -48,7 +48,7 @@ public class AuthorizationTests
     [InlineData(typeof(SinglePolicyOnOperationContractWithUnauthenticatedUserAndCustomWebHttpBindingStartup))]
     public async Task SinglePolicy_UnauthenticatedUser_Test(Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();
@@ -62,7 +62,7 @@ public class AuthorizationTests
     [InlineData(typeof(SinglePolicyOnOperationContractWithAuthenticatedUserButMissingScopeValuesAndCustomWebHttpBindingStartup))]
     public async Task SinglePolicy_AuthenticatedUser_MissingScopeValues_Test(Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder(_output, startupType).Build();
         using (host)
         {
             await host.StartAsync();

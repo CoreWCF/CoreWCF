@@ -223,7 +223,7 @@ namespace Helpers
                 });
         }
 
-        internal static string GetEndpointBaseAddress(IHost host, string transportScheme)
+        internal static string GetEndpointBaseAddress(IWebHost host, string transportScheme)
         {
 
             if (transportScheme == Uri.UriSchemeNetPipe)

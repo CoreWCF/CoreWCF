@@ -11,7 +11,6 @@ using CoreWCF.Queue.Tests.InMemoryQueue;
 using CoreWCF.Queue.Tests.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,7 +41,7 @@ public class InMemoryQueueIntegrationTests
     [Fact]
     public void ReceiveContext_CompleteAsync_When_Success()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -69,7 +68,7 @@ public class InMemoryQueueIntegrationTests
     [Fact]
     public void ReceiveContext_AbandonAsync_When_Service_Throw()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -92,7 +91,7 @@ public class InMemoryQueueIntegrationTests
     [Fact]
     public void ReceiveContext_AbandonAsync_WhenFault()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -119,7 +118,7 @@ public class InMemoryQueueIntegrationTests
         const int completeCount = messageCount - abandonCount;
         const int reachedServiceCount = messageCount - poisonPillCount;
 
-        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();

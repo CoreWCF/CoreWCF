@@ -36,7 +36,7 @@ namespace CoreWCF.NetTcp.Tests
         public void BasicUserNameAuth(bool isError, string userName)
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -86,7 +86,7 @@ namespace CoreWCF.NetTcp.Tests
         public async Task NetTCPRequestReplyWithTransportMessageEchoStringDemuxFailure()
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTCDemuxFailure>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTCDemuxFailure>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -123,7 +123,7 @@ namespace CoreWCF.NetTcp.Tests
         {
             // This test verifies that the security header role attribute is ommitted
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartUpPermissionBaseForTC>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -168,7 +168,7 @@ namespace CoreWCF.NetTcp.Tests
         private void BasicNetTcpWithCertificateAsTransport()
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupForNetTcpCertificate>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupForNetTcpCertificate>(_output).Build();
             using (host)
             {
                 host.Start();

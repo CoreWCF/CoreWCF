@@ -26,7 +26,7 @@ public class FallbackPolicyTests
     [Fact]
     public void FallbackPolicy_AuthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<FallbackPolicyWithAuthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<FallbackPolicyWithAuthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -42,7 +42,7 @@ public class FallbackPolicyTests
     [Fact]
     public void FallbackPolicy_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<FallbackPolicyWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<FallbackPolicyWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
