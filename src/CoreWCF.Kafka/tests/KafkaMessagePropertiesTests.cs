@@ -28,8 +28,8 @@ public class KafkaMessagePropertiesTests : IntegrationTest
         + @"<s:Body><StoreKafkaMessageProperty xmlns=""http://tempuri.org/""></StoreKafkaMessageProperty></s:Body>"
         + @"</s:Envelope>";
 
-    public KafkaMessagePropertiesTests(ITestOutputHelper output)
-        : base(output)
+    public KafkaMessagePropertiesTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -46,7 +46,7 @@ public class KafkaMessagePropertiesTests : IntegrationTest
             testService.CountdownEvent.Reset(1);
             using var producer = new ProducerBuilder<string, string>(new ProducerConfig
                 {
-                    BootstrapServers = "localhost:9092",
+                    BootstrapServers = KafkaEx.GetBootstrapServers(),
                     Acks = Acks.All
                 })
                 .SetKeySerializer(Serializers.Utf8)
@@ -89,7 +89,7 @@ public class KafkaMessagePropertiesTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             using (var scope = new System.ServiceModel.OperationContextScope((System.ServiceModel.IContextChannel)channel))
@@ -134,7 +134,7 @@ public class KafkaMessagePropertiesTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

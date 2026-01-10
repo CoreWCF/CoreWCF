@@ -18,8 +18,8 @@ namespace CoreWCF.Kafka.Tests;
 
 public class MessageEncodingTests : IntegrationTest
 {
-    public MessageEncodingTests(ITestOutputHelper output)
-        : base(output)
+    public MessageEncodingTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -42,7 +42,7 @@ public class MessageEncodingTests : IntegrationTest
                 MessageEncoding = encoding
             };
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -82,7 +82,7 @@ public class MessageEncodingTests : IntegrationTest
                     MessageEncoding = _messageEncoding,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

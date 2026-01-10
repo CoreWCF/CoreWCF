@@ -19,7 +19,7 @@ namespace CoreWCF.Kafka.Tests;
 
 public class AsyncContractTests : IntegrationTest
 {
-    public AsyncContractTests(ITestOutputHelper output) : base(output)
+    public AsyncContractTests(ITestOutputHelper output, KafkaContainerFixture containerFixture) : base(output, containerFixture)
     {
     }
 
@@ -36,7 +36,7 @@ public class AsyncContractTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
 
             ITestContract channel = factory.CreateChannel();
             string name = Guid.NewGuid().ToString();
@@ -69,7 +69,7 @@ public class AsyncContractTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

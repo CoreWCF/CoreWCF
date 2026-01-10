@@ -18,8 +18,8 @@ namespace CoreWCF.Kafka.Tests;
 
 public class DispatcherTests : IntegrationTest
 {
-    public DispatcherTests(ITestOutputHelper output)
-        : base(output)
+    public DispatcherTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
     }
 
@@ -37,7 +37,7 @@ public class DispatcherTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<IDispatcherTestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             IDispatcherTestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -73,7 +73,7 @@ public class DispatcherTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
