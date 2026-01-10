@@ -13,8 +13,23 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal static class KafkaEx
 {
-    private static readonly string s_brokerContainerName = "broker";
-    private static Lazy<IAdminClient> AdminClient => new(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = "localhost:9092" }).Build());
+    private static string s_bootstrapServers = "localhost:9092";
+    private static Lazy<IAdminClient> s_adminClient;
+
+    static KafkaEx()
+    {
+        s_adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = s_bootstrapServers }).Build());
+    }
+
+    public static void SetBootstrapServers(string bootstrapServers)
+    {
+        s_bootstrapServers = bootstrapServers;
+        s_adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = s_bootstrapServers }).Build());
+    }
+
+    public static string GetBootstrapServers() => s_bootstrapServers;
+
+    private static IAdminClient AdminClient => s_adminClient.Value;
 
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
     {
@@ -38,7 +53,7 @@ internal static class KafkaEx
     {
         using var consumer = new ConsumerBuilder<Null, byte[]>(new ConsumerConfig
         {
-            BootstrapServers = "localhost:9092",
+            BootstrapServers = s_bootstrapServers,
             GroupId = consumerGroup
         }).Build();
 
@@ -86,7 +101,7 @@ internal static class KafkaEx
     {
         using var consumer = new ConsumerBuilder<Null, byte[]>(new ConsumerConfig
         {
-            BootstrapServers = "localhost:9092",
+            BootstrapServers = s_bootstrapServers,
             GroupId = Guid.NewGuid().ToString(),
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true
@@ -113,19 +128,5 @@ internal static class KafkaEx
 
         output.WriteLine($"{messageCount} messages found in topic {topicName}");
         return messageCount;
-    }
-
-    public static async Task PauseAsync(ITestOutputHelper output)
-    {
-        output.WriteLine($"Pausing container {s_brokerContainerName}");
-        await DockerEx.PauseAsync(s_brokerContainerName);
-        output.WriteLine($"Container {s_brokerContainerName} paused");
-    }
-
-    public static async Task UnpauseAsync(ITestOutputHelper output)
-    {
-        output.WriteLine($"Unpausing container {s_brokerContainerName}");
-        await DockerEx.UnpauseAsync(s_brokerContainerName);
-        output.WriteLine($"Container {s_brokerContainerName} unpaused");
     }
 }
