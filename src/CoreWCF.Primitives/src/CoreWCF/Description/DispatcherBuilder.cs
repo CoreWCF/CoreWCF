@@ -622,11 +622,24 @@ namespace CoreWCF.Description
         {
             List<IAuthorizeData> authorizeData = new();
             authorizeData.AddRange(serviceType.GetCustomAttributes(false).OfType<IAuthorizeData>());
-            InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(operation.OperationMethod.DeclaringType);
-            int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operation.OperationMethod);
-            if (index >= 0)
+            
+            Type declaringType = operation.OperationMethod.DeclaringType;
+            
+            // Check if the declaring type is an interface (split contract and implementation)
+            if (declaringType.IsInterface)
             {
-                authorizeData.AddRange(interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>());
+                InterfaceMapping interfaceMapping = serviceType.GetInterfaceMap(declaringType);
+                int index = Array.IndexOf(interfaceMapping.InterfaceMethods, operation.OperationMethod);
+                if (index >= 0)
+                {
+                    authorizeData.AddRange(interfaceMapping.TargetMethods[index].GetCustomAttributes(false).OfType<IAuthorizeData>());
+                }
+            }
+            else
+            {
+                // The declaring type is the service class itself (contract defined on class)
+                // Directly get attributes from the operation method
+                authorizeData.AddRange(operation.OperationMethod.GetCustomAttributes(false).OfType<IAuthorizeData>());
             }
 
             return authorizeData.AsReadOnly();
