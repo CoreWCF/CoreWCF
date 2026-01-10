@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -280,9 +282,7 @@ namespace CoreWCF.Channels
 
             protected override XmlDictionaryReader TakeXmlReader()
             {
-                ArraySegment<byte> buffer = Buffer;
-
-                return XmlDictionaryReader.CreateBinaryReader(buffer.Array, buffer.Offset, buffer.Count,
+                return XmlDictionaryReader.CreateBinaryReader(PipeReader.Create(ReadOnlyBuffer).AsStream(),
                                         _factory._binaryVersion.Dictionary,
                                         _factory._bufferedReadReaderQuotas,
                                         _messageEncoder.ReaderSession);
@@ -496,34 +496,31 @@ namespace CoreWCF.Channels
                 return new ArraySegment<byte>(buffer, newOffset, newSize);
             }
 
-            private ArraySegment<byte> ExtractSessionInformationFromMessage(ArraySegment<byte> messageData)
+            private ReadOnlySequence<byte> ExtractSessionInformationFromMessage(ReadOnlySequence<byte> messageData)
             {
                 if (_isReaderSessionInvalid)
                 {
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.BinaryEncoderSessionInvalid));
                 }
 
-                byte[] buffer = messageData.Array;
                 int dictionarySize;
                 int headerSize;
-                int newOffset;
-                int newSize;
                 bool throwing = true;
                 try
                 {
-                    IntDecoder decoder = new IntDecoder();
-                    headerSize = decoder.Decode(buffer, messageData.Offset, messageData.Count);
+                    IntDecoder decoder = new();
+                    headerSize = decoder.Decode(messageData);
                     dictionarySize = decoder.Value;
-                    if (dictionarySize > messageData.Count)
+                    if (dictionarySize > messageData.Length)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.BinaryEncoderSessionMalformed));
                     }
-                    newOffset = messageData.Offset + headerSize + dictionarySize;
-                    newSize = messageData.Count - headerSize - dictionarySize;
-                    if (newSize < 0)
+
+                    if (messageData.Length - headerSize - dictionarySize < 0)
                     {
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.BinaryEncoderSessionMalformed));
                     }
+
                     if (dictionarySize > 0)
                     {
                         if (dictionarySize > _remainingReaderSessionSize)
@@ -537,23 +534,21 @@ namespace CoreWCF.Channels
                             _remainingReaderSessionSize -= dictionarySize;
                         }
 
-                        int size = dictionarySize;
-                        int offset = messageData.Offset + headerSize;
-
-                        while (size > 0)
+                        ReadOnlySequence<byte> dictionary = messageData.Slice(headerSize, dictionarySize);
+                        while (dictionary.Length > 0)
                         {
                             decoder.Reset();
-                            int bytesDecoded = decoder.Decode(buffer, offset, size);
+                            int bytesDecoded = decoder.Decode(dictionary);
                             int utf8ValueSize = decoder.Value;
-                            offset += bytesDecoded;
-                            size -= bytesDecoded;
-                            if (utf8ValueSize > size)
+                            if (utf8ValueSize > dictionary.Length)
                             {
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidDataException(SR.BinaryEncoderSessionMalformed));
                             }
-                            string value = Encoding.UTF8.GetString(buffer, offset, utf8ValueSize);
-                            offset += utf8ValueSize;
-                            size -= utf8ValueSize;
+
+                            dictionary = dictionary.Slice(bytesDecoded);
+                            // TODO Once moved .NET5+ use https://learn.microsoft.com/en-us/dotnet/api/system.text.encodingextensions.getstring?view=net-5.0
+                            string value = dictionary.Slice(0, utf8ValueSize).ParseAsUTF8String(utf8ValueSize);
+                            dictionary = dictionary.Slice(utf8ValueSize);
                             ReaderSession.Add(_idCounter, value);
                             _idCounter++;
                         }
@@ -568,21 +563,25 @@ namespace CoreWCF.Channels
                     }
                 }
 
-                return new ArraySegment<byte>(buffer, newOffset, newSize);
+                return messageData.Slice(headerSize + dictionarySize);
             }
 
-            public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+            public override ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
             {
-                if (bufferManager == null)
+                if (memoryPool == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
+                    throw Fx.Exception.ArgumentNull(nameof(memoryPool));
                 }
 
                 CompressionFormat compressionFormat = CheckContentType(contentType);
 
                 if (compressionFormat != CompressionFormat.None)
                 {
-                    MessageEncoderCompressionHandler.DecompressBuffer(ref buffer, bufferManager, compressionFormat, _maxReceivedMessageSize);
+                    if (memoryPool is not InternalBufferManager bufferManager)
+                    {
+                        throw new InvalidOperationException("The provided memoryPool must be an InternalBufferManager when compression is enabled.");
+                    }
+                    buffer = MessageEncoderCompressionHandler.DecompressBuffer(buffer, bufferManager, compressionFormat, _maxReceivedMessageSize);
                 }
 
                 if (_isSession)
@@ -606,7 +605,7 @@ namespace CoreWCF.Channels
                 Message message;
                 if (_messagePatterns != null)
                 {
-                    message = _messagePatterns.TryCreateMessage(buffer.Array, buffer.Offset, buffer.Count, bufferManager, messageData);
+                    message = _messagePatterns.TryCreateMessage(buffer, messageData);
                 }
                 else
                 {
@@ -614,7 +613,8 @@ namespace CoreWCF.Channels
                 }
                 if (message == null)
                 {
-                    messageData.Open(buffer, bufferManager);
+                    messageData.Open(buffer);
+
                     RecycledMessageState messageState = messageData.TakeMessageState();
                     if (messageState == null)
                     {
@@ -624,7 +624,7 @@ namespace CoreWCF.Channels
                 }
                 message.Properties.Encoder = this;
 
-                return message;
+                return new ValueTask<Message>(message);
             }
 
             public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
@@ -1080,106 +1080,104 @@ namespace CoreWCF.Channels
             return value / 2;
         }
 
-        public static int ParseInt32(byte[] buffer, int offset, int size)
+        public static int ParseInt32(ReadOnlySequence<byte> buffer)
         {
-            switch (size)
+            switch (buffer.Length)
             {
                 case 1:
-                    return buffer[offset];
+                    return buffer.First.Span[0];
                 case 2:
-                    return (buffer[offset] & 0x7f) + (buffer[offset + 1] << 7);
+                    return (buffer.First.Span[0] & 0x7f) + (buffer.Slice(1).First.Span[0] << 7);
                 case 3:
-                    return (buffer[offset] & 0x7f) + ((buffer[offset + 1] & 0x7f) << 7) + (buffer[offset + 2] << 14);
+                    return (buffer.First.Span[0] & 0x7f) + ((buffer.Slice(1).First.Span[0] & 0x7f) << 7) + (buffer.Slice(2).First.Span[0] << 14);
                 case 4:
-                    return (buffer[offset] & 0x7f) + ((buffer[offset + 1] & 0x7f) << 7) + ((buffer[offset + 2] & 0x7f) << 14) + (buffer[offset + 3] << 21);
+                    return (buffer.First.Span[0] & 0x7f) + ((buffer.Slice(1).First.Span[0] & 0x7f) << 7) + ((buffer.Slice(2).First.Span[0] & 0x7f) << 14) + (buffer.Slice(3).First.Span[0] << 21);
                 default:
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(size), size,
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(buffer), buffer.Length,
                         SR.Format(SR.ValueMustBeInRange, 1, 4)));
             }
         }
 
-        public static int ParseKey(byte[] buffer, int offset, int size)
+        public static int ParseKey(ReadOnlySequence<byte> buffer)
         {
-            return ParseInt32(buffer, offset, size);
+            return ParseInt32(buffer);
         }
 
-        public static unsafe UniqueId ParseUniqueID(byte[] buffer, int offset, int size)
+        public static unsafe UniqueId ParseUniqueID(ReadOnlySequence<byte> buffer)
         {
-            return new UniqueId(buffer, offset);
+            return new UniqueId(buffer.ToArray());
         }
 
-        public static int MatchBytes(byte[] buffer, int offset, int size, byte[] buffer2)
+        public static int MatchBytes(ReadOnlySequence<byte> buffer, byte[] buffer2)
         {
-            if (size < buffer2.Length)
+            if (buffer.Length < buffer2.Length)
             {
                 return 0;
             }
-            int j = offset;
-            for (int i = 0; i < buffer2.Length; i++, j++)
+
+            ReadOnlySpan<byte> searched = buffer2.AsSpan();
+            while (searched.Length > 0)
             {
-                if (buffer2[i] != buffer[j])
+                var bufferSpan = buffer.First.Span;
+                if (searched[0] != bufferSpan[0])
                 {
                     return 0;
                 }
+
+                searched = searched.Slice(1);
+                buffer = buffer.Slice(1);
             }
+
             return buffer2.Length;
         }
 
 
-        public static bool MatchAttributeNode(byte[] buffer, int offset, int size)
+        public static bool MatchAttributeNode(ReadOnlySequence<byte> buffer)
         {
             const XmlBinaryNodeType minAttribute = XmlBinaryNodeType.ShortAttribute;
             const XmlBinaryNodeType maxAttribute = XmlBinaryNodeType.DictionaryAttribute;
-            if (size < 1)
+            if (buffer.Length < 1)
             {
                 return false;
             }
-            XmlBinaryNodeType nodeType = (XmlBinaryNodeType)buffer[offset];
-            return nodeType >= minAttribute && nodeType <= maxAttribute;
+            XmlBinaryNodeType nodeType = (XmlBinaryNodeType)buffer.First.Span[0];
+            return nodeType is >= minAttribute and <= maxAttribute;
         }
 
-        public static int MatchKey(byte[] buffer, int offset, int size)
+        public static int MatchKey(ReadOnlySequence<byte> buffer)
         {
-            return MatchInt32(buffer, offset, size);
+            return MatchInt32(buffer);
         }
 
-        public static int MatchInt32(byte[] buffer, int offset, int size)
+        public static int MatchInt32(ReadOnlySequence<byte> buffer)
         {
-            if (size > 0)
+            long size = buffer.Length;
+            if (size > 0 && (buffer.First.Span[0] & 0x80) == 0)
             {
-                if ((buffer[offset] & 0x80) == 0)
-                {
-                    return 1;
-                }
+                return 1;
             }
-            if (size > 1)
+
+            if (size > 1 && (buffer.Slice(1).First.Span[0] & 0x80) == 0)
             {
-                if ((buffer[offset + 1] & 0x80) == 0)
-                {
-                    return 2;
-                }
+                return 2;
             }
-            if (size > 2)
+
+            if (size > 2 && (buffer.Slice(2).First.Span[0] & 0x80) == 0)
             {
-                if ((buffer[offset + 2] & 0x80) == 0)
-                {
-                    return 3;
-                }
+                return 3;
             }
-            if (size > 3)
+
+            if (size > 3 && (buffer.Slice(3).First.Span[0] & 0x80) == 0)
             {
-                if ((buffer[offset + 3] & 0x80) == 0)
-                {
-                    return 4;
-                }
+                return 4;
             }
 
             return 0;
         }
 
-        public static int MatchUniqueID(byte[] buffer, int offset, int size)
+        public static int MatchUniqueID(ReadOnlySequence<byte> buffer)
         {
-            if (size < 16)
+            if (buffer.Length < 16)
             {
                 return 0;
             }
@@ -1284,65 +1282,70 @@ namespace CoreWCF.Channels
             _messageVersion = messageVersion;
         }
 
-        public Message TryCreateMessage(byte[] buffer, int offset, int size, BufferManager bufferManager, BufferedMessageData messageData)
+        public Message TryCreateMessage(ReadOnlySequence<byte> buffer, BufferedMessageData messageData)
         {
             RelatesToHeader relatesToHeader;
             MessageIDHeader messageIDHeader;
             XmlDictionaryString toString;
 
-            int currentOffset = offset;
-            int remainingSize = size;
+            int currentOffset = 0;
+            ReadOnlySequence<byte> window = buffer.Slice(0);
 
-            int bytesMatched = BinaryFormatParser.MatchBytes(buffer, currentOffset, remainingSize, s_commonFragment);
+            int bytesMatched = BinaryFormatParser.MatchBytes(window, s_commonFragment);
             if (bytesMatched == 0)
             {
                 return null;
             }
-            currentOffset += bytesMatched;
-            remainingSize -= bytesMatched;
 
-            bytesMatched = BinaryFormatParser.MatchKey(buffer, currentOffset, remainingSize);
+            currentOffset += bytesMatched;
+            window = window.Slice(bytesMatched);
+
+            bytesMatched = BinaryFormatParser.MatchKey(window);
             if (bytesMatched == 0)
             {
                 return null;
             }
             int actionOffset = currentOffset;
             int actionSize = bytesMatched;
+
             currentOffset += bytesMatched;
-            remainingSize -= bytesMatched;
+            window = window.Slice(bytesMatched);
 
             int totalBytesMatched;
 
-            bytesMatched = BinaryFormatParser.MatchBytes(buffer, currentOffset, remainingSize, s_requestFragment1);
+            bytesMatched = BinaryFormatParser.MatchBytes(window, s_requestFragment1);
             if (bytesMatched != 0)
             {
                 currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
+                window = window.Slice(bytesMatched);
 
-                bytesMatched = BinaryFormatParser.MatchUniqueID(buffer, currentOffset, remainingSize);
+                bytesMatched = BinaryFormatParser.MatchUniqueID(window);
                 if (bytesMatched == 0)
                 {
                     return null;
                 }
+
                 int messageIDOffset = currentOffset;
                 int messageIDSize = bytesMatched;
-                currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
 
-                bytesMatched = BinaryFormatParser.MatchBytes(buffer, currentOffset, remainingSize, s_requestFragment2);
+                currentOffset += bytesMatched;
+                window = window.Slice(bytesMatched);
+
+                bytesMatched = BinaryFormatParser.MatchBytes(window, s_requestFragment2);
                 if (bytesMatched == 0)
                 {
                     return null;
                 }
-                currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
 
-                if (BinaryFormatParser.MatchAttributeNode(buffer, currentOffset, remainingSize))
+                currentOffset += bytesMatched;
+                window = window.Slice(bytesMatched);
+
+                if (BinaryFormatParser.MatchAttributeNode(window))
                 {
                     return null;
                 }
 
-                UniqueId messageId = BinaryFormatParser.ParseUniqueID(buffer, messageIDOffset, messageIDSize);
+                UniqueId messageId = BinaryFormatParser.ParseUniqueID(buffer.Slice(messageIDOffset, messageIDSize));
                 messageIDHeader = MessageIDHeader.Create(messageId, _messageVersion.Addressing);
                 relatesToHeader = null;
 
@@ -1355,7 +1358,7 @@ namespace CoreWCF.Channels
             }
             else
             {
-                bytesMatched = BinaryFormatParser.MatchBytes(buffer, currentOffset, remainingSize, s_responseFragment1);
+                bytesMatched = BinaryFormatParser.MatchBytes(window, s_responseFragment1);
 
                 if (bytesMatched == 0)
                 {
@@ -1363,32 +1366,33 @@ namespace CoreWCF.Channels
                 }
 
                 currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
+                window = window.Slice(bytesMatched);
 
-                bytesMatched = BinaryFormatParser.MatchUniqueID(buffer, currentOffset, remainingSize);
+                bytesMatched = BinaryFormatParser.MatchUniqueID(window);
                 if (bytesMatched == 0)
                 {
                     return null;
                 }
-                int messageIDOffset = currentOffset;
+
+                int messageIdOffset = currentOffset;
                 int messageIDSize = bytesMatched;
                 currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
+                window = window.Slice(bytesMatched);
 
-                bytesMatched = BinaryFormatParser.MatchBytes(buffer, currentOffset, remainingSize, s_responseFragment2);
+                bytesMatched = BinaryFormatParser.MatchBytes(window, s_responseFragment2);
                 if (bytesMatched == 0)
                 {
                     return null;
                 }
                 currentOffset += bytesMatched;
-                remainingSize -= bytesMatched;
+                window = window.Slice(bytesMatched);
 
-                if (BinaryFormatParser.MatchAttributeNode(buffer, currentOffset, remainingSize))
+                if (BinaryFormatParser.MatchAttributeNode(window))
                 {
                     return null;
                 }
 
-                UniqueId messageId = BinaryFormatParser.ParseUniqueID(buffer, messageIDOffset, messageIDSize);
+                UniqueId messageId = BinaryFormatParser.ParseUniqueID(buffer.Slice(messageIdOffset, messageIDSize));
                 relatesToHeader = RelatesToHeader.Create(messageId, _messageVersion.Addressing);
                 messageIDHeader = null;
                 toString = XD.Addressing10Dictionary.Anonymous;
@@ -1398,7 +1402,7 @@ namespace CoreWCF.Channels
 
             totalBytesMatched += s_commonFragment.Length + actionSize;
 
-            int actionKey = BinaryFormatParser.ParseKey(buffer, actionOffset, actionSize);
+            int actionKey = BinaryFormatParser.ParseKey(buffer.Slice(actionOffset, actionSize));
 
             if (!TryLookupKey(actionKey, out XmlDictionaryString actionString))
             {
@@ -1414,14 +1418,12 @@ namespace CoreWCF.Channels
 
             int abandonedSize = totalBytesMatched - s_bodyFragment.Length;
 
-            offset += abandonedSize;
-            size -= abandonedSize;
+            ReadOnlySequence<byte> readOnlySequence = new SequenceBuilder<byte>(s_bodyFragment)
+                .Append(buffer.Slice(abandonedSize + s_bodyFragment.Length))
+                .Build();
 
-            Buffer.BlockCopy(s_bodyFragment, 0, buffer, offset, s_bodyFragment.Length);
-
-            messageData.Open(new ArraySegment<byte>(buffer, offset, size), bufferManager);
-
-            PatternMessage patternMessage = new PatternMessage(messageData, _messageVersion);
+            messageData.Open(readOnlySequence);
+            PatternMessage patternMessage = new(messageData, _messageVersion);
 
             MessageHeaders headers = patternMessage.Headers;
             headers.AddActionHeader(actionHeader);
@@ -1451,15 +1453,58 @@ namespace CoreWCF.Channels
             }
         }
 
+        private sealed class SequenceBuilder<T>
+        {
+            private class MemorySegment<TU> : ReadOnlySequenceSegment<TU>
+            {
+                public MemorySegment(ReadOnlyMemory<TU> memory)
+                {
+                    Memory = memory;
+                }
+
+                public MemorySegment<TU> Append(ReadOnlyMemory<TU> memory)
+                {
+                    var segment = new MemorySegment<TU>(memory)
+                    {
+                        RunningIndex = RunningIndex + Memory.Length
+                    };
+
+                    Next = segment;
+
+                    return segment;
+                }
+            }
+
+            private readonly MemorySegment<T> _first;
+            private MemorySegment<T> _last;
+
+            public SequenceBuilder(ReadOnlyMemory<T> memory)
+            {
+                _last = _first = new MemorySegment<T>(memory);
+            }
+
+            public SequenceBuilder<T> Append(ReadOnlySequence<T> readOnlySequence)
+            {
+                foreach (var memory in readOnlySequence)
+                {
+                    _last = _last.Append(memory);
+                }
+
+                return this;
+            }
+
+            public ReadOnlySequence<T> Build() => new(_first, 0, _last, _last.Memory.Length);
+        }
+
         private sealed class PatternMessage : ReceivedMessage
         {
-            private IBufferedMessageData _messageData;
+            private IBufferedMessageData2 _messageData;
             private readonly MessageHeaders _headers;
             private RecycledMessageState _recycledMessageState;
             private readonly MessageProperties _properties;
             private XmlDictionaryReader _reader;
 
-            public PatternMessage(IBufferedMessageData messageData, MessageVersion messageVersion)
+            public PatternMessage(IBufferedMessageData2 messageData, MessageVersion messageVersion)
             {
                 _messageData = messageData;
                 _recycledMessageState = messageData.TakeMessageState();
@@ -1488,7 +1533,7 @@ namespace CoreWCF.Channels
                 _reader = reader;
             }
 
-            public PatternMessage(IBufferedMessageData messageData, MessageVersion messageVersion,
+            public PatternMessage(IBufferedMessageData2 messageData, MessageVersion messageVersion,
                 KeyValuePair<string, object>[] properties, MessageHeaders headers)
             {
                 _messageData = messageData;
@@ -1690,12 +1735,12 @@ namespace CoreWCF.Channels
         {
             private bool _closed;
             private MessageHeaders _headers;
-            private IBufferedMessageData _messageDataAtBody;
+            private IBufferedMessageData2 _messageDataAtBody;
             private MessageVersion _messageVersion;
             private KeyValuePair<string, object>[] _properties;
             private RecycledMessageState _recycledMessageState;
 
-            public PatternMessageBuffer(IBufferedMessageData messageDataAtBody, MessageVersion messageVersion,
+            public PatternMessageBuffer(IBufferedMessageData2 messageDataAtBody, MessageVersion messageVersion,
                 KeyValuePair<string, object>[] properties, MessageHeaders headers)
             {
                 _messageDataAtBody = messageDataAtBody;
@@ -1728,7 +1773,7 @@ namespace CoreWCF.Channels
                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                         }
 
-                        return _messageDataAtBody.Buffer.Count;
+                        return (int)_messageDataAtBody.ReadOnlyBuffer.Length;
                     }
                 }
             }

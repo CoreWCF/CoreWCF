@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 
 namespace CoreWCF.Channels
@@ -45,17 +46,20 @@ namespace CoreWCF.Channels
             IsValueDecoded = false;
         }
 
-        public int Decode(byte[] buffer, int offset, int size)
+        public int Decode(ReadOnlySequence<byte> buffer)
         {
-            DecoderHelper.ValidateSize(size);
+            DecoderHelper.ValidateSize((int)buffer.Length);
             if (IsValueDecoded)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException(SR.FramingValueNotAvailable));
             }
+
             int bytesConsumed = 0;
-            while (bytesConsumed < size)
+
+            while (bytesConsumed < buffer.Length)
             {
-                int next = buffer[offset];
+                ReadOnlySpan<byte> data = buffer.First.Span;
+                int next = data[0];
                 _value |= (next & 0x7F) << (_index * 7);
                 bytesConsumed++;
                 if (_index == LastIndex && (next & 0xF8) != 0)
@@ -68,8 +72,9 @@ namespace CoreWCF.Channels
                     IsValueDecoded = true;
                     break;
                 }
-                offset++;
+                buffer = buffer.Slice(buffer.GetPosition(1));
             }
+
             return bytesConsumed;
         }
     }

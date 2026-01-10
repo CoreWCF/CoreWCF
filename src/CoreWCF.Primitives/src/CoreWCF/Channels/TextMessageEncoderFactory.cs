@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -129,7 +131,7 @@ namespace CoreWCF.Channels
             }
 
             // then some heuristic matches (since System.Mime.ContentType is a performance hit)
-            // start by looking for a parameter. 
+            // start by looking for a parameter.
 
             // If none exists, we don't have an encoding
             int semiColonIndex = contentType.IndexOf(';');
@@ -142,7 +144,7 @@ namespace CoreWCF.Channels
             int charsetValueIndex = -1;
 
             // for Indigo scenarios, we'll have "; charset=", so check for the c
-            if ((contentType.Length > semiColonIndex + 11) // need room for parameter + charset + '=' 
+            if ((contentType.Length > semiColonIndex + 11) // need room for parameter + charset + '='
                 && contentType[semiColonIndex + 2] == 'c'
                 && string.Compare("charset=", 0, contentType, semiColonIndex + 2, 8, StringComparison.OrdinalIgnoreCase) == 0)
             {
@@ -395,18 +397,20 @@ namespace CoreWCF.Channels
                 return false;
             }
 
-            public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+            public override ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
             {
-                if (bufferManager == null)
+                if (memoryPool == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
+                    throw Fx.Exception.ArgumentNull(nameof(memoryPool));
                 }
 
                 Message message;
 
                 UTF8BufferedMessageData messageData = TakeBufferedReader();
                 messageData.Encoding = GetEncodingFromContentType(contentType, _contentEncodingMap);
-                messageData.Open(buffer, bufferManager);
+
+                messageData.Open(buffer);
+
                 RecycledMessageState messageState = messageData.TakeMessageState();
                 if (messageState == null)
                 {
@@ -417,7 +421,7 @@ namespace CoreWCF.Channels
 
                 message.Properties.Encoder = this;
 
-                return message;
+                return new ValueTask<Message>(message);
             }
 
             public override Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType)
@@ -676,17 +680,15 @@ namespace CoreWCF.Channels
 
                 protected override XmlDictionaryReader TakeXmlReader()
                 {
-                    ArraySegment<byte> buffer = Buffer;
-
                     XmlDictionaryReader xmlReader = _readerPool.Take();
                     if (xmlReader == null)
                     {
                         // TODO: Use the reinitialization API's once moved to .Net Standard 2.0
-                        xmlReader = XmlDictionaryReader.CreateTextReader(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
+                        xmlReader = XmlDictionaryReader.CreateTextReader(PipeReader.Create(ReadOnlyBuffer).AsStream(), _encoding, Quotas, _onClose);
                     }
                     else
                     {
-                        ((IXmlTextReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, _encoding, Quotas, _onClose);
+                        ((IXmlTextReaderInitializer)xmlReader).SetInput(PipeReader.Create(ReadOnlyBuffer).AsStream(), _encoding, Quotas, _onClose);
                     }
 
                     return xmlReader;
