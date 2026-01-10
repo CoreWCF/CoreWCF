@@ -13,6 +13,7 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -96,7 +97,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_KafkaProducerTest_TestVariations))]
     public async Task KafkaProducerTest(Type startupType, ProducerConfig producerConfig)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -209,7 +210,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_ClientSideKafkaBindingTests_TestVariations))]
     public void ClientSideKafkaBindingTests(Type startupType, System.ServiceModel.Channels.Binding binding, int port)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -238,7 +239,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -273,7 +274,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -308,7 +309,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -344,7 +345,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
@@ -385,7 +386,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {

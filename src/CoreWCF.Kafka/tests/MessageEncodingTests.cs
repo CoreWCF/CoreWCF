@@ -10,6 +10,7 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,7 +30,7 @@ public class MessageEncodingTests : IntegrationTest
     [InlineData(ServiceModel.Channels.KafkaMessageEncoding.Binary, typeof(StartupBinaryEncoding))]
     public void EncodingTests(ServiceModel.Channels.KafkaMessageEncoding encoding, Type startupType)
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -69,7 +70,7 @@ public class MessageEncodingTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             app.UseServiceModel(services =>
             {
