@@ -43,13 +43,14 @@ namespace CoreWCF.Channels
                 return 0;
             }
 
-            int bytesToCopy = Math.Min((int)_bufferedMessageData.ReadOnlyBuffer.Length - _offset, count);
-
-            if (bytesToCopy == 0)
+            long remainingBytes = _bufferedMessageData.ReadOnlyBuffer.Length - _offset;
+            if (remainingBytes <= 0)
             {
                 position = ReaderPosition.EndElement;
                 return 0;
             }
+
+            int bytesToCopy = (int)Math.Min(remainingBytes, count);
 
             _bufferedMessageData.ReadOnlyBuffer.Slice(_offset, bytesToCopy).CopyTo(buffer.AsSpan(index, bytesToCopy));
             _offset += bytesToCopy;
