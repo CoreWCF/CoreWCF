@@ -26,7 +26,7 @@ public class KeyedServicesTests
     public void BasicHttpRequestReplyEchoString()
     {
         string testString = "azerty";
-        IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
         using (host)
         {
             host.Start();

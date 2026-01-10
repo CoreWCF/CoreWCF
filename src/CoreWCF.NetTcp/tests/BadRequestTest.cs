@@ -26,7 +26,7 @@ namespace CoreWCF.NetTcp.Tests
         [Fact]
         public void UsingWrongUrlShouldNotThrowNullReferenceException()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, IPAddress.Loopback).Build();
 
             using (host)
             {

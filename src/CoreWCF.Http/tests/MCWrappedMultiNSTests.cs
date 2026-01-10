@@ -26,7 +26,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MulDataContractsInDiffNS()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -43,7 +43,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MulDataContractsInDiffNS2()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup2>(_output).Build();
             using (host)
             {
                 host.Start();
@@ -60,7 +60,7 @@ namespace CoreWCF.Http.Tests
         [Fact]
         public void MulDataContractsInDiffNS3()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup3>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup3>(_output).Build();
             using (host)
             {
                 host.Start();

@@ -6,7 +6,6 @@ using CoreWCF.Configuration;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -28,7 +27,7 @@ namespace CoreWCF.Http.Tests
         public void HandleQuotesInContentTypeCharSet()
         {
             string testString = new string('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupCharSetQuotes>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupCharSetQuotes>(_output).Build();
             using (host)
             {
                 host.Start();

@@ -28,7 +28,7 @@ public class CustomBindingWrappingInheritedFromHostTests
     [Fact]
     public void CustomBinding_WrappingInheritedFromHost_AuthenticatedUser_HavingRequiredScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserAndRequiredScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -44,7 +44,7 @@ public class CustomBindingWrappingInheritedFromHostTests
     [Fact]
     public void CustomBinding_WrappingInheritedFromHost_UnauthenticatedUser_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithUnauthenticatedUserStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithUnauthenticatedUserStartup>(_output).Build();
         using (host)
         {
             host.Start();
@@ -59,7 +59,7 @@ public class CustomBindingWrappingInheritedFromHostTests
     [Fact]
     public void CustomBinding_WrappingInheritedFromHost_AuthenticatedUser_MissingScopeValues_Test()
     {
-        IHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
+        IWebHost host = ServiceHelper.CreateWebHostBuilder<CustomBindingWrappingInheritedFromHostWithAuthenticatedUserButMissingScopeValuesStartup>(_output).Build();
         using (host)
         {
             host.Start();

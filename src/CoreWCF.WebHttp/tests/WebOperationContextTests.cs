@@ -26,7 +26,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task StatusCodeSet()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -40,7 +40,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task ResponseHeaderAdded()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -57,7 +57,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task ContentTypeSet()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
@@ -73,7 +73,7 @@ namespace CoreWCF.WebHttp.Tests
         [Fact]
         public async Task CanInspectRouteMatch()
         {
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();

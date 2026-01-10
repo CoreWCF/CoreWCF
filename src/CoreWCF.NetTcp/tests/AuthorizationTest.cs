@@ -37,7 +37,7 @@ namespace CoreWCF.NetTcp.Tests
         public void AuthorizationBasedOnRolesTest(Dictionary<string, List<Claim>> authorizeClaims, Claim[] authenticatedClaims, bool shouldSucced )
         {
             string testString = "a" + PrincipalPermissionMode.Always + "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupForAuthorization>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupForAuthorization>(_output).Build();
             var serviceBuilder = host.Services.GetRequiredService<IServiceBuilder>();
             serviceBuilder.ConfigureAllServiceHostBase(serviceHostBase =>
             {
@@ -112,7 +112,7 @@ namespace CoreWCF.NetTcp.Tests
         public void AuthorizationBasedOnRolesUsingAttributesTest()
         {
             string testString = "a" + PrincipalPermissionMode.Always + "test";
-            IHost host = ServiceHelper.CreateWebHostBuilder<StartupForAuthorization>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupForAuthorization>(_output).Build();
             var serviceBuilder = host.Services.GetRequiredService<IServiceBuilder>();
             serviceBuilder.ConfigureAllServiceHostBase(serviceHostBase =>
             {

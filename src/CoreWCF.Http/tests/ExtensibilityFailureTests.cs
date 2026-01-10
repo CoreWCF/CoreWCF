@@ -29,7 +29,7 @@ namespace CoreWCF.Http.Tests
         public async Task ThrowingExtensibilityReturnsFaultAsync()
         {
             string testString = new('a', 3000);
-            IHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
                 await host.StartAsync();
