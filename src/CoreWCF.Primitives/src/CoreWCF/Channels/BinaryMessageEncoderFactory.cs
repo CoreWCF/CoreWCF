@@ -1082,16 +1082,21 @@ namespace CoreWCF.Channels
 
         public static int ParseInt32(ReadOnlySequence<byte> buffer)
         {
+            // Read bytes sequentially handling multi-segment sequences
+            Span<byte> bytes = stackalloc byte[4];
+            int length = (int)Math.Min(buffer.Length, 4);
+            buffer.Slice(0, length).CopyTo(bytes);
+            
             switch (buffer.Length)
             {
                 case 1:
-                    return buffer.First.Span[0];
+                    return bytes[0];
                 case 2:
-                    return (buffer.First.Span[0] & 0x7f) + (buffer.Slice(1).First.Span[0] << 7);
+                    return (bytes[0] & 0x7f) + (bytes[1] << 7);
                 case 3:
-                    return (buffer.First.Span[0] & 0x7f) + ((buffer.Slice(1).First.Span[0] & 0x7f) << 7) + (buffer.Slice(2).First.Span[0] << 14);
+                    return (bytes[0] & 0x7f) + ((bytes[1] & 0x7f) << 7) + (bytes[2] << 14);
                 case 4:
-                    return (buffer.First.Span[0] & 0x7f) + ((buffer.Slice(1).First.Span[0] & 0x7f) << 7) + ((buffer.Slice(2).First.Span[0] & 0x7f) << 14) + (buffer.Slice(3).First.Span[0] << 21);
+                    return (bytes[0] & 0x7f) + ((bytes[1] & 0x7f) << 7) + ((bytes[2] & 0x7f) << 14) + (bytes[3] << 21);
                 default:
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(buffer), buffer.Length,
                         SR.Format(SR.ValueMustBeInRange, 1, 4)));
@@ -1115,17 +1120,20 @@ namespace CoreWCF.Channels
                 return 0;
             }
 
-            ReadOnlySpan<byte> searched = buffer2.AsSpan();
-            while (searched.Length > 0)
+            // Use a simpler approach for multi-segment handling
+            int index = 0;
+            foreach (var memory in buffer)
             {
-                var bufferSpan = buffer.First.Span;
-                if (searched[0] != bufferSpan[0])
+                var span = memory.Span;
+                for (int i = 0; i < span.Length && index < buffer2.Length; i++, index++)
                 {
-                    return 0;
+                    if (span[i] != buffer2[index])
+                    {
+                        return 0;
+                    }
                 }
-
-                searched = searched.Slice(1);
-                buffer = buffer.Slice(1);
+                if (index >= buffer2.Length)
+                    break;
             }
 
             return buffer2.Length;
@@ -1140,7 +1148,10 @@ namespace CoreWCF.Channels
             {
                 return false;
             }
-            XmlBinaryNodeType nodeType = (XmlBinaryNodeType)buffer.First.Span[0];
+            
+            // Read first byte from potentially multi-segment buffer
+            byte nodeTypeByte = buffer.First.Span[0];
+            XmlBinaryNodeType nodeType = (XmlBinaryNodeType)nodeTypeByte;
             return nodeType is >= minAttribute and <= maxAttribute;
         }
 
@@ -1152,22 +1163,28 @@ namespace CoreWCF.Channels
         public static int MatchInt32(ReadOnlySequence<byte> buffer)
         {
             long size = buffer.Length;
-            if (size > 0 && (buffer.First.Span[0] & 0x80) == 0)
+            
+            // Copy up to 4 bytes to a stack-allocated span for easier processing
+            Span<byte> bytes = stackalloc byte[4];
+            int bytesToCopy = (int)Math.Min(size, 4);
+            buffer.Slice(0, bytesToCopy).CopyTo(bytes);
+            
+            if (size > 0 && (bytes[0] & 0x80) == 0)
             {
                 return 1;
             }
 
-            if (size > 1 && (buffer.Slice(1).First.Span[0] & 0x80) == 0)
+            if (size > 1 && (bytes[1] & 0x80) == 0)
             {
                 return 2;
             }
 
-            if (size > 2 && (buffer.Slice(2).First.Span[0] & 0x80) == 0)
+            if (size > 2 && (bytes[2] & 0x80) == 0)
             {
                 return 3;
             }
 
-            if (size > 3 && (buffer.Slice(3).First.Span[0] & 0x80) == 0)
+            if (size > 3 && (bytes[3] & 0x80) == 0)
             {
                 return 4;
             }
@@ -1418,7 +1435,7 @@ namespace CoreWCF.Channels
 
             int abandonedSize = totalBytesMatched - s_bodyFragment.Length;
 
-            ReadOnlySequence<byte> readOnlySequence = new SequenceBuilder<byte>(s_bodyFragment)
+            ReadOnlySequence<byte> readOnlySequence = new SequenceBuilder<byte>(new ReadOnlyMemory<byte>(s_bodyFragment))
                 .Append(buffer.Slice(abandonedSize + s_bodyFragment.Length))
                 .Build();
 
