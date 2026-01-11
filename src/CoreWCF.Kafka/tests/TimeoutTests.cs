@@ -25,7 +25,7 @@ public class TimeoutTests : IntegrationTest
 
     }
 
-    [LinuxWhenCIOnlyFact(Skip = "Test requires pausing container which is not supported with TestContainers")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -36,7 +36,7 @@ public class TimeoutTests : IntegrationTest
             var testService = resolver.GetService<TestService>();
             testService.CountdownEvent.Reset(1);
 
-            // await KafkaEx.PauseAsync(Output); // Removed - requires Docker pause
+            await KafkaEx.PauseAsync(Output);
             try
             {
                 async Task Act()
@@ -55,12 +55,12 @@ public class TimeoutTests : IntegrationTest
             }
             finally
             {
-                // await KafkaEx.UnpauseAsync(Output); // Removed - requires Docker unpause
+                await KafkaEx.UnpauseAsync(Output);
             }
         }
     }
 
-    [LinuxWhenCIOnlyFact(Skip = "Test requires pausing container which is not supported with TestContainers")]
+    [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingCustomBindingTest()
     {
         IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
@@ -71,7 +71,7 @@ public class TimeoutTests : IntegrationTest
             var testService = resolver.GetService<TestService>();
             testService.CountdownEvent.Reset(1);
 
-            // await KafkaEx.PauseAsync(Output); // Removed - requires Docker pause
+            await KafkaEx.PauseAsync(Output);
             try
             {
                 async Task Act()
@@ -92,7 +92,7 @@ public class TimeoutTests : IntegrationTest
             }
             finally
             {
-                // await KafkaEx.UnpauseAsync(Output); // Removed - requires Docker unpause
+                await KafkaEx.UnpauseAsync(Output);
             }
         }
     }

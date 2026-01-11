@@ -23,15 +23,10 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
     private IContainer _kafkaContainer;
 
     public string BootstrapServers { get; private set; }
+    public string KafkaContainerId { get; private set; }
 
     public async Task InitializeAsync()
     {
-        // Only run on Linux as Windows doesn't support Linux containers in CI
-        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
-        {
-            return;
-        }
-
         // Create network
         _network = new NetworkBuilder()
             .WithName($"kafka-network-{Guid.NewGuid():N}")
@@ -157,6 +152,9 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
 
         // Set bootstrap servers to the plaintext port
         BootstrapServers = $"localhost:{plainTextPort}";
+        
+        // Store container ID for pause/unpause operations
+        KafkaContainerId = _kafkaContainer.Id.ToString();
     }
 
     public async Task DisposeAsync()

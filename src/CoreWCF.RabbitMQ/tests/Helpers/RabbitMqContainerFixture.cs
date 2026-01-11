@@ -24,12 +24,6 @@ public sealed class RabbitMqContainerFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Only run on Linux as Windows doesn't support Linux containers in CI
-        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
-        {
-            return;
-        }
-
         _rabbitMqContainer = new RabbitMqBuilder()
             .WithImage("rabbitmq:3.11-management-alpine")
             .WithUsername(Username)

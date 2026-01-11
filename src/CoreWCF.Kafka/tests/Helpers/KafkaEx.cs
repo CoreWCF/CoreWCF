@@ -14,6 +14,7 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 internal static class KafkaEx
 {
     private static string s_bootstrapServers = "localhost:9092";
+    private static string s_kafkaContainerId;
     private static Lazy<IAdminClient> s_adminClient;
 
     static KafkaEx()
@@ -25,6 +26,11 @@ internal static class KafkaEx
     {
         s_bootstrapServers = bootstrapServers;
         s_adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = s_bootstrapServers }).Build());
+    }
+
+    public static void SetKafkaContainerId(string containerId)
+    {
+        s_kafkaContainerId = containerId;
     }
 
     public static string GetBootstrapServers() => s_bootstrapServers;
@@ -128,5 +134,19 @@ internal static class KafkaEx
 
         output.WriteLine($"{messageCount} messages found in topic {topicName}");
         return messageCount;
+    }
+
+    public static async Task PauseAsync(ITestOutputHelper output)
+    {
+        output.WriteLine($"Pausing container {s_kafkaContainerId}");
+        await DockerEx.PauseAsync(s_kafkaContainerId);
+        output.WriteLine($"Container {s_kafkaContainerId} paused");
+    }
+
+    public static async Task UnpauseAsync(ITestOutputHelper output)
+    {
+        output.WriteLine($"Unpausing container {s_kafkaContainerId}");
+        await DockerEx.UnpauseAsync(s_kafkaContainerId);
+        output.WriteLine($"Container {s_kafkaContainerId} unpaused");
     }
 }

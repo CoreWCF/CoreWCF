@@ -47,6 +47,12 @@ public class MultipleTopicsIntegrationTest : IAsyncLifetime, IClassFixture<Kafka
             KafkaEx.SetBootstrapServers(_containerFixture.BootstrapServers);
         }
         
+        // Set the container ID for pause/unpause operations
+        if (!string.IsNullOrEmpty(_containerFixture.KafkaContainerId))
+        {
+            KafkaEx.SetKafkaContainerId(_containerFixture.KafkaContainerId);
+        }
+        
         foreach (var topic in _topics)
         {
             await KafkaEx.CreateTopicAsync(Output, topic);

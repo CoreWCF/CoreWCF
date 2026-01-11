@@ -38,6 +38,12 @@ public class IntegrationTest : IAsyncLifetime, IClassFixture<KafkaContainerFixtu
             KafkaEx.SetBootstrapServers(_containerFixture.BootstrapServers);
         }
         
+        // Set the container ID for pause/unpause operations
+        if (!string.IsNullOrEmpty(_containerFixture.KafkaContainerId))
+        {
+            KafkaEx.SetKafkaContainerId(_containerFixture.KafkaContainerId);
+        }
+        
         await KafkaEx.CreateTopicAsync(Output, Topic);
         if (_useDlq)
         {
