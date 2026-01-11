@@ -138,6 +138,11 @@ internal static class KafkaEx
 
     public static async Task PauseAsync(ITestOutputHelper output)
     {
+        if (string.IsNullOrEmpty(s_kafkaContainerId))
+        {
+            throw new InvalidOperationException("Kafka container ID not set. Ensure the KafkaContainerFixture has been initialized.");
+        }
+        
         output.WriteLine($"Pausing container {s_kafkaContainerId}");
         await DockerEx.PauseAsync(s_kafkaContainerId);
         output.WriteLine($"Container {s_kafkaContainerId} paused");
@@ -145,6 +150,11 @@ internal static class KafkaEx
 
     public static async Task UnpauseAsync(ITestOutputHelper output)
     {
+        if (string.IsNullOrEmpty(s_kafkaContainerId))
+        {
+            throw new InvalidOperationException("Kafka container ID not set. Ensure the KafkaContainerFixture has been initialized.");
+        }
+        
         output.WriteLine($"Unpausing container {s_kafkaContainerId}");
         await DockerEx.UnpauseAsync(s_kafkaContainerId);
         output.WriteLine($"Container {s_kafkaContainerId} unpaused");
