@@ -1084,8 +1084,7 @@ namespace CoreWCF.Channels
         {
             // Read bytes sequentially handling multi-segment sequences
             Span<byte> bytes = stackalloc byte[4];
-            int length = (int)Math.Min(buffer.Length, 4);
-            buffer.Slice(0, length).CopyTo(bytes);
+            buffer.Slice(0, buffer.Length).CopyTo(bytes);
             
             switch (buffer.Length)
             {
