@@ -135,8 +135,7 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
             .WithEnvironment("KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR", "1")
             .WithEnvironment("KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE", "false")
             .WithEnvironment("KAFKA_AUTO_CREATE_TOPICS_ENABLE", "true")
-            // Security configuration
-            .WithEnvironment("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT,SSL,SASL_PLAINTEXT,SASL_SSL")
+            // SASL configuration
             .WithEnvironment("KAFKA_SASL_ENABLED_MECHANISMS", "PLAIN")
             // SSL configuration - match docker-compose
             .WithEnvironment("KAFKA_SSL_TRUSTSTORE_FILENAME", "broker.truststore.jks")
