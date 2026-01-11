@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
-using Testcontainers.Kafka;
 using Xunit;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
 /// <summary>
 /// Manages Kafka container for integration tests.
-/// This fixture sets up Kafka with SSL/SASL support similar to the docker-compose configuration.
+/// This fixture sets up Kafka with SSL/SASL support matching the docker-compose configuration.
 /// </summary>
 public sealed class KafkaContainerFixture : IAsyncLifetime
 {
     private INetwork _network;
     private IContainer _generateSecretsContainer;
-    private KafkaContainer _kafkaContainer;
+    private IContainer _zookeeperContainer;
+    private IContainer _kafkaContainer;
 
     public string BootstrapServers { get; private set; }
 
@@ -89,37 +89,75 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
             }
         }
 
-        // Start Kafka with TestContainers module
-        _kafkaContainer = new KafkaBuilder()
+        // Start Zookeeper - required by Kafka
+        _zookeeperContainer = new ContainerBuilder()
+            .WithImage("confluentinc/cp-zookeeper:7.9.1")
+            .WithName($"zookeeper-{Guid.NewGuid():N}")
+            .WithNetwork(_network)
+            .WithNetworkAliases("zookeeper")
+            .WithEnvironment("ZOOKEEPER_CLIENT_PORT", "2181")
+            .WithEnvironment("ZOOKEEPER_TICK_TIME", "2000")
+            .WithEnvironment("ZOOKEEPER_ADMIN_ENABLE_SERVER", "false")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(2181))
+            .Build();
+
+        await _zookeeperContainer.StartAsync();
+
+        // Start Kafka with configuration matching docker-compose.yml
+        // Use fixed ports to match docker-compose and test expectations
+        const int plainTextPort = 9092;
+        const int sslPort = 9093;
+        const int saslPlainTextPort = 9094;
+        const int saslSslPort = 9095;
+        const int mtlsPort = 9096;
+        
+        _kafkaContainer = new ContainerBuilder()
             .WithImage("confluentinc/cp-kafka:7.9.1")
+            .WithName($"broker-{Guid.NewGuid():N}")
             .WithNetwork(_network)
             .WithNetworkAliases("broker")
+            .WithPortBinding(plainTextPort, 9092)
+            .WithPortBinding(sslPort, 9093)
+            .WithPortBinding(saslPlainTextPort, 9094)
+            .WithPortBinding(saslSslPort, 9095)
+            .WithPortBinding(mtlsPort, 9096)
             .WithBindMount(secretsPath, "/etc/kafka/secrets")
+            .WithEnvironment("KAFKA_BROKER_ID", "1")
+            .WithEnvironment("KAFKA_ZOOKEEPER_CONNECT", "zookeeper:2181")
+            .WithEnvironment("ZOOKEEPER_SASL_ENABLED", "false")
+            // Configure listener security protocol map - match docker-compose exactly
+            .WithEnvironment("KAFKA_LISTENER_SECURITY_PROTOCOL_MAP", "INTERNAL:PLAINTEXT,HOSTPLAINTEXT:PLAINTEXT,HOSTSSL:SSL,HOSTSASLPLAINTEXT:SASL_PLAINTEXT,HOSTSASLSSL:SASL_SSL,HOSTMTLS:SSL")
+            .WithEnvironment("KAFKA_ADVERTISED_LISTENERS", $"INTERNAL://broker:29092,HOSTPLAINTEXT://localhost:{plainTextPort},HOSTSSL://localhost:{sslPort},HOSTSASLPLAINTEXT://localhost:{saslPlainTextPort},HOSTSASLSSL://localhost:{saslSslPort},HOSTMTLS://localhost:{mtlsPort}")
+            .WithEnvironment("KAFKA_LISTENERS", $"INTERNAL://0.0.0.0:29092,HOSTPLAINTEXT://0.0.0.0:9092,HOSTSSL://0.0.0.0:9093,HOSTSASLPLAINTEXT://0.0.0.0:9094,HOSTSASLSSL://0.0.0.0:9095,HOSTMTLS://0.0.0.0:9096")
+            .WithEnvironment("KAFKA_INTER_BROKER_LISTENER_NAME", "INTERNAL")
+            .WithEnvironment("KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR", "1")
+            .WithEnvironment("KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", "1")
+            .WithEnvironment("KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR", "1")
+            .WithEnvironment("KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE", "false")
+            .WithEnvironment("KAFKA_AUTO_CREATE_TOPICS_ENABLE", "true")
+            // Security configuration
+            .WithEnvironment("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT,SSL,SASL_PLAINTEXT,SASL_SSL")
+            .WithEnvironment("KAFKA_SASL_ENABLED_MECHANISMS", "PLAIN")
+            // SSL configuration - match docker-compose
             .WithEnvironment("KAFKA_SSL_TRUSTSTORE_FILENAME", "broker.truststore.jks")
             .WithEnvironment("KAFKA_SSL_TRUSTSTORE_CREDENTIALS", "broker.truststore.jks.cred")
             .WithEnvironment("KAFKA_SSL_KEYSTORE_FILENAME", "broker.keystore.jks")
             .WithEnvironment("KAFKA_SSL_KEYSTORE_CREDENTIALS", "broker.keystore.jks.cred")
             .WithEnvironment("KAFKA_SSL_KEY_CREDENTIALS", "broker.keystore.jks.cred")
-            .WithEnvironment("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT,SSL,SASL_PLAINTEXT,SASL_SSL")
-            .WithEnvironment("KAFKA_SASL_ENABLED_MECHANISMS", "PLAIN")
+            // SSL client authentication - match docker-compose settings
+            .WithEnvironment("KAFKA_SSL_CLIENT_AUTH", "required")  // Default at broker level
+            .WithEnvironment("KAFKA_LISTENER_NAME_HOSTSASLSSL_SSL_CLIENT_AUTH", "none")  // No client auth for SASL+SSL
+            .WithEnvironment("KAFKA_LISTENER_NAME_HOSTSSL_SSL_CLIENT_AUTH", "none")  // No client auth for SSL only
+            .WithEnvironment("KAFKA_LISTENER_NAME_HOSTMTLS_SSL_CLIENT_AUTH", "required")  // Require client auth for MTLS
+            // JAAS configuration for SASL - match docker-compose
             .WithEnvironment("KAFKA_OPTS", "-Djava.security.auth.login.config=/etc/kafka/secrets/broker_jaas.conf")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(9092))
             .Build();
 
         await _kafkaContainer.StartAsync();
 
-        // Set bootstrap servers - need to extract just host:port from the full URI returned by GetBootstrapAddress()
-        var bootstrapAddress = _kafkaContainer.GetBootstrapAddress();
-        // GetBootstrapAddress() returns something like "plaintext://127.0.0.1:32770/"
-        // We need to extract just "127.0.0.1:32770"
-        try
-        {
-            var uri = new Uri(bootstrapAddress);
-            BootstrapServers = $"{uri.Host}:{uri.Port}";
-        }
-        catch (UriFormatException ex)
-        {
-            throw new InvalidOperationException($"Failed to parse bootstrap address '{bootstrapAddress}' from Kafka container. Expected format: 'plaintext://host:port/'", ex);
-        }
+        // Set bootstrap servers to the plaintext port
+        BootstrapServers = $"localhost:{plainTextPort}";
     }
 
     public async Task DisposeAsync()
@@ -127,6 +165,11 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
         if (_kafkaContainer != null)
         {
             await _kafkaContainer.DisposeAsync();
+        }
+
+        if (_zookeeperContainer != null)
+        {
+            await _zookeeperContainer.DisposeAsync();
         }
 
         if (_generateSecretsContainer != null)
