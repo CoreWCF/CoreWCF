@@ -101,3 +101,25 @@ public class LinuxWhenCIOnlyTheoryAttribute : TheoryAttribute
         }
     }
 }
+
+public class SkipOnGeneratedOperationInvokerFactAttribute : FactAttribute
+{
+    public SkipOnGeneratedOperationInvokerFactAttribute()
+    {
+        if (AppContext.TryGetSwitch("CoreWCF.Dispatcher.UseGeneratedOperationInvokers", out bool value) && value)
+        {
+            Skip = "Class-based service contracts are not supported by generated OperationInvoker";
+        }
+    }
+}
+
+public class SkipOnGeneratedOperationInvokerTheoryAttribute : TheoryAttribute
+{
+    public SkipOnGeneratedOperationInvokerTheoryAttribute()
+    {
+        if (AppContext.TryGetSwitch("CoreWCF.Dispatcher.UseGeneratedOperationInvokers", out bool value) && value)
+        {
+            Skip = "Class-based service contracts are not supported by generated OperationInvoker";
+        }
+    }
+}
