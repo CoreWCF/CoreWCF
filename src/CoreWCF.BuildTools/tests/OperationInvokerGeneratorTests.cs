@@ -1140,5 +1140,65 @@ namespace CoreWCF.Dispatcher
 
         await test.RunAsync();
     }
+
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
+    public async Task ContractAndImplementationInSeparateProjects(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            TestState =
+            {
+                // Implementation project
+                Sources =
+                {
+@$"
+namespace MyProject.Implementation
+{{
+    public partial class IdentityService : Contracts.IIdentityService
+    {{
+        public string Echo(string input)
+        {{
+            return input;
+        }}
+    }}
+}}
+"
+                },
+                AdditionalProjectReferences = { "ContractProject" },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator),"/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                },
+                AdditionalProjects =
+                {
+                    ["ContractProject"] =
+                    {
+                        Sources =
+                        {
+@$"
+namespace MyProject.Contracts
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+    }}
+}}
+"
+                        }
+                    }
+                }
+                // The generator does not generate code when the contract is in a separate project
+                // This test validates that the multi-project scenario compiles without errors
+            },
+        };
+
+        await test.RunAsync();
+    }
 }
 
