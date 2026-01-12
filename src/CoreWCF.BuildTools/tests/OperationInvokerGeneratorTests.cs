@@ -1141,6 +1141,11 @@ namespace CoreWCF.Dispatcher
         await test.RunAsync();
     }
 
+    /// <summary>
+    /// Tests that the source generator works correctly when the service contract
+    /// is in a separate project from the implementation. This validates the 
+    /// multi-project scenario which is a common real-world use case.
+    /// </summary>
     [Theory]
     [MemberData(nameof(GetTestVariations))]
     public async Task ContractAndImplementationInSeparateProjects(string attributeNamespace)
@@ -1193,8 +1198,6 @@ namespace MyProject.Contracts
                         }
                     }
                 }
-                // The generator does not generate code when the contract is in a separate project
-                // This test validates that the multi-project scenario compiles without errors
             },
         };
 
