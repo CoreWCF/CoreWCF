@@ -1195,6 +1195,10 @@ namespace MyProject.Contracts
     }}
 }}
 "
+                        },
+                        AdditionalReferences =
+                        {
+                            typeof(CoreWCF.ServiceContractAttribute).Assembly.Location
                         }
                     }
                 }
