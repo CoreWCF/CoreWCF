@@ -8,7 +8,8 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
-public class IntegrationTest : IAsyncLifetime, IClassFixture<KafkaContainerFixture>
+[Collection(nameof(KafkaCollection))]
+public class IntegrationTest : IAsyncLifetime
 {
     private readonly bool _useDlq;
     private readonly KafkaContainerFixture _containerFixture;

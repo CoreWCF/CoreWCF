@@ -18,7 +18,8 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.RabbitMQ.Tests
 {
-    public class IntegrationTests : IClassFixture<Helpers.RabbitMqContainerFixture>
+    [Collection(nameof(RabbitMqCollection))]
+    public class IntegrationTests
     {
         private readonly ITestOutputHelper _output;
         private readonly Helpers.RabbitMqContainerFixture _containerFixture;

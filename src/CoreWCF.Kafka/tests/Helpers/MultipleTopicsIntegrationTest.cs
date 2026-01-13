@@ -9,7 +9,8 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
-public class MultipleTopicsIntegrationTest : IAsyncLifetime, IClassFixture<KafkaContainerFixture>
+[Collection(nameof(KafkaCollection))]
+public class MultipleTopicsIntegrationTest : IAsyncLifetime
 {
     private readonly bool _useDlq;
     private readonly List<string> _topics = new();
