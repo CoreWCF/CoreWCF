@@ -38,6 +38,11 @@ public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
                 {
                     await OnConsume(message, queueTransportContext);
                 }
+                else
+                {
+                    // Add a small delay when queue is empty to avoid tight loop
+                    await Task.Delay(10, ct);
+                }
             }
 
             _mres.Set();
