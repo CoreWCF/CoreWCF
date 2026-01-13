@@ -14,6 +14,7 @@ namespace CoreWCF.Queue.Tests.InMemoryQueue;
 
 public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
 {
+    private const int EmptyQueueDelayMs = 10;
     private readonly ConcurrentQueue<string> _queue;
     private readonly ReceiveContextInterceptor _receiveContextInterceptor;
     private CancellationTokenSource _cts;
@@ -41,7 +42,7 @@ public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
                 else
                 {
                     // Add a small delay when queue is empty to avoid tight loop
-                    await Task.Delay(10, ct);
+                    await Task.Delay(EmptyQueueDelayMs, ct);
                 }
             }
 
