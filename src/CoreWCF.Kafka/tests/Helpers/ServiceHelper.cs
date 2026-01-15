@@ -64,11 +64,6 @@ public static class ServiceHelper
                 {
                     args[i] = app;
                 }
-                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
-                {
-                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
-                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
-                }
                 else
                 {
                     args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
@@ -118,11 +113,6 @@ public static class ServiceHelper
                 {
                     args[i] = app;
                 }
-                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
-                {
-                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
-                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
-                }
                 else
                 {
                     args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
@@ -170,11 +160,6 @@ public static class ServiceHelper
                 if (parameters[i].ParameterType == typeof(IApplicationBuilder))
                 {
                     args[i] = app;
-                }
-                else if (parameters[i].ParameterType.Name == "IHostingEnvironment")
-                {
-                    // Handle obsolete IHostingEnvironment by getting IWebHostEnvironment instead
-                    args[i] = app.Services.GetRequiredService<IWebHostEnvironment>();
                 }
                 else
                 {
