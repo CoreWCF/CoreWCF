@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -162,28 +163,27 @@ namespace CoreWCF.Channels
                 return RawMessageEncoder.IsContentTypeSupported(contentType) || JsonMessageEncoder.IsContentTypeSupported(contentType) || TextMessageEncoder.IsContentTypeSupported(contentType);
             }
 
-            public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+            public override async ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
             {
-                if (bufferManager == null)
+                if (memoryPool == null)
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(bufferManager)));
+                    throw Fx.Exception.ArgumentNull(nameof(memoryPool));
                 }
 
                 WebContentFormat format = GetFormatForContentType(contentType);
                 Message message;
-
                 switch (format)
                 {
                     case WebContentFormat.Json:
-                        message = JsonMessageEncoder.ReadMessage(buffer, bufferManager, contentType);
+                        message = await JsonMessageEncoder.ReadMessageAsync(buffer, memoryPool, contentType);
                         message.Properties.Add(WebBodyFormatMessageProperty.Name, WebBodyFormatMessageProperty.JsonProperty);
                         break;
                     case WebContentFormat.Xml:
-                        message = TextMessageEncoder.ReadMessage(buffer, bufferManager, contentType);
+                        message = await TextMessageEncoder.ReadMessageAsync(buffer, memoryPool, contentType);
                         message.Properties.Add(WebBodyFormatMessageProperty.Name, WebBodyFormatMessageProperty.XmlProperty);
                         break;
                     case WebContentFormat.Raw:
-                        message = RawMessageEncoder.ReadMessage(buffer, bufferManager, contentType);
+                        message = await RawMessageEncoder.ReadMessageAsync(buffer, memoryPool, contentType);
                         message.Properties.Add(WebBodyFormatMessageProperty.Name, WebBodyFormatMessageProperty.RawProperty);
                         break;
                     default:

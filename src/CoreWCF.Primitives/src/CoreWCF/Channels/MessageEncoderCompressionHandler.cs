@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.IO.Compression;
+using System.IO.Pipelines;
+using System.Threading.Tasks;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -11,47 +15,27 @@ namespace CoreWCF.Channels
     {
         internal const string GZipContentEncoding = "gzip";
         internal const string DeflateContentEncoding = "deflate";
-        private const int DecompressBlockSize = 1024;
 
-        internal static void DecompressBuffer(ref ArraySegment<byte> buffer, BufferManager bufferManager, CompressionFormat compressionFormat, long maxReceivedMessageSize)
+        internal static ReadOnlySequence<byte> DecompressBuffer(ReadOnlySequence<byte> buffer, BufferManager bufferManager, CompressionFormat compressionFormat, long maxReceivedMessageSize)
         {
-            MemoryStream memoryStream = new MemoryStream(buffer.Array, buffer.Offset, buffer.Count);
+            if (buffer.Length > maxReceivedMessageSize)
+            {
+                throw Fx.Exception.AsError(new QuotaExceededException(SR.Format(SRCommon.MaxReceivedMessageSizeExceeded, maxReceivedMessageSize)));
+            }
+
+            using Stream inputStream = PipeReader.Create(buffer).AsStream();
+            using Stream gZipStream =
+                compressionFormat == CompressionFormat.GZip
+                    ? new GZipStream(inputStream, CompressionMode.Decompress)
+                    : new DeflateStream(inputStream, CompressionMode.Decompress);
+
             int maxDecompressedSize = (int)Math.Min(maxReceivedMessageSize, int.MaxValue);
 
-            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SRCommon.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize, bufferManager))
-            {
-                bufferedOutStream.Write(buffer.Array, 0, buffer.Offset);
-
-                byte[] tempBuffer = bufferManager.TakeBuffer(DecompressBlockSize);
-                try
-                {
-                    using (Stream ds = compressionFormat == CompressionFormat.GZip ?
-                        (Stream)new GZipStream(memoryStream, CompressionMode.Decompress) :
-                        (Stream)new DeflateStream(memoryStream, CompressionMode.Decompress))
-                    {
-                        while (true)
-                        {
-                            int bytesRead = ds.Read(tempBuffer, 0, DecompressBlockSize);
-                            if (bytesRead > 0)
-                            {
-                                bufferedOutStream.Write(tempBuffer, 0, bytesRead);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    bufferManager.ReturnBuffer(tempBuffer);
-                }
-
-                byte[] decompressedBytes = bufferedOutStream.ToArray(out int length);
-                bufferManager.ReturnBuffer(buffer.Array);
-                buffer = new ArraySegment<byte>(decompressedBytes, buffer.Offset, length - buffer.Offset);
-            }
+            using BufferManagerOutputStream bufferedOutStream = new (SRCommon.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize,
+                    bufferManager);
+            gZipStream.CopyTo(bufferedOutStream);
+            byte[] decompressedBytes = bufferedOutStream.ToArray(out int length);
+            return new ReadOnlySequence<byte>(decompressedBytes, 0, length);
         }
 
         internal static void CompressBuffer(ref ArraySegment<byte> buffer, BufferManager bufferManager, CompressionFormat compressionFormat)
