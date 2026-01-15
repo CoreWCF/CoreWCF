@@ -9,19 +9,22 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
+[Collection(nameof(KafkaCollection))]
 public class MultipleTopicsIntegrationTest : IAsyncLifetime
 {
     private readonly bool _useDlq;
     private readonly List<string> _topics = new();
+    private readonly KafkaContainerFixture _containerFixture;
     protected ITestOutputHelper Output { get; }
     protected IReadOnlyList<string> Topics => _topics;
     protected string ConsumerGroup { get; }
     protected string DeadLetterQueueTopic { get; }
     protected string TopicRegex { get; }
 
-    protected MultipleTopicsIntegrationTest(ITestOutputHelper output, bool useDlq = false)
+    protected MultipleTopicsIntegrationTest(ITestOutputHelper output, KafkaContainerFixture containerFixture, bool useDlq = false)
     {
         _useDlq = useDlq;
+        _containerFixture = containerFixture;
         Output = output;
         string topic = $"topic-{Guid.NewGuid()}";
         TopicRegex = $"^{topic}_.*";
@@ -39,6 +42,18 @@ public class MultipleTopicsIntegrationTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        // Set the bootstrap servers for KafkaEx after the fixture has initialized
+        if (!string.IsNullOrEmpty(_containerFixture.BootstrapServers))
+        {
+            KafkaEx.SetBootstrapServers(_containerFixture.BootstrapServers);
+        }
+        
+        // Set the container ID for pause/unpause operations
+        if (!string.IsNullOrEmpty(_containerFixture.KafkaContainerId))
+        {
+            KafkaEx.SetKafkaContainerId(_containerFixture.KafkaContainerId);
+        }
+        
         foreach (var topic in _topics)
         {
             await KafkaEx.CreateTopicAsync(Output, topic);

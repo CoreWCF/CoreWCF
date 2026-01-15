@@ -18,13 +18,16 @@ using Xunit.Abstractions;
 
 namespace CoreWCF.RabbitMQ.Tests
 {
+    [Collection(nameof(RabbitMqCollection))]
     public class IntegrationTests
     {
         private readonly ITestOutputHelper _output;
+        private readonly Helpers.RabbitMqContainerFixture _containerFixture;
 
-        public IntegrationTests(ITestOutputHelper output)
+        public IntegrationTests(ITestOutputHelper output, Helpers.RabbitMqContainerFixture containerFixture)
         {
             _output = output;
+            _containerFixture = containerFixture;
         }
 
         [LinuxWhenCIOnlyFact(Skip = "Requires RabbitMQ host with SSL")]
@@ -64,6 +67,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultClassicQueueConfiguration_ReceiveMessage_Success()
         {
+            DefaultClassicQueueStartup.SetPort(_containerFixture.Port);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
             using (host)
             {
@@ -94,6 +98,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQuorumQueueConfiguration_ReceiveMessage_Success()
         {
+            DefaultQuorumQueueStartup.SetPort(_containerFixture.Port);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
             using (host)
             {
@@ -124,6 +129,7 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQueueConfiguration_ReceiveMessage_Success()
         {
+            DefaultQueueStartup.SetPort(_containerFixture.Port);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
             using (host)
             {
@@ -188,7 +194,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultClassicQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);
@@ -217,7 +225,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQuorumQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings =>
@@ -247,7 +257,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);

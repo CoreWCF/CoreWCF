@@ -13,13 +13,34 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal static class KafkaEx
 {
-    private static readonly string s_brokerContainerName = "broker";
-    private static Lazy<IAdminClient> AdminClient => new(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = "localhost:9092" }).Build());
+    private static string s_bootstrapServers = "localhost:9092";
+    private static string s_kafkaContainerId;
+    private static Lazy<IAdminClient> s_adminClient;
+
+    static KafkaEx()
+    {
+        s_adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = s_bootstrapServers }).Build());
+    }
+
+    public static void SetBootstrapServers(string bootstrapServers)
+    {
+        s_bootstrapServers = bootstrapServers;
+        s_adminClient = new Lazy<IAdminClient>(() => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = s_bootstrapServers }).Build());
+    }
+
+    public static void SetKafkaContainerId(string containerId)
+    {
+        s_kafkaContainerId = containerId;
+    }
+
+    public static string GetBootstrapServers() => s_bootstrapServers;
+
+    private static IAdminClient AdminClient => s_adminClient.Value;
 
     public static async Task CreateTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Create topic {name}");
-        await AdminClient.Value.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name, NumPartitions = 4 } }, new CreateTopicsOptions()
+        await AdminClient.CreateTopicsAsync(new[] { new TopicSpecification() { Name = name, NumPartitions = 4 } }, new CreateTopicsOptions()
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -28,7 +49,7 @@ internal static class KafkaEx
     public static async Task DeleteTopicAsync(ITestOutputHelper output, string name)
     {
         output.WriteLine($"Delete topic {name}");
-        await AdminClient.Value.DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
+        await AdminClient.DeleteTopicsAsync(new [] { name }, new DeleteTopicsOptions
         {
             OperationTimeout = TimeSpan.FromSeconds(30)
         });
@@ -38,11 +59,11 @@ internal static class KafkaEx
     {
         using var consumer = new ConsumerBuilder<Null, byte[]>(new ConsumerConfig
         {
-            BootstrapServers = "localhost:9092",
+            BootstrapServers = s_bootstrapServers,
             GroupId = consumerGroup
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = AdminClient.GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)
@@ -86,13 +107,13 @@ internal static class KafkaEx
     {
         using var consumer = new ConsumerBuilder<Null, byte[]>(new ConsumerConfig
         {
-            BootstrapServers = "localhost:9092",
+            BootstrapServers = s_bootstrapServers,
             GroupId = Guid.NewGuid().ToString(),
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnablePartitionEof = true
         }).Build();
 
-        var meta = AdminClient.Value.GetMetadata(TimeSpan.FromSeconds(30));
+        var meta = AdminClient.GetMetadata(TimeSpan.FromSeconds(30));
 
         var topicPartitions = meta.Topics.Where(x => x.Topic == topicName)
             .SelectMany(x => x.Partitions)
@@ -117,15 +138,25 @@ internal static class KafkaEx
 
     public static async Task PauseAsync(ITestOutputHelper output)
     {
-        output.WriteLine($"Pausing container {s_brokerContainerName}");
-        await DockerEx.PauseAsync(s_brokerContainerName);
-        output.WriteLine($"Container {s_brokerContainerName} paused");
+        if (string.IsNullOrEmpty(s_kafkaContainerId))
+        {
+            throw new InvalidOperationException("Kafka container ID not set. Ensure the KafkaContainerFixture has been initialized.");
+        }
+        
+        output.WriteLine($"Pausing container {s_kafkaContainerId}");
+        await DockerEx.PauseAsync(s_kafkaContainerId);
+        output.WriteLine($"Container {s_kafkaContainerId} paused");
     }
 
     public static async Task UnpauseAsync(ITestOutputHelper output)
     {
-        output.WriteLine($"Unpausing container {s_brokerContainerName}");
-        await DockerEx.UnpauseAsync(s_brokerContainerName);
-        output.WriteLine($"Container {s_brokerContainerName} unpaused");
+        if (string.IsNullOrEmpty(s_kafkaContainerId))
+        {
+            throw new InvalidOperationException("Kafka container ID not set. Ensure the KafkaContainerFixture has been initialized.");
+        }
+        
+        output.WriteLine($"Unpausing container {s_kafkaContainerId}");
+        await DockerEx.UnpauseAsync(s_kafkaContainerId);
+        output.WriteLine($"Container {s_kafkaContainerId} unpaused");
     }
 }
