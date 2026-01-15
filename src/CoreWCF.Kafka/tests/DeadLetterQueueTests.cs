@@ -97,6 +97,8 @@ public class DeadLetterQueueTests : IntegrationTest
 
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Contains(name, testService.Names);
+
+            await Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(channel)).BeginClose(null, null), new Action<IAsyncResult>(((System.ServiceModel.ICommunicationObject)(channel)).EndClose));
         }
 
         await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
