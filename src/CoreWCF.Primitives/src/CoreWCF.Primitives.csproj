@@ -79,4 +79,7 @@
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\corewcf.primitives\src\corewcf\security\negotiateinternal\" />
+  </ItemGroup>
 </Project>

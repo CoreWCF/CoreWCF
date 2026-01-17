@@ -2,110 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
-using System.Security.Authentication;
 using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
     internal class NegotiateInternalState : INegotiateInternalState
     {
-        // https://www.gnu.org/software/gss/reference/gss.pdf
-        private const uint GSS_S_NO_CRED = 7 << 16;
-
-        private static readonly MethodInfo s_getIdentity;
-
-        private static readonly FieldInfo s_statusCode;
-        private static readonly FieldInfo s_statusException;
-        private static readonly FieldInfo s_gssMinorStatus;
-        private static readonly Type s_gssExceptionType;
-
         private readonly INTAuthenticationFacade _ntAuthentication;
-
-        static NegotiateInternalState()
-        {
-            Assembly secAssembly = typeof(AuthenticationException).Assembly;
-
-            //TODO this fails in framework
-            Type securityStatusType = secAssembly.GetType("System.Net.SecurityStatusPal", throwOnError: true);
-            // securityStatusType.get
-            s_statusCode = securityStatusType.GetField("ErrorCode");
-            s_statusException = securityStatusType.GetField("Exception");
-
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Type interopType = secAssembly.GetType("Interop", throwOnError: true);
-                Type netNativeType = interopType.GetNestedType("NetSecurityNative", BindingFlags.NonPublic | BindingFlags.Static);
-                s_gssExceptionType = netNativeType.GetNestedType("GssApiException", BindingFlags.NonPublic);
-                s_gssMinorStatus = s_gssExceptionType.GetField("_minorStatus", BindingFlags.Instance | BindingFlags.NonPublic);
-            }
-
-            Type negoStreamPalType = secAssembly.GetType("System.Net.Security.NegotiateStreamPal", throwOnError: true);
-            s_getIdentity = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
-                info.Name.Equals("GetIdentity")).Single();
-            GetException = negoStreamPalType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(info =>
-                info.Name.Equals("CreateExceptionFromError")).Single();
-        }
 
         public NegotiateInternalState()
         {
             _ntAuthentication = NTAuthenticationFacade.Build();
         }
 
-        // Copied rather than reflected to remove the IsCompleted -> CloseContext check.
-        // The client doesn't need the context once auth is complete, but the server does.
-        // I'm not sure why it auto-closes for the client given that the client closes it just a few lines later.
-        // https://github.com/dotnet/corefx/blob/a3ab91e10045bb298f48c1d1f9bd5b0782a8ac46/src/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/AuthenticationHelper.NtAuth.cs#L134
-        public string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error)
-        {
-            byte[] decodedIncomingBlob = null;
-            if (incomingBlob != null && incomingBlob.Length > 0)
-            {
-                decodedIncomingBlob = Convert.FromBase64String(incomingBlob);
-            }
-
-            byte[] decodedOutgoingBlob = GetOutgoingBlob(decodedIncomingBlob, out status, out error);
-
-            string outgoingBlob = null;
-            if (decodedOutgoingBlob != null && decodedOutgoingBlob.Length > 0)
-            {
-                outgoingBlob = Convert.ToBase64String(decodedOutgoingBlob);
-            }
-
-            return outgoingBlob;
-        }
-
         public byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error)
         {
             try
             {
-                byte[] blob = _ntAuthentication.GetOutgoingBlob(incomingBlob, false, out object securityStatus);
+                byte[] blob = _ntAuthentication.GetOutgoingBlob(incomingBlob, out var securityStatus);
 
-                // TODO: Update after corefx changes
-                error = (Exception)(s_statusException.GetValue(securityStatus)
-                    ?? GetException.Invoke(null, new[] { securityStatus }));
-                var errorCode = (NegotiateInternalSecurityStatusErrorCode)s_statusCode.GetValue(securityStatus);
+                var errorCode = securityStatus.ErrorCode;
 
-                // TODO: Remove after corefx changes
-                // The linux implementation always uses InternalError;
-                if (errorCode == NegotiateInternalSecurityStatusErrorCode.InternalError
-                    && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    && s_gssExceptionType.IsInstanceOfType(error))
-                {
-                    uint majorStatus = (uint)error.HResult;
-                    uint minorStatus = (uint)s_gssMinorStatus.GetValue(error);
-
-                    // Remap specific errors
-                    if (majorStatus == GSS_S_NO_CRED && minorStatus == 0)
-                    {
-                        errorCode = NegotiateInternalSecurityStatusErrorCode.UnknownCredentials;
-                    }
-
-                    error = new Exception($"An authentication exception occurred (0x{majorStatus:X}/0x{minorStatus:X}).", error);
-                }
+                error = securityStatus.Exception;
 
                 if (errorCode == NegotiateInternalSecurityStatusErrorCode.OK
                     || errorCode == NegotiateInternalSecurityStatusErrorCode.ContinueNeeded
@@ -142,9 +62,7 @@ namespace CoreWCF.Security.NegotiateInternal
 
         public bool IsValidContext => _ntAuthentication.IsValidContext;
 
-        public static MethodInfo GetException { get; private set; }
-
-        public IIdentity GetIdentity() => (IIdentity)s_getIdentity.Invoke(obj: null, parameters: new object[] { _ntAuthentication.Instance });
+        public IIdentity GetIdentity() => _ntAuthentication.GetIdentity();
 
         public byte[] Encrypt(byte[] input)
         {
@@ -153,14 +71,10 @@ namespace CoreWCF.Security.NegotiateInternal
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(input));
             }
 
-            byte[] _writeBuffer = new byte[4];
-            int totalBytes = _ntAuthentication.Encrypt(input, ref _writeBuffer);
-            byte[] result = new byte[totalBytes - 4];
-            Buffer.BlockCopy(_writeBuffer, 4, result, 0, result.Length);
-            return result;
+            return _ntAuthentication.Encrypt(input);
         }
 
-        public void Dispose() => _ntAuthentication.CloseContext();
+        public void Dispose() => _ntAuthentication.Dispose();
 
         private bool IsCredentialError(NegotiateInternalSecurityStatusErrorCode error) => error == NegotiateInternalSecurityStatusErrorCode.LogonDenied ||
                 error == NegotiateInternalSecurityStatusErrorCode.UnknownCredentials ||
