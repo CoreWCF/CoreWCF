@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Http;
 using System.Xml;
@@ -33,7 +34,7 @@ namespace CoreWCF.Channels
                 throw Fx.Exception.ArgumentNull("buffer.Array", SR.Format(SR.ArgumentPropertyShouldNotBeNullError, "buffer.Array"));
             }
 
-            ByteStreamBufferedMessageData data = new ByteStreamBufferedMessageData(buffer, bufferManager);
+            ByteStreamBufferedMessageData data = new(new ReadOnlySequence<byte>(buffer.Array, buffer.Offset, buffer.Count));
 
             // moveBodyReaderToContent is true, for consistency with the other implementations of Message (including the Message base class itself)
             return CreateMessage(data, XmlDictionaryReaderQuotas.Max, true);
@@ -370,7 +371,13 @@ namespace CoreWCF.Channels
                 protected override void OnWriteBodyContents(XmlDictionaryWriter writer)
                 {
                     writer.WriteStartElement(ByteStreamMessageUtility.StreamElementName, string.Empty);
-                    writer.WriteBase64(MessageData.Buffer.Array, MessageData.Buffer.Offset, MessageData.Buffer.Count);
+                    if (writer is XmlByteStreamWriter xmlByteStreamWriter)
+                    {
+                        foreach (ReadOnlyMemory<byte> memory in MessageData.ReadOnlyBuffer)
+                        {
+                            xmlByteStreamWriter.WriteBase64(memory);
+                        }
+                    }
                     writer.WriteEndElement();
                 }
             }
@@ -391,17 +398,13 @@ namespace CoreWCF.Channels
                 // OnCreateBufferedCopy / OnWriteBodyContents can only be called once - protected by state on Message (either copied or written once)
                 protected override BodyWriter OnCreateBufferedCopy(int maxBufferSize)
                 {
-                    using (BufferManagerOutputStream bufferedStream = new BufferManagerOutputStream(SR.MaxReceivedMessageSizeExceeded, maxBufferSize))
-                    {
-                        using (XmlDictionaryWriter writer = new XmlByteStreamWriter(bufferedStream, true))
-                        {
-                            OnWriteBodyContents(writer);
-                            writer.Flush();
-                            byte[] bytesArray = bufferedStream.ToArray(out int size);
-                            ByteStreamBufferedMessageData bufferedMessageData = new ByteStreamBufferedMessageData(new ArraySegment<byte>(bytesArray, 0, size));
-                            return new BufferedBodyWriter(bufferedMessageData);
-                        }
-                    }
+                    using BufferManagerOutputStream bufferedStream = new(SR.MaxReceivedMessageSizeExceeded, maxBufferSize);
+                    using XmlDictionaryWriter writer = new XmlByteStreamWriter(bufferedStream, true);
+                    OnWriteBodyContents(writer);
+                    writer.Flush();
+                    byte[] bytesArray = bufferedStream.ToArray(out int size);
+                    ByteStreamBufferedMessageData bufferedMessageData = new(new ReadOnlySequence<byte>(bytesArray, 0, size));
+                    return new BufferedBodyWriter(bufferedMessageData);
                 }
 
                 // OnCreateBufferedCopy / OnWriteBodyContents can only be called once - protected by state on Message (either copied or written once)
@@ -534,7 +537,7 @@ namespace CoreWCF.Channels
                     _messageData.Open();
                 }
 
-                public override int BufferSize => _messageData.Buffer.Count;
+                public override int BufferSize => (int)_messageData.ReadOnlyBuffer.Length;
 
                 private object ThisLock { get; } = new object();
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Net;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -118,7 +119,7 @@ namespace CoreWCF.Channels
                 try
                 {
                     HttpInput httpInput = requestContext.GetHttpInput(true);
-                    (Message requestMessage, Exception requestException) = await httpInput.ParseIncomingMessageAsync();
+                    (Message requestMessage, Exception requestException, PipeReader reader) = await httpInput.ParseIncomingMessageAsync();
                     if ((requestMessage == null) && (requestException == null))
                     {
                         await requestContext.SendResponseAndCloseAsync(System.Net.HttpStatusCode.BadRequest);
@@ -133,11 +134,19 @@ namespace CoreWCF.Channels
 
                     await ChannelDispatcher.DispatchAsync(requestContext);
                     await requestContext.ReplySent;
+
+                    // We need to call CompleteAsync after DispatchAsync to avoid internal buffers being freed.
+                    // Once migrated to .NET6+ we will probably inspect the body response using HttpContext.Request.BodyReader
+                    // .. in that case should the reader be completed ?
+                    if (reader is not null)
+                    {
+                        await reader.CompleteAsync();
+                    }
                 }
                 catch (Exception ex)
                 {
                     await HandleProcessInboundException(ex, requestContext);
-                }  
+                }
             }
         }
 

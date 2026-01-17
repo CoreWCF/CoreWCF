@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -753,8 +754,8 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        ArraySegment<byte> bytes = new ArraySegment<byte>(buffer, 0, count);
-                        message = _encoder.ReadMessage(bytes, _bufferManager);
+                        ReadOnlySequence<byte> bytes = new(buffer, 0, count);
+                        message = await _encoder.ReadMessageAsync(bytes, _bufferManager);
                     }
 
                     if (message.Version.Addressing != AddressingVersion.None || !_localAddress.IsAnonymous)
