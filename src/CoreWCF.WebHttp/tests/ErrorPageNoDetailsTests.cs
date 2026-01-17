@@ -8,6 +8,8 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceContract;
+using Services;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,6 +39,40 @@ namespace CoreWCF.WebHttp.Tests
                 Assert.Contains("<p class=\"heading1\">Request Error</p>", content);
                 Assert.DoesNotContain("The exception stack trace is", content);
             }
+        }
+
+        [Fact(Skip = "TDD Test")]
+        public async Task CircularReferenceGivesError()
+        {
+            using var host = ServiceHelper.CreateWebHostBuilder<GenericWebServiceStartup>()
+                .WithServiceBuilder(builder =>
+                {
+                    builder.AddService<BrokenService>()
+                        .AddServiceWebEndpoint<BrokenService, IBrokenServiceContract>("broken");
+                })
+                .Build();
+            await host.StartAsync();
+
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("broken/JsonCircularGraph");
+
+            Assert.InRange((int)statusCode, 500, 599);
+        }
+
+        [Fact(Skip = "TDD Test")]
+        public async Task JsonReferenceGivesError()
+        {
+            using var host = ServiceHelper.CreateWebHostBuilder<GenericWebServiceStartup>()
+                .WithServiceBuilder(builder =>
+                {
+                    builder.AddService<BrokenService>()
+                        .AddServiceWebEndpoint<BrokenService, IBrokenServiceContract>("broken");
+                })
+                .Build();
+            await host.StartAsync();
+
+            (HttpStatusCode statusCode, string content) = await HttpHelpers.GetAsync("broken/JsonReference");
+
+            Assert.InRange((int)statusCode, 500, 599);
         }
 
         internal class Startup
