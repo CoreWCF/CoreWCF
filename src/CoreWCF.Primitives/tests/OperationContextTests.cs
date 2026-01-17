@@ -9,10 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -120,19 +120,22 @@ namespace CoreWCF.Primitives.Tests
             // It must be placed before the host started.
             var context = OperationContext.Current;
 
-            var builder = WebHost.CreateDefaultBuilder<Startup>(null);
-            builder.UseKestrel(o =>
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.UseKestrel(o =>
             {
                 o.ListenAnyIP(_serviceAddress.Port);
             });
-            var host = builder.Build();
-            using (host)
+            var startup = new Startup();
+            startup.ConfigureServices(builder.Services);
+            var app = builder.Build();
+            startup.Configure(app);
+            using (app)
             {
-                host.Start();
+                app.Start();
 
                 var cancellationSource = new CancellationTokenSource();
                 var cancellationToken = cancellationSource.Token;
-                var service = host.Services.GetRequiredService<Service>();
+                var service = app.Services.GetRequiredService<Service>();
 
                 try
                 {
