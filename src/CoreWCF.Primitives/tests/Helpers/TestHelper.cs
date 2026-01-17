@@ -221,41 +221,7 @@ namespace Helpers
 
         public static IHost CreateHost<TStartup>() where TStartup : class
         {
-#if NET6_0_OR_GREATER
-            var builder = WebApplication.CreateBuilder();
-
-            // Create an instance of the startup class to configure services
-            var startup = Activator.CreateInstance<TStartup>();
-            var configureServicesMethod = typeof(TStartup).GetMethod("ConfigureServices");
-            configureServicesMethod?.Invoke(startup, new object[] { builder.Services });
-
-            var app = builder.Build();
-
-            // Call Configure method on the startup class
-            var configureMethod = typeof(TStartup).GetMethod("Configure");
-            if (configureMethod != null)
-            {
-                var parameters = configureMethod.GetParameters();
-                var args = new object[parameters.Length];
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    if (parameters[i].ParameterType == typeof(IApplicationBuilder))
-                    {
-                        args[i] = app;
-                    }
-                    else
-                    {
-                        args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
-                    }
-                }
-                configureMethod.Invoke(startup, args);
-            }
-
-            return app;
-#else
-            var builder = Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<TStartup>(null);
-            return builder.Build();
-#endif
+            return CreateHost<TStartup>(null);
         }
 
         public static IHost CreateHost<TStartup>(Action<Microsoft.AspNetCore.Hosting.IWebHostBuilder> configureWebHost) where TStartup : class
@@ -272,6 +238,19 @@ namespace Helpers
             var app = builder.Build();
 
             // Call Configure method on the startup class
+            InvokeStartupConfigure(startup, app);
+
+            return app;
+#else
+            var builder = Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<TStartup>(null);
+            configureWebHost?.Invoke(builder);
+            return builder.Build();
+#endif
+        }
+
+#if NET6_0_OR_GREATER
+        private static void InvokeStartupConfigure<TStartup>(TStartup startup, WebApplication app)
+        {
             var configureMethod = typeof(TStartup).GetMethod("Configure");
             if (configureMethod != null)
             {
@@ -290,13 +269,7 @@ namespace Helpers
                 }
                 configureMethod.Invoke(startup, args);
             }
-
-            return app;
-#else
-            var builder = Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<TStartup>(null);
-            configureWebHost?.Invoke(builder);
-            return builder.Build();
-#endif
         }
+#endif
     }
 }
