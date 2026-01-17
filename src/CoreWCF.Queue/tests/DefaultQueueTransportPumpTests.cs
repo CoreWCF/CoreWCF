@@ -83,7 +83,7 @@ namespace CoreWCF.Queue.Tests
                 messageDispatcher,
                 messageReceiver);
             await messageReceiver.StartPumpAsync(transportContext, default);
-            await Task.Delay(200);
+            await Task.Delay(1000);
             await messageReceiver.StopPumpAsync(default);
 
             Assert.True(transport.CallCount > 1, $"CallCount should have been > 1, but was {transport.CallCount}");
