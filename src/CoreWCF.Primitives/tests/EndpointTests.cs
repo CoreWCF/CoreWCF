@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -57,10 +57,13 @@ namespace CoreWCF.Primitives.Tests
         [Fact]
         public void MultipleEndpointsWithSameListenAddressShouldWork()
         {
-            var builder = WebHost.CreateDefaultBuilder<Startup>(null);
-            var host = builder.Build();
-            using (host)
-                host.Start();
+            var builder = WebApplication.CreateBuilder();
+            var startup = new Startup();
+            startup.ConfigureServices(builder.Services);
+            var app = builder.Build();
+            startup.Configure(app);
+            using (app)
+                app.Start();
         }
     }
 }
