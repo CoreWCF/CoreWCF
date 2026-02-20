@@ -12,7 +12,7 @@ namespace System.Runtime.CompilerServices
 }
 #endif
 
-namespace CoreWCF.Http.Tests
+namespace CoreWCF.Http.GeneratedOperationInvokers.Tests
 {
     internal static class UseGeneratedOperationInvokerModuleInitializer
     {
