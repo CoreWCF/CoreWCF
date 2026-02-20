@@ -39,9 +39,21 @@
     <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="UseGeneratedOperationInvokerModuleInitializer.cs" />
-    <None Include="UseGeneratedOperationInvokerModuleInitializer.cs" />
+    <AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
+      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFOperationInvokerGenerator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="CoreWCF.Http.Tests.proj" />
   </ItemGroup>
 
