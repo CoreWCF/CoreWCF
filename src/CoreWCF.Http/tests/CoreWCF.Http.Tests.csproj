@@ -1,7 +1,42 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <!-- Everything is in the CoreWCF.Http.Tests.proj file so it can be imported by this project
-       and CoreWCF.Http.GeneratedOperationInvokers.Tests.csproj. Previously all the logic was in
-       this file, but since .NET 9, the build emits a lot of warnings about the SDK being imported
-       twice. This prevents those warnings as CoreWCF.Http.Tests.proj has no SDK declared.-->
-  <Import Project="CoreWCF.Http.Tests.proj" />
+  <PropertyGroup>
+    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <!-- Required for multi-framework support for in-memory integration testing-->
+    <OutputType>Exe</OutputType>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="IsExternalInit">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.ServiceModel.Federation" />
+    <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="System.ServiceModel.Http" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <PackageReference Include="Microsoft.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="..\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
+
 </Project>
