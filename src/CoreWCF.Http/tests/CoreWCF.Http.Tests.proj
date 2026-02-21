@@ -40,8 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="UseGeneratedOperationInvokerModuleInitializer.cs" />
-    <None Include="UseGeneratedOperationInvokerModuleInitializer.cs" />
     <None Include="CoreWCF.Http.Tests.proj" />
   </ItemGroup>
 
