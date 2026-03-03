@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools;
@@ -14,43 +13,55 @@ public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-            IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
-                          predicate: static (token, _) => Parser.IsSyntaxTargetForGeneration(token),
-                          transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
-                          .Where(static c => c is not null);
+        IncrementalValueProvider<bool> enabledProvider = context.AnalyzerConfigOptionsProvider
+            .Select(static (options, _) =>
+                options.GlobalOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator", out string? val)
+                && val == "true");
 
-            IncrementalValueProvider<(AnalyzerConfigOptionsProvider ConfigOptions, (Compilation Compilation, ImmutableArray<MethodDeclarationSyntax?> Methods) CompilationAndMethods)> compilationAndMethods =
-              context.AnalyzerConfigOptionsProvider.Combine(context.CompilationProvider.Combine(methodDeclarations.Collect()));
+        IncrementalValuesProvider<MethodDeclarationSyntax> coreWCFMethods = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "CoreWCF.OperationContractAttribute",
+                predicate: static (node, _) => node is MethodDeclarationSyntax,
+                transform: static (ctx, _) => (MethodDeclarationSyntax)ctx.TargetNode);
 
-            context.RegisterSourceOutput(compilationAndMethods, (spc, source)
-                => Execute(source.ConfigOptions.GlobalOptions, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Methods!, spc));
-        }
+        IncrementalValuesProvider<MethodDeclarationSyntax> ssmMethods = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "System.ServiceModel.OperationContractAttribute",
+                predicate: static (node, _) => node is MethodDeclarationSyntax,
+                transform: static (ctx, _) => (MethodDeclarationSyntax)ctx.TargetNode);
 
-    private void Execute(AnalyzerConfigOptions analyzerConfigOptions, Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
+        IncrementalValueProvider<ImmutableArray<MethodDeclarationSyntax>> methodDeclarations = coreWCFMethods.Collect()
+            .Combine(ssmMethods.Collect())
+            .Select(static (pair, _) => pair.Left.AddRange(pair.Right));
+
+        IncrementalValueProvider<(bool Enabled, (Compilation Compilation, ImmutableArray<MethodDeclarationSyntax> Methods) CompilationAndMethods)> compilationAndMethods =
+            enabledProvider.Combine(context.CompilationProvider.Combine(methodDeclarations));
+
+        context.RegisterSourceOutput(compilationAndMethods, (spc, source)
+            => Execute(source.Enabled, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Methods, spc));
+    }
+
+    private void Execute(bool enabled, Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
     {
-            bool enableOperationInvokerGenerator =
-                analyzerConfigOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator",
-                    out string? enableSourceGenerator) && enableSourceGenerator == "true";
-
-            if (!enableOperationInvokerGenerator)
-            {
-                return;
-            }
-
-            if (contextMethods.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            OperationInvokerSourceGenerationContext context = new(sourceProductionContext);
-            Parser parser = new(compilation, context);
-            SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
-            if (spec != SourceGenerationSpec.None)
-            {
-                Emitter emitter = new(context, spec);
-                emitter.Emit();
-            }
+        if (!enabled)
+        {
+            return;
         }
+
+        if (contextMethods.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        OperationInvokerSourceGenerationContext context = new(sourceProductionContext);
+        Parser parser = new(compilation, context);
+        SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
+        if (spec != SourceGenerationSpec.None)
+        {
+            Emitter emitter = new(context, spec);
+            emitter.Emit();
+        }
+    }
 
     internal readonly struct OperationInvokerSourceGenerationContext
     {
