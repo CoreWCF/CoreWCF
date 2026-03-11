@@ -231,12 +231,23 @@ namespace CoreWCF.Security
         [DllImport(ADVAPI32, ExactSpelling = true, SetLastError = true)]
         internal static extern bool GetTokenInformation(SafeAccessTokenHandle tokenHandle, TOKEN_INFORMATION_CLASS tokenInformationClass, [Out] byte[] pTokenInformation, int tokenInformationLength, out int returnLength);
 
+        [DllImport(KERNEL32)]
+        internal static extern IntPtr GetCurrentProcess();
+
         [DllImport(ADVAPI32, SetLastError = true, EntryPoint = "OpenProcessToken")]
         internal static extern bool
         OpenProcessToken(
             [In] IntPtr ProcessHandle,
             [In] TokenAccessLevels DesiredAccess,
             [Out] out SafeCloseHandle TokenHandle);
+
+        [DllImport(KERNEL32, CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern bool GetAppContainerNamedObjectPath(
+            IntPtr token,
+            IntPtr appContainerSid,
+            uint objectPathLength,
+            [Out] StringBuilder objectPath,
+            ref uint returnLength);
 
         [DllImport(KERNEL32, SetLastError = true)]
         internal static extern SafeViewOfFileHandle MapViewOfFile
