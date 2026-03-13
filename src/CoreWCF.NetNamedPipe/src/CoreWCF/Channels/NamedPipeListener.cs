@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -77,9 +76,10 @@ namespace CoreWCF.Channels
                 {
                     if (AppContainerInfo.IsRunningInAppContainer)
                     {
-                        // When running inside an App Container, kernel objects cannot be created
-                        // in the Global namespace. The shared memory name is already prefixed with
-                        // the session-scoped named object path by BuildSharedMemoryName.
+                        // When running inside an App Container, kernel objects must not be created
+                        // in the Global namespace, as this may succeed but place them under the
+                        // wrong path. BuildSharedMemoryName already prefixes the name with the
+                        // session-scoped/AppContainer-local named object path.
                         string sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, false);
                         _logger.LogDebug("Running in App Container, creating shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
                         _sharedMemory = PipeSharedMemory.Create(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger);
@@ -118,7 +118,7 @@ namespace CoreWCF.Channels
                                 {
                                     if (!success)
                                     {
-                                        _logger.LogDebug("Failed to create local sesion shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
+                                        _logger.LogDebug("Failed to create local session shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
                                     }
                                 }
                             }
