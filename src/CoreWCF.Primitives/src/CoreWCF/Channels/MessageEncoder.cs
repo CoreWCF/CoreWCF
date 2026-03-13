@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
@@ -34,54 +36,32 @@ namespace CoreWCF.Channels
 
         public abstract Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType);
 
+        [Obsolete]
         public Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager)
         {
             return ReadMessage(buffer, bufferManager, null);
         }
 
-        public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
-
-        // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        [Obsolete("Implementers should override ReadMessageAsync(ReadOnlySequence<byte> buffer, string contentType).")]
+        public virtual Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
         {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
-            {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
-            }
-
-            return new ArraySegment<byte>(buffer, 0, offset);
+            return ReadMessageAsync(new ReadOnlySequence<byte>(buffer), bufferManager, contentType).AsTask().GetAwaiter().GetResult();
         }
 
-        // used for buffered streaming
-        internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
-            string contentType)
+        public ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool) => ReadMessageAsync(buffer, memoryPool, contentType: null);
+
+        // Default to forward the call to ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+        // to support derived type implementations
+        public virtual ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, MemoryPool<byte> memoryPool, string contentType)
         {
-            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
+            int bufferLength = (int)buffer.Length;
+            BufferManager bufferManager = memoryPool as InternalBufferManager;
+            byte[] bytes = bufferManager.TakeBuffer(bufferLength);
+            buffer.CopyTo(bytes.AsSpan(0, bufferLength));
+#pragma warning disable CS0612
+            Message message = ReadMessage(new ArraySegment<byte>(bytes, 0, bufferLength), bufferManager, contentType);
+#pragma warning restore CS0612
+            return new ValueTask<Message>(message);
         }
 
         public override string ToString()
