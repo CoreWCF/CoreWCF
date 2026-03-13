@@ -125,11 +125,12 @@ namespace CoreWCF.Channels
                         return;
                     }
 
-                    requestContext.SetMessage(requestMessage, requestException);
                     if (requestMessage != null)
                     {
                         requestMessage.Properties.Add("Microsoft.AspNetCore.Http.HttpContext", context);
                     }
+
+                    requestContext.SetMessage(requestMessage, requestException);
 
                     await ChannelDispatcher.DispatchAsync(requestContext);
                     await requestContext.ReplySent;
