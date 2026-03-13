@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using CoreWCF.Channels.Framing;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -75,44 +74,59 @@ namespace CoreWCF.Channels
             {
                 if (!_isListening)
                 {
-                    string sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, true);
-                    if (!PipeSharedMemory.TryCreate(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger, out _sharedMemory))
+                    if (AppContainerInfo.IsRunningInAppContainer)
                     {
-                        PipeSharedMemory tempSharedMemory = null;
+                        // When running inside an App Container, kernel objects must not be created
+                        // in the Global namespace, as this may succeed but place them under the
+                        // wrong path. BuildSharedMemoryName already prefixes the name with the
+                        // session-scoped/AppContainer-local named object path.
+                        string sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, false);
+                        _logger.LogDebug("Running in App Container, creating shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
+                        _sharedMemory = PipeSharedMemory.Create(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger);
+                        _logger.LogDebug("Created shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
+                    }
+                    else
+                    {
+                        string sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, true);
+                        if (!PipeSharedMemory.TryCreate(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger, out _sharedMemory))
+                        {
+                            PipeSharedMemory tempSharedMemory = null;
 
-                        // first see if we're in RANU by creating a unique Uri in the global namespace
-                        Uri tempUri = new Uri(_options.BaseAddress, Guid.NewGuid().ToString());
-                        string tempSharedMemoryName = PipeUri.BuildSharedMemoryName(tempUri, _options.HostNameComparisonMode, true);
-                        if (PipeSharedMemory.TryCreate(_options.InternalAllowedUsers, tempUri, tempSharedMemoryName, _logger, out tempSharedMemory))
-                        {
-                            _logger.LogDebug("Failed to create shared memory {sharedMemoryName} for pipe Uri {pipeUri} as it's already in use by another process", sharedMemoryName, _options.BaseAddress);
-                            // we're not RANU, throw PipeNameInUse
-                            tempSharedMemory.Dispose();
-                            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                                PipeSharedMemory.CreatePipeNameInUseException(UnsafeNativeMethods.ERROR_ACCESS_DENIED, _options.BaseAddress));
-                        }
-                        else
-                        {
-                            _logger.LogDebug("Failed to create global shared memory {sharedMemoryName} for pipe Uri {pipeUri}, attempting to create in local session", sharedMemoryName, _options.BaseAddress);
-                            // try the session namespace since we're RANU
-                            bool success = false;
-                            sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, false);
-                            try
+                            // first see if we're in RANU by creating a unique Uri in the global namespace
+                            Uri tempUri = new Uri(_options.BaseAddress, Guid.NewGuid().ToString());
+                            string tempSharedMemoryName = PipeUri.BuildSharedMemoryName(tempUri, _options.HostNameComparisonMode, true);
+                            if (PipeSharedMemory.TryCreate(_options.InternalAllowedUsers, tempUri, tempSharedMemoryName, _logger, out tempSharedMemory))
                             {
-                                _sharedMemory = PipeSharedMemory.Create(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger);
-                                success = true;
+                                _logger.LogDebug("Failed to create shared memory {sharedMemoryName} for pipe Uri {pipeUri} as it's already in use by another process", sharedMemoryName, _options.BaseAddress);
+                                // we're not RANU, throw PipeNameInUse
+                                tempSharedMemory.Dispose();
+                                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                                    PipeSharedMemory.CreatePipeNameInUseException(UnsafeNativeMethods.ERROR_ACCESS_DENIED, _options.BaseAddress));
                             }
-                            finally
+                            else
                             {
-                                if (!success)
+                                _logger.LogDebug("Failed to create global shared memory {sharedMemoryName} for pipe Uri {pipeUri}, attempting to create in local session", sharedMemoryName, _options.BaseAddress);
+                                // try the session namespace since we're RANU
+                                bool success = false;
+                                sharedMemoryName = PipeUri.BuildSharedMemoryName(_options.BaseAddress, _options.HostNameComparisonMode, false);
+                                try
                                 {
-                                    _logger.LogDebug("Failed to create local sesion shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
+                                    _sharedMemory = PipeSharedMemory.Create(_options.InternalAllowedUsers, _options.BaseAddress, sharedMemoryName, _logger);
+                                    success = true;
+                                }
+                                finally
+                                {
+                                    if (!success)
+                                    {
+                                        _logger.LogDebug("Failed to create local session shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
+                                    }
                                 }
                             }
                         }
+
+                        _logger.LogDebug("Created shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
                     }
 
-                    _logger.LogDebug("Created shared memory {sharedMemoryName} for pipe Uri {pipeUri}", sharedMemoryName, _options.BaseAddress);
                     _isListening = true;
                 }
             }
