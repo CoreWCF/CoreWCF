@@ -27,31 +27,36 @@ public sealed class PrivateServiceContractAnalyzer : DiagnosticAnalyzer
 #if !DEBUG
         context.EnableConcurrentExecution();
 #endif
-        context.RegisterSyntaxNodeAction(ErrorWhenServiceContractIsPrivateInterface, SyntaxKind.InvocationExpression);
+        context.RegisterCompilationStartAction(compilationStartContext =>
+        {
+            bool enableOperationInvokerGenerator = compilationStartContext.Options.AnalyzerConfigOptionsProvider
+                .GlobalOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator", out string? enableSourceGenerator)
+                && enableSourceGenerator == "true";
+
+            if (!enableOperationInvokerGenerator)
+            {
+                return;
+            }
+
+            INamedTypeSymbol? coreWcfServiceContractSymbol = compilationStartContext.Compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
+            INamedTypeSymbol? sSMServiceContractSymbol = compilationStartContext.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
+            INamedTypeSymbol? coreWcfOperationContractSymbol = compilationStartContext.Compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
+            INamedTypeSymbol? sSMOperationContractSymbol = compilationStartContext.Compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
+
+            compilationStartContext.RegisterSyntaxNodeAction(
+                context => ErrorWhenServiceContractIsPrivateInterface(context, coreWcfServiceContractSymbol, sSMServiceContractSymbol, coreWcfOperationContractSymbol, sSMOperationContractSymbol),
+                SyntaxKind.InvocationExpression);
+        });
     }
 
-    private void ErrorWhenServiceContractIsPrivateInterface(SyntaxNodeAnalysisContext context)
+    private void ErrorWhenServiceContractIsPrivateInterface(SyntaxNodeAnalysisContext context, INamedTypeSymbol? coreWcfServiceContractSymbol, INamedTypeSymbol? sSMServiceContractSymbol, INamedTypeSymbol? coreWcfOperationContractSymbol, INamedTypeSymbol? sSMOperationContractSymbol)
     {
-        bool enableOperationInvokerGenerator = context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator", out string? enableSourceGenerator) && enableSourceGenerator == "true";
-
-        if (!enableOperationInvokerGenerator)
-        {
-            return;
-        }
-
         InvocationExpressionSyntax invocationExpressionSyntax = (InvocationExpressionSyntax)context.Node;
         IMethodSymbol? methodSymbol = context.SemanticModel.GetSymbolInfo(invocationExpressionSyntax, context.CancellationToken).Symbol as IMethodSymbol;
         if (methodSymbol == null)
         {
             return;
         }
-
-        INamedTypeSymbol? coreWcfServiceContractSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
-        INamedTypeSymbol? sSMServiceContractSymbol =
-            context.Compilation.GetTypeByMetadataName("System.ServiceModel.ServiceContractAttribute");
-        INamedTypeSymbol? coreWcfOperationContractSymbol = context.Compilation.GetTypeByMetadataName("CoreWCF.OperationContractAttribute");
-        INamedTypeSymbol? sSMOperationContractSymbol =
-            context.Compilation.GetTypeByMetadataName("System.ServiceModel.OperationContractAttribute");
 
         IEnumerable<INamedTypeSymbol> serviceContracts;
         if (methodSymbol.ContainingType?.TypeKind == TypeKind.Interface)
