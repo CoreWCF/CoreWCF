@@ -23,7 +23,7 @@ namespace CoreWCF.Channels
 
         public string ConnectionId { get; }
 
-        public bool TryGetConnection(out NamedPipeConnection? connection)
+        public bool TryGetConnection(out NamedPipeConnection connection)
         {
             return _weakReference.TryGetTarget(out connection);
         }

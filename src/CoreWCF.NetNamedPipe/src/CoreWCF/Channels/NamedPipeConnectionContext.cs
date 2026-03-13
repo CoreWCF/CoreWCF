@@ -28,7 +28,7 @@ namespace CoreWCF.Channels
         private readonly CancellationTokenSource _connectionClosedTokenSource = new CancellationTokenSource();
         private bool _connectionShutdown;
         private bool _connectionClosed;
-        private Exception? _shutdownReason;
+        private Exception _shutdownReason;
         private bool _streamDisconnected;
         private readonly object _shutdownLock = new object();
         internal Task _receivingTask = Task.CompletedTask;
@@ -72,7 +72,7 @@ namespace CoreWCF.Channels
 
         private async Task DoReceiveAsync()
         {
-            Exception? error = null;
+            Exception error = null;
 
             try
             {
@@ -153,8 +153,8 @@ namespace CoreWCF.Channels
 
         private async Task DoSendAsync()
         {
-            Exception? shutdownReason = null;
-            Exception? unexpectedError = null;
+            Exception shutdownReason = null;
+            Exception unexpectedError = null;
 
             try
             {

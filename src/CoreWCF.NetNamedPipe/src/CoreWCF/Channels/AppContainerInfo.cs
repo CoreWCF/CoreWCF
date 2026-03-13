@@ -3,12 +3,16 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Text;
+using CoreWCF.Runtime;
 using CoreWCF.Security;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32.SafeHandles;
+using static CoreWCF.Security.UnsafeNativeMethods;
 
 namespace CoreWCF.Channels
 {
@@ -48,8 +52,7 @@ namespace CoreWCF.Channels
                 {
                     if (s_currentAppContainerSid == null)
                     {
-                        using SafeAccessTokenHandle token = GetCurrentProcessToken();
-                        s_currentAppContainerSid = GetAppContainerSid(token);
+                        s_currentAppContainerSid = GetAppContainerSid();
                     }
                 }
             }
@@ -59,10 +62,9 @@ namespace CoreWCF.Channels
 
         private static bool RunningInAppContainer()
         {
-            using SafeAccessTokenHandle token = GetCurrentProcessToken();
-            int tokenInfoLength = sizeof(int);
+            uint tokenInfoLength = sizeof(int);
             byte[] tokenInformation = new byte[tokenInfoLength];
-            if (!UnsafeNativeMethods.GetTokenInformation(token,
+            if (!UnsafeNativeMethods.GetTokenInformation(GetCurrentProcessToken(),
                 UnsafeNativeMethods.TOKEN_INFORMATION_CLASS.TokenIsAppContainer,
                 tokenInformation, tokenInfoLength, out _))
             {
@@ -73,49 +75,35 @@ namespace CoreWCF.Channels
             return BitConverter.ToInt32(tokenInformation, 0) != 0;
         }
 
-        private static SecurityIdentifier GetAppContainerSid(SafeAccessTokenHandle token)
+        private static unsafe SecurityIdentifier GetAppContainerSid()
         {
             // First call to get the required buffer length
-            UnsafeNativeMethods.GetTokenInformation(token,
-                UnsafeNativeMethods.TOKEN_INFORMATION_CLASS.TokenAppContainerSid,
-                null, 0, out int lengthNeeded);
+            uint returnLength = UnsafeNativeMethods.GetTokenInformationLength(
+                    GetCurrentProcessToken(),
+                    TOKEN_INFORMATION_CLASS.TokenAppContainerSid);
 
-            if (lengthNeeded == 0)
+            byte[] tokenInformation = new byte[returnLength];
+            fixed (byte* pTokenInformation = tokenInformation)
             {
-                int error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(error);
-            }
+                if (!UnsafeNativeMethods.GetTokenInformation(
+                                                GetCurrentProcessToken(),
+                                                TOKEN_INFORMATION_CLASS.TokenAppContainerSid,
+                                                tokenInformation,
+                                                returnLength,
+                                                out returnLength))
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw Fx.Exception.AsError(new Win32Exception(errorCode));
+                }
 
-            byte[] tokenInformation = new byte[lengthNeeded];
-            if (!UnsafeNativeMethods.GetTokenInformation(token,
-                UnsafeNativeMethods.TOKEN_INFORMATION_CLASS.TokenAppContainerSid,
-                tokenInformation, lengthNeeded, out _))
-            {
-                int error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(error);
+                // TOKEN_APPCONTAINER_INFORMATION contains a single PSID field
+                IntPtr sidPtr = Marshal.ReadIntPtr(tokenInformation, 0);
+                return new SecurityIdentifier(sidPtr);
             }
-
-            // TOKEN_APPCONTAINER_INFORMATION contains a single PSID field
-            IntPtr sidPtr = Marshal.ReadIntPtr(tokenInformation, 0);
-            return new SecurityIdentifier(sidPtr);
         }
 
-        private static SafeAccessTokenHandle GetCurrentProcessToken()
-        {
-            if (!UnsafeNativeMethods.OpenProcessToken(
-                UnsafeNativeMethods.GetCurrentProcess(),
-                TokenAccessLevels.Query,
-                out SafeCloseHandle tokenHandle))
-            {
-                int error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(error);
-            }
-
-            // Wrap in SafeAccessTokenHandle for compatibility with GetTokenInformation
-            SafeAccessTokenHandle accessToken = new SafeAccessTokenHandle(tokenHandle.DangerousGetHandle());
-            // Prevent the SafeCloseHandle from releasing the handle since SafeAccessTokenHandle now owns it
-            tokenHandle.SetHandleAsInvalid();
-            return accessToken;
-        }
+        // Shortcut for when you only need to a token to query information.
+        // See https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentprocesstoken for more information
+        private static IntPtr GetCurrentProcessToken() => (IntPtr)(-4);
     }
 }
