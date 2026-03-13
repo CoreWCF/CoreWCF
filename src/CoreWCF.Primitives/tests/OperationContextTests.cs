@@ -9,10 +9,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
-using Microsoft.AspNetCore;
+using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace CoreWCF.Primitives.Tests
@@ -120,13 +121,13 @@ namespace CoreWCF.Primitives.Tests
             // It must be placed before the host started.
             var context = OperationContext.Current;
 
-            var builder = WebHost.CreateDefaultBuilder<Startup>(null);
-            builder.UseKestrel(o =>
+            using (var host = TestHelper.CreateHost<Startup>(webHostBuilder =>
             {
-                o.ListenAnyIP(_serviceAddress.Port);
-            });
-            var host = builder.Build();
-            using (host)
+                webHostBuilder.UseKestrel(o =>
+                {
+                    o.ListenAnyIP(_serviceAddress.Port);
+                });
+            }))
             {
                 host.Start();
 

@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF;
 using CoreWCF.Channels;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Helpers
 {
@@ -216,5 +219,68 @@ namespace Helpers
 #endif
 
         }
+
+#if NET6_0_OR_GREATER
+        public static IHost CreateHost<TStartup>() where TStartup : class
+        {
+            return CreateHost<TStartup>(null);
+        }
+#else
+        public static IWebHost CreateHost<TStartup>() where TStartup : class
+        {
+            return CreateHost<TStartup>(null);
+        }
+#endif
+
+#if NET6_0_OR_GREATER
+        public static IHost CreateHost<TStartup>(Action<Microsoft.AspNetCore.Hosting.IWebHostBuilder> configureWebHost) where TStartup : class
+        {
+            var builder = WebApplication.CreateBuilder();
+            configureWebHost?.Invoke(builder.WebHost);
+
+            // Create an instance of the startup class to configure services
+            var startup = Activator.CreateInstance<TStartup>();
+            var configureServicesMethod = typeof(TStartup).GetMethod("ConfigureServices");
+            configureServicesMethod?.Invoke(startup, new object[] { builder.Services });
+
+            var app = builder.Build();
+
+            // Call Configure method on the startup class
+            InvokeStartupConfigure(startup, app);
+
+            return app;
+        }
+#else
+        public static IWebHost CreateHost<TStartup>(Action<Microsoft.AspNetCore.Hosting.IWebHostBuilder> configureWebHost) where TStartup : class
+        {
+            var builder = Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<TStartup>(null);
+            configureWebHost?.Invoke(builder);
+            return builder.Build();
+        }
+#endif
+
+#if NET6_0_OR_GREATER
+        private static void InvokeStartupConfigure<TStartup>(TStartup startup, WebApplication app)
+        {
+            var configureMethod = typeof(TStartup).GetMethod("Configure");
+            if (configureMethod != null)
+            {
+                var parameters = configureMethod.GetParameters();
+                var args = new object[parameters.Length];
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (parameters[i].ParameterType == typeof(IApplicationBuilder))
+                    {
+                        args[i] = app;
+                    }
+                    else
+                    {
+                        args[i] = app.Services.GetRequiredService(parameters[i].ParameterType);
+                    }
+                }
+                configureMethod.Invoke(startup, args);
+            }
+        }
+#endif
     }
 }
