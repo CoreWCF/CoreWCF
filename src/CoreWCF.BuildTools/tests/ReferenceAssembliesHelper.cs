@@ -28,8 +28,8 @@ internal static class ReferenceAssembliesHelper
             .Union(new[]
             {
                 new PackageIdentity("System.ServiceModel.Primitives", "8.1.2"),
-                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.3.0"),
-                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.3.0")
+                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.3.9"),
+                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.3.9")
             }).ToImmutableArray();
         return ReferenceAssemblies.Net.Net80.AddPackages(packages);
     });
