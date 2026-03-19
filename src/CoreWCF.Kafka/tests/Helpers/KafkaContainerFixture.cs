@@ -96,7 +96,7 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
             .WithEnvironment("ZOOKEEPER_CLIENT_PORT", "2181")
             .WithEnvironment("ZOOKEEPER_TICK_TIME", "2000")
             .WithEnvironment("ZOOKEEPER_ADMIN_ENABLE_SERVER", "false")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(2181))
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(2181))
             .Build();
 
         await _zookeeperContainer.StartAsync();
@@ -180,7 +180,7 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
             .WithEnvironment("KAFKA_LISTENER_NAME_HOSTSSL_SSL_CLIENT_AUTH", "none")  // No client auth for SSL only
             .WithEnvironment("KAFKA_LISTENER_NAME_HOSTMTLS_SSL_CLIENT_AUTH", "required")  // Require client auth for MTLS
             .WithEnvironment("KAFKA_OPTS", "-Djava.security.auth.login.config=/etc/kafka/secrets/broker_jaas.conf")  // JAAS configuration for SASL - match docker-compose
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(9092))
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(9092))
             .Build();
 
         await _kafkaContainer.StartAsync();
