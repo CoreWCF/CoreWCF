@@ -20,6 +20,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
+    <PackageVersion Include="Microsoft.AspNetCore.Http.Features" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Hosting" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.9" />
