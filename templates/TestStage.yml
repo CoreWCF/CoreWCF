@@ -93,6 +93,31 @@ stages:
         continueOnError: true
         timeoutInMinutes: 2
 
+      - bash: |
+          set -euo pipefail
+          root="$(System.DefaultWorkingDirectory)"
+          tfm="$(targetFramework)"
+          configuration="${{ configuration }}"
+          echo "Searching for test executables under: $root (TFM=$tfm)"
+          # Find: .../bin/<configuration>/<ProjectName>/<TFM>/<ProjectName>
+          # and chmod +x each match
+          found=0
+          while IFS= read -r -d '' exe; do
+            echo "chmod +x: $exe"
+            chmod +x "$exe"
+            found=$((found+1))
+          done < <(
+            find "$root" -type f \
+            -path "*/bin/$configuration/CoreWCF.*.Tests/$tfm/CoreWCF.*.Tests" \
+            -print0
+          )
+          echo "Fixed execute bit on $found test executables."
+          if [ "$found" -eq 0 ]; then
+              echo "##vso[task.logissue type=warning]No test executables found matching pattern under $root for TFM=$tfm"
+          fi
+        displayName: Restore +x on CoreWCF.*.Tests executables
+        condition: eq(variables.imageName, 'ubuntu-latest')
+
       - task: DotNetCoreCLI@2
         displayName: Run Tests
         timeoutInMinutes: 30

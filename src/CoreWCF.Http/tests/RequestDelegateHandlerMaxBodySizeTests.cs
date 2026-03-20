@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests
 {

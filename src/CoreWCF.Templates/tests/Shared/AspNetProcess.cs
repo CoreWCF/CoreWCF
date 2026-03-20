@@ -19,7 +19,6 @@ using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Templates.Test.Helpers;
 

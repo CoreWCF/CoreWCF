@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Helpers;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests.DependencyInjection
 {

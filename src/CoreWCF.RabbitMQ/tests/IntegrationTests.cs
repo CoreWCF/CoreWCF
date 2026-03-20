@@ -15,7 +15,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.RabbitMQ.Tests
 {
