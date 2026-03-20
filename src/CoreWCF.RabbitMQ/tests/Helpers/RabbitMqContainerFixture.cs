@@ -22,7 +22,7 @@ public sealed class RabbitMqContainerFixture : IAsyncLifetime
     public string Username { get; private set; } = "guest";
     public string Password { get; private set; } = "guest";
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         _rabbitMqContainer = new RabbitMqBuilder()
             .WithImage("rabbitmq:3.11-management-alpine")
@@ -37,7 +37,7 @@ public sealed class RabbitMqContainerFixture : IAsyncLifetime
         Port = _rabbitMqContainer.GetMappedPublicPort(5672);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_rabbitMqContainer != null)
         {

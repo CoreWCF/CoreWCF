@@ -25,12 +25,13 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        public static Message CreateEchoRequestMessage(string echo)
+        public static Message CreateEchoRequestMessage(string echo, string action = null)
         {
+            action ??= EchoAction;
             string requestMessageStr = s_echoPrefix + echo + s_echoSuffix;
             var xmlDictionaryReader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(requestMessageStr), XmlDictionaryReaderQuotas.Max);
             var requestMessage = Message.CreateMessage(xmlDictionaryReader, int.MaxValue, MessageVersion.Soap11);
-            requestMessage.Headers.Action = EchoAction;
+            requestMessage.Headers.Action = action;
             return requestMessage;
         }
 

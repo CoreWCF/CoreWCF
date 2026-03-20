@@ -13,8 +13,6 @@ using Microsoft.AspNetCore.Internal;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using Xunit.Abstractions;
-using Xunit.Sdk;
 using static Templates.Test.Helpers.ProcessLock;
 
 namespace Templates.Test.Helpers;
@@ -34,7 +32,6 @@ public class Project : IDisposable
     public string TemplatePublishDir => Path.Combine(TemplateOutputDir, "bin", "Release", TargetFramework, RuntimeIdentifier, "publish");
 
     public ITestOutputHelper Output { get; set; }
-    public IMessageSink DiagnosticsMessageSink { get; set; }
 
     internal async Task<ProcessResult> RunDotNetNewAsync(
         string templateName,
@@ -225,12 +222,12 @@ public class Project : IDisposable
             {
                 if (numAttemptsRemaining > 1)
                 {
-                    DiagnosticsMessageSink.OnMessage(new DiagnosticMessage($"Failed to delete directory {TemplateOutputDir} because of error {ex.Message}. Will try again {numAttemptsRemaining - 1} more time(s)."));
+                    TestContext.Current?.SendDiagnosticMessage($"Failed to delete directory {TemplateOutputDir} because of error {ex.Message}. Will try again {numAttemptsRemaining - 1} more time(s).");
                     Thread.Sleep(3000);
                 }
                 else
                 {
-                    DiagnosticsMessageSink.OnMessage(new DiagnosticMessage($"Giving up trying to delete directory {TemplateOutputDir} after {NumAttempts} attempts. Most recent error was: {ex.StackTrace}"));
+                    TestContext.Current?.SendDiagnosticMessage($"Giving up trying to delete directory {TemplateOutputDir} after {NumAttempts} attempts. Most recent error was: {ex.StackTrace}");
                 }
             }
         }

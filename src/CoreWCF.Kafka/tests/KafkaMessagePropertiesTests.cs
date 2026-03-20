@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 using KafkaBinding = CoreWCF.Channels.KafkaBinding;
 using KafkaMessageProperty = CoreWCF.Channels.KafkaMessageProperty;
 

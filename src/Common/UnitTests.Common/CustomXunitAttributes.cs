@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Xunit;
 
 public class NetCoreOnlyFactAttribute : FactAttribute
 {
-    public NetCoreOnlyFactAttribute()
+    public NetCoreOnlyFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (Environment.Version.Major < 6)
         {
@@ -19,7 +23,10 @@ public class NetCoreOnlyFactAttribute : FactAttribute
 
 public class WindowsOnlyFactAttribute : FactAttribute
 {
-    public WindowsOnlyFactAttribute()
+    public WindowsOnlyFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -30,7 +37,10 @@ public class WindowsOnlyFactAttribute : FactAttribute
 
 public class LinuxOnlyFactAttribute : FactAttribute
 {
-    public LinuxOnlyFactAttribute()
+    public LinuxOnlyFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -41,7 +51,10 @@ public class LinuxOnlyFactAttribute : FactAttribute
 
 public class WindowsOnlyTheoryAttribute : TheoryAttribute
 {
-    public WindowsOnlyTheoryAttribute()
+    public WindowsOnlyTheoryAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -52,7 +65,10 @@ public class WindowsOnlyTheoryAttribute : TheoryAttribute
 
 public class WindowsNetCoreOnlyFactAttribute : FactAttribute
 {
-    public WindowsNetCoreOnlyFactAttribute()
+    public WindowsNetCoreOnlyFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             || Environment.Version.Major < 6)
@@ -64,7 +80,10 @@ public class WindowsNetCoreOnlyFactAttribute : FactAttribute
 
 public class WindowsNetCoreOnlyTheoryAttribute : TheoryAttribute
 {
-    public WindowsNetCoreOnlyTheoryAttribute()
+    public WindowsNetCoreOnlyTheoryAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             || Environment.Version.Major < 6)
@@ -76,7 +95,10 @@ public class WindowsNetCoreOnlyTheoryAttribute : TheoryAttribute
 
 public class LinuxWhenCIOnlyFactAttribute : FactAttribute
 {
-    public LinuxWhenCIOnlyFactAttribute()
+    public LinuxWhenCIOnlyFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (Environment.GetEnvironmentVariable("CI") == "true")
         {
@@ -90,7 +112,10 @@ public class LinuxWhenCIOnlyFactAttribute : FactAttribute
 
 public class LinuxWhenCIOnlyTheoryAttribute : TheoryAttribute
 {
-    public LinuxWhenCIOnlyTheoryAttribute()
+    public LinuxWhenCIOnlyTheoryAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (Environment.GetEnvironmentVariable("CI") == "true")
         {
@@ -104,7 +129,10 @@ public class LinuxWhenCIOnlyTheoryAttribute : TheoryAttribute
 
 public class SkipOnGeneratedOperationInvokerFactAttribute : FactAttribute
 {
-    public SkipOnGeneratedOperationInvokerFactAttribute()
+    public SkipOnGeneratedOperationInvokerFactAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (AppContext.TryGetSwitch("CoreWCF.Dispatcher.UseGeneratedOperationInvokers", out bool value) && value)
         {
@@ -115,7 +143,10 @@ public class SkipOnGeneratedOperationInvokerFactAttribute : FactAttribute
 
 public class SkipOnGeneratedOperationInvokerTheoryAttribute : TheoryAttribute
 {
-    public SkipOnGeneratedOperationInvokerTheoryAttribute()
+    public SkipOnGeneratedOperationInvokerTheoryAttribute(
+        [CallerFilePath] string sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+          : base(sourceFilePath, sourceLineNumber)
     {
         if (AppContext.TryGetSwitch("CoreWCF.Dispatcher.UseGeneratedOperationInvokers", out bool value) && value)
         {

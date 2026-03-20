@@ -31,4 +31,10 @@
   </ItemGroup>
 
   <Import Project="$(ProjectDir)resources.targets" Condition="Exists('$(ProjectDir)resources.targets') And '$(OmitResources)'!='true'" />
+
+  <!-- xUnit v3 requires test projects to be executables. Set in targets so that per-project
+       IsTestProject overrides (e.g. UnixDomainSocket disabling for net472) are respected. -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
 </Project>

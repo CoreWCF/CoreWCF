@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.NetTcp.Tests
 {
@@ -107,7 +106,6 @@ namespace CoreWCF.NetTcp.Tests
         private static async Task RunWithoutSynchronizationContextAsync(Func<Task> action)
         {
             SynchronizationContext orgSynchronizationContext = SynchronizationContext.Current;
-            Assert.NotNull(orgSynchronizationContext); // Set by the Fact attribute
             SynchronizationContext.SetSynchronizationContext(null);
 
             try

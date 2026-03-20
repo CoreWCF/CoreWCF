@@ -28,7 +28,7 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
     public string BootstrapServers { get; private set; }
     public string KafkaContainerId { get; private set; }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Create network
         _network = new NetworkBuilder()
@@ -192,7 +192,7 @@ public sealed class KafkaContainerFixture : IAsyncLifetime
         KafkaContainerId = _kafkaContainer.Id.ToString();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_kafkaContainer != null)
         {

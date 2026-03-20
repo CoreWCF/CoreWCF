@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -6,8 +6,10 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
-  <PropertyGroup>
-    <IsTestProject Condition=" '$(TargetFramework)' == 'net472' ">false</IsTestProject>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <IsTestProject>false</IsTestProject>
+    <!-- Disabling being a test project stops the automatic output type being set to Exe which xunit v3 needs -->
+    <OutputType>Exe</OutputType> 
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" />

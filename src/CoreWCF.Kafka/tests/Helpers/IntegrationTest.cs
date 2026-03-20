@@ -1,10 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
@@ -31,7 +30,7 @@ public class IntegrationTest : IAsyncLifetime
         ConsumerGroup = $"cg-{Guid.NewGuid()}";
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Set the bootstrap servers for KafkaEx after the fixture has initialized
         if (!string.IsNullOrEmpty(_containerFixture.BootstrapServers))
@@ -52,7 +51,7 @@ public class IntegrationTest : IAsyncLifetime
         }
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await KafkaEx.DeleteTopicAsync(Output, Topic);
         if (_useDlq)

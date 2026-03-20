@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Templates.Test.Helpers;
 using Xunit;
-using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace CoreWCF.Templates.Tests;
 

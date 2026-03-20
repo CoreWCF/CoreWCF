@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using CoreWCF;
@@ -16,13 +16,13 @@ using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 #endif // NET472
 using System.Text;
-using Xunit.Abstractions;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using CoreWCF.Http.Tests.Helpers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace Helpers
 {
