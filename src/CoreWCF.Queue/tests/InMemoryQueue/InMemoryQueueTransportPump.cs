@@ -3,7 +3,6 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Text;
 using System.Threading;
@@ -14,12 +13,11 @@ namespace CoreWCF.Queue.Tests.InMemoryQueue;
 
 public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
 {
-    private const int EmptyQueueDelayMs = 10;
-    private readonly ConcurrentQueue<string> _queue;
+    private readonly InMemoryMessageQueue _queue;
     private readonly ReceiveContextInterceptor _receiveContextInterceptor;
     private CancellationTokenSource _cts;
     private ManualResetEventSlim _mres;
-    public InMemoryQueueTransportPump(ConcurrentQueue<string> queue, ReceiveContextInterceptor receiveContextInterceptor)
+    public InMemoryQueueTransportPump(InMemoryMessageQueue queue, ReceiveContextInterceptor receiveContextInterceptor)
     {
         _queue = queue;
         _receiveContextInterceptor = receiveContextInterceptor;
@@ -33,20 +31,22 @@ public class InMemoryQueueTransportPump : QueueTransportPump, IDisposable
 
         Task.Run(async () =>
         {
-            while (!ct.IsCancellationRequested)
+            try
             {
-                if (_queue.TryDequeue(out string message))
+                while (!ct.IsCancellationRequested)
                 {
+                    string message = await _queue.DequeueAsync(ct);
                     await OnConsume(message, queueTransportContext);
                 }
-                else
-                {
-                    // Add a small delay when queue is empty to avoid tight loop
-                    await Task.Delay(EmptyQueueDelayMs, ct);
-                }
             }
-
-            _mres.Set();
+            catch (OperationCanceledException)
+            {
+                // Expected when the pump is stopped
+            }
+            finally
+            {
+                _mres.Set();
+            }
         });
 
         return Task.CompletedTask;

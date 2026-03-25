@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Concurrent;
 using CoreWCF.Channels;
 using CoreWCF.Queue.Common;
 using CoreWCF.Queue.Common.Configuration;
@@ -30,7 +29,7 @@ public class InMemoryQueueTransportBindingElement : QueueBaseTransportBindingEle
     public override QueueTransportPump BuildQueueTransportPump(BindingContext context)
     {
         var serviceProvider = context.BindingParameters.Find<IServiceProvider>();
-        var queue = serviceProvider.GetRequiredService<ConcurrentQueue<string>>();
+        var queue = serviceProvider.GetRequiredService<InMemoryMessageQueue>();
         var receiveContextInterceptor = serviceProvider.GetRequiredService<ReceiveContextInterceptor>();
         return new InMemoryQueueTransportPump(queue, receiveContextInterceptor);
     }
