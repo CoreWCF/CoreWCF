@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -1525,6 +1526,11 @@ namespace CoreWCF.Channels
         RecycledMessageState TakeMessageState();
     }
 
+    public interface IBufferedMessageData2 : IBufferedMessageData
+    {
+        ReadOnlySequence<byte> ReadOnlyBuffer { get; }
+    }
+
     internal sealed class BufferedMessage : ReceivedMessage
     {
         private readonly MessageHeaders _headers;
@@ -1533,12 +1539,12 @@ namespace CoreWCF.Channels
         private XmlDictionaryReader _reader;
         private readonly XmlAttributeHolder[] _bodyAttributes;
 
-        public BufferedMessage(IBufferedMessageData messageData, RecycledMessageState recycledMessageState)
+        public BufferedMessage(IBufferedMessageData2 messageData, RecycledMessageState recycledMessageState)
             : this(messageData, recycledMessageState, null, false)
         {
         }
 
-        public BufferedMessage(IBufferedMessageData messageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
+        public BufferedMessage(IBufferedMessageData2 messageData, RecycledMessageState recycledMessageState, bool[] understoodHeaders, bool understoodHeadersModified)
         {
             //bool throwing = true;
             //try
@@ -1629,7 +1635,7 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal IBufferedMessageData MessageData { get; private set; }
+        internal IBufferedMessageData2 MessageData { get; private set; }
 
         public override MessageProperties Properties
         {
