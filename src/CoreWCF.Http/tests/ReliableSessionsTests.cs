@@ -8,7 +8,6 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Http.Tests
 {
@@ -31,7 +30,7 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
-                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(System.ServiceModel.SecurityMode.None);
+                System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding("WSHttpBinding", System.ServiceModel.SecurityMode.None);
                 wsHttpBinding.ReliableSession.Enabled = true;
                 wsHttpBinding.ReliableSession.Ordered = ordered;
                 System.ServiceModel.Channels.CustomBinding customBinding = new(wsHttpBinding);

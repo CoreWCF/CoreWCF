@@ -8,7 +8,6 @@ using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.NetTcp
 {
