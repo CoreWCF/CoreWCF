@@ -20,8 +20,8 @@ namespace CoreWCF.NetTcp
             _output = output;
         }
 
-        //[Theory]
-        //[MemberData(nameof(GetTestVariations))]
+        [Theory]
+        [MemberData(nameof(GetTestVariations))]
         public void NetTcpBindingSimpleReliableSessions(ReliableMessagingVersion rmVersion, System.ServiceModel.ReliableMessagingVersion clientRmVersion, bool ordered)
         {
             string testString = new('a', 3000);
@@ -101,10 +101,10 @@ namespace CoreWCF.NetTcp
 
         public static IEnumerable<object[]> GetTestVariations()
         {
-            //yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, true };
-            //yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, false };
+            yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, true };
+            yield return new object[] { ReliableMessagingVersion.WSReliableMessaging11, System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11, false };
             yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, true };
-            //yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, false };
+            yield return new object[] { ReliableMessagingVersion.WSReliableMessagingFebruary2005, System.ServiceModel.ReliableMessagingVersion.WSReliableMessagingFebruary2005, false };
         }
 
     }
