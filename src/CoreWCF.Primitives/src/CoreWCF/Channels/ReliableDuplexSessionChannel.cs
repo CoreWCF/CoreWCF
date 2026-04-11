@@ -599,6 +599,11 @@ namespace CoreWCF.Channels
                 {
                     ReliableSession.OnRemoteFault(remoteFaultException);
                 }
+
+                if (scheduleShutdown)
+                {
+                    OnScheduleShutdown();
+                }
             }
             finally
             {
@@ -609,6 +614,10 @@ namespace CoreWCF.Channels
                 _pendingBinderTryGetChannelTask = _binder.StartTryGetChannelAsync();
             }
         }
+
+        // Called when all expected input messages have been received (scheduleShutdown).
+        // The server override uses this to proactively close the output session.
+        protected virtual void OnScheduleShutdown() { }
 
         protected abstract Task ProcessMessageAsync(WsrmMessageInfo info);
 
@@ -1108,6 +1117,28 @@ namespace CoreWCF.Channels
                 ReliableSession.OutputID, token);
         }
 
+        // When the server receives all expected input messages (e.g., client sends CloseSequence),
+        // proactively close the output session. This sends CloseSequence + TerminateSequence for
+        // the server→client direction, which the client needs to complete its close.
+        protected override void OnScheduleShutdown()
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var token = TimeoutHelper.GetCancellationToken(DefaultCloseTimeout);
+                    await OnCloseOutputSessionAsync(token);
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e))
+                        throw;
+
+                    ReliableSession.OnUnknownException(e);
+                }
+            });
+        }
+
         protected override void OnFaulted()
         {
             base.OnFaulted();
@@ -1142,8 +1173,8 @@ namespace CoreWCF.Channels
         }
 
         protected override async Task ProcessMessageAsync(WsrmMessageInfo info)
-          {
-             if (!await ReliableSession.ProcessInfoAsync(info, null))
+        {
+            if (!await ReliableSession.ProcessInfoAsync(info, null))
                 return;
 
             if (!ReliableSession.VerifyDuplexProtocolElements(info, null))
@@ -1164,7 +1195,7 @@ namespace CoreWCF.Channels
                         {
                             if (((IServerReliableChannelBinder)Binder).AddressResponse(info.Message, response))
                             {
-                                await Binder.SendAsync(response, TimeoutHelper.GetCancellationToken(DefaultSendTimeout)); ;
+                                await Binder.SendAsync(response, TimeoutHelper.GetCancellationToken(DefaultSendTimeout));
                             }
                         }
                     }

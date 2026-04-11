@@ -985,11 +985,22 @@ namespace CoreWCF.Channels
             {
                 ServerReliableChannelBinder<IDuplexSessionChannel> binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)reliableChannel.Binder;
 
-                if (!binder.UseNewChannel(channel))
+                // In CoreWCF's push dispatch model, the same inner channel is reused for all messages
+                // in a session. Only call UseNewChannel if a genuinely different channel is being offered.
+                if (binder.Channel != channel)
                 {
-                    message.Close();
-                    channel.Abort();
-                    return;
+                    if (!binder.UseNewChannel(channel))
+                    {
+                        message.Close();
+                        channel.Abort();
+                        return;
+                    }
+
+                    // On .NET Framework the receive loop waits on TryGetChannel which fixes up some bookkeeping. The UseNewChannel
+                    // call sets the channel as pending. If you call UseNewChannel again without clearing the pending channel, it
+                    // will abort the pending channel. As we don't have a receive loop, we need to get the channel from the binder
+                    // to clear the pending channel and prevent it getting aborted.
+                    await binder.TryGetChannelAsync(default);
                 }
             }
 
@@ -998,8 +1009,12 @@ namespace CoreWCF.Channels
 
         protected override Task OnCompleteDispatchAsync(ServerReliableDuplexSessionChannel channel)
         {
-            var binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)channel.Binder;
-            return binder.ReceivedRequestOnChannelAsync(channel);
+            // In the duplex-over-duplex-session path, ProcessDuplexMessageAsync already manages the
+            // binder's channel count via OnReceivedMessageAsync (decrement) and StartTryGetChannelAsync
+            // (increment). Calling ReceivedRequestOnChannelAsync here would cause a double-decrement,
+            // leading to FatalInternalException (masked by MaskingMode.All) on every message after
+            // the first. This is a no-op because the count is already balanced.
+            return Task.CompletedTask;
         }
     }
 
@@ -1030,18 +1045,23 @@ namespace CoreWCF.Channels
             {
                 ServerReliableChannelBinder<IDuplexSessionChannel> binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)reliableChannel.Binder;
 
-                if (!binder.UseNewChannel(channel))
+                // In CoreWCF's push dispatch model, the same inner channel is reused for all messages
+                // in a session. Only call UseNewChannel if a genuinely different channel is being offered.
+                if (binder.Channel != channel)
                 {
-                    message.Close();
-                    channel.Abort();
-                    return;
-                }
+                    if (!binder.UseNewChannel(channel))
+                    {
+                        message.Close();
+                        channel.Abort();
+                        return;
+                    }
 
-                // On .NET Framework the receive loop waits on TryGetChannel which fixes up some bookkeeping. The UseNewChannel
-                // call sets the channel as pending. If you call UseNewChannel again without clearing the pending channel, it
-                // will abort the pending channel. As we don't have a receive loop, we need to get the channel from the binder
-                // to clear the pending channel and prevent it getting aborted.
-                await binder.TryGetChannelAsync(default);
+                    // On .NET Framework the receive loop waits on TryGetChannel which fixes up some bookkeeping. The UseNewChannel
+                    // call sets the channel as pending. If you call UseNewChannel again without clearing the pending channel, it
+                    // will abort the pending channel. As we don't have a receive loop, we need to get the channel from the binder
+                    // to clear the pending channel and prevent it getting aborted.
+                    await binder.TryGetChannelAsync(default);
+                }
             }
 
             await reliableChannel.ProcessDemuxedMessageAsync(info);
@@ -1049,8 +1069,9 @@ namespace CoreWCF.Channels
 
         protected override Task OnCompleteDispatchAsync(ReliableInputSessionChannelOverDuplex channel)
         {
-            var binder = (ServerReliableChannelBinder<IDuplexSessionChannel>)channel.Binder;
-            return binder.ReceivedRequestOnChannelAsync(channel);
+            // Same as ReliableDuplexServiceDispatcherOverDuplexSession: the duplex message processing
+            // path already manages binder count. No additional ReturnChannelAsync needed.
+            return Task.CompletedTask;
         }
     }
 
