@@ -98,5 +98,74 @@ namespace CoreWCF.ConfigurationManager.Tests
                 }
             }
         }
+
+        [Fact]
+        public void NetTcpBinding_WithReliableSession()
+        {
+            string expectedName = "netTcpBindingWithRS";
+
+            string xml = $@"
+<configuration>
+    <system.serviceModel>
+        <bindings>
+            <netTcpBinding>
+                <binding name=""{expectedName}"">
+                    <reliableSession enabled=""true"" ordered=""false"" inactivityTimeout=""00:05:00"" />
+                    <security mode=""None""/>
+                </binding>
+            </netTcpBinding>
+        </bindings>
+    </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    var actualBinding = settingHolder.ResolveBinding(nameof(NetTcpBinding), expectedName) as NetTcpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.True(actualBinding.ReliableSession.Enabled);
+                    Assert.False(actualBinding.ReliableSession.Ordered);
+                    Assert.Equal(TimeSpan.FromMinutes(5), actualBinding.ReliableSession.InactivityTimeout);
+                    Assert.Equal(SecurityMode.None, actualBinding.Security.Mode);
+                }
+            }
+        }
+
+        [Fact]
+        public void NetTcpBinding_WithReliableSessionDefaults()
+        {
+            string expectedName = "netTcpBindingWithRSDefaults";
+
+            string xml = $@"
+<configuration>
+    <system.serviceModel>
+        <bindings>
+            <netTcpBinding>
+                <binding name=""{expectedName}"">
+                    <reliableSession enabled=""true"" />
+                    <security mode=""None""/>
+                </binding>
+            </netTcpBinding>
+        </bindings>
+    </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    var actualBinding = settingHolder.ResolveBinding(nameof(NetTcpBinding), expectedName) as NetTcpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.True(actualBinding.ReliableSession.Enabled);
+                    Assert.True(actualBinding.ReliableSession.Ordered);
+                    Assert.Equal(TimeSpan.FromMinutes(10), actualBinding.ReliableSession.InactivityTimeout);
+                }
+            }
+        }
     }
 }
