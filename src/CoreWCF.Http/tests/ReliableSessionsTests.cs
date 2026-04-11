@@ -188,9 +188,13 @@ namespace CoreWCF.Http.Tests
             using (host)
             {
                 host.Start();
+                // Use CustomBinding to explicitly set WS-RM 1.1 on the client to match the server
                 System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding("WS2007HttpBinding", System.ServiceModel.SecurityMode.None);
                 wsHttpBinding.ReliableSession.Enabled = true;
-                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                var clientCustomBinding = new System.ServiceModel.Channels.CustomBinding(wsHttpBinding);
+                var clientRsbe = clientCustomBinding.Elements.Find<System.ServiceModel.Channels.ReliableSessionBindingElement>();
+                clientRsbe.ReliableMessagingVersion = System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11;
+                var factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(clientCustomBinding,
                     new System.ServiceModel.EndpointAddress(startupFilter.GetServiceUri(host)));
                 ClientContract.IEchoService channel = factory.CreateChannel();
                 (channel as System.ServiceModel.IClientChannel).Open();
@@ -274,7 +278,12 @@ namespace CoreWCF.Http.Tests
                         serviceBuilder.AddService<Services.EchoService>();
                         var binding = new WS2007HttpBinding(SecurityMode.None, true);
                         binding.ReliableSession.Ordered = true;
-                        serviceBuilder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(binding, ServicePath);
+                        // WS2007HttpBinding clients default to WSReliableMessaging11,
+                        // so the server must match by explicitly setting the RM version.
+                        var customBinding = new Channels.CustomBinding(binding);
+                        var rsbe = customBinding.Elements.Find<Channels.ReliableSessionBindingElement>();
+                        rsbe.ReliableMessagingVersion = ReliableMessagingVersion.WSReliableMessaging11;
+                        serviceBuilder.AddServiceEndpoint<Services.EchoService, ServiceContract.IEchoService>(customBinding, ServicePath);
                     });
                     next(builder);
                 };
