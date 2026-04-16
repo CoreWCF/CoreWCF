@@ -72,7 +72,7 @@
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.2" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.6" />
     <PackageVersion Include="System.Security.Principal.Windows" Version="5.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
