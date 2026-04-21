@@ -16,7 +16,73 @@ internal static class ReferenceAssembliesHelper
 {
     static ReferenceAssembliesHelper()
     {
-        MSBuildLocator.RegisterDefaults();
+        RegisterMSBuild();
+    }
+
+    private static void RegisterMSBuild()
+    {
+        if (MSBuildLocator.IsRegistered)
+        {
+            return;
+        }
+
+        // Prefer the highest non-preview .NET SDK to avoid evaluation failures caused by
+        // broken preview SDK builds (e.g., 11.0.100-preview.3.26207.106 ships an unresolvable
+        // 'Microsoft.NET.SDK.WorkloadAutoImportPropsLocator' SDK resolver, which makes
+        // ProjectCollection.LoadProject fail even for a netstandard2.0 csproj).
+        //
+        // We restrict discovery to DotNetSdk so MSBuildLocator points MSBuildSDKsPath at a
+        // stable SDK's Sdks/ folder. On .NET Framework testhost (net472), the default query
+        // also includes Visual Studio Build Tools (Version 17.x) which would win the
+        // OrderByDescending(Version) sort over 11.0 SDK; registering a VS instance does NOT
+        // redirect the SDK resolver, so the broken preview SDK on disk would still be loaded.
+        // The csproj evaluated here targets netstandard2.0, so any stable SDK works.
+        var queryOptions = new VisualStudioInstanceQueryOptions
+        {
+            DiscoveryTypes = DiscoveryType.DotNetSdk
+        };
+        var instance = MSBuildLocator.QueryVisualStudioInstances(queryOptions)
+            .Where(i => !IsPreview(i))
+            .OrderByDescending(i => i.Version)
+            .FirstOrDefault();
+
+        if (instance != null)
+        {
+            MSBuildLocator.RegisterInstance(instance);
+        }
+        else
+        {
+            // No stable SDK available; fall back to the default behavior so the failure
+            // surfaces with the same diagnostics as before.
+            MSBuildLocator.RegisterDefaults();
+        }
+    }
+
+    private static bool IsPreview(Microsoft.Build.Locator.VisualStudioInstance instance)
+    {
+        if (!string.IsNullOrEmpty(instance.Name) &&
+            instance.Name.IndexOf("preview", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        // System.Version doesn't carry pre-release labels; inspect the SDK folder name,
+        // which does (e.g., '11.0.100-preview.3.26207.106').
+        try
+        {
+            var folderName = new DirectoryInfo(instance.MSBuildPath).Parent?.Name;
+            if (!string.IsNullOrEmpty(folderName) &&
+                folderName.IndexOf("preview", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+        catch
+        {
+            // Best-effort; treat as non-preview if the path can't be inspected.
+        }
+
+        return false;
     }
 
     internal static readonly Lazy<ReferenceAssemblies> Default = new(() =>

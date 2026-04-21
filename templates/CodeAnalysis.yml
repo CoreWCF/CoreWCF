@@ -17,11 +17,18 @@ stages:
     steps:
 
     - task: UseDotNet@2
+      displayName: 'Use .NET 11 sdk'
+      inputs:
+        packageType: sdk
+        version: '11.0.x'
+        includePreviewVersions: true
+        installationPath: $(Agent.ToolsDirectory)/dotnet
+
+    - task: UseDotNet@2
       displayName: 'Use .NET 10 sdk'
       inputs:
         packageType: sdk
-        version: '10.0.x'
-        includePreviewVersions: true
+        version: 10.0.x
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2

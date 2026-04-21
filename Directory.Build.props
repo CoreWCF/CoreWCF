@@ -37,11 +37,18 @@
   <PropertyGroup Condition="'$(BuildingInsideVisualStudio)' == 'true'">
     <IsVSPreviewVersion Condition=" '$(DevEnvDir)' != '' and $(DevEnvDir.Contains('Preview')) ">true</IsVSPreviewVersion>
   </PropertyGroup>
-  
+
   <PropertyGroup>
-    <PreviewDotNetTfm>net10.0</PreviewDotNetTfm>
+    <PreviewDotNetTfm>net11.0</PreviewDotNetTfm>
+    <!-- Include preview tfm if building in CI or IncludePreviewTfm was defined as a compilation define -->
+    <IncludePreviewTfm Condition="'$(IncludePreviewTfm)' == '' AND '$(IsCIBuild)' == 'true'">true</IncludePreviewTfm>
+    <LatestDotNetTfm>net10.0</LatestDotNetTfm>
+    <VSMinimumVersionNeededForLatestTfm>18.0</VSMinimumVersionNeededForLatestTfm> <!-- v18.0 corresponds to VS 2026 -->
     <TestTargetFrameworks>net8.0;net9.0</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="('$(BuildingInsideVisualStudio)' != 'true') OR ('$(IsVSPreviewVersion)' == 'true')">$(TestTargetFrameworks);$(PreviewDotNetTfm)</TestTargetFrameworks>
+    <!-- Add latest dotnet tfm if using a recent enough version of VS, or building at the command line -->
+    <TestTargetFrameworks Condition="('$(BuildingInsideVisualStudio)' != 'true') OR $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '$(VSMinimumVersionNeededForLatestTfm)'))">$(TestTargetFrameworks);$(LatestDotNetTfm)</TestTargetFrameworks>
+    <!-- Add preview dotnet tfm if IncludePreviewTfm is set to true -->
+    <TestTargetFrameworks Condition="'$(IncludePreviewTfm)' == 'true'">$(TestTargetFrameworks);$(PreviewDotNetTfm)</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
   </PropertyGroup>
 

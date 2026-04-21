@@ -44,6 +44,8 @@ namespace CoreWCF.Security
 
         public byte[] GetOutgoingBlob(byte[] incomingBlob, ChannelBinding channelbinding, ExtendedProtectionPolicy protectionPolicy)
         {
+            _negotiateState.SetChannelBinding(channelbinding);
+            _negotiateState.SetExtendedProtectionPolicy(protectionPolicy);
             byte[] outGoingBlob = _negotiateState.GetOutgoingBlob(incomingBlob, out BlobErrorType errorType, out Exception exception);
             if (errorType != BlobErrorType.None)
             {

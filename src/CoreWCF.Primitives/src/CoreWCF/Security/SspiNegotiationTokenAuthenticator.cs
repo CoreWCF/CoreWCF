@@ -98,7 +98,7 @@ namespace CoreWCF.Security
             return new BinaryNegotiation(NegotiationValueType, outgoingBlob);
         }
 
-        private static void AddToDigest(HashAlgorithm negotiationDigest, Stream stream)
+        private static void AddToDigest(IncrementalHash negotiationDigest, Stream stream)
         {
             stream.Flush();
             stream.Seek(0, SeekOrigin.Begin);
@@ -107,7 +107,7 @@ namespace CoreWCF.Security
             byte[] canonicalizedData = canonicalizer.GetBytes();
             lock (negotiationDigest)
             {
-                negotiationDigest.TransformBlock(canonicalizedData, 0, canonicalizedData.Length, canonicalizedData, 0);
+                negotiationDigest.AppendData(canonicalizedData);
             }
         }
 
@@ -141,8 +141,7 @@ namespace CoreWCF.Security
             byte[] negotiationHash;
             lock (sspiState.NegotiationDigest)
             {
-                sspiState.NegotiationDigest.TransformFinalBlock(CryptoHelper.EmptyBuffer, 0, 0);
-                negotiationHash = sspiState.NegotiationDigest.Hash;
+                negotiationHash = sspiState.NegotiationDigest.GetHashAndReset();
             }
             Psha1DerivedKeyGenerator generator = new Psha1DerivedKeyGenerator(key);
             return generator.GenerateDerivedKey(SecurityUtils.CombinedHashLabel, negotiationHash, 256, 0);
