@@ -67,6 +67,7 @@
     <PackageVersion Include="System.DirectoryServices.Protocols" Version="8.0.2" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
@@ -152,5 +153,20 @@
     <PackageVersion Update="Microsoft.Extensions.ObjectPool" Version="10.0.5" />
     <PackageVersion Update="Microsoft.Extensions.Options" Version="10.0.5" />
     <PackageVersion Update="Microsoft.Extensions.Primitives" Version="10.0.5" />
+  </ItemGroup>
+  <ItemGroup Condition="('$(IsTestProject)' == 'true') AND ('$(TargetFramework)' == 'net11.0')">
+    <PackageVersion Update="Microsoft.Extensions.Caching.Memory" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.DependencyInjection" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Hosting" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Logging" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Configuration" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Console" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Debug" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.ObjectPool" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="11.0.0-preview.3.26207.106" />
+    <PackageVersion Update="Microsoft.Extensions.Primitives" Version="11.0.0-preview.3.26207.106" />
   </ItemGroup>
 </Project>

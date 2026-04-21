@@ -8,9 +8,9 @@ namespace CoreWCF.Security.NegotiateInternal
     internal readonly struct NegotiateInternalSecurityStatusPal
     {
         public readonly NegotiateInternalSecurityStatusErrorCode ErrorCode;
-        public readonly Exception? Exception;
+        public readonly Exception Exception;
 
-        public NegotiateInternalSecurityStatusPal(NegotiateInternalSecurityStatusErrorCode errorCode, Exception? exception = null)
+        public NegotiateInternalSecurityStatusPal(NegotiateInternalSecurityStatusErrorCode errorCode, Exception exception = null)
         {
             ErrorCode = errorCode;
             Exception = exception;

@@ -24,18 +24,24 @@ stages:
             targetFramework: 'net9.0'
             testArgs: ''
             dotnetSdk: '9.0.x'
-            artifactName: 'Windows${{ configuration }}Build'   
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_net10.0:
             imageName: 'windows-latest'
             targetFramework: 'net10.0'
             testArgs: ''
             dotnetSdk: '10.0.x'
-            artifactName: 'Windows${{ configuration }}Build'                        
+            artifactName: 'Windows${{ configuration }}Build'
+          Windows_net11.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net11.0'
+            testArgs: ''
+            dotnetSdk: '11.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_netfx:
             imageName: 'windows-latest'
             targetFramework: 'net472'
             testArgs: ''
-            dotnetSdk: '9.0.x'
+            dotnetSdk: '10.0.x'
             artifactName: 'Windows${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
@@ -48,13 +54,19 @@ stages:
             targetFramework: 'net9.0'
             testArgs: ''
             dotnetSdk: '9.0.x'
-            artifactName: 'Linux${{ configuration }}Build'            
+            artifactName: 'Linux${{ configuration }}Build'
           Linux_net10.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net10.0'
             testArgs: ''
             dotnetSdk: '10.0.x'
-            artifactName: 'Linux${{ configuration }}Build'                        
+            artifactName: 'Linux${{ configuration }}Build'
+          Linux_net11.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net11.0'
+            testArgs: ''
+            dotnetSdk: '11.0.x'
+            artifactName: 'Linux${{ configuration }}Build'
       displayName: Test ${{ configuration }}
       pool:
         vmImage: $(imageName)
@@ -69,16 +81,16 @@ stages:
           path: $(System.DefaultWorkingDirectory)/bin
 
       - task: UseDotNet@2
-        displayName: 'Use .NET sdk 10.0.x'
+        displayName: 'Use .NET sdk 11.0.x'
         inputs:
           packageType: sdk
-          version: 10.0.x
+          version: 11.0.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
           includePreviewVersions: true
 
       - task: UseDotNet@2
         displayName: 'Use Additional .NET sdk $(dotnetSdk)'
-        condition: and(succeeded(), ne(variables.dotnetSdk, '10.0.x'))
+        condition: and(succeeded(), ne(variables.dotnetSdk, '11.0.x'))
         inputs:
           packageType: sdk
           version: $(dotnetSdk)

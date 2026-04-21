@@ -2,12 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Security.Authentication.ExtendedProtection;
 using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
     internal interface INTAuthenticationFacade : IDisposable
     {
+        void SetChannelBinding(ChannelBinding channelBinding);
+
+        void SetExtendedProtectionPolicy(ExtendedProtectionPolicy protectionPolicy);
+
         bool IsCompleted { get; }
 
         string Protocol { get; }

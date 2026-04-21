@@ -4,6 +4,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Security.Authentication.ExtendedProtection;
 using System.Security.Principal;
 
 namespace CoreWCF.Security.NegotiateInternal
@@ -16,6 +17,10 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             _ntAuthentication = NTAuthenticationFacade.Build();
         }
+
+        public void SetChannelBinding(ChannelBinding channelBinding) => _ntAuthentication.SetChannelBinding(channelBinding);
+
+        public void SetExtendedProtectionPolicy(ExtendedProtectionPolicy protectionPolicy) => _ntAuthentication.SetExtendedProtectionPolicy(protectionPolicy);
 
         public byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error)
         {
