@@ -16,7 +16,7 @@
       <Visible>false</Visible>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(_CoreWCFSuppressOperationInvokerGeneratorAttribute)'!='true'">
       <!-- Exposes EnableCoreWCFOperationInvokerGenerator at runtime -->
     	<AssemblyAttribute Include="CoreWCF.EnableCoreWCFOperationInvokerGenerator">
 	      <_Parameter1>$(EnableCoreWCFOperationInvokerGenerator)</_Parameter1>
