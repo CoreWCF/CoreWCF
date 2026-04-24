@@ -16,7 +16,7 @@ namespace CoreWCF.Dispatcher
     /// <summary>
     /// This is equivalent of SecurityChannelListener present in WCF codebase
     /// </summary>
-    internal class SecurityServiceDispatcher : IServiceDispatcher, IDisposable
+    internal class SecurityServiceDispatcher : CommunicationObject, IServiceDispatcher, IDisposable
     {
         private readonly BindingContext _bindingContext;
         private ChannelBuilder _channelBuilder;
@@ -25,11 +25,16 @@ namespace CoreWCF.Dispatcher
         private SecurityProtocolFactory _securityProtocolFactory;
         private SecuritySessionServerSettings _sessionServerSettings;
         private SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
+        private bool _hasSecurityStateReference;
 
         //ServiceChannelDispatcher to call SCT (just keep one instance)
         private volatile IServiceChannelDispatcher _securityAuthServiceChannelDispatcher;
         private Task<IServiceChannelDispatcher> _channelTask;
         private bool _disposed = false;
+
+        private TimeSpan _closeTimeout = ServiceDefaults.CloseTimeout;
+        private TimeSpan _openTimeout = ServiceDefaults.OpenTimeout;
+        private TimeSpan _sendTimeout = ServiceDefaults.SendTimeout;
 
         public SecurityServiceDispatcher(BindingContext context, IServiceDispatcher serviceDispatcher)
         {
@@ -37,6 +42,9 @@ namespace CoreWCF.Dispatcher
             _bindingContext = context;
             // this.securityProtocolFactory =  securityProtocolFactory; // we set it later from TransportSecurityBindingElement
             //  this.settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(this.securityProtocolFactory, this.sessionServerSettings, this.sessionMode, this.InnerChannelListener);
+            _closeTimeout = context.Binding.CloseTimeout;
+            _openTimeout = context.Binding.CloseTimeout;
+            _sendTimeout = context.Binding.SendTimeout;
         }
 
         internal ChannelBuilder ChannelBuilder
@@ -58,7 +66,13 @@ namespace CoreWCF.Dispatcher
 
         public ICollection<Type> SupportedChannelTypes => InnerServiceDispatcher.SupportedChannelTypes;
 
-        private AsyncLock ThisLock { get; } = new AsyncLock();
+        private AsyncLock AsyncLock { get; } = new AsyncLock();
+
+        protected override TimeSpan DefaultCloseTimeout => _closeTimeout;
+
+        protected override TimeSpan DefaultOpenTimeout => _openTimeout;
+
+        internal TimeSpan DefaultSendTimeout => _sendTimeout;
 
         public SecurityProtocolFactory SecurityProtocolFactory
         {
@@ -74,14 +88,6 @@ namespace CoreWCF.Dispatcher
             }
         }
 
-        private void ThrowIfDisposed()
-        {
-            if (_disposed)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(GetType().FullName));
-            }
-        }
-
         public bool SessionMode { get; set; }
 
         internal SecuritySessionServerSettings SessionServerSettings
@@ -90,7 +96,7 @@ namespace CoreWCF.Dispatcher
             {
                 if (_sessionServerSettings == null)
                 {
-                    lock (ThisLock)
+                    using (AsyncLock.TakeLock())
                     {
                         if (_sessionServerSettings == null)
                         {
@@ -115,28 +121,29 @@ namespace CoreWCF.Dispatcher
 
         public ServiceHostBase Host => InnerServiceDispatcher.Host;
 
-        internal void InitializeSecurityDispatcher(ChannelBuilder channelBuilder, Type type)
+        internal void InitializeSecurityDispatcher<TChannel>(ChannelBuilder channelBuilder) where TChannel : class, IChannel
         {
             _channelBuilder = channelBuilder;
 
             if (SessionMode)
             {
                 _sessionServerSettings.ChannelBuilder = ChannelBuilder;
+                channelBuilder.BuildServiceDispatcher<TChannel>(this);
                 //this.InnerChannelListener = this.sessionServerSettings.CreateInnerChannelListener();
                 // this.Acceptor = this.sessionServerSettings.CreateAcceptor<TChannel>();
-                AcceptorChannelType = type;
-                _sessionServerSettings.AcceptorChannelType = type;
+                AcceptorChannelType = typeof(TChannel);
+                _sessionServerSettings.AcceptorChannelType = typeof(TChannel);
             }
             else
             {
-              //  throw new PlatformNotSupportedException();
+                //  throw new PlatformNotSupportedException();
                 //TODO later
+
+                channelBuilder.BuildServiceDispatcher<TChannel>(this);
                 // this.InnerChannelListener = this.ChannelBuilder.BuildChannelListener<TChannel>();
                 // this.Acceptor = (IChannelAcceptor<TChannel>)new SecurityChannelAcceptor(this,
                 //     (IChannelListener<TChannel>)InnerChannelListener, this.securityProtocolFactory.CreateListenerSecurityState());
             }
-            //Called below method in the initialization path, in WCF it's called in Open of ServiceHost.
-            InitializeServiceDispatcherSecurityState();
         }
 
         private void InitializeServiceDispatcherSecurityState()
@@ -151,13 +158,67 @@ namespace CoreWCF.Dispatcher
                 ThrowIfProtocolFactoryNotSet();
                 _securityProtocolFactory.ListenUri = InnerServiceDispatcher.BaseAddress;
             }
+
             _settingsLifetimeManager = new SecurityListenerSettingsLifetimeManager(_securityProtocolFactory, _sessionServerSettings, SessionMode);//, this.InnerChannelListener);
             if (_sessionServerSettings != null)
             {
                 _sessionServerSettings.SettingsLifetimeManager = _settingsLifetimeManager;
             }
-            _settingsLifetimeManager.OpenAsync(ServiceDefaults.OpenTimeout).GetAwaiter().GetResult();
-            //this.hasSecurityStateReference = true;
+
+            _hasSecurityStateReference = true;
+        }
+
+        protected override void OnAbort()
+        {
+            using (AsyncLock.TakeLock())
+            {
+                if (_hasSecurityStateReference)
+                {
+                    _hasSecurityStateReference = false;
+                    if (_settingsLifetimeManager != null)
+                    {
+                        _settingsLifetimeManager.Abort();
+                    }
+                }
+            }
+
+            if (InnerServiceDispatcher is CommunicationObject co) co.Abort();
+        }
+
+        protected override async Task OnCloseAsync(CancellationToken token)
+        {
+            if (_sessionServerSettings != null)
+            {
+                _sessionServerSettings.StopAcceptingNewWork();
+            }
+            await using (await AsyncLock.TakeLockAsync())
+            {
+                if (_hasSecurityStateReference)
+                {
+                    _hasSecurityStateReference = false;
+                    await _settingsLifetimeManager.CloseAsync(token);
+                }
+            }
+
+            if (InnerServiceDispatcher is CommunicationObject co) await co.CloseAsync(token);
+        }
+
+        protected override async Task OnOpenAsync(CancellationToken token)
+        {
+            // TODO: Work out how to get the ExtendedProtectionPolicy settings and then light up this code path
+            //EnableChannelBindingSupport();
+            await using (await AsyncLock.TakeLockAsync())
+            {
+                // if an abort happened before the Open, return
+                if (State == CommunicationState.Closing && State == CommunicationState.Closed)
+                {
+                    return;
+                }
+
+                InitializeServiceDispatcherSecurityState();
+            }
+
+            await _settingsLifetimeManager.OpenAsync(token);
         }
 
         //private 
@@ -216,7 +277,7 @@ namespace CoreWCF.Dispatcher
         {
             if (_securityAuthServiceChannelDispatcher == null)
             {
-                lock (ThisLock)
+                using (AsyncLock.TakeLock())
                 {
                     if (_channelTask == null)
                     {
@@ -236,11 +297,11 @@ namespace CoreWCF.Dispatcher
         /// </summary>
         /// <param name="outerChannel"></param>
         /// <returns></returns>
-        internal Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
+        internal async Task<IServiceChannelDispatcher> GetInnerServiceChannelDispatcher(IChannel outerChannel)
         {
-            lock (ThisLock)
+            await using (await AsyncLock.TakeLockAsync())
             {
-                return InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
+                return await InnerServiceDispatcher.CreateServiceChannelDispatcherAsync(outerChannel);
             }
         }
 
@@ -286,10 +347,7 @@ namespace CoreWCF.Dispatcher
 
         public void Dispose()
         {
-            if (!_disposed)
-            {
-                _disposed = true;
-            }
+            CloseAsync().GetAwaiter().GetResult();
         }
     }
 
@@ -346,7 +404,7 @@ namespace CoreWCF.Dispatcher
             }
             Fx.Assert(SecurityProtocol != null, "SecurityProtocol can't be null");
             ThrowIfSecureConversationCloseMessage(message);
-            return await SecurityProtocol.VerifyIncomingMessageAsync(message, timeout, correlationState);
+            return await SecurityProtocol.VerifyIncomingMessageAsync(message, correlationState);
         }
 
         internal ValueTask<Message> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
@@ -356,7 +414,7 @@ namespace CoreWCF.Dispatcher
                 return new ValueTask<Message>((Message)null);
             }
             ThrowIfSecureConversationCloseMessage(message);
-            return SecurityProtocol.VerifyIncomingMessageAsync(message, timeout);
+            return SecurityProtocol.VerifyIncomingMessageAsync(message);
         }
 
         public abstract Task DispatchAsync(RequestContext context);
@@ -528,11 +586,10 @@ namespace CoreWCF.Dispatcher
 
         protected IDuplexChannel InnerDuplexChannel { get; }
 
-        public Task SendAsync(Message message, TimeSpan timeout)
+        public Task SendAsync(Message message, CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            message = SecurityProtocol.SecureOutgoingMessage(message, timeoutHelper.GetCancellationToken());
-            return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+            SecurityProtocol.SecureOutgoingMessage(ref message);
+            return InnerDuplexChannel.SendAsync(message, token);
         }
     }
 
@@ -612,12 +669,7 @@ namespace CoreWCF.Dispatcher
 
         public Task SendAsync(Message message)
         {
-            return base.SendAsync(message, ServiceDefaults.SendTimeout);
-        }
-
-        public Task SendAsync(Message message, CancellationToken token)
-        {
-            return SendAsync(message);
+            return SendAsync(message, TimeoutHelper.GetCancellationToken(ServiceDefaults.SendTimeout));
         }
 
         private async ValueTask<Message> ProcessInnerItemAsync(Message innerItem, TimeSpan timeout)
