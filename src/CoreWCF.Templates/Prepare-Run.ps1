@@ -23,8 +23,26 @@ $DirectoryBuildTargetsContent = '<Project></Project>'
 $DirectoryBuildTargetsContent | Out-File $TestTemplatesPath/Directory.Build.targets
 $DirectoryPackagesPropsContent = '<Project></Project>'
 $DirectoryPackagesPropsContent | Out-File $TestTemplatesPath/Directory.Packages.props
-$NuGetConfigPath = [IO.Path]::Combine($SourceDir, 'NuGet.config')
-Copy-Item $NuGetConfigPath -Destination $TestTemplatesPath
+# Write a NuGet.config that exposes the locally-built CoreWCF packages alongside the upstream feeds.
+# We deliberately do not copy the repo's NuGet.config because it <clear />s sources without re-adding
+# the local Artifacts feed - so any restore that relies on the inherited config would miss the
+# pre-release packages we just packed. The test harness used to compensate by passing `-s` flags to
+# `dotnet restore`, but mixing a local Windows path with HTTPS URLs in `dotnet restore -s` is broken
+# on Windows (NuGet treats the URLs as relative paths -> NU1301). Putting all sources here lets every
+# `dotnet new`/`dotnet restore` invocation pick them up via the inherited config instead.
+$ArtifactsPathForXml = [System.Security.SecurityElement]::Escape($ArtifactsPath)
+$NuGetConfigContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="CoreWCFTemplates-LocalArtifacts" value="$ArtifactsPathForXml" />
+    <add key="CoreWCF-AzureDevOps" value="https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+  </packageSources>
+</configuration>
+"@
+$NuGetConfigContent | Out-File -FilePath ([IO.Path]::Combine($TestTemplatesPath, 'NuGet.config')) -Encoding utf8
 
 # Drop sentinel MSBuild files alongside the in-repo template csproj so that `dotnet add package` and
 # `dotnet pack` operate on the template as if it were an independent project, isolated from the repo's
