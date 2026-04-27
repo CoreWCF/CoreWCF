@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">true</EnableCoreWCFOperationInvokerGenerator>
+    <!-- Default the OperationInvokerGenerator to enabled only on TFMs where the SDK's default C#
+         language version is >= 11 (the version required by the generator's emitted 'file' types and
+         '[ModuleInitializer]'). That is .NETCoreApp 7.0 and later. .NETFramework, .NETStandard, and
+         older .NETCoreApp targets remain off-by-default and use the reflection-based fallback at
+         runtime. Consumers on those targets can still opt in by explicitly setting
+         EnableCoreWCFOperationInvokerGenerator=true and raising LangVersion to 11 or higher. -->
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'=='' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion.TrimStart('v')), '7.0'))">true</EnableCoreWCFOperationInvokerGenerator>
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">false</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
   <ItemGroup>
     <!-- Exposes EnableCoreWCFOperationInvokerGenerator to the source generator at build time -->
