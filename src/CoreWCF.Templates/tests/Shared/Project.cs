@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Internal;
@@ -119,19 +117,14 @@ public class Project : IDisposable
     {
         Output.WriteLine("Restoring packages...");
 
-        // Include the local Artifacts feed (populated by Prepare-Run.ps1) alongside the upstream feeds so
-        // the locally-built CoreWCF pre-release packages referenced by the generated csproj are restorable.
-        var localFeed = GetLocalArtifactsFeedPath();
-        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $@"restore -v detailed --force --force-evaluate -s ""{localFeed}"" -s https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json -s https://api.nuget.org/v3/index.json");
+        // Sources are configured via the NuGet.config that Prepare-Run.ps1 drops at TestTemplatesPath
+        // (which the generated project under BaseFolder/<name> inherits). Do NOT pass `-s` flags here:
+        // on Windows, `dotnet restore -s <localPath> -s <https-url> ...` causes NuGet's MSBuild
+        // RestoreSources parser to treat the URLs as relative paths (NU1301), because the URL-encoded
+        // values are never decoded back to a valid Uri before path resolution kicks in.
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), "restore -v detailed --force --force-evaluate");
         await result.Exited;
         return new ProcessResult(result);
-    }
-
-    private static string GetLocalArtifactsFeedPath()
-    {
-        var testTemplatesPath = typeof(Project).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-            .Single(a => a.Key == "TestTemplatesPath").Value;
-        return Path.Combine(testTemplatesPath, "Artifacts");
     }
 
     internal async Task<ProcessResult> RunDotNetPublishAsync(IDictionary<string, string> packageOptions = null, string additionalArgs = null, bool noRestore = true)
