@@ -9,6 +9,11 @@
     <!--#endif-->
     <!--#if(enableOperationInvokerGenerator)-->
     <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
+    <!--#endif-->
+    <!--#if(isNetFramework)-->
+    <!-- The CoreWCF OperationInvokerGenerator emits C# 11 ('file' types) and C# 9 ('module initializers')
+         code. The .NET SDK defaults LangVersion to 7.3 when targeting .NET Framework, so raise it here so
+         the generated code compiles on net4xx targets. -->
     <LangVersion>Latest</LangVersion>
     <!--#endif-->
   </PropertyGroup>
