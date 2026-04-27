@@ -17,6 +17,7 @@
     <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" CopyToOutputDirectory="Always" />
     <Content Remove="templates\Directory.Build.props"/>
     <Content Remove="templates\Directory.Build.targets"/>
+    <Content Remove="templates\Directory.Packages.props"/>
     <Content Remove="templates\.editorconfig"/>
   </ItemGroup>
   <!-- Do not compile the templated code -->

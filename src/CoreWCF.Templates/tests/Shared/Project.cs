@@ -119,9 +119,19 @@ public class Project : IDisposable
     {
         Output.WriteLine("Restoring packages...");
 
-        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $@"restore -v detailed --force --force-evaluate -s https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json -s https://api.nuget.org/v3/index.json");
+        // Include the local Artifacts feed (populated by Prepare-Run.ps1) alongside the upstream feeds so
+        // the locally-built CoreWCF pre-release packages referenced by the generated csproj are restorable.
+        var localFeed = GetLocalArtifactsFeedPath();
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $@"restore -v detailed --force --force-evaluate -s ""{localFeed}"" -s https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json -s https://api.nuget.org/v3/index.json");
         await result.Exited;
         return new ProcessResult(result);
+    }
+
+    private static string GetLocalArtifactsFeedPath()
+    {
+        var testTemplatesPath = typeof(Project).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .Single(a => a.Key == "TestTemplatesPath").Value;
+        return Path.Combine(testTemplatesPath, "Artifacts");
     }
 
     internal async Task<ProcessResult> RunDotNetPublishAsync(IDictionary<string, string> packageOptions = null, string additionalArgs = null, bool noRestore = true)
