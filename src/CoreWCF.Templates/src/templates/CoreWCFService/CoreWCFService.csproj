@@ -30,7 +30,7 @@
   <!--#endif-->
   <ItemGroup>
     <!--#if(isNetFramework)-->
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.3.9" />
     <!--#endif-->
     <PackageReference Include="CoreWCF.Primitives" Version="1.*" />
     <PackageReference Include="CoreWCF.Http" Version="1.*" />
