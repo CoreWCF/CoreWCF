@@ -86,4 +86,4 @@ Set-Location $PSScriptRoot
 Invoke-Checked { dotnet build $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj } 'Failed to build CoreWCF.Templates'
 Invoke-Checked { dotnet pack $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj -o $ArtifactsPath /p:IncludeSymbols=false } 'Failed to pack CoreWCF.Templates'
 # Install CoreWCF.Templates locally
-Invoke-Checked { dotnet new install CoreWCF.Templates::$version --nuget-source $ArtifactsPath } 'Failed to install CoreWCF.Templates'
+Invoke-Checked { dotnet new install CoreWCF.Templates@$version --nuget-source $ArtifactsPath } 'Failed to install CoreWCF.Templates'
