@@ -110,23 +110,10 @@ namespace CoreWCF.Security
 
         protected override SignedXml ReadSignatureCore(XmlDictionaryReader signatureReader)
         {
-            XmlDocument doc = new XmlDocument();
-            using (XmlWriter writer = doc.CreateNavigator().AppendChild())
-            {
-                writer.WriteStartDocument();
-                writer.WriteStartElement(SIGNED_XML_HEADER);
-                MessageHeaders headers = Message.Headers;
-                for (int i = 0; i < headers.Count; i++)
-                {
-                    headers.WriteHeader(i, writer);
-                }
-
-                writer.WriteEndElement();
-                writer.WriteEndDocument();
-            }
+            XmlDocument doc = BuildSignedXmlDocument(Message.Headers, HeaderIndex);
             SignedXMLInternal signedXml = new SignedXMLInternal(doc);
-            XmlNodeList nodeList = doc.GetElementsByTagName("Signature", SignedXml.XmlDsigNamespaceUrl);
-            signedXml.LoadXml((XmlElement)nodeList[0]);
+            XmlElement signatureElement = FindSecurityHeaderSignatureElement(doc, HeaderIndex);
+            signedXml.LoadXml(signatureElement);
             if (signedXml.SignedInfo.CanonicalizationMethodObject is XmlDsigExcC14NTransform xmlDsigExcC14NTransform)
             {
                 string[] inclusivePrefixes = XmlHelper.TokenizeInclusiveNamespacesPrefixList(xmlDsigExcC14NTransform.InclusiveNamespacesPrefixList);
@@ -149,6 +136,130 @@ namespace CoreWCF.Security
                 tempReader.Read();//move the reader to next
             }
             return signedXml;
+        }
+
+        // Builds the XmlDocument used to back signature verification. The
+        // document is constructed from the SOAP message headers under a
+        // synthetic root element. headerIndex is the position of the
+        // wsse:Security header within the headers collection.
+        internal static XmlDocument BuildSignedXmlDocument(MessageHeaders headers, int headerIndex)
+        {
+            if (headers == null)
+            {
+                throw new ArgumentNullException(nameof(headers));
+            }
+            if (headerIndex < 0 || headerIndex >= headers.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(headerIndex));
+            }
+
+            // The verification document must be backed by the wsse:Security
+            // header and only the wsse:Security header. Confirm that the
+            // header at the supplied index is actually a Security header
+            // belonging to a recognised WS-Security namespace before
+            // continuing; otherwise the document we produce would have no
+            // defensible relationship to the signature being checked.
+            MessageHeaderInfo headerInfo = headers[headerIndex];
+            if (!string.Equals(headerInfo.Name, XD.SecurityJan2004Dictionary.Security.Value, StringComparison.Ordinal)
+                || !(string.Equals(headerInfo.Namespace, WSSecurity10Constants.Namespace, StringComparison.Ordinal)
+                    || string.Equals(headerInfo.Namespace, WSSecurity11Constants.Namespace, StringComparison.Ordinal)))
+            {
+                throw new ArgumentException(SR.Format(SR.SignatureVerificationFailed), nameof(headerIndex));
+            }
+
+            XmlDocument doc = new XmlDocument();
+            using (XmlWriter writer = doc.CreateNavigator().AppendChild())
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement(SIGNED_XML_HEADER);
+                // All headers are written into the synthetic verification
+                // document so that signature Reference URIs targeting
+                // addressing headers (wsa:To, wsa:Action, wsa:MessageID,
+                // ...) and the Body continue to resolve. The Security
+                // header position (headerIndex) is used by callers (see
+                // ReadSignatureCore) to restrict the *Signature element
+                // lookup* to inside the Security header subtree,
+                // preventing attacker-planted ds:Signature elements in
+                // sibling headers from being verified instead of the
+                // legitimate one.
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    headers.WriteHeader(i, writer);
+                }
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
+            return doc;
+        }
+
+        // Locates the ds:Signature element that ReadSignatureCore should
+        // load. The lookup is constrained to the descendants of the
+        // wsse:Security header at headerIndex. Sibling SOAP headers may not
+        // contribute a Signature element to the verification, even if one
+        // appears lexically before the Security header in the envelope.
+        internal static XmlElement FindSecurityHeaderSignatureElement(XmlDocument doc, int headerIndex)
+        {
+            if (doc == null)
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+            if (doc.DocumentElement == null || headerIndex < 0 || headerIndex >= doc.DocumentElement.ChildNodes.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(headerIndex));
+            }
+
+            XmlElement securityHeaderElement = doc.DocumentElement.ChildNodes[headerIndex] as XmlElement;
+            if (securityHeaderElement == null)
+            {
+                throw new MessageSecurityException(SR.Format(SR.SignatureVerificationFailed));
+            }
+
+            // Defence in depth: confirm locally that the element at
+            // headerIndex really is a wsse:Security header before
+            // descending into it to pick a ds:Signature. The whole
+            // mitigation rests on the indexing operation above, so we
+            // do not want to rely solely on the upstream check in
+            // BuildSignedXmlDocument staying in lock-step with this
+            // method.
+            if (!string.Equals(securityHeaderElement.LocalName, XD.SecurityJan2004Dictionary.Security.Value, StringComparison.Ordinal)
+                || !(string.Equals(securityHeaderElement.NamespaceURI, WSSecurity10Constants.Namespace, StringComparison.Ordinal)
+                    || string.Equals(securityHeaderElement.NamespaceURI, WSSecurity11Constants.Namespace, StringComparison.Ordinal)))
+            {
+                throw new MessageSecurityException(SR.Format(SR.SignatureVerificationFailed));
+            }
+
+            XmlNodeList nodeList = securityHeaderElement.GetElementsByTagName(XD.XmlSignatureDictionary.Signature.Value, XD.XmlSignatureDictionary.Namespace.Value);
+            if (nodeList.Count == 0)
+            {
+                throw new MessageSecurityException(SR.Format(SR.SignatureVerificationFailed));
+            }
+
+            return (XmlElement)nodeList[0];
+        }
+
+        // Endorsing/supporting signatures must explicitly cover the element
+        // identified by 'id' (the wsu:Timestamp on the transport-only path,
+        // or the primary signature id on the message-protected path). If the
+        // signature carries no Reference whose URI fragment matches the
+        // expected id, the signature is rejected even when the cryptographic
+        // CheckSignature succeeded against some other resolved element.
+        private static void EnsureSignatureCoversExpectedTarget(SignedXml signedXml, string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new MessageSecurityException(SR.Format(SR.SignatureVerificationFailed));
+            }
+
+            string expected = "#" + id;
+            foreach (Reference reference in signedXml.SignedInfo.References)
+            {
+                if (string.Equals(reference.Uri, expected, StringComparison.Ordinal))
+                {
+                    return;
+                }
+            }
+
+            throw new MessageSecurityException(SR.Format(SR.SignatureVerificationFailed));
         }
 
         protected override async ValueTask<SecurityToken> VerifySignatureAsync(SignedXml signedXml, bool isPrimarySignature, SecurityHeaderTokenResolver resolver, object signatureTarget, string id)
@@ -240,6 +351,8 @@ namespace CoreWCF.Security
                         throw new Exception("Signature not valid.");
                     }
                 }
+
+                EnsureSignatureCoversExpectedTarget(signedXml, id);
             }
             // this.pendingSignature = signedXml;
 
