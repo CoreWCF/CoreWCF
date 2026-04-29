@@ -57,7 +57,8 @@ namespace CoreWCF.IdentityModel.Tokens
             //start of Issuer validation
             tokenValidationParams.IssuerValidator = IssuerValidate;
             tokenValidationParams.PropertyBag.Add(SAML_SECURITY_TOKEN, securityToken);
-            tokenValidationParams.SignatureValidator = SignValidator;
+            tokenValidationParams.IssuerSigningKeyResolver = ResolveIssuerSigningKey;
+            tokenValidationParams.RequireSignedTokens = true;
             tokenValidationParams.ClockSkew = securityHandlerConfiguration.MaxClockSkew;
             return tokenValidationParams;
         }
@@ -86,16 +87,60 @@ namespace CoreWCF.IdentityModel.Tokens
             return true;
         }
 
-        private MsIdentityTokens.SecurityToken SignValidator(string token, TokenValidationParameters validationParameters)
+        private IEnumerable<MsIdentityTokens.SecurityKey> ResolveIssuerSigningKey(string token, MsIdentityTokens.SecurityToken securityToken, string keyIdentifier, TokenValidationParameters validationParameters)
         {
             SecurityToken samlToken = (SecurityToken)validationParameters.PropertyBag[SAML_SECURITY_TOKEN];
-            if(samlToken is SamlSecurityToken)
+            SecurityToken signingToken = null;
+
+            if (samlToken is SamlSecurityToken sst)
             {
-                return ((SamlSecurityToken)samlToken).WrappedSamlSecurityToken;
+                signingToken = sst.SigningToken;
             }
-            else
+            else if (samlToken is Saml2SecurityToken s2t)
             {
-                return ((Saml2SecurityToken)samlToken).WrappedSaml2SecurityToken;
+                signingToken = s2t.SigningToken;
+            }
+
+            if (signingToken is X509SecurityToken x509Token && x509Token.Certificate != null)
+            {
+                yield return new MsIdentityTokens.X509SecurityKey(x509Token.Certificate);
+                yield break;
+            }
+
+            ICollection<Microsoft.IdentityModel.Xml.X509Data> x509Datas = null;
+            if (securityToken is MsIdentityTokens.Saml.SamlSecurityToken samlSecurityToken
+                && samlSecurityToken.Assertion?.Signature?.KeyInfo != null)
+            {
+                x509Datas = samlSecurityToken.Assertion.Signature.KeyInfo.X509Data;
+            }
+            else if (securityToken is MsIdentityTokens.Saml2.Saml2SecurityToken saml2SecurityToken
+                && saml2SecurityToken.Assertion?.Signature?.KeyInfo != null)
+            {
+                x509Datas = saml2SecurityToken.Assertion.Signature.KeyInfo.X509Data;
+            }
+
+            if (x509Datas == null)
+            {
+                yield break;
+            }
+
+            foreach (Microsoft.IdentityModel.Xml.X509Data x509Data in x509Datas)
+            {
+                if (x509Data?.Certificates == null)
+                {
+                    continue;
+                }
+
+                foreach (string base64Cert in x509Data.Certificates)
+                {
+                    if (string.IsNullOrEmpty(base64Cert))
+                    {
+                        continue;
+                    }
+
+                    X509Certificate2 cert = new X509Certificate2(Convert.FromBase64String(base64Cert));
+                    yield return new MsIdentityTokens.X509SecurityKey(cert);
+                }
             }
         }
 
