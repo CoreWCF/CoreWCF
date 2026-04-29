@@ -8334,6 +8334,12 @@
   <data name="SAMLAssertionRequireOneStatement" xml:space="preserve">
     <value>A SamlAssertion requires at least one statement.  Ensure that you have added at least one SamlStatement to the SamlAssertion you are creating.</value>
   </data>
+  <data name="SAMLHolderOfKeyRequiresKeyInfo" xml:space="preserve">
+    <value>The SamlSubject specifies the holder-of-key confirmation method but does not contain a SubjectConfirmationData &lt;KeyInfo&gt;. Holder-of-key tokens require a proof key.</value>
+  </data>
+  <data name="SAMLUnrecognizedConfirmationMethod" xml:space="preserve">
+    <value>The SamlSubject contains an unrecognized confirmation method '{0}'. Only the bearer, sender-vouches, and holder-of-key methods defined by SAML 1.1 are accepted.</value>
+  </data>
   <data name="SAMLAssertionRequireOneStatementOnRead" xml:space="preserve">
     <value>The SamlAssertion being read did not contain any SamlStatement.  A SamlAssertion must contain at least one SamlStatement.</value>
   </data>
