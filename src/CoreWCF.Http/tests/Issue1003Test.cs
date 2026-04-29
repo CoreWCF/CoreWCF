@@ -4,8 +4,6 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
@@ -26,26 +24,28 @@ namespace CoreWCF.Http.Tests
             _outputHelper = outputHelper;
         }
 
-        private static async Task<string> RequestAndAssert(string url, string text, string action)
+        private static async Task<HttpResponseMessage> SendRequest(string url, string text, string action)
         {
             HttpClientHandler clientHandler = new HttpClientHandler();
             clientHandler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => { return true; };
 
-            using (HttpClient client = new HttpClient(clientHandler))
-            using (HttpContent content = new StringContent(text, Encoding.UTF8, "application/soap+xml"))
-            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url))
-            {
-                request.Headers.Add("SOAPAction", action);
-                request.Headers.TryAddWithoutValidation("Content-Type", "application/soap+xml; charset=utf-8");
-                request.Content = content;
-                using (HttpResponseMessage response = await client.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode(); // throws an Exception if 404, 500, etc.
-                    return await response.Content.ReadAsStringAsync();
-                }
-            }
+            HttpClient client = new HttpClient(clientHandler);
+            HttpContent content = new StringContent(text, Encoding.UTF8, "application/soap+xml");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("SOAPAction", action);
+            request.Headers.TryAddWithoutValidation("Content-Type", "application/soap+xml; charset=utf-8");
+            request.Content = content;
+            HttpResponseMessage response = await client.SendAsync(request);
+            return response;
         }
 
+        // This payload is the original WSE-style envelope from Issue #1003
+        // (ds:Signature carried with a 'ds:' prefix on the Signature element).
+        // The signature covers only wsa:To (Reference URI #id-...8962928); it
+        // does NOT cover the wsu:Timestamp. On a transport-with-message-
+        // credential endpoint the endorsing-supporting-token contract
+        // requires the supporting signature to cover the Timestamp, so a
+        // correctly configured receiver must reject this message.
         [Fact]
         public async Task WSHttpRequestReplyWithTransportMessageCertificateWhenSignatureElementWithPrefix()
         {
@@ -72,7 +72,14 @@ namespace CoreWCF.Http.Tests
 
                 string requestUri = $"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc";
                 string action = "http://tempuri.org/IEchoService/EchoString";
-                await RequestAndAssert(requestUri, content, action);
+                using (HttpResponseMessage response = await SendRequest(requestUri, content, action))
+                {
+                    // The supporting signature does not cover the Timestamp, so the
+                    // endorsing-supporting-token contract is not satisfied and the
+                    // server must reject the message rather than treat the signature
+                    // as endorsing the Timestamp.
+                    Assert.False(response.IsSuccessStatusCode);
+                }
             }
         }
 
