@@ -99,6 +99,8 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(token), SR.Format(SR.ID1034));
             }
 
+            ValidateSubjectConfirmations(samlToken.Assertion);
+
             string assertionXML = samlToken.AssertionXML;
             SamlTokenValidationParameters tokenValidation = new SamlTokenValidationParameters();
             ClaimsPrincipal claim = _internalSamlSecurityTokenHandler.ValidateToken(assertionXML,
@@ -113,6 +115,61 @@ namespace CoreWCF.IdentityModel.Tokens
                 claimsIdentity
             };
             return identities.AsReadOnly();
+        }
+
+        // SAML 1.1 confirmation methods we recognize.  Anything outside this set is
+        // refused at validation time so that the application is not asked to bind
+        // claims it has no policy for.
+        private static readonly HashSet<string> s_recognizedConfirmationMethods = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "urn:oasis:names:tc:SAML:1.0:cm:holder-of-key",
+            "urn:oasis:names:tc:SAML:1.0:cm:sender-vouches",
+            "urn:oasis:names:tc:SAML:1.0:cm:bearer",
+        };
+
+        private const string HolderOfKeyConfirmationMethod = "urn:oasis:names:tc:SAML:1.0:cm:holder-of-key";
+
+        private static void ValidateSubjectConfirmations(SamlAssertion assertion)
+        {
+            if (assertion?.Statements == null)
+            {
+                return;
+            }
+
+            foreach (SamlStatement statement in assertion.Statements)
+            {
+                if (!(statement is SamlSubjectStatement subjectStatement))
+                {
+                    continue;
+                }
+
+                SamlSubject subject = subjectStatement.Subject;
+                if (subject == null || subject.ConfirmationMethods == null)
+                {
+                    continue;
+                }
+
+                bool sawHolderOfKey = false;
+                foreach (string method in subject.ConfirmationMethods)
+                {
+                    if (string.IsNullOrEmpty(method) || !s_recognizedConfirmationMethods.Contains(method))
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                            new SecurityTokenValidationException(SR.Format(SR.SAMLUnrecognizedConfirmationMethod, method ?? "<null>")));
+                    }
+
+                    if (string.Equals(method, HolderOfKeyConfirmationMethod, StringComparison.Ordinal))
+                    {
+                        sawHolderOfKey = true;
+                    }
+                }
+
+                if (sawHolderOfKey && (subject.KeyInfo == null))
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                        new SecurityTokenValidationException(SR.SAMLHolderOfKeyRequiresKeyInfo));
+                }
+            }
         }
         #endregion
 
