@@ -33,6 +33,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
             tokenValidationParams.ValidateAudience = securityTokenRequirement.ShouldEnforceAudienceRestriction
                 (securityHandlerConfiguration.AudienceRestriction.AudienceMode, securityToken);
+            tokenValidationParams.RequireAudience = tokenValidationParams.ValidateAudience;
 
             if (tokenValidationParams.ValidateAudience)
             {
