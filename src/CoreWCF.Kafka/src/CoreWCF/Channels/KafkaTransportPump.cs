@@ -160,8 +160,15 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
                 }
                 catch (Exception e)
                 {
-                    _logger.LogCritical(e, "Unexpected error");
-                    break;
+                    _logger.LogCritical(e, "Unexpected error in consume loop; continuing");
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(100), _cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
             }
             _mres.Set();
@@ -268,7 +275,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             ReceiveContext = receiveContext,
             QueueTransportContext = queueTransportContext,
             LocalAddress = new EndpointAddress(queueTransportContext.ServiceDispatcher.BaseAddress),
-            QueueMessageReader = PipeReader.Create(new ReadOnlySequence<byte>(consumeResult.Message.Value)),
+            QueueMessageReader = PipeReader.Create(new ReadOnlySequence<byte>(consumeResult.Message.Value ?? Array.Empty<byte>())),
             Properties =
             {
                 [KafkaMessageProperty.Name] = new KafkaMessageProperty(consumeResult)
