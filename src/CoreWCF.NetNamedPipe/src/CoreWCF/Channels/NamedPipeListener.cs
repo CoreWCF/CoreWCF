@@ -24,7 +24,7 @@ namespace CoreWCF.Channels
         private PipeSharedMemory _sharedMemory;
         private Task[] _tasks;
         private CancellationTokenSource _acceptPumpCancellationTokenSource;
-        private bool _firstConnection;
+        private bool _firstConnection = true;
         private ILogger<FramingConnection> _framingConnectionLogger;
         private TransportConnectionManager _transportConnectionManager;
         private readonly PipeOptions _inputOptions;
