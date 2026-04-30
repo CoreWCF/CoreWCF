@@ -100,14 +100,39 @@ namespace CoreWCF.Security.NegotiateInternal
         {
             // https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthentication.wrap?view=net-8.0
             // System.Net.Security.NegotiateAuthenticationStatusCode Wrap(ReadOnlySpan<byte> input, System.Buffers.IBufferWriter<byte> outputWriter, bool requestEncryption, out bool isEncrypted);
+            //
+            // SECURITY: requestEncryption MUST be true. Encrypt() backs ISspiNegotiation.Encrypt which
+            // SspiNegotiationTokenAuthenticator.IssueServiceToken uses to wrap the SecurityContextToken
+            // proof key into the RequestedProofToken returned in the WS-Trust RSTR. Wrapping with
+            // requestEncryption=false produces an integrity-only (MIC) token under platform GSS, which
+            // would expose the symmetric proof key in cleartext to any passive network observer when
+            // the binding is not protected by TLS. After the call we also assert isEncrypted is true
+            // so that we fail closed if the negotiated package cannot provide confidentiality (rather
+            // than silently leaking the key). This matches the behaviour of the legacy .NET Framework
+            // WindowsSspiNegotiation.Encrypt path which called SSPI EncryptMessage with sealing.
+            //
             // Create the memory stream with an initial capacity twice the size of the input, as encryption may increase the size of the data.
             // This is a heuristic and will be more than enough for typical cases, but it allows us to avoid resizing the buffer in most cases.
             // If we're wrong (e.g. the encryption overhead is larger than the input size), MemoryStream will grow if needed.
             var memoryStream = new MemoryStream(input.Length * 2);
             PipeWriter pipeWriter = PipeWriter.Create(memoryStream);
-            var statusCode = (int)(((dynamic)_negotiateAuthentication).Wrap(input, (IBufferWriter<byte>)pipeWriter, false, out bool isEncrypted));
+            var statusCode = (int)(((dynamic)_negotiateAuthentication).Wrap(input, (IBufferWriter<byte>)pipeWriter, true, out bool isEncrypted));
             // Safe to call GetAwaiter().GetResult() as PipeWriter is on top of a MemoryStream which does all writes synchronously.
             pipeWriter.FlushAsync().GetAwaiter().GetResult();
+
+            var errorCode = ToErrorCode(statusCode);
+            if (errorCode != NegotiateInternalSecurityStatusErrorCode.OK)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new SecurityNegotiationException(SR.Format(SR.SspiWrapFailed, errorCode)));
+            }
+
+            if (!isEncrypted)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new SecurityNegotiationException(SR.SspiWrapDidNotEncrypt));
+            }
+
             var output = memoryStream.ToArray();
             return output;
         }
