@@ -138,6 +138,12 @@
   <data name="SspiErrorOrInvalidClientCredentials" xml:space="preserve">
     <value>Either the client credential was invalid or there was an error collecting the client credentials by the SSPI.</value>
   </data>
+  <data name="SspiWrapFailed" xml:space="preserve">
+    <value>The SSPI/GSS Wrap operation failed with status code '{0}'.</value>
+  </data>
+  <data name="SspiWrapDidNotEncrypt" xml:space="preserve">
+    <value>The negotiated security package did not provide confidentiality for the wrapped buffer. Sensitive data such as the proof key for a SecurityContextToken must not be transmitted in the clear. The negotiated package or its configuration does not support message confidentiality.</value>
+  </data>
   <data name="CustomCryptoAlgorithmIsNotValidAsymmetricSignature" xml:space="preserve">
     <value>The custom crypto algorithm '{0}' obtained using CryptoConfig is not a valid or supported asymmetric signature algorithm.</value>
   </data>
