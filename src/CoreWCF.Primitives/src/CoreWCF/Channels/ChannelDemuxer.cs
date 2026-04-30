@@ -5,9 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Web.Services.Description;
 using CoreWCF.Configuration;
+using CoreWCF.Diagnostics;
 using CoreWCF.Dispatcher;
 using CoreWCF.Runtime;
+using static CoreWCF.Channels.ReplyChannelDemuxer;
 using static CoreWCF.Security.SecuritySessionServerSettings;
 
 namespace CoreWCF.Channels
@@ -160,12 +163,12 @@ namespace CoreWCF.Channels
 
         private TypedChannelDemuxer CreateTypedDemuxer(Type channelType, BindingParameterCollection bindingParameters)
         {
-            /* if (channelType == typeof(IDuplexChannel))
-                 return (TypedChannelDemuxer)(object)new DuplexChannelDemuxer(context);
-             if (channelType == typeof(IInputSessionChannel))
+            /* if (channelType == typeof(IInputSessionChannel))
                  return (TypedChannelDemuxer)(object)new InputSessionChannelDemuxer(context, this.peekTimeout, this.maxPendingSessions);
              if (channelType == typeof(IReplySessionChannel))
                  return (TypedChannelDemuxer)(object)new ReplySessionChannelDemuxer(context, this.peekTimeout, this.maxPendingSessions);*/
+            if (channelType == typeof(IDuplexChannel))
+                return (TypedChannelDemuxer)(object)new DuplexChannelDemuxer(bindingParameters);//, this.peekTimeout, this.maxPendingSessions);
             if (channelType == typeof(IDuplexSessionChannel))
                 return (TypedChannelDemuxer)(object)new DuplexSessionChannelDemuxer(bindingParameters);//, this.peekTimeout, this.maxPendingSessions);
             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException());
@@ -475,6 +478,106 @@ namespace CoreWCF.Channels
             }
 
             return null;
+        }
+    }
+
+    internal class DuplexChannelDemuxer : DatagramChannelDemuxer<IDuplexChannel, Message>
+    {
+        private static readonly IList<Type> s_supportedChannelTypes = new List<Type> { typeof(IDuplexChannel) };
+
+        public override Uri BaseAddress => throw new NotImplementedException();
+
+        public override Binding Binding => throw new NotImplementedException();
+
+        public override IList<Type> SupportedChannelTypes => s_supportedChannelTypes;
+
+        public DuplexChannelDemuxer(BindingParameterCollection bindingParameters) : base(bindingParameters)
+        {
+        }
+
+        public override Task<IServiceChannelDispatcher> CreateServiceChannelDispatcherAsync(IChannel channel)
+        {
+            return Task.FromResult<IServiceChannelDispatcher>(new DuplexChannelDispatcher(this, channel));
+        }
+
+        protected override void AbortItem(Message message)
+        {
+            AbortMessage(message);
+        }
+
+        protected override async Task EndpointNotFoundAsync(Message message)
+        {
+            bool abortItem = true;
+            try
+            {
+                if (DemuxFailureHandler != null)
+                {
+                    await DemuxFailureHandler.HandleDemuxFailureAsync(message);
+                    abortItem = false;
+                }
+            }
+            catch (CommunicationException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (TimeoutException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (ObjectDisposedException e)
+            {
+                DiagnosticUtility.TraceHandledException(e, TraceEventType.Information);
+            }
+            catch (Exception e)
+            {
+                if (Fx.IsFatal(e)) throw;
+                throw;
+            }
+            finally
+            {
+                if (abortItem)
+                {
+                    AbortItem(message);
+                }
+            }
+        }
+
+        protected override Message GetMessage(Message message)
+        {
+            return message;
+        }
+
+        internal class DuplexChannelDispatcher : IServiceChannelDispatcher
+        {
+            private readonly DuplexChannelDemuxer _demuxer;
+            private readonly IChannel _channel;
+
+            public DuplexChannelDispatcher(DuplexChannelDemuxer duplexChannelDemuxer, IChannel channel)
+            {
+                _demuxer = duplexChannelDemuxer;
+                _channel = channel;
+            }
+
+            public Task DispatchAsync(RequestContext context)
+            {
+                return Task.FromException(new NotImplementedException());
+            }
+
+            public async Task DispatchAsync(Message message)
+            {
+                // TODO: Find way to avoid instantiating a new ServiceChannelDispatcher each time
+                IServiceDispatcher serviceDispatcher = _demuxer.MatchDispatcher(message);
+                if (serviceDispatcher == null)
+                {
+                    ErrorBehavior.ThrowAndCatch(
+                        new EndpointNotFoundException(SR.Format(SR.UnableToDemuxChannel, message.Headers.Action)), message);
+                    await _demuxer.EndpointNotFoundAsync(message);
+                    return;
+                }
+                // TODO: if serviceDispatcher == null, use the EndpointNotFound code path
+                IServiceChannelDispatcher serviceChannelDispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(_channel);
+                await serviceChannelDispatcher.DispatchAsync(message);
+            }
         }
     }
 

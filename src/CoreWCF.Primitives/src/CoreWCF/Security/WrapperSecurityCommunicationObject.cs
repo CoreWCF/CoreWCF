@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Security
 {
@@ -45,12 +46,12 @@ namespace CoreWCF.Security
 
         protected override Task OnCloseAsync(CancellationToken token)
         {
-            return _innerCommunicationObject.OnCloseAsync(DefaultCloseTimeout);
+            return _innerCommunicationObject.OnCloseAsync(TimeoutHelper.GetCancellationToken(DefaultCloseTimeout));
         }
 
         protected override Task OnOpenAsync(CancellationToken token)
         {
-            return _innerCommunicationObject.OnOpenAsync(DefaultOpenTimeout);
+            return _innerCommunicationObject.OnOpenAsync(TimeoutHelper.GetCancellationToken(DefaultOpenTimeout));
         }
     }
 
@@ -105,12 +106,7 @@ namespace CoreWCF.Security
             CommunicationObject.Abort();
         }
 
-
-        public virtual void OnClose(TimeSpan timeout)
-        {
-        }
-
-        public Task OnCloseAsync(TimeSpan timeout)
+        public Task OnCloseAsync(CancellationToken token)
         {
             return Task.CompletedTask;
         }
@@ -120,11 +116,7 @@ namespace CoreWCF.Security
             Abort();
         }
 
-        public virtual void OnOpen(TimeSpan timeout)
-        {
-        }
-
-        public Task OnOpenAsync(TimeSpan timeout)
+        public Task OnOpenAsync(CancellationToken token)
         {
             return Task.CompletedTask;
         }
