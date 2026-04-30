@@ -163,6 +163,14 @@ namespace CoreWCF.Channels.Framing
                             readableBuffer.CopyTo(destination.Span);
                             return count;
                         }
+
+                        if (result.IsCompleted)
+                        {
+                            // Treat a closed PipeReader as end-of-stream instead of looping;
+                            // otherwise an empty + completed result would cause this read to
+                            // make no progress.
+                            return 0;
+                        }
                     }
                     finally
                     {
