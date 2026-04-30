@@ -29,8 +29,17 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (decoder.CurrentState != ServerSingletonDecoder.State.PreUpgradeStart)
                 {
-                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync(connection.ChannelInitializationCancellationToken);
                     buffer = readResult.Buffer;
+
+                    if (readResult.IsCompleted && buffer.IsEmpty)
+                    {
+                        // The peer closed the connection before sending the via record. Surface
+                        // this as a premature EOF; otherwise PipeReader.ReadAsync would keep
+                        // returning synchronously with an empty buffer and the outer loop would
+                        // never make progress.
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(decoder.CreatePrematureEOFException());
+                    }
 
                     while (buffer.Length > 0)
                     {
