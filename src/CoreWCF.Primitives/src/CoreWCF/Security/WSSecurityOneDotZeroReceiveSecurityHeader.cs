@@ -334,6 +334,7 @@ namespace CoreWCF.Security
                 SecurityAlgorithmSuite suite = AlgorithmSuite;
                 AlgorithmSuite.EnsureAcceptableSignatureKeySize(securityKey, token);
                 AlgorithmSuite.EnsureAcceptableSignatureAlgorithm(securityKey, signedXml.Signature.SignedInfo.SignatureMethod);
+                EnforceReferenceDigestPolicy(signedXml, suite);
                 string canonicalizationAlgorithm = suite.DefaultCanonicalizationAlgorithm;
                 suite.GetSignatureAlgorithmAndKey(token, out string signatureAlgorithm, out SecurityKey signatureKey, out XmlDictionaryString signatureAlgorithmDictionaryString);
                 GetSigningAlgorithm(signatureKey, signatureAlgorithm, out _signingKey, out AsymmetricAlgorithm asymmetricAlgorithm);
@@ -362,6 +363,19 @@ namespace CoreWCF.Security
             //}
 
             return token;
+        }
+
+        private static void EnforceReferenceDigestPolicy(SignedXml signedXml, SecurityAlgorithmSuite suite)
+        {
+            if (signedXml?.Signature?.SignedInfo == null)
+            {
+                return;
+            }
+
+            foreach (Reference reference in signedXml.Signature.SignedInfo.References)
+            {
+                suite.EnsureAcceptableDigestAlgorithm(reference.DigestMethod);
+            }
         }
 
         private void GetSigningAlgorithm(SecurityKey signatureKey, string algorithmName, out KeyedHashAlgorithm symmetricAlgorithm, out AsymmetricAlgorithm asymmetricAlgorithm)
