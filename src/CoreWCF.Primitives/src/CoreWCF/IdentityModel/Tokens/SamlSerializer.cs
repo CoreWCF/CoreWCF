@@ -91,10 +91,64 @@ namespace CoreWCF.IdentityModel.Tokens
             }
             else
             {
-                assertion.Signature.SignedInfo.Verify(Microsoft.IdentityModel.Tokens.CryptoProviderFactory.Default);
+                Microsoft.IdentityModel.Tokens.SecurityKey msVerificationKey = TryCreateMicrosoftIdentityVerificationKey(verificationKey);
+                if (msVerificationKey == null)
+                {
+                    throw new SecurityTokenException(SR.Format(SR.SamlSignatureVerificationKeyNotSupported, verificationKey?.GetType().FullName ?? "null"));
+                }
+
+                var cryptoProviderFactory = new CoreWCF.Security.Sha1CryptoProviderFactory();
+                msVerificationKey.CryptoProviderFactory = cryptoProviderFactory;
+                try
+                {
+                    assertion.Signature.Verify(msVerificationKey, cryptoProviderFactory);
+                }
+                catch (Microsoft.IdentityModel.Xml.XmlValidationException xve)
+                {
+                    if (xve.Message.Contains("SignatureMethod is not supported"))
+                    {
+                        throw new SecurityTokenException(SR.Format(SR.SignatureMethodNotSupported, assertion.Signature.SignedInfo.SignatureMethod), xve);
+                    }
+
+                    throw;
+                }
             }
 
             return samlSecurityToken;
+        }
+
+        private static Microsoft.IdentityModel.Tokens.SecurityKey TryCreateMicrosoftIdentityVerificationKey(SecurityKey verificationKey)
+        {
+            if (verificationKey is SymmetricSecurityKey symmetricKey)
+            {
+                return new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(symmetricKey.GetSymmetricKey());
+            }
+
+            if (verificationKey is RsaSecurityKey rsaKey)
+            {
+                System.Security.Cryptography.AsymmetricAlgorithm asym =
+                    rsaKey.GetAsymmetricAlgorithm(SecurityAlgorithms.RsaSha256Signature, false)
+                    ?? rsaKey.GetAsymmetricAlgorithm(SecurityAlgorithms.RsaSha1Signature, false);
+
+                if (asym is System.Security.Cryptography.RSA rsa)
+                {
+                    return new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa);
+                }
+            }
+
+            if (verificationKey is X509AsymmetricSecurityKey x509AsymKey)
+            {
+                System.Security.Cryptography.AsymmetricAlgorithm asym =
+                    x509AsymKey.GetAsymmetricAlgorithm(SecurityAlgorithms.RsaSha256Signature, false)
+                    ?? x509AsymKey.GetAsymmetricAlgorithm(SecurityAlgorithms.RsaSha1Signature, false);
+
+                if (asym is System.Security.Cryptography.RSA rsa)
+                {
+                    return new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa);
+                }
+            }
+
+            return null;
         }
 
         private SamlAssertion LoadAssertion(XmlDictionaryReader reader, SecurityTokenSerializer keyInfoSerializer, SecurityTokenResolver outOfBandTokenResolver, out SecurityToken signingToken, out SecurityKey? verificationKey)
