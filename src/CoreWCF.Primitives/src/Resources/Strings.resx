@@ -9723,4 +9723,16 @@
   <data name="SamlRSANotSupported" xml:space="preserve">
     <value>RSA keys in SAML tokens not supported.</value>
   </data>
+  <data name="SamlSignatureVerificationKeyNotSupported" xml:space="preserve">
+    <value>The SAML assertion signature cannot be verified because the resolved verification key of type '{0}' cannot be bridged to a Microsoft.IdentityModel.Tokens.SecurityKey.</value>
+  </data>
+  <data name="OnlySetIdentityOnce" xml:space="preserve">
+    <value>EndpointDispatcher.Identity can only be set once.</value>
+  </data>
+  <data name="BufferWriterAdvancedTooFar" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer, which has a size of {0}.</value>
+  </data>
+  <data name="BufferMaximumSizeExceeded" xml:space="preserve">
+    <value>Cannot allocate a buffer of size {0}.</value>
+  </data>
 </root>
