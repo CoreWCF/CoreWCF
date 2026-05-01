@@ -579,14 +579,14 @@ namespace CoreWCF.Security
         //    }
         //}
 
-        //internal void EnsureAcceptableDigestAlgorithm(string algorithm)
-        //{
-        //    if (!IsDigestAlgorithmSupported(algorithm))
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
-        //            algorithm, "Digest", this)));
-        //    }
-        //}
+        internal void EnsureAcceptableDigestAlgorithm(string algorithm)
+        {
+            if (!IsDigestAlgorithmSupported(algorithm))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new MessageSecurityException(SR.Format(SR.SuiteDoesNotAcceptAlgorithm,
+                    algorithm, "Digest", this)));
+            }
+        }
     }
 
     public class Basic256SecurityAlgorithmSuite : SecurityAlgorithmSuite
