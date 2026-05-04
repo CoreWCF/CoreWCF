@@ -30,6 +30,16 @@ public sealed partial class OperationInvokerGenerator
             parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        /// <summary>
+        /// SymbolDisplayFormat for emitting type references in generated code. Mirrors the default
+        /// CSharpErrorMessageFormat but strips nullable reference type annotations because the generated
+        /// file is wrapped in a '#nullable disable' context. Emitting NRT annotations like 'string?' under
+        /// '#nullable disable' produces CS8669 warnings (see issue #1712). Nullable value types such as
+        /// 'int?' are unaffected because they are System.Nullable&lt;T&gt; rather than NRT annotations.
+        /// </summary>
+        private static readonly SymbolDisplayFormat s_typeDisplayFormat = SymbolDisplayFormat.CSharpErrorMessageFormat
+            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
         public Emitter(in OperationInvokerSourceGenerationContext sourceGenerationContext, in SourceGenerationSpec generationSpec)
         {
             _sourceGenerationContext = sourceGenerationContext;
@@ -128,10 +138,10 @@ public sealed partial class OperationInvokerGenerator
             List<string> invocationParams = new();
             foreach (var parameter in operationContractSpec.Method.Parameters)
             {
-                _builder.AppendLine($"{indentor}{parameter.Type.ToDisplayString()} p{i};");
+                _builder.AppendLine($"{indentor}{parameter.Type.ToDisplayString(s_typeDisplayFormat)} p{i};");
                 if (FlowsIn(parameter))
                 {
-                    _builder.AppendLine($"{indentor}p{i} = inputs[{inputParameterCount}] == null ? default({parameter.Type.ToDisplayString()}) : ({parameter.Type.ToDisplayString()})inputs[{inputParameterCount}];");
+                    _builder.AppendLine($"{indentor}p{i} = inputs[{inputParameterCount}] == null ? default({parameter.Type.ToDisplayString(s_typeDisplayFormat)}) : ({parameter.Type.ToDisplayString(s_typeDisplayFormat)})inputs[{inputParameterCount}];");
                     inputParameterCount++;
                 }
 
@@ -149,22 +159,22 @@ public sealed partial class OperationInvokerGenerator
             {
                 if (isTaskReturnType)
                 {
-                    _builder.AppendLine($"{indentor}await (({operationContractSpec.Method.ContainingType.ToDisplayString()})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
                 }
                 else
                 {
-                    _builder.AppendLine($"{indentor}var result = await (({operationContractSpec.Method.ContainingType.ToDisplayString()})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}var result = await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
                 }
             }
             else
             {
                 if (operationContractSpec.Method.ReturnsVoid)
                 {
-                    _builder.AppendLine($"{indentor}(({operationContractSpec.Method.ContainingType.ToDisplayString()})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}(({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
                 }
                 else
                 {
-                    _builder.AppendLine($"{indentor}var result = (({operationContractSpec.Method.ContainingType.ToDisplayString()})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}var result = (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
                 }
             }
 
