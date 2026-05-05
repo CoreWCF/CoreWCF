@@ -29,15 +29,24 @@ public class TelemetryTests
         var startedActivities = new ConcurrentBag<Activity>();
         var stoppedActivities = new ConcurrentBag<Activity>();
 
+        // ShouldListenTo must be set to its final predicate before AddActivityListener is called.
+        // ActivitySource attaches a listener at AddActivityListener time (for existing sources) and at
+        // ActivitySource construction time (for sources created later). In both cases ShouldListenTo is
+        // evaluated only once per (listener, source) pair; mutating ShouldListenTo afterwards does NOT
+        // retroactively attach the listener to an already-existing source. The static
+        // WcfInstrumentationActivitySource.ActivitySource may be initialized by a concurrent test
+        // (e.g. DispatchBuilderTests in the default xUnit collection) before this test reaches
+        // AddActivityListener, so a "_ => false" predicate at that moment would permanently prevent
+        // attachment regardless of subsequent updates. Filtering by the unique DisplayName below
+        // ensures activities created by concurrent tests do not interfere with the assertions.
         using var listener = new ActivityListener
         {
-            ShouldListenTo = _ => false,
+            ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives",
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
             ActivityStarted = activity => startedActivities.Add(activity),
             ActivityStopped = activity => stoppedActivities.Add(activity)
         };
 
-        string actionSuffix = "TelemetryTest";
         string serviceAddress = "http://localhost/dummy";
         var services = new ServiceCollection();
         services.AddLogging();
@@ -67,22 +76,31 @@ public class TelemetryTests
         var requestContext = TestRequestContext.Create(serviceAddress, telemetryEchoAction);
 
         ActivitySource.AddActivityListener(listener);
-        listener.ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives";
         await dispatcher.DispatchAsync(requestContext);
-        listener.ShouldListenTo = _ => false;
         Assert.True(await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken), "Dispatcher didn't send reply");
         requestContext.ValidateReply(telemetryEchoAction + "Response");
 
-        // Other tests running in parallel may have started activities, so we filter for the specific activity we expect
-        // and verify there's only one of the activity we expect.
-        CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        using (var registration = TestContext.Current.CancellationToken.Register(() => timeoutCts.Cancel()))
+        // ActivityStarted/ActivityStopped callbacks run synchronously inside Activity.Start()/Stop(),
+        // and CoreWCF stops the activity before sending the reply, so by the time WaitForReplyAsync
+        // returns the activity should already be in the bags. Poll briefly with the test cancellation
+        // token in case there is any small async window on a heavily loaded machine. If the activity
+        // is genuinely missing this fails fast with an explicit message rather than a TaskCanceledException.
+        using var pollCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        pollCts.CancelAfter(TimeSpan.FromSeconds(30));
+        try
         {
-            while (!startedActivities.Any(a => a.DisplayName == telemetryEchoAction) && !stoppedActivities.Any(a => a.DisplayName == telemetryEchoAction))
+            while (!stoppedActivities.Any(a => a.DisplayName == telemetryEchoAction))
             {
-                await Task.Delay(100, timeoutCts.Token);
+                await Task.Delay(50, pollCts.Token);
             }
         }
+        catch (OperationCanceledException) when (pollCts.IsCancellationRequested && !TestContext.Current.CancellationToken.IsCancellationRequested)
+        {
+            Assert.Fail($"No Activity with DisplayName '{telemetryEchoAction}' was captured within 30s. " +
+                $"Started count: {startedActivities.Count}, Stopped count: {stoppedActivities.Count}. " +
+                "This usually indicates the ActivityListener was not attached to the CoreWCF.Primitives ActivitySource.");
+        }
+
         var startedActivity = Assert.Single(startedActivities, a => a.DisplayName == telemetryEchoAction);
         var stoppedActivity = Assert.Single(stoppedActivities, a => a.DisplayName == telemetryEchoAction);
 
