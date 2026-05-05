@@ -67,10 +67,17 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Equal(0, producer.Flush(TimeSpan.FromSeconds(3)));
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Single(testService.Names);
-        }
 
-        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
-        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            // Verify DLQ delivery and that all messages have been committed before
+            // leaving the using block (which disposes the host). The Throw handler
+            // does not signal CountdownEvent, so the second message may still be in
+            // flight when CountdownEvent.Wait returns; on a heavily loaded CI host
+            // it can still be mid-dispatch when the host begins shutdown. Waiting
+            // here keeps the host alive until the pipeline has finished processing
+            // the second message and produced it to the DLQ.
+            await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        }
     }
 
     [LinuxWhenCIOnlyFact]
@@ -98,10 +105,17 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Contains(name, testService.Names);
 
             await Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(channel)).BeginClose(null, null), new Action<IAsyncResult>(((System.ServiceModel.ICommunicationObject)(channel)).EndClose));
-        }
 
-        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
-        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            // Verify DLQ delivery and that all messages have been committed before
+            // leaving the using block (which disposes the host). The Throw handler
+            // does not signal CountdownEvent, so the second message may still be in
+            // flight when CountdownEvent.Wait returns; on a heavily loaded CI host
+            // it can still be mid-dispatch when the host begins shutdown. Waiting
+            // here keeps the host alive until the pipeline has finished processing
+            // the second message and produced it to the DLQ.
+            await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        }
     }
 
     private class Startup
