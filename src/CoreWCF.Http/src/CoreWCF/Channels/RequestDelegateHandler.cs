@@ -152,6 +152,22 @@ namespace CoreWCF.Channels
                 var channel = new ServerWebSocketTransportDuplexSessionChannel(context, webSocketContext, _httpSettings, _serviceDispatcher.BaseAddress, _servicesScopeFactory.CreateScope().ServiceProvider);
                 channel.ChannelDispatcher = await _serviceDispatcher.CreateServiceChannelDispatcherAsync(channel);
                 await channel.StartReceivingAsync();
+
+                // After the receive loop completes (client sent close frame), perform a graceful
+                // WebSocket close handshake. Without this, on Linux/Kestrel the connection is aborted
+                // when the handler returns, causing the client to see WebSocketException ('Aborted').
+                try
+                {
+                    CancellationToken closeTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).CloseTimeout).GetCancellationToken();
+                    await channel.CloseAsync(closeTimeoutToken);
+                }
+                catch (Exception ex)
+                {
+                    // If the client has already disconnected or the close handshake fails for any reason,
+                    // abort the channel to clean up resources rather than letting the exception propagate.
+                    DiagnosticUtility.TraceHandledException(ex, System.Diagnostics.TraceEventType.Warning);
+                    channel.Abort();
+                }
             }
         }
 
