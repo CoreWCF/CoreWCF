@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using CoreWCF;
@@ -303,6 +305,103 @@ namespace NetHttp
                     binding.WebSocketSettings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
                     binding.WebSocketSettings.CreateNotificationOnConnection = true;
                     builder.AddServiceEndpoint<Services.VerifyWebSockets, ServiceContract.IVerifyWebSockets>(binding, BufferedPath);
+                });
+            }
+        }
+
+        [Theory]
+        [InlineData(System.ServiceModel.NetHttpMessageEncoding.Text)]
+        [InlineData(System.ServiceModel.NetHttpMessageEncoding.Binary)]
+        public void WebSocket_Http_RequestReply_Streamed(System.ServiceModel.NetHttpMessageEncoding messageEncoding)
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupRequestReplyStreamed>(_output).Build();
+            using (host)
+            {
+                host.Start();
+                System.ServiceModel.ChannelFactory<ClientContract.IRequestReplyService> factory = null;
+                ClientContract.IRequestReplyService client = null;
+                try
+                {
+                    var binding = new System.ServiceModel.NetHttpBinding
+                    {
+                        MaxReceivedMessageSize = 67108864,
+                        MaxBufferSize = 67108864,
+                        TransferMode = System.ServiceModel.TransferMode.Streamed,
+                        MessageEncoding = messageEncoding
+                    };
+                    binding.WebSocketSettings.TransportUsage = WebSocketTransportUsage.Always;
+
+                    string encodingName = messageEncoding.ToString();
+                    string address = $"{GetNetHttpServiceBaseUri(host)}{StartupRequestReplyStreamed.StreamedPath}{encodingName}";
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IRequestReplyService>(
+                        binding, new System.ServiceModel.EndpointAddress(new Uri(address)));
+                    client = factory.CreateChannel();
+                    ((IChannel)client).Open();
+
+                    // Download a stream from the service
+                    using (Stream stream = client.DownloadStream())
+                    {
+                        int readResult;
+                        byte[] buffer = new byte[1000];
+                        do
+                        {
+                            readResult = stream.Read(buffer, 0, buffer.Length);
+                        }
+                        while (readResult != 0);
+                    }
+
+                    // Upload a stream to the service
+                    var uploadStream = new FlowControlledStream
+                    {
+                        ReadThrottle = TimeSpan.FromMilliseconds(500),
+                        StreamDuration = TimeSpan.FromSeconds(1)
+                    };
+                    client.UploadStream(uploadStream);
+
+                    // Validate via log
+                    List<string> log = client.GetLog();
+                    Assert.True(log.Count > 0, "The server log should contain entries after stream operations.");
+
+                    // Close - this is the critical call from dotnet/wcf#5818
+                    ((IChannel)client).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)client, factory);
+                }
+            }
+        }
+
+        public class StartupRequestReplyStreamed
+        {
+            public const string StreamedPath = "/nethttp.svc/reqreply-streamed/";
+
+            public void ConfigureServices(IServiceCollection services)
+            {
+                services.AddServiceModelServices();
+            }
+
+            public void Configure(IApplicationBuilder app)
+            {
+                app.UseServiceModel(builder =>
+                {
+                    builder.AddService<Services.RequestReplyService>();
+
+                    // Register one endpoint per encoding so client and server agree on message format
+                    foreach (CoreWCF.NetHttpMessageEncoding encoding in Enum.GetValues(typeof(CoreWCF.NetHttpMessageEncoding)))
+                    {
+                        var binding = new CoreWCF.NetHttpBinding
+                        {
+                            TransferMode = CoreWCF.TransferMode.Streamed,
+                            MaxReceivedMessageSize = 67108864,
+                            MaxBufferSize = 67108864,
+                            MessageEncoding = encoding,
+                        };
+                        binding.WebSocketSettings.TransportUsage = CoreWCF.Channels.WebSocketTransportUsage.Always;
+                        builder.AddServiceEndpoint<Services.RequestReplyService, ServiceContract.IRequestReplyService>(
+                            binding, StreamedPath + encoding.ToString());
+                    }
                 });
             }
         }
