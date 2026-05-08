@@ -4,14 +4,14 @@ CoreWCF is a port of the server-side of Windows Communication Foundation (WCF) t
 
 ## Build and Test
 
-The solution file is `src/CoreWCF.sln` (not in the repo root).
+The solution file is `CoreWCF.sln` at the repository root. (A separate `CoreWCFTemplates.sln` builds the templates project.)
 
 ```shell
 # Build
-dotnet build src/CoreWCF.sln
+dotnet build CoreWCF.sln
 
 # Run all tests
-dotnet test src/CoreWCF.sln
+dotnet test CoreWCF.sln
 
 # Run tests for a specific project
 dotnet test src/CoreWCF.Http/tests/CoreWCF.Http.Tests.csproj

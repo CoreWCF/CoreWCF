@@ -1,0 +1,401 @@
+# CI workflow.
+#
+# Runs on every push to main and release/* and on manual dispatch. Builds, tests,
+# and packs CoreWCF, then optionally signs and publishes the packages to a NuGet feed.
+#
+# Feed URL resolution (in order of precedence):
+#   1. workflow_dispatch input `nuget_feed_url`
+#   2. repository variable `vars.NUGET_FEED_URL`
+#   3. https://nuget.pkg.github.com/<repo-owner>/index.json (i.e. the GitHub
+#      Packages feed of the account/org running the workflow — this is what
+#      makes a private fork publish to its own private feed automatically).
+#
+# Auth for `dotnet nuget push`:
+#   * If `secrets.NUGET_API_KEY` is set it is used (required for non-GitHub
+#     feeds such as nuget.org).
+#   * Otherwise the built-in `GITHUB_TOKEN` is used (works for GitHub Packages
+#     in the same repository as this workflow).
+#
+# Publishing is gated:
+#   * The pack job always runs and publishes the produced .nupkg/.snupkg files
+#     as a workflow artifact (`packages-unsigned`).
+#   * Signing only runs when the Azure Key Vault credentials are configured
+#     (vars.SIGN_KEY_VAULT_URL, vars.SIGN_KEY_VAULT_CERTIFICATE, vars.AZURE_CLIENT_ID).
+#   * Publishing to the NuGet feed only runs when *both* signing succeeded
+#     (unsigned packages are NEVER pushed) AND publishing has been opted into
+#     (vars.PUBLISH_PACKAGES == 'true', or workflow_dispatch input
+#     `publish_packages` == 'true'). This lets a private fork developing security
+#     patches build and pack without accidentally exposing fixes via the feed.
+#
+# SonarCloud is gated on `vars.SONAR_PROJECT_KEY`. Code coverage collection runs
+# regardless of whether SonarCloud is configured.
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+  workflow_dispatch:
+    inputs:
+      nuget_feed_url:
+        description: 'Override NuGet feed URL for this run (defaults to vars.NUGET_FEED_URL or the repo owner''s GitHub Packages feed).'
+        required: false
+        default: ''
+      publish_packages:
+        description: 'Override package publishing for this run: ''true'' to force publish, ''false'' to force skip, blank to use vars.PUBLISH_PACKAGES.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (${{ matrix.configuration }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        configuration: [Debug, Release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Build
+        uses: ./.github/actions/dotnet-build
+        with:
+          configuration: ${{ matrix.configuration }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+
+  test:
+    name: Test (${{ matrix.configuration }} / ${{ matrix.os }} / ${{ matrix.tfm }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        os: [windows-latest, ubuntu-latest]
+        tfm: [net8.0, net9.0, net10.0, net11.0]
+        include:
+          - configuration: Debug
+            os: windows-latest
+            tfm: net472
+          - configuration: Release
+            os: windows-latest
+            tfm: net472
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          configuration: ${{ matrix.configuration }}
+          target-framework: ${{ matrix.tfm }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+          results-suffix: ci-${{ matrix.configuration }}-${{ runner.os }}-${{ matrix.tfm }}
+
+  test-templates:
+    name: Test Templates (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+        with:
+          install-net11: 'false'
+
+      - name: Download Release build
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ runner.os }}-Release
+          path: bin
+
+      - name: Run templates tests
+        shell: pwsh
+        run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1
+
+  code-analysis:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Setup Java (SonarScanner)
+        if: vars.SONAR_PROJECT_KEY != ''
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install SonarScanner for .NET
+        if: vars.SONAR_PROJECT_KEY != ''
+        shell: bash
+        run: dotnet tool install --tool-path . dotnet-sonarscanner
+
+      - name: Restore
+        shell: bash
+        run: dotnet restore CoreWCF.sln --configfile NuGet.config
+
+      - name: Begin SonarCloud analysis
+        if: vars.SONAR_PROJECT_KEY != ''
+        shell: bash
+        run: |
+          ./dotnet-sonarscanner begin \
+            /k:"${{ vars.SONAR_PROJECT_KEY }}" \
+            /o:"${{ vars.SONAR_ORGANIZATION }}" \
+            /n:"CoreWCF Code Analysis" \
+            /d:sonar.host.url="${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="src/Samples/**/*.*" \
+            /d:sonar.coverage.exclusions="src/**/tests/**/*.cs"
+
+      - name: Build (Release)
+        shell: bash
+        run: dotnet build CoreWCF.sln --no-restore -c Release
+
+      - name: Run tests with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t projects < <(
+            find . -type f -name 'CoreWCF.*.Tests.csproj' \
+              ! -name 'CoreWCF.Templates.Tests.csproj' \
+              | sort
+          )
+          rc=0
+          for proj in "${projects[@]}"; do
+            echo "::group::Coverage: $proj"
+            if ! dotnet test "$proj" \
+                  --no-restore --no-build \
+                  -c Release -f net10.0 \
+                  --collect:"XPlat Code Coverage" \
+                  --settings coverlet.runsettings; then
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
+
+      - name: Upload coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-ci
+          path: '**/coverage.opencover.xml'
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: End SonarCloud analysis
+        if: vars.SONAR_PROJECT_KEY != ''
+        shell: bash
+        run: ./dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+
+  pack:
+    name: Pack
+    needs: [test, test-templates]
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Download Release build
+        uses: actions/download-artifact@v4
+        with:
+          name: build-Windows-Release
+          path: bin
+
+      - name: Pack
+        uses: ./.github/actions/pack
+
+  sign:
+    name: Code Sign
+    needs: pack
+    if: vars.SIGN_KEY_VAULT_URL != '' && vars.SIGN_KEY_VAULT_CERTIFICATE != '' && vars.AZURE_CLIENT_ID != ''
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+        with:
+          install-net8: 'false'
+          install-net9: 'false'
+          install-net11: 'false'
+
+      - name: Download unsigned packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-unsigned
+          path: packages
+
+      - name: Download signing config
+        uses: actions/download-artifact@v4
+        with:
+          name: signing-config
+          path: signing-config
+
+      - name: Install sign tool
+        shell: bash
+        run: dotnet tool install --tool-path . sign --version 0.9.1-beta.25278.1
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign packages
+        shell: pwsh
+        run: |
+          ./sign code azure-key-vault `
+            "**/*.nupkg" `
+            --base-directory "${{ github.workspace }}/packages" `
+            --file-list "${{ github.workspace }}/signing-config/filelist.txt" `
+            --publisher-name "CoreWCF" `
+            --description "CoreWCF" `
+            --description-url "https://github.com/${{ github.repository }}" `
+            --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "${{ vars.SIGN_KEY_VAULT_URL }}" `
+            -v Trace
+
+      - name: Sign symbol packages
+        shell: pwsh
+        run: |
+          ./sign code azure-key-vault `
+            "**/*.snupkg" `
+            --base-directory "${{ github.workspace }}/packages" `
+            --file-list "${{ github.workspace }}/signing-config/filelist.txt" `
+            --publisher-name "CoreWCF" `
+            --description "CoreWCF" `
+            --description-url "https://github.com/${{ github.repository }}" `
+            --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
+            --azure-key-vault-url "${{ vars.SIGN_KEY_VAULT_URL }}" `
+            -v Trace
+
+      - name: Upload signed packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-signed
+          path: packages/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish
+    needs: [pack, sign]
+    # Publish ONLY when:
+    #   * pack succeeded, AND
+    #   * sign succeeded (we never publish unsigned packages), AND
+    #   * publishing has been opted into via the dispatch input or vars.PUBLISH_PACKAGES.
+    # The opt-in keeps a private fork (e.g. for security patches) from leaking
+    # packages to a feed even if signing creds happen to be configured there.
+    if: >-
+      always() && needs.pack.result == 'success' && needs.sign.result == 'success' &&
+      (
+        github.event.inputs.publish_packages == 'true' ||
+        (github.event.inputs.publish_packages != 'false' && vars.PUBLISH_PACKAGES == 'true')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+        with:
+          install-net8: 'false'
+          install-net9: 'false'
+          install-net11: 'false'
+
+      - name: Download signed packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-signed
+          path: packages
+
+      - name: Compute publish feed URL
+        id: feed
+        shell: bash
+        env:
+          INPUT_URL: ${{ github.event.inputs.nuget_feed_url }}
+          VAR_URL: ${{ vars.NUGET_FEED_URL }}
+          DEFAULT_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        run: |
+          url="${INPUT_URL:-${VAR_URL:-$DEFAULT_URL}}"
+          if [ -z "$url" ]; then
+            echo "::error::Could not determine NuGet feed URL."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Publishing to: $url"
+
+      - name: Push packages
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FEED_URL: ${{ steps.feed.outputs.url }}
+        run: |
+          set -euo pipefail
+          api_key="${NUGET_API_KEY:-$GH_TOKEN}"
+          if [ -z "$api_key" ]; then
+            echo "::error::No NuGet API key available (set secrets.NUGET_API_KEY or rely on GITHUB_TOKEN)."
+            exit 1
+          fi
+          shopt -s nullglob
+          packages=( packages/*.nupkg packages/*.snupkg )
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::No .nupkg or .snupkg files found in packages/."
+            exit 1
+          fi
+          for pkg in "${packages[@]}"; do
+            echo "Pushing $pkg"
+            dotnet nuget push "$pkg" \
+              --source "$FEED_URL" \
+              --api-key "$api_key" \
+              --skip-duplicate
+          done

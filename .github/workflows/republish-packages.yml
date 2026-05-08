@@ -1,0 +1,263 @@
+# Manually republishes a previously-built, signed package set to a NuGet feed
+# without rebuilding or repacking, so the bytes pushed are byte-identical to
+# what was uploaded as the `packages-signed` artifact (preserving the original
+# signature and RFC3161 timestamp).
+#
+# Intended use: a security fix is developed in a private fork (e.g.
+# CoreWCF/CoreWCF-private). Its CI produces signed packages but does not
+# publish (publish gate intentionally off). At release time:
+#   1. The maintainer downloads the `packages-signed` artifact from the
+#      private fork's CI run and uploads it to nuget.org manually.
+#   2. From the *same private fork repo*, the maintainer triggers this
+#      workflow with the same source_run_id. It pulls the same artifact and
+#      pushes those exact bytes to the CoreWCF GitHub Packages feed so the
+#      GitHub feed and nuget.org expose byte-identical signed/timestamped
+#      packages.
+#
+# Why bytes stay identical: NuGet feeds (both nuget.org and GitHub Packages)
+# accept the .nupkg as-is; `dotnet nuget push` does not modify the file. The
+# signature blob (and its embedded RFC3161 timestamp) is part of the package
+# and travels through untouched.
+#
+# Cross-repo publishing note: GitHub Packages associates each package with
+# the repository that *first* published it. If the public CoreWCF/CoreWCF
+# repo originally published a package, the private fork republishing a new
+# version of the same package will get 403 Forbidden until you grant the
+# private fork push access on that package via:
+#   GitHub → Org → Packages → <package> → Package settings →
+#   "Manage Actions access" → Add repository (the private fork) with role Write.
+# This only needs to be done once per package.
+
+name: Republish Pre-Built Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Run ID of the build whose `packages-signed` artifact you want to republish.'
+        required: true
+        type: string
+      source_artifact_name:
+        description: 'Artifact name to download. Defaults to `packages-signed`.'
+        required: false
+        default: 'packages-signed'
+        type: string
+      nuget_feed_url:
+        description: 'Target NuGet feed URL. Defaults to the GitHub Packages feed for this repository owner.'
+        required: false
+        type: string
+      dry_run:
+        description: 'If true, list packages that would be pushed without actually pushing.'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  republish:
+    name: Republish signed packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Setup .NET SDK (for dotnet nuget push)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download signed packages from source run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.inputs.source_run_id }}
+          ARTIFACT_NAME: ${{ github.event.inputs.source_artifact_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p packages
+          echo "Downloading artifact '$ARTIFACT_NAME' from run $RUN_ID in $SOURCE_REPO..."
+          gh run download "$RUN_ID" \
+            --repo "$SOURCE_REPO" \
+            --name "$ARTIFACT_NAME" \
+            --dir packages
+          echo "Downloaded files:"
+          ls -la packages/
+
+      - name: Verify package signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=( packages/*.nupkg )
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::No .nupkg files found in artifact."
+            exit 1
+          fi
+          rc=0
+          for pkg in "${packages[@]}"; do
+            echo "::group::Verify $pkg"
+            if ! dotnet nuget verify "$pkg"; then
+              echo "::error file=$pkg::Signature verification failed."
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
+
+      - name: Compute target feed URL
+        id: feed
+        shell: bash
+        env:
+          INPUT_URL: ${{ github.event.inputs.nuget_feed_url }}
+          DEFAULT_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        run: |
+          url="${INPUT_URL:-$DEFAULT_URL}"
+          if [ -z "$url" ]; then
+            echo "::error::Could not determine target NuGet feed URL."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Target feed: $url"
+
+      - name: Preflight - check GitHub Packages access
+        # Probes the GitHub Packages REST API for every package id in the
+        # artifact and classifies the result. Most useful when republishing
+        # from a non-original-publisher repo (e.g. a private fork pushing to
+        # the same org's GitHub Packages feed) — surfaces the exact steps
+        # needed to grant access before the push step would 403.
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          THIS_REPO: ${{ github.repository }}
+          FEED_URL: ${{ steps.feed.outputs.url }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ($env:FEED_URL -notmatch 'nuget\.pkg\.github\.com') {
+              Write-Host "Target feed is not GitHub Packages; skipping preflight."
+              return
+          }
+          if ($env:FEED_URL -notmatch '^https?://nuget\.pkg\.github\.com/([^/]+)/') {
+              Write-Host "::warning::Could not parse owner from feed URL '$($env:FEED_URL)'; skipping preflight."
+              return
+          }
+          $owner = $Matches[1]
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $ids = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+          foreach ($pkg in Get-ChildItem -Path 'packages' -Filter '*.nupkg' -File) {
+              $zip = [System.IO.Compression.ZipFile]::OpenRead($pkg.FullName)
+              try {
+                  $entry = $zip.Entries | Where-Object { $_.FullName -like '*.nuspec' } | Select-Object -First 1
+                  if ($entry) {
+                      $reader = [System.IO.StreamReader]::new($entry.Open())
+                      try {
+                          [xml]$nuspec = $reader.ReadToEnd()
+                          $id = $nuspec.package.metadata.id
+                          if ($id) { [void]$ids.Add($id) }
+                      } finally { $reader.Dispose() }
+                  }
+              } finally { $zip.Dispose() }
+          }
+
+          if ($ids.Count -eq 0) {
+              Write-Host "::warning::Could not extract any package ids from artifact; skipping preflight."
+              return
+          }
+
+          Write-Host "Probing GitHub Packages metadata for owner '$owner'..."
+          "{0,-45}  {1}" -f 'PACKAGE','RESULT' | Write-Host
+          "{0,-45}  {1}" -f '-------','------' | Write-Host
+
+          $headers = @{
+              'Authorization'         = "Bearer $($env:GH_TOKEN)"
+              'Accept'                = 'application/vnd.github+json'
+              'X-GitHub-Api-Version'  = '2022-11-28'
+          }
+          $issues = New-Object System.Collections.Generic.List[pscustomobject]
+
+          foreach ($id in $ids) {
+              $url = "https://api.github.com/orgs/$owner/packages/nuget/$id"
+              try {
+                  $resp = Invoke-RestMethod -Uri $url -Headers $headers -ErrorAction Stop
+                  $owningRepo = $resp.repository.full_name
+                  if ([string]::IsNullOrEmpty($owningRepo)) {
+                      "{0,-45}  [200] exists, owning repo unknown - push outcome unknown." -f $id | Write-Host
+                  } elseif ($owningRepo -eq $env:THIS_REPO) {
+                      "{0,-45}  [200] owned by this repo - push will succeed." -f $id | Write-Host
+                  } else {
+                      "{0,-45}  [200] owned by $owningRepo - may need access grant." -f $id | Write-Host
+                      $issues.Add([pscustomobject]@{ Id = $id; Owner = $owningRepo })
+                  }
+              } catch {
+                  $status = $null
+                  if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
+                  switch ($status) {
+                      404 { "{0,-45}  [404] not on feed yet - first push will bind it to $($env:THIS_REPO)." -f $id | Write-Host }
+                      403 { "{0,-45}  [403] cannot read metadata (token lacks packages:read or org grant) - push outcome unknown." -f $id | Write-Host }
+                      default {
+                          $msg = if ($status) { "[$status] unexpected response" } else { "[ERR] $($_.Exception.Message)" }
+                          "{0,-45}  $msg" -f $id | Write-Host
+                      }
+                  }
+              }
+          }
+
+          if ($issues.Count -gt 0) {
+              Write-Host ""
+              Write-Host "::warning::Preflight: $($issues.Count) package(s) are owned by a different repository than $($env:THIS_REPO)."
+              Write-Host "::warning::If 'dotnet nuget push' returns 403 Forbidden for these, you need a one-time access grant per package:"
+              foreach ($issue in $issues) {
+                  Write-Host "::warning::  - $($issue.Id)  (currently owned by $($issue.Owner))"
+                  Write-Host "::warning::    Settings URL: https://github.com/orgs/$owner/packages/nuget/package/$($issue.Id)/settings"
+              }
+              Write-Host "::warning::Steps: open the Settings URL above -> 'Manage Actions access' -> 'Add Repository' -> select '$($env:THIS_REPO)' -> role 'Write'."
+              Write-Host "::warning::This is configured once per package and persists for future republishes."
+          } else {
+              Write-Host ""
+              Write-Host "Preflight OK - all packages are either new to the feed or owned by $($env:THIS_REPO)."
+          }
+
+      - name: List packages (dry run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        shell: bash
+        env:
+          FEED_URL: ${{ steps.feed.outputs.url }}
+        run: |
+          set -euo pipefail
+          echo "DRY RUN — would push these files to $FEED_URL:"
+          shopt -s nullglob
+          for pkg in packages/*.nupkg packages/*.snupkg; do
+            sha=$(sha256sum "$pkg" | awk '{print $1}')
+            size=$(stat -c '%s' "$pkg")
+            printf '  %s  (%s bytes, sha256=%s)\n' "$pkg" "$size" "$sha"
+          done
+
+      - name: Push packages
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        shell: bash
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FEED_URL: ${{ steps.feed.outputs.url }}
+        run: |
+          set -euo pipefail
+          api_key="${NUGET_API_KEY:-$GH_TOKEN}"
+          if [ -z "$api_key" ]; then
+            echo "::error::No NuGet API key available (set secrets.NUGET_API_KEY or rely on GITHUB_TOKEN)."
+            exit 1
+          fi
+          shopt -s nullglob
+          packages=( packages/*.nupkg packages/*.snupkg )
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::No .nupkg or .snupkg files found in packages/."
+            exit 1
+          fi
+          for pkg in "${packages[@]}"; do
+            echo "Pushing $pkg"
+            dotnet nuget push "$pkg" \
+              --source "$FEED_URL" \
+              --api-key "$api_key" \
+              --skip-duplicate
+          done
+          echo "Republished ${#packages[@]} package file(s) to $FEED_URL"

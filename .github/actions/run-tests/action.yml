@@ -1,0 +1,111 @@
+name: 'Run CoreWCF tests'
+description: |
+  Downloads a previously published build artifact, restores executable bits on
+  Linux test executables, and runs every CoreWCF.*.Tests project (excluding the
+  templates tests, which have their own job) for one configuration / target
+  framework combination.
+inputs:
+  configuration:
+    description: 'MSBuild configuration that was built (Debug or Release).'
+    required: true
+  target-framework:
+    description: 'Target framework moniker (e.g. net8.0, net472).'
+    required: true
+  artifact-name:
+    description: 'Name of the build artifact produced by the build job.'
+    required: true
+  test-project-glob:
+    description: 'Filename glob (relative to repo root) for test csproj files to run.'
+    required: false
+    default: 'CoreWCF.*.Tests.csproj'
+  test-project-exclude:
+    description: 'Filename glob of test projects to skip.'
+    required: false
+    default: 'CoreWCF.Templates.Tests.csproj'
+  results-suffix:
+    description: 'Suffix appended to the test results artifact name to keep it unique.'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: bin
+
+    - name: Restore +x on Linux test executables
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        set -euo pipefail
+        configuration="${{ inputs.configuration }}"
+        tfm="${{ inputs.target-framework }}"
+        found=0
+        while IFS= read -r -d '' exe; do
+          chmod +x "$exe"
+          found=$((found + 1))
+        done < <(
+          find . -type f \
+            -path "*/bin/${configuration}/CoreWCF.*.Tests/${tfm}/CoreWCF.*.Tests" \
+            -print0
+        )
+        echo "Restored execute bit on ${found} test executable(s)."
+
+    - name: Setup IIS Express HTTPS certificates
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $exe = "${env:ProgramFiles}\IIS Express\IisExpressAdminCmd.exe"
+        $p = Start-Process -FilePath $exe -ArgumentList 'setupdefaulturls' -NoNewWindow -PassThru
+        if (-not $p.WaitForExit(120000)) {
+            $p.Kill()
+            throw "IisExpressAdminCmd.exe did not complete within 120s."
+        }
+        if ($p.ExitCode -ne 0) {
+            throw "IisExpressAdminCmd.exe exited with code $($p.ExitCode)."
+        }
+
+    - name: Run tests
+      shell: bash
+      env:
+        CI: 'true'
+        CONFIGURATION: ${{ inputs.configuration }}
+        TFM: ${{ inputs.target-framework }}
+        TEST_PROJECT_GLOB: ${{ inputs.test-project-glob }}
+        TEST_PROJECT_EXCLUDE: ${{ inputs.test-project-exclude }}
+      run: |
+        set -euo pipefail
+        results_dir="$(pwd)/TestResults"
+        mkdir -p "$results_dir"
+        mapfile -t projects < <(
+          find . -type f -name "$TEST_PROJECT_GLOB" \
+            ! -name "$TEST_PROJECT_EXCLUDE" \
+            | sort
+        )
+        if [ "${#projects[@]}" -eq 0 ]; then
+          echo "::error::No test projects matched glob '$TEST_PROJECT_GLOB'."
+          exit 1
+        fi
+        rc=0
+        for proj in "${projects[@]}"; do
+          echo "::group::Testing $proj ($CONFIGURATION / $TFM)"
+          if ! dotnet test "$proj" \
+                --no-restore --no-build \
+                -c "$CONFIGURATION" -f "$TFM" \
+                --logger "trx;LogFileName=$(basename "$proj" .csproj)-$TFM.trx" \
+                --results-directory "$results_dir"; then
+            rc=1
+          fi
+          echo "::endgroup::"
+        done
+        exit $rc
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ inputs.results-suffix }}
+        path: TestResults/**/*.trx
+        if-no-files-found: ignore
+        retention-days: 7
