@@ -1,0 +1,161 @@
+# PR workflow.
+#
+# Builds CoreWCF, runs the full test matrix, runs the templates tests, and
+# (if SonarCloud is configured for the repo) runs the code-analysis job.
+# Does not pack or publish — see ci.yml for the publish path.
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
+      - 'feature/*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (${{ matrix.configuration }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        configuration: [Debug, Release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Build
+        uses: ./.github/actions/dotnet-build
+        with:
+          configuration: ${{ matrix.configuration }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+
+  test:
+    name: Test (${{ matrix.configuration }} / ${{ matrix.os }} / ${{ matrix.tfm }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        os: [windows-latest, ubuntu-latest]
+        tfm: [net8.0, net9.0, net10.0, net11.0]
+        include:
+          - configuration: Debug
+            os: windows-latest
+            tfm: net472
+          - configuration: Release
+            os: windows-latest
+            tfm: net472
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          configuration: ${{ matrix.configuration }}
+          target-framework: ${{ matrix.tfm }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+          results-suffix: pr-${{ matrix.configuration }}-${{ runner.os }}-${{ matrix.tfm }}
+
+  test-templates:
+    name: Test Templates (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+        with:
+          install-net11: 'false'
+
+      - name: Download Release build
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ runner.os }}-Release
+          path: bin
+
+      - name: Run templates tests
+        shell: pwsh
+        run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1
+
+  code-analysis:
+    # Code coverage validation. Runs unconditionally on every PR — SonarCloud
+    # upload is intentionally CI-only (see ci.yml).
+    name: Code Analysis (coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Restore
+        shell: bash
+        run: dotnet restore CoreWCF.sln --configfile NuGet.config
+
+      - name: Build (Release, with coverage)
+        shell: bash
+        run: dotnet build CoreWCF.sln --no-restore -c Release
+
+      - name: Run tests with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t projects < <(
+            find . -type f -name 'CoreWCF.*.Tests.csproj' \
+              ! -name 'CoreWCF.Templates.Tests.csproj' \
+              | sort
+          )
+          rc=0
+          for proj in "${projects[@]}"; do
+            echo "::group::Coverage: $proj"
+            if ! dotnet test "$proj" \
+                  --no-restore --no-build \
+                  -c Release -f net10.0 \
+                  --collect:"XPlat Code Coverage" \
+                  --settings coverlet.runsettings; then
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
+
+      - name: Upload coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pr
+          path: '**/coverage.opencover.xml'
+          if-no-files-found: ignore
+          retention-days: 7

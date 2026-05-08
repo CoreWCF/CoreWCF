@@ -1,0 +1,49 @@
+name: 'Setup .NET SDKs for CoreWCF'
+description: |
+  Installs the .NET SDKs needed to build and test CoreWCF (8.x, 9.x, 10.x, 11.x).
+  Set the corresponding input to 'false' to skip a SDK that is not needed by the
+  caller (for example, the templates job does not need 11.x).
+inputs:
+  install-net8:
+    description: 'Install the .NET 8 SDK.'
+    required: false
+    default: 'true'
+  install-net9:
+    description: 'Install the .NET 9 SDK.'
+    required: false
+    default: 'true'
+  install-net10:
+    description: 'Install the .NET 10 SDK.'
+    required: false
+    default: 'true'
+  install-net11:
+    description: 'Install the .NET 11 SDK (preview).'
+    required: false
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup .NET 8 SDK
+      if: inputs.install-net8 == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Setup .NET 9 SDK
+      if: inputs.install-net9 == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Setup .NET 10 SDK
+      if: inputs.install-net10 == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Setup .NET 11 SDK (preview)
+      if: inputs.install-net11 == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '11.0.x'
+        dotnet-quality: 'preview'

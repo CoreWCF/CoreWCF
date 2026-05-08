@@ -1,0 +1,88 @@
+name: 'Pack CoreWCF library projects'
+description: |
+  Packs the CoreWCF library projects into NuGet packages and uploads them as a
+  workflow artifact. Intended to run on Windows after the Release build artifact
+  has been downloaded into bin/.
+inputs:
+  pack-project-glob:
+    description: 'Glob for csproj files that should be packed.'
+    required: false
+    default: 'src/CoreWCF.*/src/CoreWCF.*.csproj'
+  output-dir:
+    description: 'Directory that will receive the .nupkg/.snupkg files.'
+    required: false
+    default: 'artifacts/packages'
+  artifact-name:
+    description: 'Workflow artifact name for the produced packages.'
+    required: false
+    default: 'packages-unsigned'
+  signing-config-artifact:
+    description: 'Workflow artifact name for the signing configuration files.'
+    required: false
+    default: 'signing-config'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install nbgv tool
+      shell: bash
+      run: dotnet tool install --tool-path . nbgv
+
+    - name: Set version (nbgv cloud)
+      shell: bash
+      run: ./nbgv cloud --all-vars
+
+    - name: Resolve packable projects
+      id: resolve
+      shell: bash
+      env:
+        PROJECT_GLOB: ${{ inputs.pack-project-glob }}
+      run: |
+        set -euo pipefail
+        # Expand the glob via bash, then keep only files that exist.
+        shopt -s nullglob globstar
+        mapfile -t projects < <(printf '%s\n' $PROJECT_GLOB | sort -u)
+        if [ "${#projects[@]}" -eq 0 ]; then
+          echo "::error::No projects matched glob '$PROJECT_GLOB'."
+          exit 1
+        fi
+        printf '%s\n' "${projects[@]}"
+        # Persist for the next steps.
+        printf '%s\n' "${projects[@]}" > .packable-projects.txt
+
+    - name: Restore for pack
+      shell: bash
+      run: |
+        set -euo pipefail
+        while IFS= read -r proj; do
+          dotnet build "$proj" --configuration Release /t:restore
+        done < .packable-projects.txt
+
+    - name: Pack
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "${{ inputs.output-dir }}"
+        while IFS= read -r proj; do
+          dotnet pack "$proj" \
+            --configuration Release \
+            --no-build \
+            --include-symbols \
+            --no-restore \
+            --output "${{ inputs.output-dir }}"
+        done < .packable-projects.txt
+
+    - name: Upload packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.output-dir }}/
+        if-no-files-found: error
+        retention-days: 14
+
+    - name: Upload signing config
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.signing-config-artifact }}
+        path: config/
+        if-no-files-found: error
+        retention-days: 14

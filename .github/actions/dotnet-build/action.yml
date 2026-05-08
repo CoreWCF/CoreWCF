@@ -1,0 +1,42 @@
+name: 'Build CoreWCF'
+description: |
+  Restores and builds the CoreWCF solution for a given configuration, then
+  uploads the bin/ tree as a workflow artifact. Assumes the .NET SDKs have
+  already been installed by the caller (use ./.github/actions/setup-dotnet-sdks).
+inputs:
+  configuration:
+    description: 'MSBuild configuration (Debug or Release).'
+    required: true
+  solution:
+    description: 'Solution or project glob to restore and build.'
+    required: false
+    default: 'CoreWCF.sln'
+  artifact-name:
+    description: 'Name of the artifact that will hold the bin/ tree.'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Install nbgv tool
+      shell: bash
+      run: dotnet tool install --tool-path . nbgv
+
+    - name: Set version (nbgv cloud)
+      shell: bash
+      run: ./nbgv cloud --all-vars
+
+    - name: Restore
+      shell: bash
+      run: dotnet restore "${{ inputs.solution }}" --configfile NuGet.config
+
+    - name: Build (${{ inputs.configuration }})
+      shell: bash
+      run: dotnet build "${{ inputs.solution }}" --no-restore -c "${{ inputs.configuration }}"
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: bin/
+        if-no-files-found: error
+        retention-days: 7
