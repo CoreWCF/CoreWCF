@@ -29,7 +29,7 @@ runs:
   using: 'composite'
   steps:
     - name: Download build artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: ${{ inputs.artifact-name }}
         path: bin
@@ -103,7 +103,7 @@ runs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-results-${{ inputs.results-suffix }}
         path: TestResults/**/*.trx

@@ -25,25 +25,25 @@ runs:
   steps:
     - name: Setup .NET 8 SDK
       if: inputs.install-net8 == 'true'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Setup .NET 9 SDK
       if: inputs.install-net9 == 'true'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '9.0.x'
 
     - name: Setup .NET 10 SDK
       if: inputs.install-net10 == 'true'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '10.0.x'
 
     - name: Setup .NET 11 SDK (preview)
       if: inputs.install-net11 == 'true'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '11.0.x'
         dotnet-quality: 'preview'

@@ -84,7 +84,7 @@ jobs:
 
       - name: Checkout (default branch scripts)
         if: steps.pr.outputs.skip != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # workflow_run events already set github.sha to the default-branch
           # HEAD, so the implicit ref here is the default branch — never the PR
@@ -93,7 +93,7 @@ jobs:
 
       - name: Download test result artifacts
         if: steps.pr.outputs.skip != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Download coverage artifact
         if: steps.pr.outputs.skip != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -113,7 +113,7 @@ jobs:
 
       - name: Setup .NET (for ReportGenerator)
         if: steps.pr.outputs.skip != 'true'
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
@@ -325,7 +325,7 @@ jobs:
 
       - name: Post / update sticky PR comment
         if: steps.pr.outputs.skip != 'true'
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           # `header` makes the comment idempotent: subsequent runs find and
           # replace the previous comment with the same header instead of

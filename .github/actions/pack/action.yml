@@ -72,7 +72,7 @@ runs:
         done < .packable-projects.txt
 
     - name: Upload packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.output-dir }}/
@@ -80,7 +80,7 @@ runs:
         retention-days: 14
 
     - name: Upload signing config
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.signing-config-artifact }}
         path: config/
