@@ -1,6 +1,6 @@
 # Generate a self-contained, filterable HTML report from a tree of TRX files.
 #
-# Layout expected under -TrxRoot (matches actions/download-artifact@v4 with
+# Layout expected under -TrxRoot (matches actions/download-artifact@v8 with
 # pattern 'test-results-pr-*' and merge-multiple unset):
 #
 #   <TrxRoot>/test-results-pr-<Config>-<OS>-<TFM>/.../*.trx

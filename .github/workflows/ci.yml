@@ -65,7 +65,7 @@ jobs:
         configuration: [Debug, Release]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -97,7 +97,7 @@ jobs:
             tfm: net472
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -122,7 +122,7 @@ jobs:
         os: [windows-latest, ubuntu-latest]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -132,7 +132,7 @@ jobs:
           install-net11: 'false'
 
       - name: Download Release build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build-${{ runner.os }}-Release
           path: bin
@@ -148,7 +148,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -157,7 +157,7 @@ jobs:
 
       - name: Setup Java (SonarScanner)
         if: vars.SONAR_PROJECT_KEY != ''
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -214,7 +214,7 @@ jobs:
 
       - name: Upload coverage results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-ci
           path: '**/coverage.opencover.xml'
@@ -232,7 +232,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -240,7 +240,7 @@ jobs:
         uses: ./.github/actions/setup-dotnet-sdks
 
       - name: Download Release build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: build-Windows-Release
           path: bin
@@ -265,13 +265,13 @@ jobs:
           install-net11: 'false'
 
       - name: Download unsigned packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packages-unsigned
           path: packages
 
       - name: Download signing config
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: signing-config
           path: signing-config
@@ -281,7 +281,7 @@ jobs:
         run: dotnet tool install --tool-path . sign --version 0.9.1-beta.25278.1
 
       - name: Azure login (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -316,7 +316,7 @@ jobs:
             -v Trace
 
       - name: Upload signed packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packages-signed
           path: packages/
@@ -352,7 +352,7 @@ jobs:
           install-net11: 'false'
 
       - name: Download signed packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packages-signed
           path: packages
