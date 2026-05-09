@@ -1,0 +1,227 @@
+# Deletes everything a PR generated when the PR is closed (whether merged or
+# simply closed):
+#
+#   * `cleanup` job — removes all workflow artifacts produced by any run whose
+#     head_sha matches a PR commit. Frees repo storage that would otherwise
+#     count against the org's GitHub Actions quota for the default 90-day
+#     retention.
+#   * `cleanup-pages` job — removes the published reports under
+#     `gh-pages/pr-<N>/` (test results + coverage HTML produced by the
+#     publish-pr-reports workflow). Frees Pages storage and prevents stale
+#     report URLs from outliving the PR.
+#
+# Trigger: `pull_request_target` with `types: [closed]` so the workflow runs
+# from the base repo with the permissions both jobs need (`actions: write` and
+# `contents: write`). Required for PRs from forks — the standard
+# `pull_request` event grants only read tokens for fork PRs and could not
+# delete artifacts or push to gh-pages.
+#
+# This workflow does NOT check out or execute any PR code — it only calls the
+# GitHub API and operates on the gh-pages branch. That makes
+# `pull_request_target` safe here despite its usual secret-exposure risks.
+#
+# Discovery strategy for artifacts: enumerate every commit in the PR (`gh pr
+# view --json commits`) and for each SHA list workflow runs filtered by
+# `head_sha`. This captures runs across all workflows (PR, CI, scheduled,
+# dispatch) whose head SHA matches a PR commit. Filtering by head_sha is exact,
+# so unrelated runs are never touched even if they happen to share commits with
+# the PR.
+
+name: Cleanup PR Artifacts
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number whose artifacts to delete.'
+        required: true
+        type: string
+      dry_run:
+        description: 'If true, list artifacts that would be deleted without actually deleting.'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: write
+  contents: write          # cleanup-pages pushes a delete commit to gh-pages
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Delete PR artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Delete artifacts for PR
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dryRun = $env:DRY_RUN -eq 'true'
+
+          if (-not $env:PR_NUMBER) {
+              Write-Host "::error::No PR number resolved."
+              exit 1
+          }
+          $prNumber = [int]$env:PR_NUMBER
+          Write-Host "Cleaning artifacts for $($env:REPO) PR #$prNumber (dryRun=$dryRun)"
+
+          Write-Host "Fetching commits for PR..."
+          $rawCommits = gh pr view $prNumber --repo $env:REPO --json commits --jq '.commits[].oid'
+          $commits = @($rawCommits -split "`n" | Where-Object { $_ -match '^[0-9a-f]{40}$' })
+          if ($commits.Count -eq 0) {
+              Write-Host "No commits found for PR #$prNumber; nothing to clean."
+              return
+          }
+          Write-Host "Found $($commits.Count) commit(s) on the PR."
+
+          $runIds = [System.Collections.Generic.HashSet[long]]::new()
+          foreach ($sha in $commits) {
+              $rawIds = gh api --paginate "repos/$($env:REPO)/actions/runs?head_sha=$sha&per_page=100" --jq '.workflow_runs[].id'
+              foreach ($idStr in ($rawIds -split "`n" | Where-Object { $_ })) {
+                  [void]$runIds.Add([long]$idStr)
+              }
+          }
+          Write-Host "Found $($runIds.Count) workflow run(s) for these commits."
+          if ($runIds.Count -eq 0) { return }
+
+          $deleted = 0
+          $skipped = 0
+          $bytesFreed = [long]0
+
+          foreach ($runId in $runIds) {
+              $rawArtifacts = gh api --paginate "repos/$($env:REPO)/actions/runs/$runId/artifacts?per_page=100" --jq '.artifacts[] | "\(.id)|\(.name)|\(.size_in_bytes)"'
+              foreach ($entry in ($rawArtifacts -split "`n" | Where-Object { $_ })) {
+                  $parts = $entry -split '\|', 3
+                  $id = $parts[0]
+                  $name = $parts[1]
+                  $size = [long]$parts[2]
+                  $sizeMb = [math]::Round($size / 1MB, 2)
+
+                  if ($dryRun) {
+                      Write-Host ("  [dry-run] would delete '{0}' ({1} MB) from run {2}" -f $name, $sizeMb, $runId)
+                      $deleted++
+                      $bytesFreed += $size
+                      continue
+                  }
+
+                  Write-Host ("  Deleting '{0}' ({1} MB) from run {2}..." -f $name, $sizeMb, $runId)
+                  $err = gh api -X DELETE "repos/$($env:REPO)/actions/artifacts/$id" 2>&1
+                  if ($LASTEXITCODE -eq 0) {
+                      $deleted++
+                      $bytesFreed += $size
+                  } else {
+                      Write-Host "::warning::Failed to delete artifact $id ($name): $err"
+                      $skipped++
+                  }
+              }
+          }
+
+          $freedMb = [math]::Round($bytesFreed / 1MB, 2)
+          $verb = if ($dryRun) { 'Would delete' } else { 'Deleted' }
+          $summary = "$verb $deleted artifact(s) ($freedMb MB) across $($runIds.Count) run(s) for PR #$prNumber. Skipped $skipped."
+          Write-Host $summary
+          if ($env:GITHUB_STEP_SUMMARY) {
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### PR #$prNumber artifact cleanup`n`n$summary"
+          }
+
+  cleanup-pages:
+    # Delete the PR's published reports from the gh-pages branch (test results
+    # and coverage HTML under pr-<N>/). Runs in parallel with the artifact
+    # cleanup job — the two operations are independent.
+    name: Delete PR pages content
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check whether gh-pages branch exists
+        id: check
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh api "repos/$($env:REPO)/branches/gh-pages" --silent 2>$null
+          if ($LASTEXITCODE -eq 0) {
+              Write-Host "gh-pages branch found."
+              "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+              Write-Host "gh-pages branch does not exist; nothing to clean."
+              "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Checkout gh-pages
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: Delete PR folder and push
+        if: steps.check.outputs.exists == 'true'
+        shell: pwsh
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dryRun = $env:DRY_RUN -eq 'true'
+
+          if (-not $env:PR_NUMBER) {
+              Write-Host "::error::No PR number resolved."
+              exit 1
+          }
+          $prNumber = [int]$env:PR_NUMBER
+          $prPath = "pr-$prNumber"
+
+          if (-not (Test-Path -LiteralPath $prPath)) {
+              Write-Host "No '$prPath/' folder on gh-pages; nothing to clean."
+              if ($env:GITHUB_STEP_SUMMARY) {
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### PR #$prNumber pages cleanup`n`nNo '$prPath/' folder found on gh-pages."
+              }
+              return
+          }
+
+          $files = @(Get-ChildItem -LiteralPath $prPath -Recurse -File -ErrorAction SilentlyContinue)
+          $bytes = if ($files.Count -gt 0) { ($files | Measure-Object -Property Length -Sum).Sum } else { 0 }
+          $sizeMb = [math]::Round($bytes / 1MB, 2)
+
+          if ($dryRun) {
+              $msg = "[dry-run] would delete '$prPath/' from gh-pages ($($files.Count) file(s), $sizeMb MB)"
+              Write-Host $msg
+              if ($env:GITHUB_STEP_SUMMARY) {
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### PR #$prNumber pages cleanup`n`n$msg"
+              }
+              return
+          }
+
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git rm -rf $prPath
+          if ($LASTEXITCODE -ne 0) { throw "git rm failed for '$prPath'" }
+          git commit -m "Remove reports for closed PR #$prNumber"
+          if ($LASTEXITCODE -ne 0) { throw "git commit failed" }
+          # `--force-with-lease` would be ideal, but on actions/checkout's
+          # shallow clone the upstream ref tracking is sometimes incomplete.
+          # A plain push is safe here because we're only ever appending a single
+          # commit on top of the freshly-fetched gh-pages HEAD.
+          git push origin gh-pages
+          if ($LASTEXITCODE -ne 0) { throw "git push failed" }
+
+          $msg = "Deleted '$prPath/' from gh-pages ($($files.Count) file(s), $sizeMb MB)."
+          Write-Host $msg
+          if ($env:GITHUB_STEP_SUMMARY) {
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### PR #$prNumber pages cleanup`n`n$msg"
+          }
+
