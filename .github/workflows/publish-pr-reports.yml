@@ -1,0 +1,347 @@
+# Publish PR test results and code coverage to GitHub Pages, then post (and
+# refresh on every run) a sticky comment on the PR that links to the reports
+# and shows summary numbers.
+#
+# Trigger: `workflow_run` on the "PR" workflow's completion. This means:
+#   * The workflow definition is loaded from the default branch, NOT the PR
+#     branch — fork PRs cannot influence what runs here.
+#   * It runs in the base-repo context with the base-repo's GITHUB_TOKEN, so
+#     `contents: write` (push to gh-pages) and `pull-requests: write` (sticky
+#     comment) work for fork PRs that the standard `pull_request` event would
+#     leave with read-only tokens.
+#
+# Output layout on the gh-pages branch:
+#
+#   pr-<N>/tests/index.html       — filterable, self-contained test viewer
+#   pr-<N>/tests/summary.json     — machine-readable summary
+#   pr-<N>/coverage/index.html    — ReportGenerator HTML coverage report
+#
+# Each publish replaces the *entire* `pr-<N>/` folder content (clean: true on a
+# scoped target-folder), so a re-run with fewer files leaves no stragglers.
+# Other PRs' folders and any root-level files (e.g. a hand-maintained landing
+# index) are untouched.
+
+name: Publish PR Reports
+
+on:
+  workflow_run:
+    workflows: ["PR"]
+    types: [completed]
+
+permissions:
+  contents: write          # push to gh-pages
+  pull-requests: write     # post / update sticky comment
+  actions: read            # download artifacts from the triggering run
+
+# A PR pushing rapidly may queue several "PR" workflow runs; only the latest
+# matters. Cancel any in-flight publish for the same PR when a newer one starts.
+concurrency:
+  group: publish-pr-reports-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish reports
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Resolve PR number
+        id: pr
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PR_LIST_JSON: ${{ toJson(github.event.workflow_run.pull_requests) }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          # Fast path: same-repo PRs land in workflow_run.pull_requests.
+          $prList = $env:PR_LIST_JSON | ConvertFrom-Json
+          $prNumber = $null
+          if ($prList -and $prList.Count -gt 0) {
+              $prNumber = $prList[0].number
+              Write-Host "PR #$prNumber resolved from workflow_run.pull_requests."
+          } else {
+              # Fork PRs leave pull_requests empty; look up by head SHA.
+              Write-Host "workflow_run.pull_requests is empty (likely a fork PR); querying by head SHA $($env:HEAD_SHA)."
+              $raw = gh api "repos/$($env:REPO)/commits/$($env:HEAD_SHA)/pulls" --jq '.[] | select(.state=="open" or .state=="closed") | .number' 2>$null
+              $candidates = @($raw -split "`n" | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
+              if ($candidates.Count -gt 0) {
+                  $prNumber = $candidates[0]
+                  Write-Host "PR #$prNumber resolved from commits/{sha}/pulls API."
+              }
+          }
+
+          if (-not $prNumber) {
+              Write-Host "::warning::Could not resolve a PR number for head SHA $($env:HEAD_SHA); skipping publish."
+              "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+              return
+          }
+
+          "skip=false"        | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "number=$prNumber"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Checkout (default branch scripts)
+        if: steps.pr.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          # workflow_run events already set github.sha to the default-branch
+          # HEAD, so the implicit ref here is the default branch — never the PR
+          # head. We only need .github/scripts/ for the report generator.
+          fetch-depth: 1
+
+      - name: Download test result artifacts
+        if: steps.pr.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: 'test-results-pr-*'
+          path: artifacts/tests
+        continue-on-error: true
+
+      - name: Download coverage artifact
+        if: steps.pr.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: 'coverage-pr*'
+          path: artifacts/coverage
+        continue-on-error: true
+
+      - name: Setup .NET (for ReportGenerator)
+        if: steps.pr.outputs.skip != 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install ReportGenerator
+        if: steps.pr.outputs.skip != 'true'
+        shell: bash
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Generate test HTML report
+        if: steps.pr.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = "site/pr-$($env:PR_NUMBER)/tests"
+          $subtitle = "PR #$($env:PR_NUMBER) · commit $($env:HEAD_SHA.Substring(0,7)) · " +
+                     "[run $($env:RUN_ID)](https://github.com/$($env:REPO)/actions/runs/$($env:RUN_ID))"
+          ./.github/scripts/Generate-TestReport.ps1 `
+              -TrxRoot 'artifacts/tests' `
+              -OutputDir $out `
+              -Title "CoreWCF Test Results — PR #$($env:PR_NUMBER)" `
+              -Subtitle $subtitle
+
+      - name: Generate coverage HTML report
+        if: steps.pr.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = "site/pr-$($env:PR_NUMBER)/coverage"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+
+          $reports = @(Get-ChildItem -Path 'artifacts/coverage' -Recurse -Filter 'coverage.opencover.xml' -ErrorAction SilentlyContinue)
+          if ($reports.Count -eq 0) {
+              # Cobertura fallback (coverlet runsettings emits both formats).
+              $reports = @(Get-ChildItem -Path 'artifacts/coverage' -Recurse -Filter 'coverage.cobertura.xml' -ErrorAction SilentlyContinue)
+          }
+
+          if ($reports.Count -eq 0) {
+              Write-Host "::warning::No coverage XML found in artifacts/coverage; emitting placeholder."
+              @"
+          <!DOCTYPE html><html><head><meta charset='utf-8'><title>No coverage</title></head>
+          <body style='font-family:sans-serif;padding:24px;background:#0d1117;color:#e6edf3'>
+          <h1>No coverage data published</h1>
+          <p>The PR build did not upload a coverage artifact for this run.</p>
+          </body></html>
+          "@ | Out-File -LiteralPath (Join-Path $out 'index.html') -Encoding utf8
+              '{"linecoverage":null,"branchcoverage":null}' | Out-File -LiteralPath (Join-Path $out 'summary.json') -Encoding utf8
+              return
+          }
+
+          Write-Host "Found $($reports.Count) coverage file(s); generating HTML..."
+          $reportArg = ($reports.FullName -join ';')
+          reportgenerator `
+              "-reports:$reportArg" `
+              "-targetdir:$out" `
+              "-reporttypes:Html;JsonSummary" `
+              "-title:CoreWCF Coverage — PR #$($env:PR_NUMBER)"
+
+          # Surface a small JSON summary for the sticky comment (line + branch %).
+          $jsonSummaryPath = Join-Path $out 'Summary.json'
+          if (Test-Path $jsonSummaryPath) {
+              $rg = Get-Content $jsonSummaryPath -Raw | ConvertFrom-Json
+              $line   = $rg.summary.linecoverage
+              $branch = $rg.summary.branchcoverage
+              [pscustomobject]@{ linecoverage = $line; branchcoverage = $branch } |
+                  ConvertTo-Json -Compress |
+                  Out-File -LiteralPath (Join-Path $out 'summary.json') -Encoding utf8
+              Write-Host "Coverage: line=$line% branch=$branch%"
+          } else {
+              '{"linecoverage":null,"branchcoverage":null}' | Out-File -LiteralPath (Join-Path $out 'summary.json') -Encoding utf8
+              Write-Host "::warning::ReportGenerator did not produce Summary.json."
+          }
+
+      - name: Deploy to gh-pages
+        if: steps.pr.outputs.skip != 'true'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: site/pr-${{ steps.pr.outputs.number }}
+          target-folder: pr-${{ steps.pr.outputs.number }}
+          # `clean: true` with a target-folder rsyncs --delete-after scoped to
+          # the target — wipes any stale files inside pr-<N>/ that aren't in
+          # this build, but never touches sibling pr-* folders or root files.
+          clean: true
+          single-commit: false
+          commit-message: 'Publish reports for PR #${{ steps.pr.outputs.number }} (${{ github.event.workflow_run.head_sha }})'
+
+      - name: Resolve GitHub Pages URL
+        id: pages
+        if: steps.pr.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = $null
+          try {
+              $info = gh api "repos/$($env:REPO)/pages" 2>$null | ConvertFrom-Json
+              if ($info.html_url) {
+                  $base = $info.html_url.TrimEnd('/')
+                  Write-Host "GitHub Pages URL from API: $base"
+              }
+          } catch {
+              Write-Host "Pages API call failed: $_"
+          }
+
+          if (-not $base) {
+              # Convention fallback. Works for the default {owner}.github.io/{repo}
+              # path when Pages is enabled with the gh-pages branch source.
+              $owner = $env:REPO.Split('/')[0]
+              $name  = $env:REPO.Split('/')[1]
+              $base = "https://$owner.github.io/$name"
+              Write-Host "Pages API unavailable; falling back to convention: $base"
+          }
+
+          "base=$base" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build sticky comment body
+        id: comment
+        if: steps.pr.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PAGES_BASE: ${{ steps.pages.outputs.base }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $testsSummary = $null
+          $testsPath = "site/pr-$($env:PR_NUMBER)/tests/summary.json"
+          if (Test-Path $testsPath) {
+              $testsSummary = Get-Content $testsPath -Raw | ConvertFrom-Json
+          }
+
+          $covSummary = $null
+          $covPath = "site/pr-$($env:PR_NUMBER)/coverage/summary.json"
+          if (Test-Path $covPath) {
+              $covSummary = Get-Content $covPath -Raw | ConvertFrom-Json
+          }
+
+          $shortSha = $env:HEAD_SHA.Substring(0, 7)
+          $testsUrl = "$($env:PAGES_BASE)/pr-$($env:PR_NUMBER)/tests/"
+          $covUrl   = "$($env:PAGES_BASE)/pr-$($env:PR_NUMBER)/coverage/"
+          $runUrl   = "https://github.com/$($env:REPO)/actions/runs/$($env:RUN_ID)"
+
+          # Conclusion-driven badge ahead of the table to make red builds obvious.
+          $statusBadge = switch ($env:RUN_CONCLUSION) {
+              'success'   { '✅' }
+              'failure'   { '❌' }
+              'cancelled' { '⏹️' }
+              default     { '⚠️' }
+          }
+
+          $sb = [System.Text.StringBuilder]::new()
+          [void]$sb.AppendLine("## $statusBadge Test & Coverage Report")
+          [void]$sb.AppendLine()
+
+          if ($testsSummary) {
+              $total   = [int]$testsSummary.total
+              $passed  = [int]$testsSummary.passed
+              $failed  = [int]$testsSummary.failed
+              $skipped = [int]$testsSummary.skipped
+              [void]$sb.AppendLine('| Result | Count |')
+              [void]$sb.AppendLine('|---|---:|')
+              [void]$sb.AppendLine("| ✅ Passed | $($passed.ToString('N0')) |")
+              [void]$sb.AppendLine("| ❌ Failed | $($failed.ToString('N0')) |")
+              [void]$sb.AppendLine("| ⚠️ Skipped | $($skipped.ToString('N0')) |")
+              [void]$sb.AppendLine("| **Total** | **$($total.ToString('N0'))** |")
+          } else {
+              [void]$sb.AppendLine('_No test results were uploaded for this run._')
+          }
+
+          [void]$sb.AppendLine()
+          if ($covSummary -and $null -ne $covSummary.linecoverage) {
+              $line = $covSummary.linecoverage
+              $branchTxt = if ($null -ne $covSummary.branchcoverage) {
+                  " · Branch coverage: **$($covSummary.branchcoverage)%**"
+              } else { '' }
+              [void]$sb.AppendLine("**Line coverage:** **$line%**$branchTxt")
+          } else {
+              [void]$sb.AppendLine('_No coverage data was uploaded for this run._')
+          }
+
+          [void]$sb.AppendLine()
+          [void]$sb.AppendLine("📋 [Detailed test report]($testsUrl) · 📈 [Coverage report]($covUrl)")
+          [void]$sb.AppendLine()
+          [void]$sb.AppendLine("<sub>Updated for commit [``$shortSha``](https://github.com/$($env:REPO)/commit/$($env:HEAD_SHA)) from [PR workflow run]($runUrl). Reports are regenerated on every push to the PR.</sub>")
+
+          $body = $sb.ToString()
+          # Stash via a heredoc-style multi-line GITHUB_OUTPUT entry so newlines survive.
+          $delim = "EOF_$(New-Guid)"
+          @(
+              "body<<$delim"
+              $body
+              $delim
+          ) | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Post / update sticky PR comment
+        if: steps.pr.outputs.skip != 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          # `header` makes the comment idempotent: subsequent runs find and
+          # replace the previous comment with the same header instead of
+          # creating new ones, which keeps the PR feed tidy.
+          header: pr-reports-bot
+          number: ${{ steps.pr.outputs.number }}
+          message: ${{ steps.comment.outputs.body }}
+
+      - name: Job summary
+        if: steps.pr.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PAGES_BASE: ${{ steps.pages.outputs.base }}
+        run: |
+          $msg = "Published reports for PR #$($env:PR_NUMBER):`n" +
+                 "- Tests: $($env:PAGES_BASE)/pr-$($env:PR_NUMBER)/tests/`n" +
+                 "- Coverage: $($env:PAGES_BASE)/pr-$($env:PR_NUMBER)/coverage/"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $msg
