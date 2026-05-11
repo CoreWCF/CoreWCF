@@ -50,6 +50,9 @@ jobs:
         with:
           name: pr-metadata
           run-id: ${{ github.event.workflow_run.id }}
+          # Required (no default in v5+): without this, run-id and repository
+          # are silently ignored and the action looks at the *current* run.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: pr-meta
 
       - name: Resolve PR number
@@ -103,6 +106,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'test-results-pr-*'
           path: artifacts/tests
         continue-on-error: true
@@ -111,6 +115,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'coverage-pr*'
           path: artifacts/coverage
         continue-on-error: true
