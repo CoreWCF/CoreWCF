@@ -45,87 +45,88 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.event == 'pull_request'
     steps:
+      - name: Download PR metadata artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-metadata
+          run-id: ${{ github.event.workflow_run.id }}
+          path: pr-meta
+
       - name: Resolve PR number
         id: pr
         shell: pwsh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          PR_LIST_JSON: ${{ toJson(github.event.workflow_run.pull_requests) }}
         run: |
           $ErrorActionPreference = 'Stop'
 
-          # Fast path: same-repo PRs land in workflow_run.pull_requests.
-          $prList = $env:PR_LIST_JSON | ConvertFrom-Json
-          $prNumber = $null
-          if ($prList -and $prList.Count -gt 0) {
-              $prNumber = $prList[0].number
-              Write-Host "PR #$prNumber resolved from workflow_run.pull_requests."
-          } else {
-              # Fork PRs leave pull_requests empty; look up by head SHA.
-              Write-Host "workflow_run.pull_requests is empty (likely a fork PR); querying by head SHA $($env:HEAD_SHA)."
-              $raw = gh api "repos/$($env:REPO)/commits/$($env:HEAD_SHA)/pulls" --jq '.[] | select(.state=="open" or .state=="closed") | .number' 2>$null
-              $candidates = @($raw -split "`n" | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
-              if ($candidates.Count -gt 0) {
-                  $prNumber = $candidates[0]
-                  Write-Host "PR #$prNumber resolved from commits/{sha}/pulls API."
-              }
+          # The pr-metadata artifact is produced by pr.yml in PR-controlled
+          # context, so its contents are validated strictly here before being
+          # used as a target folder name on gh-pages.
+          $rawNumber = (Get-Content 'pr-meta/number.txt' -Raw).Trim()
+          $rawSha    = (Get-Content 'pr-meta/head-sha.txt' -Raw).Trim()
+
+          # 1. PR number must be a positive decimal integer.
+          if ($rawNumber -notmatch '^[1-9][0-9]{0,9}$') {
+              throw "pr-metadata artifact had a malformed PR number: '$rawNumber'"
           }
 
-          if (-not $prNumber) {
-              Write-Host "::warning::Could not resolve a PR number for head SHA $($env:HEAD_SHA); skipping publish."
-              "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-              return
+          # 2. SHA must be a 40-char lowercase hex commit hash.
+          if ($rawSha -notmatch '^[0-9a-f]{40}$') {
+              throw "pr-metadata artifact had a malformed head SHA: '$rawSha'"
           }
 
-          "skip=false"        | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "number=$prNumber"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          # 3. Critical defense: the SHA in the artifact MUST match the SHA
+          # the workflow_run was created for. Otherwise a malicious PR could
+          # claim any PR number in the artifact and overwrite another PR's
+          # gh-pages folder. workflow_run.head_sha is set by GitHub from the
+          # actual run, not from artifact contents, so it cannot be forged.
+          if ($rawSha -ne $env:HEAD_SHA) {
+              throw "pr-metadata artifact SHA ($rawSha) does not match workflow_run head_sha ($($env:HEAD_SHA)); refusing to publish."
+          }
+
+          Write-Host "PR #$rawNumber resolved from validated pr-metadata artifact."
+          "number=$rawNumber" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Checkout (default branch scripts)
-        if: steps.pr.outputs.skip != 'true'
         uses: actions/checkout@v6
         with:
           # workflow_run events already set github.sha to the default-branch
           # HEAD, so the implicit ref here is the default branch — never the PR
-          # head. We only need .github/scripts/ for the report generator.
+          # head. We only need .github/scripts/ for the report generator, so
+          # sparse-checkout shaves the clone from ~100 MB to a few KB.
           fetch-depth: 1
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
 
       - name: Download test result artifacts
-        if: steps.pr.outputs.skip != 'true'
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'test-results-pr-*'
           path: artifacts/tests
         continue-on-error: true
 
       - name: Download coverage artifact
-        if: steps.pr.outputs.skip != 'true'
         uses: actions/download-artifact@v8
         with:
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'coverage-pr*'
           path: artifacts/coverage
         continue-on-error: true
 
       - name: Setup .NET (for ReportGenerator)
-        if: steps.pr.outputs.skip != 'true'
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
       - name: Install ReportGenerator
-        if: steps.pr.outputs.skip != 'true'
         shell: bash
         run: |
           dotnet tool install --global dotnet-reportgenerator-globaltool
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Generate test HTML report
-        if: steps.pr.outputs.skip != 'true'
         shell: pwsh
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -144,7 +145,6 @@ jobs:
               -Subtitle $subtitle
 
       - name: Generate coverage HTML report
-        if: steps.pr.outputs.skip != 'true'
         shell: pwsh
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -196,7 +196,6 @@ jobs:
           }
 
       - name: Deploy to gh-pages
-        if: steps.pr.outputs.skip != 'true'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -211,7 +210,6 @@ jobs:
 
       - name: Resolve GitHub Pages URL
         id: pages
-        if: steps.pr.outputs.skip != 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -242,7 +240,6 @@ jobs:
 
       - name: Build sticky comment body
         id: comment
-        if: steps.pr.outputs.skip != 'true'
         shell: pwsh
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -324,7 +321,6 @@ jobs:
           ) | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Post / update sticky PR comment
-        if: steps.pr.outputs.skip != 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           # `header` makes the comment idempotent: subsequent runs find and
@@ -335,7 +331,6 @@ jobs:
           message: ${{ steps.comment.outputs.body }}
 
       - name: Job summary
-        if: steps.pr.outputs.skip != 'true'
         shell: pwsh
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
