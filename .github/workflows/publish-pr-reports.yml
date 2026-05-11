@@ -162,12 +162,16 @@ jobs:
         uses: actions/checkout@v6
         with:
           # workflow_run events already set github.sha to the default-branch
-          # HEAD, so the implicit ref here is the default branch — never the PR
-          # head. We only need .github/scripts/ for the report generator, so
-          # sparse-checkout shaves the clone from ~100 MB to a few KB.
+          # HEAD, so the implicit ref here is the default branch — never the
+          # PR head. We only need .github/scripts/ for the report generator.
+          #
+          # Note: we deliberately do NOT use sparse-checkout here. The deploy
+          # step below (JamesIves/github-pages-deploy-action) creates a
+          # `git worktree` from this same checkout for the gh-pages branch,
+          # and the worktree inherits the parent's sparse-checkout config.
+          # That causes `git add --all` in the worktree to silently reject
+          # every report file outside the sparse pattern, breaking the deploy.
           fetch-depth: 1
-          sparse-checkout: .github/scripts
-          sparse-checkout-cone-mode: false
 
       - name: Download test result artifacts
         uses: actions/download-artifact@v8
