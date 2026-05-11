@@ -20,6 +20,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Captures the PR number and head SHA into an artifact so that the
+  # workflow_run-triggered `Publish PR Reports` workflow can read them directly
+  # rather than having to reverse-resolve the PR from the SHA. The artifact is
+  # consumed by a workflow loaded from the default branch, which validates both
+  # values strictly (regex + cross-check the SHA against workflow_run.head_sha)
+  # before trusting them — so even though this job runs in PR context, it
+  # cannot influence which gh-pages folder gets published to.
+  pr-metadata:
+    name: Save PR Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write PR metadata
+        shell: bash
+        run: |
+          mkdir -p ./pr-meta
+          printf '%s' '${{ github.event.pull_request.number }}'   > ./pr-meta/number.txt
+          printf '%s' '${{ github.event.pull_request.head.sha }}' > ./pr-meta/head-sha.txt
+
+      - name: Upload PR metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-metadata
+          path: ./pr-meta/
+          if-no-files-found: error
+          retention-days: 1
+
   build:
     name: Build (${{ matrix.configuration }} / ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
