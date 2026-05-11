@@ -20,6 +20,37 @@
 # scoped target-folder), so a re-run with fewer files leaves no stragglers.
 # Other PRs' folders and any root-level files (e.g. a hand-maintained landing
 # index) are untouched.
+#
+# ---------------------------------------------------------------------------
+# Manual re-publish (workflow_dispatch)
+# ---------------------------------------------------------------------------
+# Use this when the workflow_run-triggered publish failed but the underlying
+# PR build is fine, so you don't have to push an empty commit and wait for the
+# whole PR matrix to rebuild.
+#
+#   1. Find the PR *build* run id (NOT a previous publish run):
+#        gh run list --repo <owner>/<repo> --workflow=PR --limit 20
+#      Or in the UI: Actions tab → "PR" workflow → click the run → the URL
+#      ends in `/actions/runs/<id>`.
+#
+#   2. Dispatch this workflow against that run:
+#        gh workflow run publish-pr-reports.yml \
+#            --repo <owner>/<repo> \
+#            -f pr_run_id=<id>
+#
+# Requirements for the targeted run:
+#   * Must have been triggered by a pull_request event (validated below;
+#     non-PR runs are refused so the gh-pages folder name is always `pr-N`).
+#   * Must still have its artifacts:
+#       - pr-metadata           (retention 1 day — old runs may have aged out)
+#       - test-results-pr-*     (default 90-day retention)
+#       - coverage-pr*          (default 90-day retention)
+#
+# Notes:
+#   * workflow_dispatch only works from the default branch and requires
+#     `actions: write` on the dispatching actor (same as merge permission).
+#   * The dispatch always uses the workflow file from the default branch HEAD,
+#     so manual re-runs automatically pick up any fixes shipped to this file.
 
 name: Publish PR Reports
 
@@ -27,6 +58,12 @@ on:
   workflow_run:
     workflows: ["PR"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_run_id:
+        description: 'ID of the PR workflow run to publish reports for'
+        required: true
+        type: string
 
 permissions:
   contents: write          # push to gh-pages
@@ -36,20 +73,50 @@ permissions:
 # A PR pushing rapidly may queue several "PR" workflow runs; only the latest
 # matters. Cancel any in-flight publish for the same PR when a newer one starts.
 concurrency:
-  group: publish-pr-reports-${{ github.event.workflow_run.id }}
+  group: publish-pr-reports-${{ github.event.workflow_run.id || inputs.pr_run_id }}
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish reports
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'pull_request'
+    # Allow workflow_dispatch unconditionally (the resolve step revalidates
+    # that the targeted run was a pull_request build); for workflow_run skip
+    # non-PR events such as builds triggered by pushes to main.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'pull_request'
     steps:
+      - name: Resolve run context
+        id: context
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          # Either the workflow_run that triggered us, or the manually-supplied
+          # run id from workflow_dispatch. Exactly one will be set.
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.pr_run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:RUN_ID) { throw "No run id available (neither workflow_run nor inputs.pr_run_id)." }
+
+          # Look up the targeted run via the API. This gives us a single,
+          # uniform source of head_sha / conclusion regardless of trigger,
+          # and lets us validate that workflow_dispatch wasn't pointed at a
+          # non-PR run (which would create a misleading 'pr-N' folder name).
+          $info = gh api "repos/$($env:REPO)/actions/runs/$($env:RUN_ID)" | ConvertFrom-Json
+          if ($info.event -ne 'pull_request') {
+              throw "Run $($env:RUN_ID) was triggered by '$($info.event)', not 'pull_request'; refusing to publish."
+          }
+
+          Write-Host "Publishing for run $($env:RUN_ID): conclusion=$($info.conclusion) head_sha=$($info.head_sha)"
+          "run_id=$($env:RUN_ID)"          | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "head_sha=$($info.head_sha)"     | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "conclusion=$($info.conclusion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Download PR metadata artifact
         uses: actions/download-artifact@v8
         with:
           name: pr-metadata
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.context.outputs.run_id }}
           # Required (no default in v5+): without this, run-id and repository
           # are silently ignored and the action looks at the *current* run.
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -59,7 +126,7 @@ jobs:
         id: pr
         shell: pwsh
         env:
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
         run: |
           $ErrorActionPreference = 'Stop'
 
@@ -79,13 +146,13 @@ jobs:
               throw "pr-metadata artifact had a malformed head SHA: '$rawSha'"
           }
 
-          # 3. Critical defense: the SHA in the artifact MUST match the SHA
-          # the workflow_run was created for. Otherwise a malicious PR could
-          # claim any PR number in the artifact and overwrite another PR's
-          # gh-pages folder. workflow_run.head_sha is set by GitHub from the
-          # actual run, not from artifact contents, so it cannot be forged.
+          # 3. Critical defense: the SHA in the artifact MUST match the actual
+          # head SHA of the targeted run (read from the GitHub API by the
+          # context step, not from any user-controlled input). Otherwise a
+          # malicious PR could claim any PR number in the artifact and
+          # overwrite another PR's gh-pages folder.
           if ($rawSha -ne $env:HEAD_SHA) {
-              throw "pr-metadata artifact SHA ($rawSha) does not match workflow_run head_sha ($($env:HEAD_SHA)); refusing to publish."
+              throw "pr-metadata artifact SHA ($rawSha) does not match run head_sha ($($env:HEAD_SHA)); refusing to publish."
           }
 
           Write-Host "PR #$rawNumber resolved from validated pr-metadata artifact."
@@ -105,7 +172,7 @@ jobs:
       - name: Download test result artifacts
         uses: actions/download-artifact@v8
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.context.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'test-results-pr-*'
           path: artifacts/tests
@@ -114,7 +181,7 @@ jobs:
       - name: Download coverage artifact
         uses: actions/download-artifact@v8
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.context.outputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: 'coverage-pr*'
           path: artifacts/coverage
@@ -135,8 +202,8 @@ jobs:
         shell: pwsh
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
+          RUN_ID: ${{ steps.context.outputs.run_id }}
           REPO: ${{ github.repository }}
         run: |
           $ErrorActionPreference = 'Stop'
@@ -211,7 +278,7 @@ jobs:
           # this build, but never touches sibling pr-* folders or root files.
           clean: true
           single-commit: false
-          commit-message: 'Publish reports for PR #${{ steps.pr.outputs.number }} (${{ github.event.workflow_run.head_sha }})'
+          commit-message: 'Publish reports for PR #${{ steps.pr.outputs.number }} (${{ steps.context.outputs.head_sha }})'
 
       - name: Resolve GitHub Pages URL
         id: pages
@@ -249,9 +316,9 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           PAGES_BASE: ${{ steps.pages.outputs.base }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
+          RUN_ID: ${{ steps.context.outputs.run_id }}
+          RUN_CONCLUSION: ${{ steps.context.outputs.conclusion }}
           REPO: ${{ github.repository }}
         run: |
           $ErrorActionPreference = 'Stop'
