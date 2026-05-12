@@ -251,8 +251,14 @@ jobs:
   sign:
     name: Code Sign
     needs: pack
-    if: vars.SIGN_KEY_VAULT_URL != '' && vars.SIGN_KEY_VAULT_CERTIFICATE != '' && vars.AZURE_CLIENT_ID != ''
+    # Gate is on a single repo VARIABLE (cert name) so the if: can evaluate it
+    # before the environment is loaded. All other auth values (client/tenant/
+    # subscription IDs, vault URL) are stored as repo SECRETS so they are
+    # masked in workflow logs. Setting SIGN_KEY_VAULT_CERTIFICATE to a non-empty
+    # value is the explicit "signing is configured for this repo" switch.
+    if: vars.SIGN_KEY_VAULT_CERTIFICATE != ''
     runs-on: windows-latest
+    environment: corewcf-signing
     permissions:
       contents: read
       id-token: write
@@ -283,9 +289,9 @@ jobs:
       - name: Azure login (OIDC)
         uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign packages
         shell: pwsh
@@ -298,7 +304,7 @@ jobs:
             --description "CoreWCF" `
             --description-url "https://github.com/${{ github.repository }}" `
             --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
-            --azure-key-vault-url "${{ vars.SIGN_KEY_VAULT_URL }}" `
+            --azure-key-vault-url "${{ secrets.SIGN_KEY_VAULT_URL }}" `
             -v Trace
 
       - name: Sign symbol packages
@@ -312,7 +318,7 @@ jobs:
             --description "CoreWCF" `
             --description-url "https://github.com/${{ github.repository }}" `
             --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
-            --azure-key-vault-url "${{ vars.SIGN_KEY_VAULT_URL }}" `
+            --azure-key-vault-url "${{ secrets.SIGN_KEY_VAULT_URL }}" `
             -v Trace
 
       - name: Upload signed packages
@@ -339,6 +345,7 @@ jobs:
         (github.event.inputs.publish_packages != 'false' && vars.PUBLISH_PACKAGES == 'true')
       )
     runs-on: ubuntu-latest
+    environment: corewcf-signing
     permissions:
       contents: read
       packages: write
