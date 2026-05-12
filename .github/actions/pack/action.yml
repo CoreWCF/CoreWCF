@@ -53,8 +53,14 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        # NOTE: use the `-t:` switch prefix, not `/t:`. This action runs on
+        # Windows with `shell: bash`, where MSYS/Git-Bash treats `/t:restore`
+        # as a Unix absolute path and strips the leading slash before passing
+        # it to dotnet.exe. MSBuild then sees `t:restore` as a positional
+        # project argument and fails with MSB1008 ("Only one project can be
+        # specified."). The dash form is equivalent and not path-mangled.
         while IFS= read -r proj; do
-          dotnet build "$proj" --configuration Release /t:restore
+          dotnet build "$proj" --configuration Release -t:restore
         done < .packable-projects.txt
 
     - name: Pack
