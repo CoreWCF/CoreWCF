@@ -263,6 +263,9 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Setup .NET SDKs
         uses: ./.github/actions/setup-dotnet-sdks
         with:
@@ -351,6 +354,9 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Setup .NET SDKs
         uses: ./.github/actions/setup-dotnet-sdks
         with:
