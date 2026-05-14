@@ -1,0 +1,203 @@
+# Mirror branches and tags from the public CoreWCF/CoreWCF repo into the
+# private CoreWCF/PrivateSecurityFixes repo where security fixes are developed.
+#
+# The workflow lives on `main` in BOTH repos (so the two `main` branches stay
+# byte-identical), but the only job is gated on `github.repository` so it is a
+# no-op on the public repo. Scheduled workflows can only be triggered from the
+# default branch, which is why the gating-on-repo pattern is used instead of
+# putting this file on a non-default branch in the private repo.
+#
+# Sync semantics:
+#   * Branches synced: `main` and every `release/*` branch present upstream.
+#   * Tags synced: every tag present upstream (new tags only; existing tags
+#     with conflicting SHAs are rejected).
+#   * Pushes are FAST-FORWARD ONLY. If a branch has diverged in the private
+#     repo (because a security commit landed on it locally), the push is
+#     rejected, the job fails, and an issue is opened/updated to flag it.
+#   * Branches present in the private repo but NOT upstream are left alone.
+#
+# Auth:
+#   * Reading from `https://github.com/CoreWCF/CoreWCF.git` is anonymous
+#     (public repo) - no PAT required.
+#   * Writing to the private repo uses the built-in `GITHUB_TOKEN` with
+#     `contents: write` (and `issues: write` to file the failure issue).
+
+name: Sync from upstream
+
+on:
+  schedule:
+    # Daily at 05:17 UTC (avoid top-of-hour congestion).
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-from-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Mirror main + release/* + tags from CoreWCF/CoreWCF
+    runs-on: ubuntu-latest
+    # No-op on the public repo; only does work on the private mirror.
+    if: github.repository == 'CoreWCF/PrivateSecurityFixes'
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure git identity
+        shell: bash
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Fetch upstream
+        shell: bash
+        run: |
+          git remote add upstream https://github.com/CoreWCF/CoreWCF.git
+          git fetch upstream --tags --prune
+
+      - name: Sync branches and tags (fast-forward only)
+        id: sync
+        shell: bash
+        # We collect failures into $report rather than aborting on first error,
+        # so the issue we open at the end has the full picture.
+        run: |
+          set -uo pipefail
+          report_file="$(mktemp)"
+          : > "$report_file"
+          rc=0
+
+          mapfile -t branches < <(
+            git for-each-ref --format='%(refname:strip=3)' refs/remotes/upstream \
+              | grep -E '^(main|release/.+)$' \
+              | sort -u
+          )
+
+          if [ "${#branches[@]}" -eq 0 ]; then
+            echo "::error::No matching branches found upstream (expected at least 'main')."
+            exit 1
+          fi
+
+          for branch in "${branches[@]}"; do
+            upstream_sha="$(git rev-parse "upstream/$branch")"
+            origin_sha="$(git rev-parse --verify --quiet "origin/$branch" || true)"
+
+            if [ "$upstream_sha" = "$origin_sha" ]; then
+              echo "::notice::Branch '$branch' already in sync at $upstream_sha."
+              continue
+            fi
+
+            echo "::group::Pushing $branch (${origin_sha:-<new>} -> $upstream_sha)"
+            # No --force / --force-with-lease: a non-fast-forward push is
+            # rejected by the server, which is exactly what we want.
+            if git push origin "$upstream_sha:refs/heads/$branch"; then
+              echo "Pushed $branch."
+            else
+              echo "::error::Failed to fast-forward '$branch' (${origin_sha:-<new>} -> $upstream_sha)."
+              {
+                echo "- **\`$branch\`**: cannot fast-forward."
+                echo "  - private HEAD: \`${origin_sha:-<missing>}\`"
+                echo "  - upstream HEAD: \`$upstream_sha\`"
+              } >> "$report_file"
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+
+          echo "::group::Pushing tags (new tags only)"
+          # `git push --tags` only pushes tags that don't already exist remotely
+          # or that fast-forward; conflicting tags are rejected, which we want.
+          if git push origin --tags; then
+            echo "Tags pushed (or already in sync)."
+          else
+            echo "::error::One or more tag pushes failed (see above)."
+            echo "- **tags**: one or more tag pushes failed (see workflow log)." >> "$report_file"
+            rc=1
+          fi
+          echo "::endgroup::"
+
+          if [ -s "$report_file" ]; then
+            {
+              echo 'failed=true'
+              echo 'report<<__END_REPORT__'
+              cat "$report_file"
+              echo '__END_REPORT__'
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo 'failed=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          exit $rc
+        # Don't abort the job on failure - we still want the issue-opening
+        # step to run. The final step re-fails the job so the run shows red.
+        continue-on-error: true
+
+      - name: Open or update sync-failure issue
+        if: steps.sync.outputs.failed == 'true'
+        uses: actions/github-script@v8
+        env:
+          REPORT: ${{ steps.sync.outputs.report }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `Upstream sync failed: ${today}`;
+            const report = (process.env.REPORT || '').trim();
+            const body = [
+              `The scheduled sync from \`CoreWCF/CoreWCF\` failed.`,
+              ``,
+              `Run: ${process.env.RUN_URL}`,
+              ``,
+              `## Failures`,
+              report || '_(no detail captured - see workflow log)_',
+              ``,
+              `## What to do`,
+              `Most likely cause: a branch diverged because a security commit was landed on it.`,
+              ``,
+              `Resolve by either:`,
+              `- merging \`upstream/<branch>\` locally and pushing the merge result, or`,
+              `- moving the security commit to a dedicated \`security/*\` branch and resetting the protected branch to upstream.`,
+              ``,
+              `The next scheduled run will retry automatically.`,
+            ].join('\n');
+
+            // Avoid spamming: if there's already an open sync-failure issue,
+            // append a comment instead of opening a new one.
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              state: 'open',
+              labels: 'upstream-sync',
+              per_page: 20,
+            });
+            const existing = open.find(i => i.title.startsWith('Upstream sync failed:'));
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: existing.number,
+                body: `Recurring failure on run ${process.env.RUN_URL}\n\n${report}`,
+              });
+              core.notice(`Updated existing issue #${existing.number}.`);
+            } else {
+              const { data: created } = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                title,
+                body,
+                labels: ['upstream-sync'],
+              });
+              core.notice(`Opened issue #${created.number}.`);
+            }
+
+      - name: Re-fail job after issue handling
+        if: steps.sync.outputs.failed == 'true'
+        run: exit 1
