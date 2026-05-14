@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -617,7 +618,9 @@ namespace Helpers
                     case MessageType.BufferedBuffered:
                         model = new CustomGeneratedMessage(this);
                         MessageEncoder e = (new TextMessageEncodingBindingElement(model.Version, Encoding.UTF8)).CreateMessageEncoderFactory().Encoder;
-                        model = e.ReadMessage(e.WriteMessage(model, int.MaxValue, new SimpleBufferManager(), 0), new SimpleBufferManager());
+                        BufferManager bufferManager = BufferManager.CreateBufferManager(int.MaxValue, int.MaxValue);// Create a GCBufferManager
+                        ArraySegment<byte> bytes = e.WriteMessage(model, int.MaxValue, bufferManager, 0);
+                        model = e.ReadMessageAsync(new ReadOnlySequence<byte>(bytes.Array, 0, bytes.Count), bufferManager).GetAwaiter().GetResult();
                         b = model.CreateBufferedCopy(int.MaxValue);
                         message = b.CreateMessage();
                         break;
@@ -671,7 +674,9 @@ namespace Helpers
                     case MessageType.BufferedBuffered:
                         model = new CustomStringMessage(this);
                         MessageEncoder e = (new TextMessageEncodingBindingElement(model.Version, Encoding.UTF8)).CreateMessageEncoderFactory().Encoder;
-                        model = e.ReadMessage(e.WriteMessage(model, int.MaxValue, new SimpleBufferManager(), 0), new SimpleBufferManager());
+                        BufferManager bufferManager = BufferManager.CreateBufferManager(int.MaxValue, int.MaxValue);// Create a GCBufferManager
+                        ArraySegment<byte> bytes = e.WriteMessage(model, int.MaxValue, bufferManager, 0);
+                        model = e.ReadMessageAsync(new ReadOnlySequence<byte>(bytes.Array, 0, bytes.Count), bufferManager).GetAwaiter().GetResult();
                         b = model.CreateBufferedCopy(int.MaxValue);
                         message = b.CreateMessage();
                         break;
@@ -712,7 +717,7 @@ namespace Helpers
 
             BufferManager bufferManager = BufferManager.CreateBufferManager(int.MaxValue, int.MaxValue);
             ArraySegment<byte> encodedMessage = encoder.WriteMessage(toSend, int.MaxValue, bufferManager);
-            Message r = encoder.ReadMessage(encodedMessage, bufferManager);
+            Message r = encoder.ReadMessageAsync(new ReadOnlySequence<byte>(encodedMessage.Array, encodedMessage.Offset, encodedMessage.Count), bufferManager).GetAwaiter().GetResult();
             return r;
         }
 
@@ -1238,16 +1243,5 @@ namespace Helpers
 
         [DataMember]
         public string b = "";
-    }
-
-    public class SimpleBufferManager : BufferManager
-    {
-        public override byte[] TakeBuffer(int bufferSize)
-        {
-            return new byte[bufferSize];
-        }
-
-        public override void ReturnBuffer(byte[] buffer) { }
-        public override void Clear() { }
     }
 }
