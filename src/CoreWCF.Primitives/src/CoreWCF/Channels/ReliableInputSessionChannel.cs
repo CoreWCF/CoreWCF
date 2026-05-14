@@ -60,6 +60,46 @@ namespace CoreWCF.Channels
 
         protected virtual void AbortGuards() { }
 
+        // CoreWCF equivalent of dnf's ReliableInputSessionChannel.ShutdownCallback /
+        // InputQueueChannel.Shutdown(). When the inbound WS-RM sequence has been fully
+        // received and (Feb2005) terminated or (WSRM 1.1) closed/terminated, the channel
+        // is functionally done -- no more messages will arrive. dnf relies on a pull-based
+        // Receive loop (InputQueue.Shutdown returns null/false to readers) to surface that
+        // condition; the consuming dispatcher then closes the channel. CoreWCF uses a push-
+        // based DispatchAsync model with no reader loop, so without an explicit close the
+        // ReliableInputSessionChannel would linger in Opened state forever, leaking the
+        // per-channel DI scope and holding the binder/transport open until the underlying
+        // transport faulted or the process exited. We schedule a fire-and-forget close so
+        // that OnCloseAsync (and therefore OnClosed/scope dispose/dispatcher notification)
+        // runs on a thread-pool thread off the message-processing path.
+        protected void ScheduleShutdown()
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (State != CommunicationState.Opened)
+                    {
+                        return;
+                    }
+
+                    var token = TimeoutHelper.GetCancellationToken(DefaultCloseTimeout);
+                    await CloseAsync(token);
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e))
+                    {
+                        throw;
+                    }
+
+                    // Best-effort shutdown: faults are surfaced via the session's normal
+                    // local-fault path so they aren't lost.
+                    ServerReliableSession.OnUnknownException(e);
+                }
+            });
+        }
+
         protected void AddAcknowledgementHeader(Message message)
         {
             int bufferRemaining = -1;
@@ -665,6 +705,15 @@ namespace CoreWCF.Channels
                         ReliableSession.OnRemoteFault(remoteFaultException);
                         return;
                     }
+
+                    // dnf: ActionItem.Schedule(this.ShutdownCallback, null) at
+                    // ReliableInputSessionChannel.cs:886. The inbound sequence is fully
+                    // received (Feb2005 LastMessage merged / WSRM 1.1 CloseSequence or
+                    // TerminateSequence accepted) so close the channel asynchronously.
+                    if (scheduleShutdown)
+                    {
+                        ScheduleShutdown();
+                    }
                 }
             }
             finally
@@ -1013,6 +1062,14 @@ namespace CoreWCF.Channels
                 {
                     ReliableSession.OnRemoteFault(remoteFaultException);
                     return;
+                }
+
+                // dnf: ActionItem.Schedule(this.ShutdownCallback, null) at
+                // ReliableInputSessionChannel.cs:1257 (OverReply variant). The inbound
+                // sequence is fully closed/terminated so close the channel asynchronously.
+                if (scheduleShutdown)
+                {
+                    ScheduleShutdown();
                 }
             }
             finally

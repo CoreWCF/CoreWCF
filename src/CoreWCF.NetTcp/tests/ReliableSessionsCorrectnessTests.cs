@@ -204,6 +204,25 @@ namespace CoreWCF.NetTcp
             }
         }
 
+        // H22: when the client cleanly terminates a one-way reliable session
+        // (CloseSequence + TerminateSequence in WSRM 1.1, or LastMessage + TerminateSequence
+        // in Feb2005), the server-side ReliableInputSessionChannel must observe scheduleShutdown
+        // and asynchronously close itself. CoreWCF previously set scheduleShutdown=true but
+        // never acted on it -- the channel stayed in Opened state indefinitely, leaking the
+        // per-channel DI scope and holding the binder open until transport timeout.
+        //
+        // dnf: ActionItem.Schedule(this.ShutdownCallback, null) at
+        //   ReliableInputSessionChannel.cs:886 (OverDuplex) and 1257 (OverReply).
+        //
+        // Note: today CoreWCF.Channels.ReliableSessionBindingElement.BuildServiceDispatcher
+        // throws PlatformNotSupportedException for IInputSessionChannel listeners (because
+        // no IInputSessionChannel-shaped reliable transport binding is currently shipped in
+        // CoreWCF), so this code path is not reachable from a production binding. The fix is
+        // still applied defensively because the bug would surface immediately if/when
+        // IInputSessionChannel support is added (otherwise every one-way reliable session
+        // would leak its DI scope on clean termination). Driving this path through an
+        // integration test will require IInputSessionChannel support to be wired up first.
+
         private static IWebHost BuildHostWithCapturingLogger(ExceptionCapturingLoggerProvider capturingProvider, IStartupFilter startupFilter)
         {
             return WebHost.CreateDefaultBuilder(Array.Empty<string>())
