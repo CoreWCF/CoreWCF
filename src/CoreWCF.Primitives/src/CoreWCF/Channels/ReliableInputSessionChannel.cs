@@ -79,6 +79,11 @@ namespace CoreWCF.Channels
             base.OnClosed();
             Binder.Faulted -= OnBinderFaulted;
             _deliveryStrategy.Dispose();
+            // Dispose the per-channel DI scope here so that scoped services are released on
+            // every termination path (close / abort / fault) rather than only the happy
+            // OnCloseAsync path. Leaving this in OnCloseAsync only meant aborted or faulted
+            // channels would leak any scoped services until GC.
+            _serviceScope.Dispose();
         }
 
         protected virtual Task CloseGuardsAsync(CancellationToken token) => Task.CompletedTask;
@@ -167,7 +172,6 @@ namespace CoreWCF.Channels
             await CloseGuardsAsync(token);
             await Binder.CloseAsync(token, MaskingMode.Handled);
             await _serviceDispatcher.OnReliableChannelCloseAsync(ReliableSession.InputID, null, token);
-            _serviceScope.Dispose();
             await base.OnCloseAsync(token);
         }
 

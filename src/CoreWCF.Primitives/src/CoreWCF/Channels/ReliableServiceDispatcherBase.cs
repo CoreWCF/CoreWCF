@@ -346,6 +346,11 @@ namespace CoreWCF.Channels
 
         protected override void OnFaulted()
         {
+            // dnf's ReliableChannelListener.OnFaulted (line 758-763) aborts the inner listener
+            // before chaining to base. We mirror that behavior here so a faulted reliable
+            // service dispatcher tears down the underlying transport-side dispatcher and
+            // doesn't leak channels/listeners.
+            AbortInnerServiceDispatcher();
             base.OnFaulted();
         }
 

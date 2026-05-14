@@ -301,13 +301,22 @@ namespace CoreWCF.Channels
         {
             try
             {
+                bool firstIteration = true;
                 while (true)
                 {
                     if (await _sendGuard.EnterAsync())
                     {
                         try
                         {
-                            MessageAttemptInfo attemptInfo = Strategy.GetMessageInfoForRetry(false);
+                            // Match the .NET Framework WCF behavior in
+                            // ReliableOutputConnection.SendRetries / CompleteSendRetries:
+                            // peek the retransmission window head on the first iteration
+                            // (so it can be retried), then remove the head on each
+                            // subsequent iteration so we walk forward through the queue.
+                            // Always passing 'false' here causes the loop to retry the
+                            // same head message forever.
+                            MessageAttemptInfo attemptInfo = Strategy.GetMessageInfoForRetry(!firstIteration);
+                            firstIteration = false;
                             if (attemptInfo.Message == null)
                             {
                                 break;
@@ -321,6 +330,14 @@ namespace CoreWCF.Channels
                         {
                             _sendGuard.Exit();
                         }
+                    }
+                    else
+                    {
+                        // EnterAsync returned false because the guard has been closed/aborted.
+                        // Stop the retry loop -- continuing would be a CPU-hot no-op since the
+                        // guard will never let us back in. (Match dnf behavior in
+                        // CompleteSendRetries which exits when sendGuard.Enter returns false.)
+                        return;
                     }
 
                     Strategy.DequeuePending();

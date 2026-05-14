@@ -385,10 +385,12 @@ namespace CoreWCF.Channels
                 else if (wsrmFeb2005 && info.TerminateSequenceInfo != null)
                 {
                     bool isTerminateEarly;
+                    bool terminatedNow;
 
                     lock (ThisLock)
                     {
-                        isTerminateEarly = !_inputConnection.Terminate();
+                        terminatedNow = _inputConnection.Terminate();
+                        isTerminateEarly = !terminatedNow;
                     }
 
                     if (isTerminateEarly)
@@ -396,6 +398,10 @@ namespace CoreWCF.Channels
                         fault = SequenceTerminatedFault.CreateProtocolFault(_session.InputID,
                             SR.SequenceTerminatedEarlyTerminateSequence,
                             SR.EarlyTerminateSequence);
+                    }
+                    else
+                    {
+                        OnInputSessionFullyTerminated();
                     }
                 }
                 else if (wsrm11)
@@ -593,6 +599,8 @@ namespace CoreWCF.Channels
                     {
                         _inputConnection.Terminate();
                     }
+
+                    OnInputSessionFullyTerminated();
                 }
 
                 if (remoteFaultException != null)
@@ -618,6 +626,12 @@ namespace CoreWCF.Channels
         // Called when all expected input messages have been received (scheduleShutdown).
         // The server override uses this to proactively close the output session.
         protected virtual void OnScheduleShutdown() { }
+
+        // Called when the remote peer has fully terminated its outbound sequence (i.e.
+        // TerminateSequence has been processed and accepted). The server override uses this
+        // hook to reciprocate by closing its own output sequence so the remote peer's
+        // bidirectional Close handshake can complete.
+        protected virtual void OnInputSessionFullyTerminated() { }
 
         protected abstract Task ProcessMessageAsync(WsrmMessageInfo info);
 
@@ -735,7 +749,6 @@ namespace CoreWCF.Channels
             await _guard.CloseAsync(token);
             await _session.CloseAsync(token);
             await _binder.CloseAsync(token, MaskingMode.Handled);
-            _serviceScope.Dispose();
             await base.OnCloseAsync(token);
         }
 
@@ -783,6 +796,10 @@ namespace CoreWCF.Channels
             _binder.Faulted -= OnBinderFaulted;
             if (_deliveryStrategy != null)
                 _deliveryStrategy.Dispose();
+            // Dispose the per-channel DI scope here so scoped services are released on every
+            // termination path (close / abort / fault) rather than only the happy OnCloseAsync
+            // path. Otherwise an aborted/faulted reliable channel would leak its scope.
+            _serviceScope?.Dispose();
         }
 
         protected override void OnClosing()
@@ -1117,17 +1134,47 @@ namespace CoreWCF.Channels
                 ReliableSession.OutputID, token);
         }
 
-        // When the server receives all expected input messages (e.g., client sends CloseSequence),
-        // proactively close the output session. This sends CloseSequence + TerminateSequence for
-        // the server->client direction, which the client needs to complete its close.
+        // OnScheduleShutdown fires when the input session signals scheduled-shutdown:
+        //   * Feb2005: when the LastMessage of the inbound sequence has been processed.
+        //   * WSRM 1.1: when CloseSequence (or TerminateSequence on a not-yet-LastKnown sequence)
+        //               has been processed.
         //
-        // Known limitation: WCF's ClientReliableDuplexSessionChannel.CloseOutputSession also sends
-        // these messages even for a half-close, so server-initiated callbacks issued after the
-        // client's CloseOutputSession may race with this auto-close and be rejected with
-        // "Send cannot be called after CloseOutputSession". A full fix requires either a
-        // server-side application API to drive output close or tracking pending callbacks before
-        // closing; both are out of scope for this change.
+        // For Feb2005 there is no separate CloseSequence message: a client's CloseOutputSession
+        // sends LastMessage + TerminateSequence in one shot, so the only signal the server has
+        // that the client is finished is LastMessage. We auto-close the server output here so
+        // the client's bidirectional Close handshake can complete. Known limitation: server-
+        // initiated callbacks issued after the client's CloseOutputSession will race with this
+        // auto-close and may be rejected.
+        //
+        // For WSRM 1.1 the protocol distinguishes half-close (CloseSequence only) from
+        // full-close (CloseSequence + TerminateSequence). Defer the server output close until
+        // OnInputSessionFullyTerminated fires (TerminateSequence received) so the half-close-
+        // then-callback scenario works against well-behaved clients that omit TerminateSequence
+        // for a true half-close.
         protected override void OnScheduleShutdown()
+        {
+            base.OnScheduleShutdown();
+
+            if (Settings.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessagingFebruary2005)
+            {
+                ScheduleAutoCloseOutputSession();
+            }
+        }
+
+        // For WSRM 1.1 the server output is closed only after the client has actually sent
+        // TerminateSequence, so callbacks issued between CloseSequence and TerminateSequence
+        // can still flow through the server-to-client direction.
+        protected override void OnInputSessionFullyTerminated()
+        {
+            base.OnInputSessionFullyTerminated();
+
+            if (Settings.ReliableMessagingVersion == ReliableMessagingVersion.WSReliableMessaging11)
+            {
+                ScheduleAutoCloseOutputSession();
+            }
+        }
+
+        private void ScheduleAutoCloseOutputSession()
         {
             _ = Task.Run(async () =>
             {
