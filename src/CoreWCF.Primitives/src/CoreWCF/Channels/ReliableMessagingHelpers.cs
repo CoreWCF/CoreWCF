@@ -45,63 +45,94 @@ namespace CoreWCF.Channels
 
     internal sealed class Guard
     {
-        private readonly TaskCompletionSource<object> _tcs;
-        private readonly int _currentCount = 0;
+        private TaskCompletionSource<object> _emptyTcs;
+        private int _currentCount;
         private readonly int _maxCount;
         private bool _closed;
         private readonly object _thisLock = new object();
-        private readonly SemaphoreSlim _semaphore;
 
         public Guard() : this(1) { }
 
         public Guard(int maxCount)
         {
-            _semaphore = new SemaphoreSlim(maxCount, maxCount);
             _maxCount = maxCount;
         }
 
         public void Abort()
         {
-            _closed = true;
+            lock (_thisLock)
+            {
+                _closed = true;
+                _currentCount = 0;
+                _emptyTcs?.TrySetResult(null);
+            }
         }
 
-        public async Task CloseAsync(CancellationToken token)  
+        public Task CloseAsync(CancellationToken token)
         {
-            try
+            TaskCompletionSource<object> tcs;
+
+            lock (_thisLock)
             {
-                for (int i = 0; i < _maxCount; i++)
+                _closed = true;
+                if (_currentCount == 0)
                 {
-                    await _semaphore.WaitAsync(token);
+                    return Task.CompletedTask;
                 }
+
+                if (_emptyTcs == null)
+                {
+                    _emptyTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+                }
+
+                tcs = _emptyTcs;
             }
-            catch (OperationCanceledException)
+
+            return WaitForCloseAsync(tcs, token);
+        }
+
+        private static async Task WaitForCloseAsync(TaskCompletionSource<object> tcs, CancellationToken token)
+        {
+            if (!await tcs.Task.WaitWithCancellationAsync(token))
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new TimeoutException(SR.Format(SR.TimeoutOnOperation, TimeoutHelper.GetOriginalTimeout(token))));
-            }
-            finally
-            {
-                _semaphore.Dispose();
             }
         }
 
         public Task<bool> EnterAsync()
         {
-            if (_closed)
-                return Task.FromResult(false);
+            lock (_thisLock)
+            {
+                if (_closed || _currentCount >= _maxCount)
+                {
+                    return Task.FromResult(false);
+                }
 
-            return _semaphore.WaitAsync(0);
+                _currentCount++;
+                return Task.FromResult(true);
+            }
         }
 
         public void Exit()
         {
-            try
+            TaskCompletionSource<object> tcsToSignal = null;
+
+            lock (_thisLock)
             {
-                _semaphore.Release();
+                if (_currentCount == 0)
+                {
+                    throw Fx.AssertAndThrow("Exit can only be called after Enter.");
+                }
+
+                _currentCount--;
+
+                if (_closed && _currentCount == 0 && _emptyTcs != null)
+                {
+                    tcsToSignal = _emptyTcs;
+                }
             }
-            catch (SemaphoreFullException)
-            {
-                throw Fx.AssertAndThrow("Exit can only be called after Enter.");
-            }
+
+            tcsToSignal?.TrySetResult(null);
         }
     }
 
