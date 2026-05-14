@@ -59,9 +59,22 @@ using Microsoft.Extensions.DependencyInjection;");
             Dictionary<IParameterSymbol, KeyedService> keyedServices = new(SymbolEqualityComparer.Default);
             List<MessageProperty> messageProperties = new();
 
+            // For class-based contracts, ServiceContract and ServiceContractImplementation are the same
+            bool isClassBasedContract = SymbolEqualityComparer.Default.Equals(
+                operationContractSpec.ServiceContract,
+                operationContractSpec.ServiceContractImplementation);
+
             foreach (var parameter in operationContractSpec.UserProvidedOperationContractImplementation!.Parameters)
             {
-                if (operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter)))
+                // For class-based contracts, we can't rely on parameter matching since the operation contract
+                // and implementation are the same method. Instead, check directly for injection attributes.
+                bool isInjectedParameter = isClassBasedContract
+                    ? parameter.GetOneAttributeOf(_generationSpec.CoreWCFInjectedSymbol,
+                        _generationSpec.MicrosoftAspNetCoreMvcFromServicesSymbol,
+                        _generationSpec.MicrosoftExtensionsDependencyInjectionFromKeyedServicesSymbol) is not null
+                    : !operationContractSpec.MissingOperationContract.Parameters.Any(p => p.IsMatchingParameter(parameter));
+
+                if (!isInjectedParameter)
                 {
                     continue;
                 }
