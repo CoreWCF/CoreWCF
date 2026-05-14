@@ -1,8 +1,8 @@
 {
-  "total": 22020,
-  "passed": 21401,
-  "failed": 1,
-  "skipped": 618,
+  "total": 23316,
+  "passed": 22658,
+  "failed": 0,
+  "skipped": 658,
   "other": 0,
   "matrix": [
     {
@@ -64,8 +64,8 @@
       "os": "Windows",
       "tfm": "net472",
       "total": 1250,
-      "passed": 1232,
-      "failed": 1,
+      "passed": 1233,
+      "failed": 0,
       "skipped": 17
     },
     {
@@ -152,6 +152,15 @@
     {
       "cfg": "Release",
       "os": "Windows",
+      "tfm": "net8.0",
+      "total": 1296,
+      "passed": 1256,
+      "failed": 0,
+      "skipped": 40
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
       "tfm": "net9.0",
       "total": 1296,
       "passed": 1256,
@@ -160,5 +169,5 @@
     }
   ],
   "title": "CoreWCF Test Results — PR #1702",
-  "subtitle": "PR #1702 · commit 3356323 · [run 25870472773](https://github.com/CoreWCF/CoreWCF/actions/runs/25870472773)"
+  "subtitle": "PR #1702 · commit 9fe1ddb · [run 25881776784](https://github.com/CoreWCF/CoreWCF/actions/runs/25881776784)"
 }
