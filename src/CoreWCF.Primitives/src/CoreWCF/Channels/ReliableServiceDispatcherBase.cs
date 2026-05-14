@@ -386,6 +386,12 @@ namespace CoreWCF.Channels
                     return (reliableChannel, newChannel);
                 }
 
+                if (_channelsByInput.Count >= MaxPendingChannels)
+                {
+                    info.FaultReply = WsrmUtilities.CreateCSRefusedServerTooBusyFault(MessageVersion, ReliableMessagingVersion, SR.Format(SR.ServerTooBusy, _innerServiceDispatcher.BaseAddress));
+                    return (reliableChannel, newChannel);
+                }
+
                 id = WsrmUtilities.NextSequenceId();
 
                 var binder = CreateBinder(channel, acksTo, createSequenceInfo.ReplyTo);
@@ -604,6 +610,12 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(RequestContext context)
             {
+                // null context signals end-of-input from the channel layer.
+                if (context == null)
+                {
+                    return Task.CompletedTask;
+                }
+
                 if (context is TItem item)
                 {
                     return _serviceDispatcher.DispatchAsync(item, _innerChannel);
@@ -614,6 +626,12 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(Message message)
             {
+                // null message signals end-of-input from the channel layer.
+                if (message == null)
+                {
+                    return Task.CompletedTask;
+                }
+
                 if (message is TItem item)
                 {
                     return _serviceDispatcher.DispatchAsync(item, _innerChannel);
@@ -816,6 +834,12 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(RequestContext context)
             {
+                // null context signals end-of-input from the channel layer.
+                if (context == null)
+                {
+                    return Task.CompletedTask;
+                }
+
                 // TODO: If context is null, then the channel is being closed
                 if (context is TItem item)
                 {
@@ -827,6 +851,12 @@ namespace CoreWCF.Channels
 
             public Task DispatchAsync(Message message)
             {
+                // null message signals end-of-input from the channel layer.
+                if (message == null)
+                {
+                    return Task.CompletedTask;
+                }
+
                 if (message is TItem item)
                 {
                     return _serviceDispatcher.DispatchAsync(item, _innerChannel);

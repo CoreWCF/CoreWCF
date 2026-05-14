@@ -1119,7 +1119,14 @@ namespace CoreWCF.Channels
 
         // When the server receives all expected input messages (e.g., client sends CloseSequence),
         // proactively close the output session. This sends CloseSequence + TerminateSequence for
-        // the server→client direction, which the client needs to complete its close.
+        // the server->client direction, which the client needs to complete its close.
+        //
+        // Known limitation: WCF's ClientReliableDuplexSessionChannel.CloseOutputSession also sends
+        // these messages even for a half-close, so server-initiated callbacks issued after the
+        // client's CloseOutputSession may race with this auto-close and be rejected with
+        // "Send cannot be called after CloseOutputSession". A full fix requires either a
+        // server-side application API to drive output close or tracking pending callbacks before
+        // closing; both are out of scope for this change.
         protected override void OnScheduleShutdown()
         {
             _ = Task.Run(async () =>
