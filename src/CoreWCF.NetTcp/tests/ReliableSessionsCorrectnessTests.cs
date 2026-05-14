@@ -121,16 +121,88 @@ namespace CoreWCF.NetTcp
             }
         }
 
-        // Note on a known limitation:
-        // The .NET Framework WCF allows server-initiated callbacks to be sent AFTER a duplex
-        // client calls IDuplexSession.CloseOutputSession, because the application owns when
-        // the server output session closes. CoreWCF uses a push-only dispatch model with no
-        // application-driven output close, so the dispatcher auto-closes the server output as
-        // soon as the input session terminates. Even with WS-RM 1.1, WCF clients send both
-        // CloseSequence and TerminateSequence as part of CloseOutputSession, so the server
-        // cannot distinguish a half-close from a full close at the message level. Tracking the
-        // outbound callback queue and deferring the auto-close is a larger change tracked
-        // separately.
+        // C4 + H1: After a duplex client calls IDuplexSession.CloseOutputSession in WSRM 1.1,
+        // the server must NOT auto-close its server-to-client output sequence on receipt of
+        // CloseSequence. Otherwise pending server-initiated callbacks fail with
+        // "Send cannot be called after CloseOutputSession". The server should only auto-close
+        // its output once the client sends TerminateSequence, which signals a full close.
+        //
+        // The .NET Framework WCF client sends both CloseSequence and TerminateSequence as part
+        // of CloseOutputSession (it does not implement a true half-close), so this scenario is
+        // not reachable with a stock client. We therefore use a test interceptor that strips
+        // outbound TerminateSequence from the client side, simulating a well-behaved peer that
+        // genuinely wants a half-close.
+        [NetCoreOnlyFact]
+        public void Wsrm11_HalfCloseAllowsServerCallback()
+        {
+            CallbackTriggerService.Reset();
+            var startup = new CallbackTriggerStartup();
+            IWebHost host = ServiceHelper.CreateWebHostBuilder(startup, _output).Build();
+            using (host)
+            {
+                host.Start();
+
+                System.ServiceModel.NetTcpBinding netTcp = ClientHelper.GetBufferedModeBinding(System.ServiceModel.SecurityMode.None);
+                netTcp.ReliableSession.Enabled = true;
+                System.ServiceModel.Channels.CustomBinding clientBinding = new System.ServiceModel.Channels.CustomBinding(netTcp);
+                System.ServiceModel.Channels.ReliableSessionBindingElement rsbe =
+                    clientBinding.Elements.Find<System.ServiceModel.Channels.ReliableSessionBindingElement>();
+                rsbe.ReliableMessagingVersion = System.ServiceModel.ReliableMessagingVersion.WSReliableMessaging11;
+
+                var interceptor = new Helpers.Interceptor.WsrmHalfCloseInterceptor();
+                int transportIndex = clientBinding.Elements.Count - 1;
+                clientBinding.Elements.Insert(transportIndex, new Helpers.Interceptor.InterceptingBindingElement(interceptor));
+
+                var endpoint = new System.ServiceModel.EndpointAddress(startup.GetServiceUri(host));
+                var callback = new CallbackHandler();
+                var factory = new System.ServiceModel.DuplexChannelFactory<ITriggerService>(
+                    new System.ServiceModel.InstanceContext(callback), clientBinding, endpoint);
+                ITriggerService channel = factory.CreateChannel();
+                try
+                {
+                    (channel as System.ServiceModel.IClientChannel).Open();
+
+                    channel.TriggerBackgroundCallback("payload");
+
+                    System.ServiceModel.Channels.IDuplexSession session =
+                        (channel as System.ServiceModel.IClientChannel)
+                            .GetProperty<System.ServiceModel.Channels.IDuplexSessionChannel>()?.Session;
+                    Assert.NotNull(session);
+
+                    // Tell the interceptor to drop client-side TerminateSequence so the server
+                    // sees CloseSequence but not TerminateSequence. The CoreWCF client will
+                    // otherwise send both as part of CloseOutputSession.
+                    interceptor.SuppressOutboundTerminateSequence = true;
+
+                    // Best-effort half-close. The client's TerminateSequenceResponse will time
+                    // out (we suppressed the request), so guard it with a short timeout and
+                    // continue regardless. The point is to send CloseSequence on the wire.
+                    try { session.CloseOutputSession(TimeSpan.FromSeconds(2)); }
+                    catch { /* expected: server never sees TerminateSequence so the wait may time out */ }
+
+                    Thread.Sleep(500);
+
+                    CallbackTriggerService.ReleaseGate();
+
+                    bool received = callback.Received.WaitOne(TimeSpan.FromSeconds(10));
+                    Exception serverSideFailure = CallbackTriggerService.LastError;
+                    if (serverSideFailure != null)
+                    {
+                        _output.WriteLine("Server-side callback exception:");
+                        _output.WriteLine(serverSideFailure.ToString());
+                    }
+                    Assert.Null(serverSideFailure);
+                    Assert.True(received, "Client did not receive the expected callback after half-close.");
+                }
+                finally
+                {
+                    interceptor.SuppressOutboundTerminateSequence = false;
+                    try { (channel as System.ServiceModel.IClientChannel).Abort(); }
+                    catch { }
+                    try { factory.Abort(); } catch { }
+                }
+            }
+        }
 
         private static IWebHost BuildHostWithCapturingLogger(ExceptionCapturingLoggerProvider capturingProvider, IStartupFilter startupFilter)
         {
@@ -196,6 +268,109 @@ namespace CoreWCF.NetTcp
 
             public Uri GetServiceUri(IWebHost host) =>
                 new Uri($"{host.GetNetTcpAddressInUse()}{Path}");
+        }
+
+        internal sealed class CallbackTriggerStartup : IStartupFilter
+        {
+            private const string Path = "/rsCallbackTrigger.svc";
+
+            public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+            {
+                return builder =>
+                {
+                    builder.UseServiceModel(serviceBuilder =>
+                    {
+                        serviceBuilder.AddService<CallbackTriggerService>();
+                        var netTcp = new CoreWCF.NetTcpBinding(CoreWCF.SecurityMode.None, true);
+                        var binding = new CoreWCF.Channels.CustomBinding(netTcp);
+                        var rsbe = binding.Elements.Find<CoreWCF.Channels.ReliableSessionBindingElement>();
+                        rsbe.ReliableMessagingVersion = CoreWCF.ReliableMessagingVersion.WSReliableMessaging11;
+                        serviceBuilder.AddServiceEndpoint<CallbackTriggerService, ITriggerServiceCoreWcf>(binding, Path);
+                    });
+                    next(builder);
+                };
+            }
+
+            public Uri GetServiceUri(IWebHost host) =>
+                new Uri($"{host.GetNetTcpAddressInUse()}{Path}");
+        }
+
+        // CoreWCF-side server contract.
+        [CoreWCF.ServiceContract(Namespace = "http://corewcf/test", Name = "TriggerService", CallbackContract = typeof(ITriggerCallbackCoreWcf))]
+        internal interface ITriggerServiceCoreWcf
+        {
+            [CoreWCF.OperationContract(IsOneWay = true, Action = "http://corewcf/test/TriggerService/TriggerBackgroundCallback")]
+            void TriggerBackgroundCallback(string payload);
+        }
+
+        [CoreWCF.ServiceContract(Namespace = "http://corewcf/test", Name = "TriggerCallback")]
+        internal interface ITriggerCallbackCoreWcf
+        {
+            [CoreWCF.OperationContract(IsOneWay = true, Action = "http://corewcf/test/TriggerService/Callback")]
+            void Callback(string payload);
+        }
+
+        // Client-side mirror.
+        [System.ServiceModel.ServiceContract(Namespace = "http://corewcf/test", Name = "TriggerService", CallbackContract = typeof(ITriggerCallback))]
+        public interface ITriggerService
+        {
+            [System.ServiceModel.OperationContract(IsOneWay = true, Action = "http://corewcf/test/TriggerService/TriggerBackgroundCallback")]
+            void TriggerBackgroundCallback(string payload);
+        }
+
+        [System.ServiceModel.ServiceContract(Namespace = "http://corewcf/test", Name = "TriggerCallback")]
+        public interface ITriggerCallback
+        {
+            [System.ServiceModel.OperationContract(IsOneWay = true, Action = "http://corewcf/test/TriggerService/Callback")]
+            void Callback(string payload);
+        }
+
+        public sealed class CallbackHandler : ITriggerCallback
+        {
+            public ManualResetEvent Received { get; } = new ManualResetEvent(false);
+            public string LastPayload { get; private set; }
+
+            public void Callback(string payload)
+            {
+                LastPayload = payload;
+                Received.Set();
+            }
+        }
+
+        [CoreWCF.ServiceBehavior(ConcurrencyMode = CoreWCF.ConcurrencyMode.Multiple, InstanceContextMode = CoreWCF.InstanceContextMode.Single)]
+        internal sealed class CallbackTriggerService : ITriggerServiceCoreWcf
+        {
+            private static readonly SemaphoreSlim s_gate = new(0, 1);
+            private static Exception s_lastError;
+
+            public static void Reset()
+            {
+                while (s_gate.CurrentCount > 0)
+                {
+                    s_gate.Wait(0);
+                }
+                s_lastError = null;
+            }
+
+            public static void ReleaseGate() => s_gate.Release();
+            public static Exception LastError => s_lastError;
+
+            public void TriggerBackgroundCallback(string payload)
+            {
+                ITriggerCallbackCoreWcf cb = CoreWCF.OperationContext.Current.GetCallbackChannel<ITriggerCallbackCoreWcf>();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await s_gate.WaitAsync();
+                        cb.Callback(payload);
+                    }
+                    catch (Exception ex)
+                    {
+                        s_lastError = ex;
+                    }
+                });
+            }
         }
     }
 }
