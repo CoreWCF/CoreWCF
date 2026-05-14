@@ -21,6 +21,16 @@
 #     (public repo) - no PAT required.
 #   * Writing to the private repo uses the built-in `GITHUB_TOKEN` with
 #     `contents: write` (and `issues: write` to file the failure issue).
+#     CAVEAT: the `GITHUB_TOKEN` is hard-blocked by GitHub from creating or
+#     updating files under `.github/workflows/` regardless of contents:write
+#     permission. So any upstream commit that modifies a workflow file will
+#     cause the push to be rejected with:
+#       refusing to allow a GitHub App to create or update workflow ...
+#       without `workflows` permission
+#     This is intentionally NOT mitigated with a PAT. Workflow-file changes
+#     should be rare once the GHA setup stabilizes; when one does land, the
+#     job fails, the failure issue is opened, and the maintainer pushes the
+#     update manually (see the issue body for the recipe).
 
 name: Sync from upstream
 
@@ -97,17 +107,40 @@ jobs:
             echo "::group::Pushing $branch (${origin_sha:-<new>} -> $upstream_sha)"
             # No --force / --force-with-lease: a non-fast-forward push is
             # rejected by the server, which is exactly what we want.
-            if git push origin "$upstream_sha:refs/heads/$branch"; then
+            push_log="$(mktemp)"
+            if git push origin "$upstream_sha:refs/heads/$branch" 2>&1 | tee "$push_log"; then
               echo "Pushed $branch."
             else
-              echo "::error::Failed to fast-forward '$branch' (${origin_sha:-<new>} -> $upstream_sha)."
-              {
-                echo "- **\`$branch\`**: cannot fast-forward."
-                echo "  - private HEAD: \`${origin_sha:-<missing>}\`"
-                echo "  - upstream HEAD: \`$upstream_sha\`"
-              } >> "$report_file"
+              # Distinguish the two failure modes so the issue body is actionable:
+              #   1. GitHub blocked the push because it touches a workflow file.
+              #      The maintainer has to push the update manually (one-shot).
+              #   2. The branch genuinely diverged - needs reconciliation.
+              if grep -q 'without .workflows. permission' "$push_log"; then
+                echo "::error::Push of '$branch' rejected: contains workflow-file change (manual push required)."
+                {
+                  echo "- **\`$branch\`**: rejected because the upstream commit modifies"
+                  echo "  files under \`.github/workflows/\` (GitHub blocks the built-in"
+                  echo "  \`GITHUB_TOKEN\` from updating workflow files)."
+                  echo "  - private HEAD: \`${origin_sha:-<missing>}\`"
+                  echo "  - upstream HEAD: \`$upstream_sha\`"
+                  echo "  - **manual fix** (run from a clone with push access to the private repo):"
+                  echo "    \`\`\`"
+                  echo "    git fetch https://github.com/CoreWCF/CoreWCF.git $branch"
+                  echo "    git push https://github.com/CoreWCF/PrivateSecurityFixes.git \\"
+                  echo "      $upstream_sha:refs/heads/$branch"
+                  echo "    \`\`\`"
+                } >> "$report_file"
+              else
+                echo "::error::Failed to fast-forward '$branch' (${origin_sha:-<new>} -> $upstream_sha)."
+                {
+                  echo "- **\`$branch\`**: cannot fast-forward."
+                  echo "  - private HEAD: \`${origin_sha:-<missing>}\`"
+                  echo "  - upstream HEAD: \`$upstream_sha\`"
+                } >> "$report_file"
+              fi
               rc=1
             fi
+            rm -f "$push_log"
             echo "::endgroup::"
           done
 
@@ -159,9 +192,13 @@ jobs:
               report || '_(no detail captured - see workflow log)_',
               ``,
               `## What to do`,
-              `Most likely cause: a branch diverged because a security commit was landed on it.`,
+              `There are two common causes:`,
               ``,
-              `Resolve by either:`,
+              `**1. Workflow-file change (manual one-shot push needed).**`,
+              `If the failure note above says "rejected because the upstream commit modifies files under \`.github/workflows/\`", GitHub blocks the workflow's built-in token from updating workflow files. This is intentional - we don't carry a long-lived PAT. Run the manual-fix command shown in the failure note from a local clone with push access. The next scheduled sync will then succeed.`,
+              ``,
+              `**2. Branch divergence (security commit landed locally).**`,
+              `If the note says "cannot fast-forward", the branch has commits that aren't upstream. Resolve by either:`,
               `- merging \`upstream/<branch>\` locally and pushing the merge result, or`,
               `- moving the security commit to a dedicated \`security/*\` branch and resetting the protected branch to upstream.`,
               ``,
