@@ -55,8 +55,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Trigger gate. The CI workflow lives on `main` in BOTH the public
+  # `CoreWCF/CoreWCF` repo and the private `CoreWCF/PrivateSecurityFixes`
+  # mirror so the two `main` branches stay byte-identical. We don't want
+  # every push from the upstream-sync workflow to run a full CI matrix on
+  # the private mirror (it would double the cost and produce no signal that
+  # the public repo's CI hasn't already produced). So this gate skips on
+  # push events into the private mirror; manual `workflow_dispatch` runs
+  # there are still allowed. The downstream jobs all reach this gate
+  # transitively through `needs:` chains, so when it skips, the entire
+  # workflow skips with zero runner minutes consumed.
+  gate:
+    name: Trigger gate
+    runs-on: ubuntu-latest
+    if: github.repository != 'CoreWCF/PrivateSecurityFixes' || github.event_name != 'push'
+    steps:
+      - name: Gate passed
+        run: echo "CI gate passed for ${{ github.repository }} (event=${{ github.event_name }})."
+
   build:
     name: Build (${{ matrix.configuration }} / ${{ matrix.os }})
+    needs: gate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -143,6 +162,7 @@ jobs:
 
   code-analysis:
     name: Code Analysis
+    needs: gate
     runs-on: ubuntu-latest
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
