@@ -228,7 +228,10 @@ namespace CoreWCF.NetTcp
                         int idx = i;
                         tasks[idx] = Task.Run(() => channel.EchoString($"msg-{idx}"));
                     }
-                    await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromMinutes(1));
+                    Task all = Task.WhenAll(tasks);
+                    Task completed = await Task.WhenAny(all, Task.Delay(TimeSpan.FromMinutes(1)));
+                    Assert.Same(all, completed);
+                    await all;
                     for (int i = 0; i < parallel; i++)
                     {
                         Assert.Equal($"msg-{i}", await tasks[i]);
