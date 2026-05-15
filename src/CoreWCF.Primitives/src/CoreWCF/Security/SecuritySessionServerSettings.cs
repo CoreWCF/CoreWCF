@@ -47,6 +47,9 @@ namespace CoreWCF.Security
         private SecurityTokenParameters _issuedTokenParameters;
         private SecurityTokenResolver _sessionTokenResolver;
         private bool _acceptNewWork;
+        private TimeSpan _closeTimeout;
+        private TimeSpan _openTimeout;
+        private TimeSpan _sendTimeout;
         private Uri _listenUri;
         private SecurityListenerSettingsLifetimeManager _settingsLifetimeManager;
 
@@ -274,6 +277,12 @@ namespace CoreWCF.Security
 
         public TimeSpan DefaultCloseTimeout => ServiceDefaults.CloseTimeout;
 
+        public TimeSpan OpenTimeout => _openTimeout;
+
+        public TimeSpan CloseTimeout => _closeTimeout;
+
+        public TimeSpan SendTimeout => _sendTimeout;
+
         public void OnFaulted()
         {
         }
@@ -298,22 +307,19 @@ namespace CoreWCF.Security
             WrapperCommunicationObj.Abort();
         }
 
-        private void OnCloseCore(TimeSpan timeout)
+        private async Task OnCloseCoreAsync(CancellationToken token)
         {
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            ClearPendingSessions();
-            ClosePendingChannels(timeoutHelper.GetCancellationToken());
             if (_inactivityTimer != null)
             {
                 _inactivityTimer.Cancel();
             }
             if (_sessionProtocolFactory != null)
             {
-                _sessionProtocolFactory.OnCloseAsync(timeoutHelper.RemainingTime());
+                await _sessionProtocolFactory.OnCloseAsync(token);
             }
             if (SessionTokenAuthenticator != null)
             {
-                SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
+                await SecurityUtils.CloseTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, token);
             }
         }
 
@@ -323,10 +329,12 @@ namespace CoreWCF.Security
             {
                 _inactivityTimer.Cancel();
             }
+
             if (_sessionProtocolFactory != null)
             {
-                _sessionProtocolFactory.OnCloseAsync(TimeSpan.Zero);
+                _sessionProtocolFactory.CloseAsync(true, default);
             }
+
             if (SessionTokenAuthenticator != null)
             {
                 SecurityUtils.AbortTokenAuthenticatorIfRequired(SessionTokenAuthenticator);
@@ -376,16 +384,18 @@ namespace CoreWCF.Security
 
         private void AbortPendingChannels(CancellationToken token)
         {
-            ClosePendingChannels(token);
+            ClosePendingChannelsAsync(token).GetAwaiter().GetResult();
         }
 
-        private async void ClosePendingChannels(CancellationToken token)
+        private Task ClosePendingChannelsAsync(CancellationToken token)
         {
-            var tasks = new Task[_activeSessions.Count];
+            // TODO: Evaluate this change as this used to close _activeSessions
+            Task[] tasks;
             lock (ThisGlobalLock)
             {
+                tasks = new Task[_pendingSessions1?.Count ?? 0 + _pendingSessions2?.Count ?? 0];
                 int index = 0;
-                if (typeof(IReplyChannel).Equals(AcceptorChannelType))
+                if (_pendingSessions1 != null)
                 {
                     foreach (ServerSecuritySimplexSessionChannel securitySessionSimplexChannel in _activeSessions.Values)
                     {
@@ -394,7 +404,8 @@ namespace CoreWCF.Security
                     }
                 }
             }
-            await Task.WhenAll(tasks);
+
+            return Task.WhenAll(tasks);
         }
 
         private void ConfigureSessionSecurityProtocolFactory()
@@ -710,21 +721,22 @@ namespace CoreWCF.Security
             }
         }
 
-        public Task CloseAsync(TimeSpan timeout)
+        public Task CloseAsync(CancellationToken token)
         {
-            return WrapperCommunicationObj.CloseAsync();
+            return WrapperCommunicationObj.CloseAsync(token);
         }
-        public Task OnCloseAsync(TimeSpan timeout)
+        public async Task OnCloseAsync(CancellationToken token)
         {
-            OnCloseCore(timeout);
-            return Task.CompletedTask;
+            await ClosePendingChannelsAsync(token);
+            await OnCloseCoreAsync(token);
         }
 
-        public Task OpenAsync(TimeSpan timeout)
+        public Task OpenAsync(CancellationToken token)
         {
-            return WrapperCommunicationObj.OpenAsync();
+            return WrapperCommunicationObj.OpenAsync(token);
         }
-        public Task OnOpenAsync(TimeSpan timeout)
+
+        public async Task OnOpenAsync(CancellationToken token)
         {
             if (_sessionProtocolFactory == null)
             {
@@ -752,7 +764,9 @@ namespace CoreWCF.Security
             }
             MessageVersion = _channelBuilder.Binding.MessageVersion;
             _listenUri = _securityServiceDispatcher.BaseAddress;
-            TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            _openTimeout = _securityServiceDispatcher.InternalOpenTimeout;
+            _closeTimeout = _securityServiceDispatcher.InternalCloseTimeout;
+            _sendTimeout = _securityServiceDispatcher.DefaultSendTimeout;
             _pendingSessions1 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
             _pendingSessions2 = new Dictionary<UniqueId, SecurityContextSecurityToken>();
             _sessionFilters = new Dictionary<UniqueId, MessageFilter>();
@@ -762,31 +776,24 @@ namespace CoreWCF.Security
                 _inactivityTimer.Set(_inactivityTimeout);
             }
             ConfigureSessionSecurityProtocolFactory();
-            _sessionProtocolFactory.OpenAsync(timeoutHelper.RemainingTime());
-            SetupSessionTokenAuthenticatorAsync();
+            await _sessionProtocolFactory.OpenAsync(token);
+            await SetupSessionTokenAuthenticatorAsync();
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).IssuedSecurityTokenHandler = OnTokenIssued;
             ((IIssuanceSecurityTokenAuthenticator)SessionTokenAuthenticator).RenewedSecurityTokenHandler = OnTokenRenewed;
             if (SessionTokenAuthenticator is SecuritySessionSecurityTokenAuthenticator securitySessionTokenAuthenticator)
             {
                 securitySessionTokenAuthenticator.SecurityServiceDispatcher = SecurityServiceDispatcher;
-            }else if(SessionTokenAuthenticator is WrappedSessionSecurityTokenAuthenticator wrappedSessionSecurityTokenAuthenticator)
+            }
+            else if (SessionTokenAuthenticator is WrappedSessionSecurityTokenAuthenticator wrappedSessionSecurityTokenAuthenticator)
             {
                 wrappedSessionSecurityTokenAuthenticator.SetSecureServiceDispatcher(SecurityServiceDispatcher);
             }
             _acceptNewWork = true;
-            SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, timeoutHelper.GetCancellationToken());
-            return Task.CompletedTask;
+            await SecurityUtils.OpenTokenAuthenticatorIfRequiredAsync(SessionTokenAuthenticator, token);
         }
 
-        public void OnClosed()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void OnClosing()
-        {
-            throw new NotImplementedException();
-        }
+        public void OnClosed() { }
+        public void OnClosing() { }
 
         //Renaming SessionInitiationMessageHandler to SessionInitiationMessageServiceDispatcher
         //
@@ -947,11 +954,7 @@ namespace CoreWCF.Security
 
             protected virtual void AbortCore()
             {
-                if (SecurityProtocol != null)
-                {
-                    TimeoutHelper timeout = new TimeoutHelper(ServiceDefaults.CloseTimeout);
-                    SecurityProtocol.CloseAsync(true, timeout.RemainingTime());
-                }
+                SecurityProtocol?.CloseAsync(true, TimeoutHelper.GetCancellationToken(ServiceDefaults.CloseTimeout)).GetAwaiter().GetResult();
                 Settings.SessionTokenCache.RemoveAllContexts(_currentSessionToken.ContextId);
                 bool abortLifetimeManager = false;
                 lock (LocalLock)
@@ -975,7 +978,7 @@ namespace CoreWCF.Security
                     TimeoutHelper helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
                     if (SecurityProtocol != null)
                     {
-                        await SecurityProtocol.CloseAsync(false, helper.RemainingTime());
+                        await SecurityProtocol.CloseAsync(false, token);
                     }
                     bool closeLifetimeManager = false;
                     lock (LocalLock)
@@ -988,7 +991,7 @@ namespace CoreWCF.Security
                     }
                     if (closeLifetimeManager)
                     {
-                        await _settingsLifetimeManager.CloseAsync(helper.RemainingTime());
+                        await _settingsLifetimeManager.CloseAsync(token);
                     }
                 }
                 catch (CommunicationObjectAbortedException)
@@ -1004,7 +1007,7 @@ namespace CoreWCF.Security
 
             protected abstract void OnCloseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token);
 
-            protected abstract void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout);
+            protected abstract void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState);
 
             public void RenewSessionToken(SecurityContextSecurityToken newToken, SecurityContextSecurityToken supportingToken)
             {
@@ -1067,7 +1070,7 @@ namespace CoreWCF.Security
                 return null;
             }
 
-            private bool CheckIncomingToken(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
+            private async Task<bool> CheckIncomingTokenAsync(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
             {
                 SecurityMessageProperty securityProperty = message.Properties.Security;
                 // this is guaranteed to be non-null and matches the session ID since the binding checked it
@@ -1084,7 +1087,7 @@ namespace CoreWCF.Security
                 {
                     if (Settings.CanRenewSession)
                     {
-                        SendRenewFault(requestContext, correlationState, timeout);
+                        await SendRenewFaultAsync(requestContext, correlationState, token);
                         return false;
                     }
                     else
@@ -1131,13 +1134,13 @@ namespace CoreWCF.Security
 
             public ValueTask<RequestContext> ReceiveRequestAsync(RequestContext initialRequestContext)
             {
-                return ReceiveRequestAsync(ServiceDefaults.ReceiveTimeout, initialRequestContext);
+                return ReceiveRequestAsync(TimeoutHelper.GetCancellationToken(ServiceDefaults.ReceiveTimeout), initialRequestContext);
             }
 
-            public async ValueTask<RequestContext> ReceiveRequestAsync(TimeSpan timeout, RequestContext initialRequestContext)
+            public async ValueTask<RequestContext> ReceiveRequestAsync(CancellationToken token, RequestContext initialRequestContext)
             {
                 _initialRequestContext = initialRequestContext;
-                (bool success, RequestContext requestContext) receiveRequestTry = await TryReceiveRequestAsync(timeout);
+                (bool success, RequestContext requestContext) receiveRequestTry = await TryReceiveRequestAsync(token);
                 RequestContext requestContext = receiveRequestTry.requestContext;
 
                 if (receiveRequestTry.success)
@@ -1150,17 +1153,16 @@ namespace CoreWCF.Security
                 }
             }
 
-            public async ValueTask<(bool, RequestContext)> TryReceiveRequestAsync(TimeSpan timeout)
+            public async ValueTask<(bool, RequestContext)> TryReceiveRequestAsync(CancellationToken token)
             {
                 ThrowIfFaulted();
-                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 while (true)
                 {
                     if (_isInputClosed || State == CommunicationState.Faulted)
                     {
                         break;
                     }
-                    if (timeoutHelper.RemainingTime() == TimeSpan.Zero)
+                    if (token.IsCancellationRequested)
                     {
                         return (false, null);
                     }
@@ -1195,7 +1197,7 @@ namespace CoreWCF.Security
                         }
                     }
 
-                    (Message message, SecurityProtocolCorrelationState correlationState, bool _) processedRequestContext = await ProcessRequestContextAsync(innerRequestContext, timeoutHelper.RemainingTime());
+                    (Message message, SecurityProtocolCorrelationState correlationState, bool _) processedRequestContext = await ProcessRequestContextAsync(innerRequestContext, token);
                     if (processedRequestContext.message != null)
                     {
                         RequestContext requestContext = new SecuritySessionRequestContext(innerRequestContext, processedRequestContext.message, processedRequestContext.correlationState, this);
@@ -1228,7 +1230,7 @@ namespace CoreWCF.Security
             //    return result;
             //}
 
-            private void SendFaultIfRequired(Exception e, Message unverifiedMessage, RequestContext requestContext, TimeSpan timeout)
+            private async Task SendFaultIfRequiredAsync(Exception e, Message unverifiedMessage, RequestContext requestContext, CancellationToken token)
             {
                 try
                 {
@@ -1237,7 +1239,7 @@ namespace CoreWCF.Security
                     {
                         return;
                     }
-                    TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+
                     try
                     {
                         using (Message faultMessage = Message.CreateMessage(unverifiedMessage.Version, fault, unverifiedMessage.Version.Addressing.DefaultFaultAction))
@@ -1247,8 +1249,8 @@ namespace CoreWCF.Security
                                 faultMessage.InitializeReply(unverifiedMessage);
                             }
 
-                            requestContext.ReplyAsync(faultMessage, timeoutHelper.GetCancellationToken());
-                            requestContext.CloseAsync(timeoutHelper.GetCancellationToken());
+                            await requestContext.ReplyAsync(faultMessage, token);
+                            await requestContext.CloseAsync(token);
                         }
                     }
                     catch (CommunicationException ex)
@@ -1273,10 +1275,10 @@ namespace CoreWCF.Security
 
             private bool ShouldWrapException(Exception e)
             {
-                return ((e is FormatException) || (e is XmlException));
+                return (e is FormatException) || (e is XmlException);
             }
 
-            private async ValueTask<(Message, SecurityProtocolCorrelationState, bool)> ProcessRequestContextAsync(RequestContext requestContext, TimeSpan timeout)
+            private async ValueTask<(Message, SecurityProtocolCorrelationState, bool)> ProcessRequestContextAsync(RequestContext requestContext, CancellationToken token)
             {
                 SecurityProtocolCorrelationState correlationState = null;
                 bool isSecurityProcessingFailure = false;
@@ -1290,12 +1292,11 @@ namespace CoreWCF.Security
                 bool cleanupContextState = true;
                 try
                 {
-                    TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                     Message unverifiedMessage = message;
                     Exception securityException = null;
                     try
                     {
-                        (Message message, SecurityProtocolCorrelationState correlationState) verifiedIncomingMessage = await VerifyIncomingMessageAsync(message, timeoutHelper.RemainingTime());
+                        (Message message, SecurityProtocolCorrelationState correlationState) verifiedIncomingMessage = await VerifyIncomingMessageAsync(message);
                         message = verifiedIncomingMessage.message;
                         correlationState = verifiedIncomingMessage.correlationState;
                         // message.Properties.Security
@@ -1309,18 +1310,18 @@ namespace CoreWCF.Security
                     if (securityException != null)
                     {
                         // SendFaultIfRequired closes the unverified message and context
-                        SendFaultIfRequired(securityException, unverifiedMessage, requestContext, timeoutHelper.RemainingTime());
+                        await SendFaultIfRequiredAsync(securityException, unverifiedMessage, requestContext, token);
                         cleanupContextState = false;
                         return (null, correlationState, isSecurityProcessingFailure);
                     }
-                    else if (CheckIncomingToken(requestContext, message, correlationState, timeoutHelper.RemainingTime()))
+                    else if (await CheckIncomingTokenAsync(requestContext, message, correlationState, token))
                     {
                         if (message.Headers.Action == Settings.SecurityStandardsManager.SecureConversationDriver.CloseAction.Value)
                         {
                             //  SecurityTraceRecordHelper.TraceServerSessionCloseReceived(this.currentSessionToken, GetLocalUri());
                             _isInputClosed = true;
                             // OnCloseMessageReceived is responsible for closing the message and requestContext if required.
-                            OnCloseMessageReceived(requestContext, message, correlationState, timeoutHelper.GetCancellationToken());
+                            OnCloseMessageReceived(requestContext, message, correlationState, token);
                             correlationState = null;
                         }
                         else if (message.Headers.Action == Settings.SecurityStandardsManager.SecureConversationDriver.CloseResponseAction.Value)
@@ -1328,7 +1329,7 @@ namespace CoreWCF.Security
                             // SecurityTraceRecordHelper.TraceServerSessionCloseResponseReceived(this.currentSessionToken, GetLocalUri());
                             _isInputClosed = true;
                             // OnCloseResponseMessageReceived is responsible for closing the message and requestContext if required.
-                            OnCloseResponseMessageReceived(requestContext, message, correlationState, timeoutHelper.RemainingTime());
+                            OnCloseResponseMessageReceived(requestContext, message, correlationState);
                             correlationState = null;
                         }
                         else
@@ -1372,12 +1373,12 @@ namespace CoreWCF.Security
                 }
             }
 
-            internal void SecureApplicationMessage(ref Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
+            internal void SecureApplicationMessage(ref Message message, SecurityProtocolCorrelationState correlationState)
             {
                 ThrowIfFaulted();
                 ThrowIfClosedOrNotOpen();
                 CheckOutgoingToken();
-                message = SecurityProtocol.SecureOutgoingMessage(message, token);
+                SecurityProtocol.SecureOutgoingMessage(ref message);
             }
 
             private void ThrowIfClosedOrNotOpen()
@@ -1385,9 +1386,9 @@ namespace CoreWCF.Security
                 //throw new NotImplementedException();
             }
 
-            internal async ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message, TimeSpan timeout)
+            internal ValueTask<(Message, SecurityProtocolCorrelationState)> VerifyIncomingMessageAsync(Message message)
             {
-                return await SecurityProtocol.VerifyIncomingMessageAsync(message, timeout, null);
+                return SecurityProtocol.VerifyIncomingMessageAsync(message, null);
             }
 
             private void PrepareReply(Message request, Message reply)
@@ -1431,8 +1432,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "General exception types are not being caught")]
-            private void SendRenewFault(RequestContext requestContext, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
+            private async Task SendRenewFaultAsync(RequestContext requestContext, SecurityProtocolCorrelationState correlationState, CancellationToken token)
             {
                 Message message = requestContext.RequestMessage;
                 try
@@ -1452,11 +1452,9 @@ namespace CoreWCF.Security
                     try
                     {
                         PrepareReply(message, response);
-                        TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-                        response = SecurityProtocol.SecureOutgoingMessage(response, timeoutHelper.GetCancellationToken());
+                        SecurityProtocol.SecureOutgoingMessage(ref response);
                         response.Properties.AllowOutputBatching = false;
-                        var messageTask = SendMessageAsync(requestContext, response, timeoutHelper.GetCancellationToken());
-                        messageTask.GetAwaiter().GetResult();
+                        await SendMessageAsync(requestContext, response, token);
                     }
                     finally
                     {
@@ -1516,12 +1514,12 @@ namespace CoreWCF.Security
                 return response;
             }
 
-            internal Message CreateCloseResponse(Message message, SecurityProtocolCorrelationState correlationState, CancellationToken token)
+            internal Message CreateCloseResponse(Message message, SecurityProtocolCorrelationState correlationState)
             {
                 using (message)
                 {
                     Message response = ProcessCloseRequest(message);
-                    response = SecurityProtocol.SecureOutgoingMessage(response, token);
+                    SecurityProtocol.SecureOutgoingMessage(ref response);
                     response.Properties.AllowOutputBatching = false;
                     return response;
                 }
@@ -1569,7 +1567,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            internal Message CreateCloseMessage(CancellationToken token)
+            internal Message CreateCloseMessage()
             {
                 RequestSecurityToken rst = new RequestSecurityToken(Settings.SecurityStandardsManager)
                 {
@@ -1599,7 +1597,7 @@ namespace CoreWCF.Security
                             new ProtocolException(SR.Format(SR.AddressingVersionNotSupported, closeMessage.Version.Addressing)));
                     }
                 }
-                SecurityProtocol.SecureOutgoingMessage(closeMessage, token);
+                SecurityProtocol.SecureOutgoingMessage(ref closeMessage);
                 closeMessage.Properties.AllowOutputBatching = false;
                 return closeMessage;
             }
@@ -1608,7 +1606,7 @@ namespace CoreWCF.Security
             {
                 try
                 {
-                    using (Message closeMessage = CreateCloseMessage(token))
+                    using (Message closeMessage = CreateCloseMessage())
                     {
                         await SendMessageAsync(null, closeMessage, token);
                     }
@@ -1811,7 +1809,7 @@ namespace CoreWCF.Security
                 return aborted;
             }
 
-            protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
+            protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState)
             {
                 // we dont expect a close-response for non-duplex security session
                 message.Close();
@@ -1851,7 +1849,7 @@ namespace CoreWCF.Security
                         if (!_receivedClose)
                         {
                             _receivedClose = true;
-                            localCloseResponse = CreateCloseResponse(message, correlationState, token);
+                            localCloseResponse = CreateCloseResponse(message, correlationState);
                             if (_canSendCloseResponse)
                             {
                                 _sentCloseResponse = true;
@@ -2067,7 +2065,7 @@ namespace CoreWCF.Security
 
             public Task CloseAsync()
             {
-                return CloseAsync(new TimeoutHelper(ServiceDefaults.CloseTimeout).GetCancellationToken());
+                return CloseAsync(TimeoutHelper.GetCancellationToken(ServiceDefaults.CloseTimeout));
             }
 
             public async Task CloseAsync(CancellationToken token)
@@ -2084,7 +2082,7 @@ namespace CoreWCF.Security
 
                 bool wasAborted;
                 bool didInputSessionClose;
-                (didInputSessionClose, wasAborted) = await WaitForInputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+                (didInputSessionClose, wasAborted) = await WaitForInputSessionCloseAsync(token);
                 if (wasAborted)
                 {
                     return;
@@ -2097,7 +2095,7 @@ namespace CoreWCF.Security
 
                 // wait for any concurrent CloseOutputSessions to finish
                 bool didOutputSessionClose;
-                (didOutputSessionClose, wasAborted) = await WaitForOutputSessionCloseAsync(ServiceDefaults.CloseTimeout);
+                (didOutputSessionClose, wasAborted) = await WaitForOutputSessionCloseAsync(token);
                 if (wasAborted)
                 {
                     return;
@@ -2271,7 +2269,7 @@ namespace CoreWCF.Security
                             {
                                 _closeRequestContext = requestContext;
                                 // CreateCloseResponse closes the message passed in
-                                _closeResponseMessage = CreateCloseResponse(message, null, token);
+                                _closeResponseMessage = CreateCloseResponse(message, null);
                                 cleanupContext = false;
                             }
                         }
@@ -2297,7 +2295,7 @@ namespace CoreWCF.Security
                 }
             }
 
-            protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState, TimeSpan timeout)
+            protected override void OnCloseResponseMessageReceived(RequestContext requestContext, Message message, SecurityProtocolCorrelationState correlationState)
             {
                 bool cleanupContext = true;
                 try
@@ -2336,11 +2334,11 @@ namespace CoreWCF.Security
                 }
             }
 
-            internal async Task<(bool success, bool wasAborted)> WaitForOutputSessionCloseAsync(TimeSpan timeout)
+            internal async Task<(bool success, bool wasAborted)> WaitForOutputSessionCloseAsync(CancellationToken token)
             {
                 try
                 {
-                    return (await _outputSessionCloseHandle.WaitAsync(timeout, false), false);
+                    return (await _outputSessionCloseHandle.WaitAsync(token, false), false);
                 }
                 catch (CommunicationObjectAbortedException)
                 {
@@ -2349,13 +2347,12 @@ namespace CoreWCF.Security
                 }
             }
 
-            private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(TimeSpan timeout)
+            private async Task<(bool success, bool wasAborted)> WaitForInputSessionCloseAsync(CancellationToken token)
             {
-                TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 bool wasAborted = false;
                 try
                 {
-                    (bool success, RequestContext requestContext) receivedRequestTry = await TryReceiveRequestAsync(timeoutHelper.RemainingTime());
+                    (bool success, RequestContext requestContext) receivedRequestTry = await TryReceiveRequestAsync(token);
                     RequestContext context = receivedRequestTry.requestContext;
                     if (!receivedRequestTry.success)
                     {
@@ -2372,7 +2369,7 @@ namespace CoreWCF.Security
                         }
                     }
 
-                    bool result = await _inputSessionCloseHandle.WaitAsync(timeoutHelper.RemainingTime(), false);
+                    bool result = await _inputSessionCloseHandle.WaitAsync(token, false); 
                     if (!result)
                     {
                         return (false, wasAborted);
@@ -2431,7 +2428,7 @@ namespace CoreWCF.Security
                     Exception pendingException = null;
                     try
                     {
-                        await _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                        await _channel.CloseOutputSessionAsync(TimeoutHelper.GetCancellationToken(timeout));
                     }
                     catch (Exception e)
                     {
@@ -2530,13 +2527,13 @@ namespace CoreWCF.Security
 
                 public Task SendAsync(Message message)
                 {
-                    return SendAsync(message, new TimeoutHelper(ServiceDefaults.SendTimeout).GetCancellationToken());
+                    return SendAsync(message, TimeoutHelper.GetCancellationToken(ServiceDefaults.SendTimeout));
                 }
 
                 public Task SendAsync(Message message, CancellationToken token)
                 {
                     CheckOutputOpen();
-                    SecureApplicationMessage(ref message, null, token);
+                    SecureApplicationMessage(ref message, null);
                     // ChannelBinder.Send(message, timeoutHelper.RemainingTime());
                     return IncomingChannel.SendAsync(message, token);
                 }
@@ -2638,7 +2635,7 @@ namespace CoreWCF.Security
             {
                 if (message != null)
                 {
-                    _channel.SecureApplicationMessage(ref message, _correlationState, token);
+                    _channel.SecureApplicationMessage(ref message, _correlationState);
                     return _requestContext.ReplyAsync(message);
                 }
                 else

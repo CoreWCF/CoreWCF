@@ -746,7 +746,7 @@ namespace CoreWCF.Channels
                                         _webSocket,
                                         result.EndOfMessage,
                                         _bufferManager,
-                                        new TimeoutHelper(_defaultTimeouts.CloseTimeout).GetCancellationToken()),
+                                        TimeoutHelper.GetCancellationToken(_defaultTimeouts.CloseTimeout)),
                                     readTimeoutHelper.GetCancellationToken()),
                                 _maxReceivedMessageSize),
                             _maxBufferSize);
