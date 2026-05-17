@@ -362,8 +362,11 @@ namespace NetHttp
                     List<string> log = client.GetLog();
                     Assert.True(log.Count > 0, "The server log should contain entries after stream operations.");
 
-                    // Close - this is the critical call from dotnet/wcf#5818
-                    ((IChannel)client).Close();
+                    // Close - this is the critical call from dotnet/wcf#5818.
+                    // Explicitly assert the graceful close path does not throw (e.g., WebSocketException/CommunicationException),
+                    // which is the regression this test guards against.
+                    Exception closeException = Record.Exception(() => ((IChannel)client).Close());
+                    Assert.Null(closeException);
                     factory.Close();
                 }
                 finally
