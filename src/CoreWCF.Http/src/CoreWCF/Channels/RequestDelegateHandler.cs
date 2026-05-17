@@ -163,6 +163,11 @@ namespace CoreWCF.Channels
                 }
                 catch (Exception ex)
                 {
+                    if (Fx.IsFatal(ex))
+                    {
+                        throw;
+                    }
+
                     // If the client has already disconnected or the close handshake fails for any reason,
                     // abort the channel to clean up resources rather than letting the exception propagate.
                     DiagnosticUtility.TraceHandledException(ex, System.Diagnostics.TraceEventType.Warning);
