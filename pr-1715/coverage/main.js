@@ -495,7 +495,7 @@ var assemblies = [
       { "name": "CoreWCF.Channels.PrivacyNoticeBindingElement", "rp": "CoreWCF.Http_PrivacyNoticeBindingElement.html", "cl": 0, "ucl": 42, "cal": 42, "tl": 112, "cb": 0, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.RequestContextBase", "rp": "CoreWCF.Http_RequestContextBase.html", "cl": 62, "ucl": 29, "cal": 91, "tl": 311, "cb": 20, "tb": 28, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.RequestContextMessageProperty", "rp": "CoreWCF.Http_RequestContextMessageProperty.html", "cl": 0, "ucl": 23, "cal": 23, "tl": 311, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Channels.RequestDelegateHandler", "rp": "CoreWCF.Http_RequestDelegateHandler.html", "cl": 101, "ucl": 36, "cal": 137, "tl": 277, "cb": 54, "tb": 72, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Channels.RequestDelegateHandler", "rp": "CoreWCF.Http_RequestDelegateHandler.html", "cl": 101, "ucl": 38, "cal": 139, "tl": 277, "cb": 54, "tb": 74, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.SecurityCapabilities", "rp": "CoreWCF.Http_SecurityCapabilities.html", "cl": 0, "ucl": 29, "cal": 29, "tl": 68, "cb": 0, "tb": 14, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.SegmentHierarchyNode\u003CT\u003E", "rp": "CoreWCF.Http_SegmentHierarchyNode_1.html", "cl": 0, "ucl": 37, "cal": 37, "tl": 523, "cb": 0, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ServerWebSocketTransportDuplexSessionChannel", "rp": "CoreWCF.Http_ServerWebSocketTransportDuplexSessionChannel.html", "cl": 45, "ucl": 1, "cal": 46, "tl": 151, "cb": 11, "tb": 14, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -755,12 +755,12 @@ var assemblies = [
       { "name": "CoreWCF.Channels.AuthorizationCapabilities", "rp": "CoreWCF.NetFramingBase_AuthorizationCapabilities.html", "cl": 0, "ucl": 4, "cal": 4, "tl": 15, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ChannelBindingMessagePropertyHelper", "rp": "CoreWCF.NetFramingBase_ChannelBindingMessagePropertyHelper.html", "cl": 0, "ucl": 19, "cal": 19, "tl": 58, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ChannelBindingUtility", "rp": "CoreWCF.NetFramingBase_ChannelBindingUtility.html", "cl": 6, "ucl": 11, "cal": 17, "tl": 55, "cb": 2, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Channels.CommunicationObjectExtensions", "rp": "CoreWCF.NetFramingBase_CommunicationObjectExtensions.html", "cl": 5, "ucl": 5, "cal": 10, "tl": 46, "cb": 3, "tb": 7, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Channels.CommunicationObjectExtensions", "rp": "CoreWCF.NetFramingBase_CommunicationObjectExtensions.html", "cl": 4, "ucl": 6, "cal": 10, "tl": 46, "cb": 2, "tb": 7, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ConnectionOrientedTransportBindingElement", "rp": "CoreWCF.NetFramingBase_ConnectionOrientedTransportBindingElement.html", "cl": 72, "ucl": 73, "cal": 145, "tl": 421, "cb": 16, "tb": 64, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ConnectionOrientedTransportDefaults", "rp": "CoreWCF.NetFramingBase_ConnectionOrientedTransportDefaults.html", "cl": 5, "ucl": 1, "cal": 6, "tl": 48, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ConnectionOrientedTransportReplyChannel", "rp": "CoreWCF.NetFramingBase_ConnectionOrientedTransportReplyChannel.html", "cl": 7, "ucl": 19, "cal": 26, "tl": 78, "cb": 2, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ConnectionPoolSettings", "rp": "CoreWCF.NetFramingBase_ConnectionPoolSettings.html", "cl": 24, "ucl": 17, "cal": 41, "tl": 106, "cb": 5, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Channels.ConnectionReuseHandler", "rp": "CoreWCF.NetFramingBase_ConnectionReuseHandler.html", "cl": 28, "ucl": 2, "cal": 30, "tl": 89, "cb": 5, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Channels.ConnectionReuseHandler", "rp": "CoreWCF.NetFramingBase_ConnectionReuseHandler.html", "cl": 25, "ucl": 5, "cal": 30, "tl": 89, "cb": 4, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.DelegatingStream", "rp": "CoreWCF.NetFramingBase_DelegatingStream.html", "cl": 13, "ucl": 24, "cal": 37, "tl": 126, "cb": 5, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.DnsCache", "rp": "CoreWCF.NetFramingBase_DnsCache.html", "cl": 11, "ucl": 16, "cal": 27, "tl": 87, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.Framing.ClientDuplexEncoder", "rp": "CoreWCF.NetFramingBase_ClientDuplexEncoder.html", "cl": 0, "ucl": 7, "cal": 7, "tl": 391, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -829,7 +829,7 @@ var assemblies = [
       { "name": "CoreWCF.Channels.StreamSecurityUpgradeAcceptorBase", "rp": "CoreWCF.NetFramingBase_StreamSecurityUpgradeAcceptorBase.html", "cl": 11, "ucl": 2, "cal": 13, "tl": 51, "cb": 2, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.SynchronizedMessageSource", "rp": "CoreWCF.NetFramingBase_SynchronizedMessageSource.html", "cl": 15, "ucl": 11, "cal": 26, "tl": 73, "cb": 2, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.TimeoutStream", "rp": "CoreWCF.NetFramingBase_TimeoutStream.html", "cl": 0, "ucl": 28, "cal": 28, "tl": 87, "cb": 0, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Channels.TransportDuplexSessionChannel", "rp": "CoreWCF.NetFramingBase_TransportDuplexSessionChannel.html", "cl": 115, "ucl": 55, "cal": 170, "tl": 514, "cb": 30, "tb": 49, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Channels.TransportDuplexSessionChannel", "rp": "CoreWCF.NetFramingBase_TransportDuplexSessionChannel.html", "cl": 118, "ucl": 52, "cal": 170, "tl": 514, "cb": 30, "tb": 49, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.TransportOutputChannel", "rp": "CoreWCF.NetFramingBase_TransportOutputChannel.html", "cl": 24, "ucl": 25, "cal": 49, "tl": 147, "cb": 10, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.TransportSecurityHelpers", "rp": "CoreWCF.NetFramingBase_TransportSecurityHelpers.html", "cl": 54, "ucl": 15, "cal": 69, "tl": 157, "cb": 16, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.UriGenerator", "rp": "CoreWCF.NetFramingBase_UriGenerator.html", "cl": 0, "ucl": 13, "cal": 13, "tl": 46, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -859,7 +859,7 @@ var assemblies = [
       { "name": "CoreWCF.Runtime.FatalException", "rp": "CoreWCF.NetFramingBase_FatalException.html", "cl": 0, "ucl": 6, "cal": 6, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Runtime.Fx", "rp": "CoreWCF.NetFramingBase_Fx.html", "cl": 21, "ucl": 95, "cal": 116, "tl": 436, "cb": 4, "tb": 40, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Runtime.IOThreadScheduler", "rp": "CoreWCF.NetFramingBase_IOThreadScheduler.html", "cl": 0, "ucl": 203, "cal": 203, "tl": 709, "cb": 0, "tb": 96, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Runtime.IOThreadTimer", "rp": "CoreWCF.NetFramingBase_IOThreadTimer.html", "cl": 169, "ucl": 73, "cal": 242, "tl": 615, "cb": 55, "tb": 94, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Runtime.IOThreadTimer", "rp": "CoreWCF.NetFramingBase_IOThreadTimer.html", "cl": 171, "ucl": 71, "cal": 242, "tl": 615, "cb": 56, "tb": 94, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Runtime.OutWrapper\u003CT\u003E", "rp": "CoreWCF.NetFramingBase_OutWrapper_1.html", "cl": 0, "ucl": 5, "cal": 5, "tl": 531, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Runtime.RecoverableTimeoutCancellationTokenSource", "rp": "CoreWCF.NetFramingBase_RecoverableTimeoutCancellationTokenSource.html", "cl": 4, "ucl": 10, "cal": 14, "tl": 138, "cb": 1, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Runtime.ServiceModelSynchronizationContext", "rp": "CoreWCF.NetFramingBase_ServiceModelSynchronizationContext.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -1116,7 +1116,7 @@ var assemblies = [
       { "name": "CoreWCF.Channels.ChannelDemuxerFilter", "rp": "CoreWCF.Primitives_ChannelDemuxerFilter.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 608, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ChannelManagerBase", "rp": "CoreWCF.Primitives_ChannelManagerBase.html", "cl": 2, "ucl": 7, "cal": 9, "tl": 52, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ChannelRequirements", "rp": "CoreWCF.Primitives_ChannelRequirements.html", "cl": 58, "ucl": 132, "cal": 190, "tl": 365, "cb": 24, "tb": 118, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Channels.CommunicationObject", "rp": "CoreWCF.Primitives_CommunicationObject.html", "cl": 143, "ucl": 118, "cal": 261, "tl": 826, "cb": 65, "tb": 140, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Channels.CommunicationObject", "rp": "CoreWCF.Primitives_CommunicationObject.html", "cl": 145, "ucl": 116, "cal": 261, "tl": 826, "cb": 66, "tb": 140, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.CommunicationObjectManager\u003CT\u003E", "rp": "CoreWCF.Primitives_CommunicationObjectManager_1.html", "cl": 18, "ucl": 22, "cal": 40, "tl": 101, "cb": 6, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.ContentOnlyMessage", "rp": "CoreWCF.Primitives_ContentOnlyMessage.html", "cl": 0, "ucl": 14, "cal": 14, "tl": 101, "cb": 0, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Channels.CorrelationDataMessageProperty", "rp": "CoreWCF.Primitives_CorrelationDataMessageProperty.html", "cl": 0, "ucl": 54, "cal": 54, "tl": 164, "cb": 0, "tb": 32, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -1346,7 +1346,7 @@ var assemblies = [
       { "name": "CoreWCF.Dispatcher.DispatchOperationRuntime", "rp": "CoreWCF.Primitives_DispatchOperationRuntime.html", "cl": 144, "ucl": 64, "cal": 208, "tl": 585, "cb": 80, "tb": 130, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Dispatcher.DispatchOperationRuntimeHelpers", "rp": "CoreWCF.Primitives_DispatchOperationRuntimeHelpers.html", "cl": 65, "ucl": 3, "cal": 68, "tl": 122, "cb": 14, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Dispatcher.DispatchRuntime", "rp": "CoreWCF.Primitives_DispatchRuntime.html", "cl": 218, "ucl": 101, "cal": 319, "tl": 863, "cb": 31, "tb": 62, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "CoreWCF.Dispatcher.DuplexChannelBinder", "rp": "CoreWCF.Primitives_DuplexChannelBinder.html", "cl": 105, "ucl": 67, "cal": 172, "tl": 512, "cb": 35, "tb": 76, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "CoreWCF.Dispatcher.DuplexChannelBinder", "rp": "CoreWCF.Primitives_DuplexChannelBinder.html", "cl": 107, "ucl": 65, "cal": 172, "tl": 512, "cb": 35, "tb": 76, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Dispatcher.EndpointAddressMessageFilter", "rp": "CoreWCF.Primitives_EndpointAddressMessageFilter.html", "cl": 32, "ucl": 19, "cal": 51, "tl": 319, "cb": 11, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Dispatcher.EndpointAddressMessageFilterHelper", "rp": "CoreWCF.Primitives_EndpointAddressMessageFilterHelper.html", "cl": 10, "ucl": 56, "cal": 66, "tl": 319, "cb": 2, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "CoreWCF.Dispatcher.EndpointAddressMessageFilterTable\u003CT\u003E", "rp": "CoreWCF.Primitives_EndpointAddressMessageFilterTable_1.html", "cl": 0, "ucl": 326, "cal": 326, "tl": 810, "cb": 0, "tb": 144, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -3392,6 +3392,12 @@ var riskHotspots = [
       { "value": 28, "exceeded": false },
     ]},
   {
+    "assembly": "CoreWCF.Http", "class": "CoreWCF.Channels.RequestDelegateHandler", "reportPath": "CoreWCF.Http_RequestDelegateHandler.html", "methodName": "HandleRequest()", "methodShortName": "HandleRequest()", "fileIndex": 0, "line": 104,
+    "metrics": [
+      { "value": 26, "exceeded": true },
+      { "value": 26, "exceeded": false },
+    ]},
+  {
     "assembly": "CoreWCF.Http", "class": "CoreWCF.Runtime.UrlUtility", "reportPath": "CoreWCF.Http_UrlUtility.html", "methodName": "System.String CoreWCF.Runtime.UrlUtility::UrlDecodeStringFromStringInternal(System.String,System.Text.Encoding)", "methodShortName": "UrlDecodeStringFromStringInternal(...)", "fileIndex": 0, "line": 22,
     "metrics": [
       { "value": 26, "exceeded": true },
@@ -3531,12 +3537,6 @@ var riskHotspots = [
     ]},
   {
     "assembly": "CoreWCF.ConfigurationManager", "class": "CoreWCF.Configuration.SecurityElementBase", "reportPath": "CoreWCF.ConfigurationManager_SecurityElementBase.html", "methodName": "System.Boolean CoreWCF.Configuration.SecurityElementBase::DoesSecurityBindingElementContainClauseTypeofIssuerSerial(CoreWCF.Channels.SecurityBindingElement)", "methodShortName": "DoesSecurityBindingElementContainClauseTypeofIssuerSerial(...)", "fileIndex": 0, "line": 734,
-    "metrics": [
-      { "value": 24, "exceeded": true },
-      { "value": 24, "exceeded": false },
-    ]},
-  {
-    "assembly": "CoreWCF.Http", "class": "CoreWCF.Channels.RequestDelegateHandler", "reportPath": "CoreWCF.Http_RequestDelegateHandler.html", "methodName": "HandleRequest()", "methodShortName": "HandleRequest()", "fileIndex": 0, "line": 104,
     "metrics": [
       { "value": 24, "exceeded": true },
       { "value": 24, "exceeded": false },
@@ -4790,7 +4790,7 @@ var riskHotspots = [
       { "value": 16, "exceeded": false },
     ]},
   {
-    "assembly": "CoreWCF.Http", "class": "CoreWCF.Channels.RequestDelegateHandler", "reportPath": "CoreWCF.Http_RequestDelegateHandler.html", "methodName": "AcceptWebSocketAsync()", "methodShortName": "AcceptWebSocketAsync()", "fileIndex": 0, "line": 214,
+    "assembly": "CoreWCF.Http", "class": "CoreWCF.Channels.RequestDelegateHandler", "reportPath": "CoreWCF.Http_RequestDelegateHandler.html", "methodName": "AcceptWebSocketAsync()", "methodShortName": "AcceptWebSocketAsync()", "fileIndex": 0, "line": 219,
     "metrics": [
       { "value": 16, "exceeded": true },
       { "value": 16, "exceeded": false },
