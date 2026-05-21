@@ -1,7 +1,7 @@
 {
   "total": 22848,
-  "passed": 22193,
-  "failed": 1,
+  "passed": 22194,
+  "failed": 0,
   "skipped": 654,
   "other": 0,
   "matrix": [
@@ -46,8 +46,8 @@
       "os": "Windows",
       "tfm": "net10.0",
       "total": 1270,
-      "passed": 1229,
-      "failed": 1,
+      "passed": 1230,
+      "failed": 0,
       "skipped": 40
     },
     {
