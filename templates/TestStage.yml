@@ -102,7 +102,6 @@ stages:
         name: SetupIISExpressCertificates
         displayName: Setup IIS Express certificates for HTTPS tests
         condition: eq(variables.imageName, 'windows-latest')
-        continueOnError: true
         timeoutInMinutes: 2
 
       - bash: |

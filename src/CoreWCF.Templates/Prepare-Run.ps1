@@ -38,6 +38,7 @@ $NuGetConfigContent = @"
     <clear />
     <add key="CoreWCFTemplates-LocalArtifacts" value="$ArtifactsPathForXml" />
     <add key="CoreWCF-AzureDevOps" value="https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json" />
+    <add key="CoreWCF-GitHub" value="https://nuget.pkg.github.com/CoreWCF/index.json" />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
   </packageSources>
 </configuration>
