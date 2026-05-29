@@ -78,7 +78,27 @@ namespace CoreWCF.IdentityModel.Tokens
         /// <exception cref="SecurityTokenValidationException">Thrown if the certificate associated with the token issuer does not pass validation.</exception>
         public override ReadOnlyCollection<ClaimsIdentity> ValidateToken(SecurityToken token)
         {
-            SamlSecurityToken samlToken = (SamlSecurityToken)token;
+            if (token == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
+            }
+
+            SamlSecurityToken samlToken = token as SamlSecurityToken;
+            if (samlToken == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(token), SR.Format(SR.ID1033, token.GetType()));
+            }
+
+            if (Configuration == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperInvalidOperation(SR.Format(SR.ID4274));
+            }
+
+            if (samlToken.Assertion == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(token), SR.Format(SR.ID1034));
+            }
+
             string assertionXML = samlToken.AssertionXML;
             SamlTokenValidationParameters tokenValidation = new SamlTokenValidationParameters();
             ClaimsPrincipal claim = _internalSamlSecurityTokenHandler.ValidateToken(assertionXML,
