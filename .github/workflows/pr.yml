@@ -104,13 +104,27 @@ jobs:
           results-suffix: pr-${{ matrix.configuration }}-${{ runner.os }}-${{ matrix.tfm }}
 
   test-templates:
-    name: Test Templates (${{ matrix.os }})
+    name: Test Templates (${{ matrix.label }})
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        include:
+          # Linux runs every .NET Core variation in a single job (currently ~10 min).
+          - os: ubuntu-latest
+            label: ubuntu-latest
+            filter: ''
+          # Windows is fanned out per-TFM because running all variations in one job took
+          # ~28 min. Each entry below runs ~16 variations selected by the `Framework` trait
+          # set on every theory row in BasicTests.GetVariations(). Adding a new TFM is a
+          # one-line change there plus one matrix entry here. .NET Framework coverage is
+          # intentionally limited to net472 to match the regular build matrix above.
+          - { os: windows-latest, label: windows-default, filter: Framework=default }
+          - { os: windows-latest, label: windows-net10.0, filter: Framework=net10.0 }
+          - { os: windows-latest, label: windows-net9.0,  filter: Framework=net9.0  }
+          - { os: windows-latest, label: windows-net8.0,  filter: Framework=net8.0  }
+          - { os: windows-latest, label: windows-net472,  filter: Framework=net472  }
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -130,7 +144,7 @@ jobs:
 
       - name: Run templates tests
         shell: pwsh
-        run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1
+        run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1 -Filter '${{ matrix.filter }}'
 
   code-analysis:
     # Code coverage validation. Runs unconditionally on every PR — SonarCloud

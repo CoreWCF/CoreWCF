@@ -122,7 +122,11 @@ public class Project : IDisposable
         // on Windows, `dotnet restore -s <localPath> -s <https-url> ...` causes NuGet's MSBuild
         // RestoreSources parser to treat the URLs as relative paths (NU1301), because the URL-encoded
         // values are never decoded back to a valid Uri before path resolution kicks in.
-        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), "restore -v detailed --force --force-evaluate");
+        //
+        // Defaults are deliberate: --force / --force-evaluate / -v detailed were dropped because they
+        // bypass NuGet's evaluation cache and emit several MB of log output per test, with no
+        // additional safety since each test has its own freshly-generated project under a GUID folder.
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), "restore");
         await result.Exited;
         return new ProcessResult(result);
     }
@@ -136,7 +140,7 @@ public class Project : IDisposable
 
         var restoreArgs = noRestore ? "--no-restore" : null;
 
-        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $"publish {restoreArgs} -c Release /bl {additionalArgs}", packageOptions);
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $"publish {restoreArgs} -c Release {BinaryLogFlag} {additionalArgs}", packageOptions);
         await result.Exited;
         return new ProcessResult(result);
     }
@@ -148,10 +152,18 @@ public class Project : IDisposable
         // Avoid restoring as part of build or publish. These projects should have already restored as part of running dotnet new. Explicitly disabling restore
         // should avoid any global contention and we can execute a build or publish in a lock-free way
 
-        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $"build --no-restore -c Debug /bl {additionalArgs}", packageOptions);
+        using var result = ProcessEx.Run(Output, TemplateOutputDir, DotNetMuxer.MuxerPathOrDefault(), $"build --no-restore -c Debug {BinaryLogFlag} {additionalArgs}", packageOptions);
         await result.Exited;
         return new ProcessResult(result);
     }
+
+    // MSBuild binary logs are useful when investigating template build failures locally but on CI
+    // they add several seconds of disk I/O per test and are never uploaded as artifacts. Set the
+    // COREWCF_TEMPLATES_BINLOG environment variable to any non-empty value to re-enable them.
+    private static string BinaryLogFlag { get; } =
+        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COREWCF_TEMPLATES_BINLOG"))
+            ? string.Empty
+            : "/bl";
 
     internal AspNetProcess StartBuiltProjectAsync(bool hasListeningUri = true, ILogger logger = null, bool useHttps = true)
     {
