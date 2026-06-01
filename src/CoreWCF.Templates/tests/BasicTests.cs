@@ -1,3 +1,6 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +13,14 @@ using Xunit.Sdk;
 
 namespace CoreWCF.Templates.Tests;
 
+// Single test class on purpose. Parallelism across frameworks is provided by the GitHub Actions
+// matrix in .github/workflows/{pr,ci}.yml — each entry passes a `Framework=<tfm>` filter to
+// `dotnet test`, and every theory row produced by GetVariations() carries a matching `Framework`
+// trait so the filter selects exactly the rows for that TFM.
+//
+// Adding a new TFM is a one-line change in GetFrameworks() plus one matrix entry per workflow
+// (the workflow files are touched per-TFM anyway because the regular build matrix lists TFMs
+// explicitly).
 public class BasicTests : IClassFixture<ProjectFactoryFixture>
 {
     public BasicTests(ProjectFactoryFixture projectFactory, ITestOutputHelper output)
@@ -20,26 +31,69 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     public ProjectFactoryFixture ProjectFactory { get; }
 
-    private ITestOutputHelper _output;
+    private readonly ITestOutputHelper _output;
 
-    public static class Frameworks
+    // Trait value used (and matched by the workflow `--filter Framework=default`) for the
+    // variation that omits `--framework` and so picks up whatever the template defaults to.
+    private const string DefaultFrameworkTraitValue = "default";
+
+    private static IEnumerable<string> GetFrameworks()
     {
-        public const string Net10 = "net10.0";
-        public const string Net9 = "net9.0";
-        public const string Net8 = "net8.0";
-        public const string Net48 = "net48";
-        public const string Net472 = "net472";
-        public const string Net462 = "net462";
+        // null = template default (no --framework argument)
+        yield return null;
+        yield return "net10.0";
+        yield return "net9.0";
+        yield return "net8.0";
+
+        if (!OperatingSystem.IsWindows())
+        {
+            yield break;
+        }
+
+        // .NET Framework coverage is intentionally limited to net472 to match the regular build
+        // matrix in pr.yml / ci.yml. The 2022 introduction commit also exercised net48 and net462
+        // but they have been dropped to keep the Windows test-templates critical path short.
+        yield return "net472";
     }
 
-    public class TestVariations : TheoryData<TestVariation>
+    public static IEnumerable<TheoryDataRow<TestVariation>> GetVariations()
     {
-        public TestVariations()
+        foreach (var framework in GetFrameworks())
         {
-            foreach (var testVariation in GetTestVariations())
+            var seed = framework is null
+                ? TestVariation.New()
+                : TestVariation.New().Framework(framework);
+
+            var traitValue = framework ?? DefaultFrameworkTraitValue;
+
+            foreach (var variation in ExpandVariations(seed))
             {
-                Add(testVariation);
+                yield return new TheoryDataRow<TestVariation>(variation)
+                {
+                    Traits = { ["Framework"] = new HashSet<string> { traitValue } }
+                };
             }
+        }
+    }
+
+    // Generates the 16-variation product (https × wsdl × programMain × invokerGenerator) for a
+    // single framework seed.
+    private static IEnumerable<TestVariation> ExpandVariations(TestVariation seed)
+    {
+        static IEnumerable<TestVariation> Branch(TestVariation v, Action<TestVariation> mutate)
+        {
+            yield return v.Clone();
+            var mutated = v.Clone();
+            mutate(mutated);
+            yield return mutated;
+        }
+
+        foreach (var v1 in Branch(seed, v => v.NoHttps()))
+        foreach (var v2 in Branch(v1, v => v.NoWsdl()))
+        foreach (var v3 in Branch(v2, v => v.UseProgramMain()))
+        foreach (var v4 in Branch(v3, v => v.UseOperationInvokerGenerator()))
+        {
+            yield return v4;
         }
     }
 
@@ -121,69 +175,8 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
         }
     }
 
-    private static IEnumerable<TestVariation> GetTestVariations()
-    {
-        IEnumerable<TestVariation> GetFrameworksVariations()
-        {
-            yield return TestVariation.New();
-            yield return TestVariation.New().Framework(Frameworks.Net10);
-            yield return TestVariation.New().Framework(Frameworks.Net9);
-            yield return TestVariation.New().Framework(Frameworks.Net8);
-
-            if (!OperatingSystem.IsWindows())
-            {
-                yield break;
-            }
-
-            yield return TestVariation.New().Framework(Frameworks.Net48);
-            yield return TestVariation.New().Framework(Frameworks.Net472);
-            yield return TestVariation.New().Framework(Frameworks.Net462);
-        }
-
-        IEnumerable<TestVariation> GetHttpsVariations(TestVariation testVariation)
-        {
-            yield return testVariation.Clone();
-            yield return testVariation.Clone().NoHttps();
-        }
-
-        IEnumerable<TestVariation> GetNoWsdlVariations(TestVariation testVariation)
-        {
-            yield return testVariation.Clone();
-            yield return testVariation.Clone().NoWsdl();
-        }
-
-        IEnumerable<TestVariation> GetUseProgramMainVariations(TestVariation testVariation)
-        {
-            yield return testVariation.Clone();
-            yield return testVariation.Clone().UseProgramMain();
-        }
-
-        IEnumerable<TestVariation> GetUseOperationInvokerGeneratorVariations(TestVariation testVariation)
-        {
-            yield return testVariation.Clone();
-            yield return testVariation.Clone().UseOperationInvokerGenerator();
-        }
-
-        foreach (var frameworksVariation in GetFrameworksVariations())
-        {
-            foreach (var httpsVariation in GetHttpsVariations(frameworksVariation))
-            {
-                foreach (var wsdlVariation in GetNoWsdlVariations(httpsVariation))
-                {
-                    foreach (var useProgramMainVariation in GetUseProgramMainVariations(wsdlVariation))
-                    {
-                        foreach (var useOperationInvokerGeneratorVariation in GetUseOperationInvokerGeneratorVariations(useProgramMainVariation))
-                        {
-                            yield return useOperationInvokerGeneratorVariation;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     [Theory]
-    [ClassData(typeof(TestVariations))]
+    [MemberData(nameof(GetVariations))]
     public async Task CoreWCFTemplateDefault(TestVariation variation)
     {
         await CoreWCFTemplateDefaultCore(variation.Arguments.ToArray(),
@@ -195,7 +188,7 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
 
     private async Task CoreWCFTemplateDefaultCore(string[] args, bool assertMetadataEndpoint, bool useHttps, string expectedListeningUriScheme)
     {
-        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? Frameworks.Net8;
+        var targetFramework = args.FirstOrDefault(arg => arg.StartsWith("--framework"))?.Split(" ")[1] ?? "net8.0";
         var project = ProjectFactory.GetOrCreateProject($"corewcf-{Guid.NewGuid()}", targetFramework,  _output);
 
         var createResult = await project.RunDotNetNewAsync("corewcf", args: args);
