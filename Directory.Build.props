@@ -30,7 +30,7 @@
     <IsTemplatesProject>$(MSBuildProjectName.Contains(`Templates`))</IsTemplatesProject>
     <IncludeCommonCode Condition="!($(IsTestProject) OR $(IsSampleProject) OR $(IsBuildToolsProject) OR $(IsTemplatesProject) OR $(IsClientProject))">true</IncludeCommonCode>
     <ReferenceCommonTestProject Condition="($(IsTestProject) AND !($(IsBuildToolsProject)) AND !($(IsTemplatesProject)) AND !($(IsClientProject)))">true</ReferenceCommonTestProject>
-    <IsCIBuild Condition="'$(TF_BUILD)' == 'true'">true</IsCIBuild>
+    <IsCIBuild Condition="'$(TF_BUILD)' == 'true' OR '$(GITHUB_ACTIONS)' == 'true'">true</IsCIBuild>
   </PropertyGroup>
 
   <!-- UT -->

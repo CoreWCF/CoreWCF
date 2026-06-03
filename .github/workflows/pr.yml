@@ -1,0 +1,236 @@
+# PR workflow.
+#
+# Builds CoreWCF, runs the full test matrix, runs the templates tests, and
+# (if SonarCloud is configured for the repo) runs the code-analysis job.
+# Does not pack or publish — see ci.yml for the publish path.
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
+      - 'feature/*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Captures the PR number and head SHA into an artifact so that the
+  # workflow_run-triggered `Publish PR Reports` workflow can read them directly
+  # rather than having to reverse-resolve the PR from the SHA. The artifact is
+  # consumed by a workflow loaded from the default branch, which validates both
+  # values strictly (regex + cross-check the SHA against workflow_run.head_sha)
+  # before trusting them — so even though this job runs in PR context, it
+  # cannot influence which gh-pages folder gets published to.
+  pr-metadata:
+    name: Save PR Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write PR metadata
+        shell: bash
+        run: |
+          mkdir -p ./pr-meta
+          printf '%s' '${{ github.event.pull_request.number }}'   > ./pr-meta/number.txt
+          printf '%s' '${{ github.event.pull_request.head.sha }}' > ./pr-meta/head-sha.txt
+
+      - name: Upload PR metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-metadata
+          path: ./pr-meta/
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    name: Build (${{ matrix.configuration }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        configuration: [Debug, Release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Build
+        uses: ./.github/actions/dotnet-build
+        with:
+          configuration: ${{ matrix.configuration }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+
+  test:
+    name: Test (${{ matrix.configuration }} / ${{ matrix.os }} / ${{ matrix.tfm }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        os: [windows-latest, ubuntu-latest]
+        tfm: [net8.0, net9.0, net10.0]
+        include:
+          - configuration: Debug
+            os: windows-latest
+            tfm: net472
+          - configuration: Release
+            os: windows-latest
+            tfm: net472
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          configuration: ${{ matrix.configuration }}
+          target-framework: ${{ matrix.tfm }}
+          artifact-name: build-${{ runner.os }}-${{ matrix.configuration }}
+          results-suffix: pr-${{ matrix.configuration }}-${{ runner.os }}-${{ matrix.tfm }}
+
+  test-templates:
+    name: Test Templates (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+        with:
+          install-net11: 'false'
+
+      - name: Download Release build
+        uses: actions/download-artifact@v8
+        with:
+          name: build-${{ runner.os }}-Release
+          path: bin
+
+      - name: Run templates tests
+        shell: pwsh
+        run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1
+
+  code-analysis:
+    # Code coverage validation. Runs unconditionally on every PR — SonarCloud
+    # upload is intentionally CI-only (see ci.yml).
+    name: Code Analysis (coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Restore
+        shell: bash
+        run: dotnet restore CoreWCF.sln --configfile NuGet.config
+
+      - name: Build (Release, with coverage)
+        shell: bash
+        run: dotnet build CoreWCF.sln --no-restore -c Release
+
+      # v1.8 does not use Testcontainers from inside the test code; the Kafka
+      # and RabbitMQ broker containers it relies on were launched by the
+      # surrounding Azure DevOps pipeline. Mirror that here so coverage runs
+      # against running brokers. Mirrors the equivalent step in the run-tests
+      # composite action used by the per-TFM test jobs.
+      - name: Start docker-compose services
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Starting docker-compose services..."
+          timeout 300 docker compose up -d
+          # 'docker compose up -d --wait' would be the obvious choice, but it
+          # treats any container exit as failure even when the exit is the
+          # documented success path. This repo's compose stack has two such
+          # services: 'generate-kafka-secrets' (a one-shot keytool/openssl
+          # script that writes broker.keystore.jks etc. and then exits 0) and
+          # 'awaiter' (a depends_on-only alpine sidecar with no command that
+          # exits as soon as it starts). Both make --wait return non-zero
+          # even when every long-running service has gone healthy. Poll the
+          # broker / rabbitmq healthchecks explicitly instead.
+          echo "Waiting for broker and rabbitmq to report healthy..."
+          for svc in broker rabbitmq; do
+            attempts=0
+            max=60   # 60 * 5s = 5 minutes per service
+            while :; do
+              status=$(docker inspect -f '{{.State.Health.Status}}' "$svc" 2>/dev/null || echo missing)
+              if [ "$status" = "healthy" ]; then
+                echo "  $svc: healthy"
+                break
+              fi
+              attempts=$((attempts + 1))
+              if [ "$attempts" -ge "$max" ]; then
+                echo "::error::$svc never became healthy (last status: $status)"
+                docker compose ps
+                docker compose logs "$svc" | tail -200
+                exit 1
+              fi
+              sleep 5
+            done
+          done
+          echo "All required services are healthy."
+
+      - name: Run tests with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t projects < <(
+            find . -type f -name 'CoreWCF.*.Tests.csproj' \
+              ! -name 'CoreWCF.Templates.Tests.csproj' \
+              | sort
+          )
+          rc=0
+          for proj in "${projects[@]}"; do
+            echo "::group::Coverage: $proj"
+            if ! dotnet test "$proj" \
+                  --no-restore --no-build \
+                  -c Release -f net10.0 \
+                  --collect:"XPlat Code Coverage" \
+                  --settings coverlet.runsettings; then
+              rc=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $rc
+
+      - name: Upload coverage results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-pr
+          path: '**/coverage.opencover.xml'
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Stop docker-compose services
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up docker-compose services..."
+          timeout 300 docker compose down --rmi all || true
