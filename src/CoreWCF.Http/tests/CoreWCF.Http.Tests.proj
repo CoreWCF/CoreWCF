@@ -27,6 +27,21 @@
     <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
   </ItemGroup>
 
+  <!-- On net472 a handful of SAML key-identifier clause types are duplicated in
+       both System.IdentityModel.dll (BCL) and System.ServiceModel.Federation
+       (NuGet). Expose BCL System.IdentityModel via an additional 'bcl' alias
+       (in addition to global) so we can pick the BCL copy explicitly via
+       'extern alias bcl' when we need to disambiguate. The BCL copy is what
+       System.ServiceModel.dll's WCF stack expects. -->
+  <Target Name="AddBclIdentityModelAlias" BeforeTargets="ResolveReferences"
+          Condition="'$(TargetFramework)'=='net472'">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)'=='System.IdentityModel'">
+        <Aliases>global,bcl</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />

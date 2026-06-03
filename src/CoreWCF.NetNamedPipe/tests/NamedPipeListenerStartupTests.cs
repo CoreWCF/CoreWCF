@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit;
+using Xunit.Abstractions;
 
 #if !NET472
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]

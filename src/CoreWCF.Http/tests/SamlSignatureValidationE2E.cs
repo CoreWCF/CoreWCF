@@ -45,6 +45,7 @@ using SamlAssertionKeyIdentifierClause = bcl::System.IdentityModel.Tokens.SamlAs
 using SamlAssertionKeyIdentifierClause = System.IdentityModel.Tokens.SamlAssertionKeyIdentifierClause;
 #endif
 using Xunit;
+using Xunit.Abstractions;
 
 namespace SamlE2E
 {
