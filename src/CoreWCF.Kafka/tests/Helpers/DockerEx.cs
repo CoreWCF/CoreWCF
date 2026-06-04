@@ -9,7 +9,7 @@ namespace CoreWCF.Kafka.Tests.Helpers;
 
 public static class DockerEx
 {
-    private static readonly Lazy<DockerClient> s_client = new(() => new DockerClientConfiguration().CreateClient());
+    private static readonly Lazy<DockerClient> s_client = new(() => new DockerClientBuilder().Build());
 
     public static Task PauseAsync(string containerName) => s_client.Value.Containers.PauseContainerAsync(containerName);
 
