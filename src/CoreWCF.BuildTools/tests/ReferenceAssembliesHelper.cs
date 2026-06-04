@@ -28,8 +28,14 @@ internal static class ReferenceAssembliesHelper
             .Union(new[]
             {
                 new PackageIdentity("System.ServiceModel.Primitives", "8.1.2"),
-                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.3.0"),
-                new PackageIdentity("Microsoft.AspNetCore.Authorization", "2.3.0")
+                // Microsoft.AspNetCore.Mvc is not pulled in transitively by either
+                // CoreWCF.Primitives or CoreWCF.WebHttp, but the analyzer tests need
+                // it. Keep it in lockstep with the other Microsoft.AspNetCore.* 2.3.x
+                // packages in Directory.Packages.props rather than hardcoding it (or
+                // NuGet's resolver throws "An item with the same key has already been
+                // added" inside ReferenceAssemblies.ResolveAsync when this list and
+                // the CPM-resolved values disagree for any id that appears in both).
+                new PackageIdentity("Microsoft.AspNetCore.Mvc", "2.3.10")
             }).ToImmutableArray();
         return ReferenceAssemblies.Net.Net80.AddPackages(packages);
     });
