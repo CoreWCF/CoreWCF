@@ -325,7 +325,7 @@ jobs:
             --file-list "${{ github.workspace }}/signing-config/filelist.txt" `
             --publisher-name "CoreWCF" `
             --description "CoreWCF" `
-            --description-url "https://github.com/${{ github.repository }}" `
+            --description-url "https://github.com/CoreWCF/CoreWCF" `
             --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
             --azure-key-vault-url "${{ secrets.SIGN_KEY_VAULT_URL }}" `
             -v Trace
@@ -339,7 +339,7 @@ jobs:
             --file-list "${{ github.workspace }}/signing-config/filelist.txt" `
             --publisher-name "CoreWCF" `
             --description "CoreWCF" `
-            --description-url "https://github.com/${{ github.repository }}" `
+            --description-url "https://github.com/CoreWCF/CoreWCF" `
             --azure-key-vault-certificate "${{ vars.SIGN_KEY_VAULT_CERTIFICATE }}" `
             --azure-key-vault-url "${{ secrets.SIGN_KEY_VAULT_URL }}" `
             -v Trace
