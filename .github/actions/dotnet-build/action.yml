@@ -25,6 +25,26 @@ runs:
       shell: bash
       run: ./nbgv cloud --all-vars
 
+    # Pin the git 'origin' URL to the canonical public repo. SourceLink reads
+    # this URL out of the local git remote during the compile that runs in
+    # the build step below, and bakes it into the pdb (as the
+    # raw.githubusercontent.com base URL) and via SourceControlManager into
+    # the nuspec <repository url="..."/> element at pack time. Without this,
+    # packages produced from the public repo and from the private security-
+    # fixes mirror differ by exactly this URL string and our "republish
+    # private packages as the public release" workflow can't produce byte-
+    # identical outputs. The explicit RepositoryUrl in nuspec.props handles
+    # the nuspec, but only this git-level rewrite controls the pdb SourceLink
+    # mapping; SourceLink ignores RepositoryUrl/PrivateRepositoryUrl when
+    # constructing pdb URLs and consults Microsoft.Build.Tasks.Git directly.
+    - name: Pin git origin URL for SourceLink determinism
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "Current 'origin' URL: $(git config --get remote.origin.url || echo '(none)')"
+        git remote set-url origin https://github.com/CoreWCF/CoreWCF
+        echo "Pinned   'origin' URL: $(git config --get remote.origin.url)"
+
     - name: Restore
       shell: bash
       run: dotnet restore "${{ inputs.solution }}" --configfile NuGet.config

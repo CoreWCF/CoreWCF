@@ -13,7 +13,21 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <UseFullSemVerForNuGet>true</UseFullSemVerForNuGet>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Pin the repository URL embedded in the nuspec so packages produced
+         from the public repo and from the private security-fixes mirror
+         report the same upstream URL. With PublishRepositoryUrl=true (the
+         pre-existing setting) MSBuild reads this value from whatever git
+         remote SourceLink is configured to use; we'd rather not depend on
+         the build machine's remote config being correct - especially since
+         the private mirror legitimately has a different 'origin'. The
+         SourceLink URL embedded in the pdb is pinned separately by setting
+         the git remote URL up front in .github/actions/dotnet-build, which
+         is the only knob MSBuild's Microsoft.Build.Tasks.Git component
+         respects. Disable PublishRepositoryUrl so MSBuild does not overwrite
+         these, then set them explicitly. -->
+    <PublishRepositoryUrl>false</PublishRepositoryUrl>
+    <RepositoryUrl>https://github.com/CoreWCF/CoreWCF</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
