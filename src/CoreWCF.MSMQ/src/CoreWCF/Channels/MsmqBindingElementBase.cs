@@ -161,5 +161,12 @@ namespace CoreWCF.Channels
 
             return base.GetProperty<T>(context);
         }
+
+        private class BindingDeliveryCapabilitiesHelper : IBindingDeliveryCapabilities
+        {
+            internal BindingDeliveryCapabilitiesHelper() { }
+            bool IBindingDeliveryCapabilities.AssuresOrderedDelivery => false;
+            bool IBindingDeliveryCapabilities.QueuedDelivery => true;
+        }
     }
 }

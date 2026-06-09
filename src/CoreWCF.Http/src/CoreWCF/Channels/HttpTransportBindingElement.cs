@@ -257,6 +257,10 @@ namespace CoreWCF.Channels
             //{
             //    return (T)(object)new BindingDeliveryCapabilitiesHelper();
             //}
+            else if (typeof(T) == typeof(IBindingDeliveryCapabilities))
+            {
+                return (T)(object)new BindingDeliveryCapabilitiesHelper();
+            }
             else if (typeof(T) == typeof(TransferMode))
             {
                 return (T)(object)TransferMode;
@@ -498,6 +502,13 @@ namespace CoreWCF.Channels
         {
             BindingElementCollection bindingElements = endpointContext.Endpoint.Binding.CreateBindingElements();
             return FindMessageEncodingBindingElement(bindingElements, out createdNew);
+        }
+
+        private class BindingDeliveryCapabilitiesHelper : IBindingDeliveryCapabilities
+        {
+            internal BindingDeliveryCapabilitiesHelper() { }
+            bool IBindingDeliveryCapabilities.AssuresOrderedDelivery => false;
+            bool IBindingDeliveryCapabilities.QueuedDelivery => false;
         }
     }
 

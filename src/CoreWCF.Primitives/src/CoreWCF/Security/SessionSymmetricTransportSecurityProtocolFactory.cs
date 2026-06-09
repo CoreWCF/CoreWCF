@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Security.Tokens;
 
@@ -40,14 +41,14 @@ namespace CoreWCF.Security
             if (SecurityTokenParameters.RequireDerivedKeys)
             {
                 ExpectKeyDerivation = true;
-                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters();
             }
             return new AcceptorSessionSymmetricTransportSecurityProtocol(this);
         }
 
-        public override Task OnOpenAsync(TimeSpan timeout)
+        public override async Task OnOpenAsync(CancellationToken token)
         {
-            base.OnOpenAsync(timeout);
+            await base.OnOpenAsync(token);
             if (SecurityTokenParameters == null)
             {
                 OnPropertySettingsError(nameof(SecurityTokenParameters), true);
@@ -55,9 +56,8 @@ namespace CoreWCF.Security
             if (SecurityTokenParameters.RequireDerivedKeys)
             {
                 ExpectKeyDerivation = true;
-                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters(ActAsInitiator);
+                _derivedKeyTokenParameters = new SessionDerivedKeySecurityTokenParameters();
             }
-            return Task.CompletedTask;
         }
 
         internal SecurityTokenParameters GetTokenParameters()

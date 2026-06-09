@@ -92,11 +92,11 @@ namespace CoreWCF
 
             Uri u = new Uri(uri);
 
-            Init(u, (EndpointIdentity)null, (AddressHeaderCollection)null, null, -1, -1, -1);
+            Init(u, null, null, null, -1, -1, -1);
         }
 
         public EndpointAddress(Uri uri, params AddressHeader[] addressHeaders)
-            : this(uri, (EndpointIdentity)null, addressHeaders)
+            : this(uri, null, addressHeaders)
         {
         }
 
@@ -115,15 +115,15 @@ namespace CoreWCF
             Init(oldEndpointAddress._addressingVersion, newUri, oldEndpointAddress.Identity, oldEndpointAddress._headers, oldEndpointAddress.Buffer, oldEndpointAddress._metadataSection, oldEndpointAddress._extensionSection, oldEndpointAddress._pspSection);
         }
 
-        //public EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers)
-        //{
-        //    if (uri == null)
-        //    {
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
-        //    }
+        public EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers)
+        {
+            if (uri == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(uri));
+            }
 
-        //    Init(uri, identity, headers, null, -1, -1, -1);
-        //}
+            Init(uri, identity, headers, null, -1, -1, -1);
+        }
 
         internal EndpointAddress(Uri uri, EndpointIdentity identity, AddressHeaderCollection headers, XmlDictionaryReader metadataReader, XmlDictionaryReader extensionReader, XmlDictionaryReader pspReader)
         {
@@ -162,7 +162,7 @@ namespace CoreWCF
         {
             if (headers == null || headers.Length == 0)
             {
-                Init(uri, identity, (AddressHeaderCollection)null, null, -1, -1, -1);
+                Init(uri, identity, null, null, -1, -1, -1);
             }
             else
             {
@@ -602,6 +602,7 @@ namespace CoreWCF
         //{
         //    if (reader == null)
         //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
+
         //    if (addressingVersion == null)
         //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
 
@@ -630,18 +631,23 @@ namespace CoreWCF
             return ea;
         }
 
-        //public static EndpointAddress ReadFrom(AddressingVersion addressingVersion, XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
-        //{
-        //    if (reader == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
-        //    if (addressingVersion == null)
-        //        throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+        public static EndpointAddress ReadFrom(AddressingVersion addressingVersion, XmlDictionaryReader reader, XmlDictionaryString localName, XmlDictionaryString ns)
+        {
+            if (reader == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(reader));
+            }
 
-        //    reader.ReadFullStartElement(localName, ns);
-        //    EndpointAddress ea = ReadFromDriver(addressingVersion, reader);
-        //    reader.ReadEndElement();
-        //    return ea;
-        //}
+            if (addressingVersion == null)
+            {
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(addressingVersion));
+            }
+
+            reader.ReadFullStartElement(localName, ns);
+            EndpointAddress ea = ReadFromDriver(addressingVersion, reader);
+            reader.ReadEndElement();
+            return ea;
+        }
 
         private static EndpointAddress ReadFromDriver(AddressingVersion addressingVersion, XmlDictionaryReader reader)
         {
