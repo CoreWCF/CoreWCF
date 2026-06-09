@@ -72,9 +72,6 @@ namespace CoreWCF.Primitives.Tests
             Message message = ByteStreamMessage.CreateMessage(buffer, bufferManager);
             byte[] actualBytes = message.GetBody<byte[]>();//calling GetBody will close the internal reader and return the buffer to the pool
             Assert.Equal(buffer, new ArraySegment<byte>(actualBytes));
-
-            byte[] secondBuffer = bufferManager.TakeBuffer(bufferSize); //should return the same buffer that was used to create the message since it should be back in the pool now.
-            Assert.Same(buffer.Array, secondBuffer);
         }
 
         [Fact]

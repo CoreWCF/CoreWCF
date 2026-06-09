@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Mime;
 using System.Security.Authentication.ExtendedProtection;
@@ -121,69 +123,11 @@ namespace CoreWCF.Channels
             }
         }
 
-        private async Task<Message> DecodeBufferedMessageAsync(ArraySegment<byte> buffer, Stream inputStream)
+        private async ValueTask<Message> DecodeBufferedMessageAsync(ReadOnlySequence<byte> buffer)
         {
             try
             {
-                // if we're chunked, make sure we've consumed the whole body
-                if (ContentLength == -1 && buffer.Count == _settings.MaxReceivedMessageSize)
-                {
-                    byte[] extraBuffer = new byte[1];
-                    int extraReceived = await inputStream.ReadAsync(extraBuffer, 0, 1);
-                    if (extraReceived > 0)
-                    {
-                        ThrowMaxReceivedMessageSizeExceeded();
-                    }
-                }
-
-                try
-                {
-                    return _messageEncoder.ReadMessage(buffer, _bufferManager, ContentType);
-                }
-                catch (XmlException xmlException)
-                {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ProtocolException(SR.MessageXmlProtocolError, xmlException));
-                }
-            }
-            finally
-            {
-                inputStream.Close();
-            }
-        }
-
-        private async Task<Message> ReadBufferedMessageAsync(Stream inputStream)
-        {
-            ArraySegment<byte> messageBuffer = GetMessageBuffer();
-            byte[] buffer = messageBuffer.Array;
-            int offset = 0;
-            int count = messageBuffer.Count;
-
-            while (count > 0)
-            {
-                int bytesRead = await inputStream.ReadAsync(buffer, offset, count);
-                if (bytesRead == 0) // EOF
-                {
-                    if (ContentLength != -1)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            new ProtocolException(SR.HttpContentLengthIncorrect));
-                    }
-
-                    break;
-                }
-                count -= bytesRead;
-                offset += bytesRead;
-            }
-
-            return await DecodeBufferedMessageAsync(new ArraySegment<byte>(buffer, 0, offset), inputStream);
-        }
-
-        private async Task<Message> ReadChunkedBufferedMessageAsync(Stream inputStream)
-        {
-            try
-            {
-                return _messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, _bufferManager, _settings.MaxBufferSize), _bufferManager, ContentType);
+                return await _messageEncoder.ReadMessageAsync(buffer, _bufferManager, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -192,9 +136,43 @@ namespace CoreWCF.Channels
             }
         }
 
-        private async Task<Message> ReadStreamedMessageAsync(Stream inputStream)
+        private async Task<Message> ReadBufferedMessageAsync(PipeReader reader)
         {
-            MaxMessageSizeStream maxMessageSizeStream = new MaxMessageSizeStream(inputStream, _settings.MaxReceivedMessageSize);
+            ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
+            Message message = null;
+            try
+            {
+                while (true)
+                {
+                    ReadResult result = await reader.ReadAsync();
+                    buffer = result.Buffer;
+
+                    if (buffer.Length > _settings.MaxReceivedMessageSize)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(_settings.MaxReceivedMessageSize));
+                    }
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+
+                    reader.AdvanceTo(buffer.Start, buffer.End);
+                }
+
+                message = await DecodeBufferedMessageAsync(buffer);
+            }
+            finally
+            {
+                reader.AdvanceTo(buffer.End, buffer.End);
+            }
+
+            return message;
+        }
+
+        private async Task<Message> ReadStreamedMessageAsync(PipeReader reader)
+        {
+            MaxMessageSizeStream maxMessageSizeStream = new(reader.AsStream(), _settings.MaxReceivedMessageSize);
 
             try
             {
@@ -205,41 +183,6 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ProtocolException(SR.MessageXmlProtocolError, xmlException));
             }
-        }
-
-        // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
-        {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
-            {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
-            }
-
-            return new ArraySegment<byte>(buffer, 0, offset);
         }
 
         protected abstract void AddProperties(Message message);
@@ -383,16 +326,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        public async Task<(Message message, Exception requestException)> ParseIncomingMessageAsync()
+        public async Task<(Message message, Exception requestException, PipeReader reader)> ParseIncomingMessageAsync()
         {
-            Exception requestException = null;
             bool throwing = true;
             try
             {
                 await CheckForContentAsync();
                 ValidateContentType();
 
+                Exception requestException;
                 Message message;
+                PipeReader reader = null;
+
                 if (!HasContent)
                 {
                     if (_messageEncoder.MessageVersion == MessageVersion.None)
@@ -401,30 +346,27 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        return (null, requestException);
+                        return (null, null, null);
                     }
                 }
                 else
                 {
                     Stream stream = GetInputStream(true);
+                    reader = PipeReader.Create(stream, new StreamPipeReaderOptions(pool: _settings.BufferManager));
                     if (_streamed)
                     {
-                        message = await ReadStreamedMessageAsync(stream);
-                    }
-                    else if (ContentLength == -1)
-                    {
-                        message = await ReadChunkedBufferedMessageAsync(stream);
+                        message = await ReadStreamedMessageAsync(reader);
                     }
                     else
                     {
-                        message = await ReadBufferedMessageAsync(stream);
+                        message = await ReadBufferedMessageAsync(reader);
                     }
                 }
 
                 requestException = ProcessHttpAddressing(message);
 
                 throwing = false;
-                return (message, requestException);
+                return (message, requestException, reader);
             }
             finally
             {
@@ -459,21 +401,6 @@ namespace CoreWCF.Channels
 
         protected virtual void Close()
         {
-        }
-
-        private ArraySegment<byte> GetMessageBuffer()
-        {
-            long count = ContentLength;
-            int bufferSize;
-
-            if (count > _settings.MaxReceivedMessageSize)
-            {
-                ThrowMaxReceivedMessageSizeExceeded();
-            }
-
-            bufferSize = (int)count;
-
-            return new ArraySegment<byte>(_bufferManager.TakeBuffer(bufferSize), 0, bufferSize);
         }
     }
 

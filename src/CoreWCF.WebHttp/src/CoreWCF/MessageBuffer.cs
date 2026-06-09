@@ -10,13 +10,13 @@ namespace CoreWCF
 {
     internal class BufferedMessageBuffer : MessageBuffer
     {
-        private IBufferedMessageData _messageData;
+        private IBufferedMessageData2 _messageData;
         private readonly KeyValuePair<string, object>[] _properties;
         private bool _closed;
         private readonly bool[] _understoodHeaders;
         private readonly bool _understoodHeadersModified;
 
-        public BufferedMessageBuffer(IBufferedMessageData messageData,
+        public BufferedMessageBuffer(IBufferedMessageData2 messageData,
             KeyValuePair<string, object>[] properties, bool[] understoodHeaders, bool understoodHeadersModified)
         {
             _messageData = messageData;
@@ -37,7 +37,7 @@ namespace CoreWCF
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                     }
 
-                    return _messageData.Buffer.Count;
+                    return (int)_messageData.ReadOnlyBuffer.Length;
                 }
             }
         }
@@ -56,8 +56,10 @@ namespace CoreWCF
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                 }
 
-                ArraySegment<byte> buffer = _messageData.Buffer;
-                stream.Write(buffer.Array, buffer.Offset, buffer.Count);
+                foreach (var memory in _messageData.ReadOnlyBuffer)
+                {
+                    stream.Write(memory);
+                }
             }
         }
 

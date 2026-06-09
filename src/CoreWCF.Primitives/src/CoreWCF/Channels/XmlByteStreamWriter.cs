@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +78,17 @@ namespace CoreWCF.Channels
             }
         }
 
+        private void EnsureWriteBase64State(ReadOnlyMemory<byte> buffer)
+        {
+            ThrowIfClosed();
+
+            if (_state != ByteStreamWriterState.Content && _state != ByteStreamWriterState.StartElement)
+            {
+                throw Fx.Exception.AsError(
+                    new InvalidOperationException(SR.Format(SR.XmlWriterMustBeInElement, ByteStreamWriterStateToWriteState(this._state))));
+            }
+        }
+
         public override void Flush()
         {
             ThrowIfClosed();
@@ -125,6 +137,13 @@ namespace CoreWCF.Channels
         {
             EnsureWriteBase64State(buffer, index, count);
             _stream.Write(buffer, index, count);
+            _state = ByteStreamWriterState.Content;
+        }
+
+        public void WriteBase64(ReadOnlyMemory<byte> buffer)
+        {
+            EnsureWriteBase64State(buffer);
+            _stream.Write(buffer);
             _state = ByteStreamWriterState.Content;
         }
 
@@ -202,7 +221,7 @@ namespace CoreWCF.Channels
 
         public override void WriteString(string text)
         {
-            // no state checks here - WriteBase64 will take care of this. 
+            // no state checks here - WriteBase64 will take care of this.
             byte[] buffer = Convert.FromBase64String(text);
             WriteBase64(buffer, 0, buffer.Length);
         }
