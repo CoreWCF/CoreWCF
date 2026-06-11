@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreWCF.Configuration;
 using CoreWCF.Queue.Common.Configuration;
@@ -46,7 +45,7 @@ public class InMemoryQueueIntegrationTests
             host.Start();
             var resolver = new DependencyResolverHelper(host);
             var testService = resolver.GetService<TestService>();
-            var queue = resolver.GetService<ConcurrentQueue<string>>();
+            var queue = resolver.GetService<InMemoryMessageQueue>();
             var receiveContextInterceptor = resolver.GetService<ReceiveContextInterceptor>();
 
             testService.CountdownEvent.Reset(1);
@@ -73,7 +72,7 @@ public class InMemoryQueueIntegrationTests
             host.Start();
             var resolver = new DependencyResolverHelper(host);
             var testService = resolver.GetService<TestService>();
-            var queue = resolver.GetService<ConcurrentQueue<string>>();
+            var queue = resolver.GetService<InMemoryMessageQueue>();
             var receiveContextInterceptor = resolver.GetService<ReceiveContextInterceptor>();
             receiveContextInterceptor.AbandonCountdownEvent.Reset(1);
 
@@ -95,7 +94,7 @@ public class InMemoryQueueIntegrationTests
         {
             host.Start();
             var resolver = new DependencyResolverHelper(host);
-            var queue = resolver.GetService<ConcurrentQueue<string>>();
+            var queue = resolver.GetService<InMemoryMessageQueue>();
             var receiveContextInterceptor = resolver.GetService<ReceiveContextInterceptor>();
             receiveContextInterceptor.AbandonCountdownEvent.Reset(1);
 
@@ -122,7 +121,7 @@ public class InMemoryQueueIntegrationTests
         {
             host.Start();
             var resolver = new DependencyResolverHelper(host);
-            var queue = resolver.GetService<ConcurrentQueue<string>>();
+            var queue = resolver.GetService<InMemoryMessageQueue>();
             var receiveContextInterceptor = resolver.GetService<ReceiveContextInterceptor>();
             var testService = resolver.GetService<TestService>();
             receiveContextInterceptor.AbandonCountdownEvent.Reset(abandonCount);
@@ -188,7 +187,7 @@ public class InMemoryQueueIntegrationTests
             services.AddQueueTransport();
 
             services.AddSingleton<ReceiveContextInterceptor>();
-            services.AddSingleton<ConcurrentQueue<string>>();
+            services.AddSingleton<InMemoryMessageQueue>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
