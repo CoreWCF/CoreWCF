@@ -91,9 +91,9 @@ namespace CoreWCF.Configuration
         }
 
         [ConfigurationProperty(ConfigurationStrings.ReliableSession)]
-        public string ReliableSession
+        public OptionalReliableSessionElement ReliableSession
         {
-            get { throw new PlatformNotSupportedException(); }
+            get { return (OptionalReliableSessionElement)base[ConfigurationStrings.ReliableSession]; }
         }
 
         [ConfigurationProperty(ConfigurationStrings.Security)]
@@ -127,6 +127,7 @@ namespace CoreWCF.Configuration
             };
 
             //this.ReliableSession.ApplyConfiguration(nptBinding.ReliableSession);
+            ReliableSession.ApplyConfiguration(binding.ReliableSession);
             Security.ApplyConfiguration(binding.Security);
             return binding;
         }

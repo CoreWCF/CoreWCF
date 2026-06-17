@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Security.Authentication.ExtendedProtection;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using CoreWCF.Channels;
@@ -77,7 +78,6 @@ namespace CoreWCF.Security
         private NonceCache _nonceCache;
         private TimeSpan _replayWindow;
         private TimeSpan _clockSkew;
-        private TimeoutHelper _timeoutHelper;
         private long _maxReceivedMessageSize = TransportDefaults.MaxReceivedMessageSize;
         private XmlDictionaryReaderQuotas _readerQuotas;
         private MessageProtectionOrder _protectionOrder;
@@ -601,7 +601,7 @@ namespace CoreWCF.Security
             _clockSkew = clockSkew;
         }
 
-        public async ValueTask ProcessAsync(TimeSpan timeout, ChannelBinding channelBinding, ExtendedProtectionPolicy extendedProtectionPolicy)
+        public async ValueTask ProcessAsync(ChannelBinding channelBinding, ExtendedProtectionPolicy extendedProtectionPolicy)
         {
             Fx.Assert(ReaderQuotas != null, "Reader quotas must be set before processing");
             MessageProtectionOrder actualProtectionOrder = _protectionOrder;
@@ -622,7 +622,6 @@ namespace CoreWCF.Security
             _orderTracker.SetRequiredProtectionOrder(actualProtectionOrder);
 
             SetProcessingStarted();
-            _timeoutHelper = new TimeoutHelper(timeout);
             Message = SecurityVerifiedMessage = new SecurityVerifiedMessage(Message, this);
             XmlDictionaryReader reader = CreateSecurityHeaderReader();
             reader.MoveToStartElement();
@@ -926,7 +925,7 @@ namespace CoreWCF.Security
                 {
                     EncryptedData encryptedData = ElementManager.GetElement<EncryptedData>(position);
                     bool dummy = false;
-                    await ProcessEncryptedDataAsync(encryptedData, _timeoutHelper.RemainingTime(), position, false, dummy);
+                    await ProcessEncryptedDataAsync(encryptedData, position, false, dummy);
                 }
             }
         }
@@ -966,7 +965,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    await ReadTokenAsync(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
+                    await ReadTokenAsync(reader, AppendPosition, null, null, null);
                 }
                 position++;
             }
@@ -1012,7 +1011,7 @@ namespace CoreWCF.Security
                 else if (IsReaderAtEncryptedData(reader))
                 {
                     EncryptedData encryptedData = ReadEncryptedData(reader);
-                    primarySignatureFound = await ProcessEncryptedDataAsync(encryptedData, _timeoutHelper.RemainingTime(), position, true, primarySignatureFound);
+                    primarySignatureFound = await ProcessEncryptedDataAsync(encryptedData, position, true, primarySignatureFound);
                 }
                 else if (StandardsManager.SecurityVersion.IsReaderAtSignatureConfirmation(reader))
                 {
@@ -1024,7 +1023,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    await ReadTokenAsync(reader, AppendPosition, null, null, null, _timeoutHelper.RemainingTime());
+                    await ReadTokenAsync(reader, AppendPosition, null, null, null);
                 }
                 position++;
             }
@@ -1109,7 +1108,7 @@ namespace CoreWCF.Security
                 );
         }
 
-        private async ValueTask<bool> ProcessEncryptedDataAsync(EncryptedData encryptedData, TimeSpan timeout, int position, bool eagerMode, bool primarySignatureFound)
+        private async ValueTask<bool> ProcessEncryptedDataAsync(EncryptedData encryptedData, int position, bool eagerMode, bool primarySignatureFound)
         {
             // if (TD.EncryptedDataProcessingStartIsEnabled())
             // {
@@ -1168,7 +1167,7 @@ namespace CoreWCF.Security
 
 
                     // read the actual token and put it into the system
-                    await ReadTokenAsync(dr, position, db, encryptionToken, id, timeout);
+                    await ReadTokenAsync(dr, position, db, encryptionToken, id);
 
                     ElementManager.GetElementEntry(position, out ReceiveSecurityHeaderEntry rshe);
 
@@ -1198,7 +1197,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    await ReadTokenAsync(decryptedReader, position, decryptedBuffer, encryptionToken, id, timeout);
+                    await ReadTokenAsync(decryptedReader, position, decryptedBuffer, encryptionToken, id);
                 }
             }
 
@@ -1483,7 +1482,7 @@ namespace CoreWCF.Security
         }
 
         private async ValueTask ReadTokenAsync(XmlDictionaryReader reader, int position, byte[] decryptedBuffer,
-            SecurityToken encryptionToken, string idInEncryptedForm, TimeSpan timeout)
+            SecurityToken encryptionToken, string idInEncryptedForm)
         {
             Fx.Assert((position == AppendPosition) == (decryptedBuffer == null), "inconsistent position, decryptedBuffer parameters");
             Fx.Assert((position == AppendPosition) == (encryptionToken == null), "inconsistent position, encryptionToken parameters");
