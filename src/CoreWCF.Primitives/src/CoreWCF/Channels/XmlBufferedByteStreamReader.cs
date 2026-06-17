@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Xml;
 using CoreWCF.Runtime;
@@ -19,7 +20,7 @@ namespace CoreWCF.Channels
             _bufferedMessageData = bufferedMessageData;
             _bufferedMessageData.Open();
 
-            _offset = bufferedMessageData.Buffer.Offset;
+            _offset = bufferedMessageData.ReadOnlyBuffer.Start.GetInteger();
             this.quotas = quotas;
             position = ReaderPosition.None;
         }
@@ -42,7 +43,7 @@ namespace CoreWCF.Channels
                 return 0;
             }
 
-            int bytesToCopy = Math.Min(_bufferedMessageData.Buffer.Count - _offset, count);
+            int bytesToCopy = Math.Min((int)_bufferedMessageData.ReadOnlyBuffer.Length - _offset, count);
 
             if (bytesToCopy == 0)
             {
@@ -50,7 +51,7 @@ namespace CoreWCF.Channels
                 return 0;
             }
 
-            Buffer.BlockCopy(_bufferedMessageData.Buffer.Array, _offset, buffer, index, bytesToCopy);
+            _bufferedMessageData.ReadOnlyBuffer.CopyTo(buffer.AsSpan().Slice(index, bytesToCopy));
             _offset += bytesToCopy;
 
             return bytesToCopy;
@@ -58,9 +59,9 @@ namespace CoreWCF.Channels
 
         protected override byte[] OnToByteArray()
         {
-            int bytesToCopy = _bufferedMessageData.Buffer.Count;
+            int bytesToCopy = (int)_bufferedMessageData.ReadOnlyBuffer.Length;
             byte[] buffer = new byte[bytesToCopy];
-            Buffer.BlockCopy(_bufferedMessageData.Buffer.Array, _bufferedMessageData.Buffer.Offset, buffer, 0, bytesToCopy);
+            _bufferedMessageData.ReadOnlyBuffer.CopyTo(buffer);
             return buffer;
         }
 
@@ -75,7 +76,7 @@ namespace CoreWCF.Channels
             {
                 // in ByteStream encoder, we're not concerned about individual xml nodes
                 // therefore we can just return the entire segment of the buffer we're using in this reader.
-                length = _bufferedMessageData.Buffer.Count;
+                length = (int)_bufferedMessageData.ReadOnlyBuffer.Length;
                 return true;
             }
             length = -1;
