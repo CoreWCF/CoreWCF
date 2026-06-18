@@ -223,8 +223,8 @@ namespace CoreWCF.Channels
                                 Message message;
                                 try
                                 {
-                                    message = _connection.MessageEncoder.ReadMessage(
-                                        new ArraySegment<byte>(_connection.EnvelopeBuffer.ToArray(), 0, _connection.EnvelopeSize),
+                                    message = await _connection.MessageEncoder.ReadMessageAsync(
+                                        new ReadOnlySequence<byte>(_connection.EnvelopeBuffer.Slice(0, _connection.EnvelopeSize)),
                                         _connection.BufferManager,
                                         _connection.FramingDecoder.ContentType);
                                 }

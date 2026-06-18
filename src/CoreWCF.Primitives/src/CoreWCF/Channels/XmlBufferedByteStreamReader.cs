@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Xml;
 using CoreWCF.Runtime;
@@ -19,7 +20,7 @@ namespace CoreWCF.Channels
             _bufferedMessageData = bufferedMessageData;
             _bufferedMessageData.Open();
 
-            _offset = bufferedMessageData.Buffer.Offset;
+            _offset = 0;
             this.quotas = quotas;
             position = ReaderPosition.None;
         }
@@ -42,15 +43,16 @@ namespace CoreWCF.Channels
                 return 0;
             }
 
-            int bytesToCopy = Math.Min(_bufferedMessageData.Buffer.Count - _offset, count);
-
-            if (bytesToCopy == 0)
+            long remainingBytes = _bufferedMessageData.ReadOnlyBuffer.Length - _offset;
+            if (remainingBytes <= 0)
             {
                 position = ReaderPosition.EndElement;
                 return 0;
             }
 
-            Buffer.BlockCopy(_bufferedMessageData.Buffer.Array, _offset, buffer, index, bytesToCopy);
+            int bytesToCopy = (int)Math.Min(remainingBytes, count);
+
+            _bufferedMessageData.ReadOnlyBuffer.Slice(_offset, bytesToCopy).CopyTo(buffer.AsSpan(index, bytesToCopy));
             _offset += bytesToCopy;
 
             return bytesToCopy;
@@ -58,9 +60,9 @@ namespace CoreWCF.Channels
 
         protected override byte[] OnToByteArray()
         {
-            int bytesToCopy = _bufferedMessageData.Buffer.Count;
+            int bytesToCopy = (int)_bufferedMessageData.ReadOnlyBuffer.Length;
             byte[] buffer = new byte[bytesToCopy];
-            Buffer.BlockCopy(_bufferedMessageData.Buffer.Array, _bufferedMessageData.Buffer.Offset, buffer, 0, bytesToCopy);
+            _bufferedMessageData.ReadOnlyBuffer.CopyTo(buffer);
             return buffer;
         }
 
@@ -75,7 +77,7 @@ namespace CoreWCF.Channels
             {
                 // in ByteStream encoder, we're not concerned about individual xml nodes
                 // therefore we can just return the entire segment of the buffer we're using in this reader.
-                length = _bufferedMessageData.Buffer.Count;
+                length = (int)_bufferedMessageData.ReadOnlyBuffer.Length;
                 return true;
             }
             length = -1;

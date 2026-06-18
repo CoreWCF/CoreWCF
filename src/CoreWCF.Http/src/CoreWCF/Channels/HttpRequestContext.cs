@@ -478,7 +478,7 @@ namespace CoreWCF.Channels
                     if (!_aspNetCoreHttpContext._aspNetContext.Request.ContentLength.HasValue)
                     {
                         _preReadBuffer = new byte[1];
-                        // TODO: Look into useing PipeReader with look-ahead
+                        // TODO: Look into using PipeReader with look-ahead
                         if (await _aspNetCoreHttpContext._aspNetContext.Request.Body.ReadAsync(_preReadBuffer, 0, 1) == 0)
                         {
                             _preReadBuffer = null;
