@@ -1140,5 +1140,72 @@ namespace CoreWCF.Dispatcher
 
         await test.RunAsync();
     }
+
+    /// <summary>
+    /// Tests that the source generator works correctly when the service contract
+    /// is in a separate project from the implementation. This validates the 
+    /// multi-project scenario which is a common real-world use case.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
+    public async Task ContractAndImplementationInSeparateProjects(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            TestState =
+            {
+                // Implementation project
+                Sources =
+                {
+@$"
+namespace MyProject.Implementation
+{{
+    public partial class IdentityService : Contracts.IIdentityService
+    {{
+        public string Echo(string input)
+        {{
+            return input;
+        }}
+    }}
+}}
+"
+                },
+                AdditionalProjectReferences = { "ContractProject" },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator),"/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                },
+                AdditionalProjects =
+                {
+                    ["ContractProject"] =
+                    {
+                        Sources =
+                        {
+@$"
+namespace MyProject.Contracts
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IIdentityService
+    {{
+        [{attributeNamespace}.OperationContract]
+        string Echo(string input);
+    }}
+}}
+"
+                        },
+                        AdditionalReferences =
+                        {
+                            typeof(CoreWCF.ServiceContractAttribute).Assembly.Location
+                        }
+                    }
+                }
+            },
+        };
+
+        await test.RunAsync();
+    }
 }
 
