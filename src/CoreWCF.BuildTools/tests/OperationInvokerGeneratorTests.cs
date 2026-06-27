@@ -88,7 +88,7 @@ namespace MyProject
                 },
                 AnalyzerConfigFiles =
                 {
-                    (typeof(OperationInvokerGenerator),"/.globalconfig", """
+                    (typeof(OperationInvokerGenerator), "/.globalconfig", """
 is_global = true
 build_property.EnableCoreWCFOperationInvokerGenerator = true
 """)
