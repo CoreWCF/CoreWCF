@@ -67,21 +67,21 @@ public sealed partial class OperationInvokerGenerator
 
         private static bool HasOpenGenericContext(IMethodSymbol method)
         {
-                if (method.TypeParameters.Length > 0)
+            if (method.TypeParameters.Length > 0)
+            {
+                return true;
+            }
+
+            for (INamedTypeSymbol? containingType = method.ContainingType; containingType != null; containingType = containingType.ContainingType)
+            {
+                if (containingType.TypeParameters.Length > 0)
                 {
                     return true;
                 }
-
-                for (INamedTypeSymbol? containingType = method.ContainingType; containingType != null; containingType = containingType.ContainingType)
-                {
-                    if (containingType.TypeParameters.Length > 0)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
+
+            return false;
+        }
 
         internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
                                                                              && methodDeclarationSyntax.AttributeLists.Count > 0
