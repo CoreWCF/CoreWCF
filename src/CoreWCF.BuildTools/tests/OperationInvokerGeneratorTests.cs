@@ -61,6 +61,46 @@ namespace MyProject
 
     [Theory]
     [MemberData(nameof(GetTestVariations))]
+    public async Task OpenGenericServiceContractDoesNotGenerateInvokerTest(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IRepositoryService<TItem, TFilter>
+        where TItem : class, new()
+        where TFilter : class, new()
+    {{
+        [{attributeNamespace}.OperationContract]
+        System.Collections.Generic.IEnumerable<TItem> Find(TFilter filter);
+
+        [{attributeNamespace}.OperationContract]
+        int CountItems(TFilter filter);
+    }}
+}}
+"
+                },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator),"/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                }
+            }
+        };
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
     public async Task SimpleTest(string attributeNamespace)
     {
         var test = new VerifyGenerator.Test
@@ -1141,4 +1181,3 @@ namespace CoreWCF.Dispatcher
         await test.RunAsync();
     }
 }
-

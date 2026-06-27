@@ -44,6 +44,7 @@ public sealed partial class OperationInvokerGenerator
                     where method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is not null
                     let @interface = method.ContainingSymbol
                     where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    where !HasOpenGenericContext(method)
                     where !method.IsPrivate()
                     select method).ToImmutableArray();
 
@@ -62,6 +63,24 @@ public sealed partial class OperationInvokerGenerator
                 }
 
                 return new SourceGenerationSpec(operationContractSpecs);
+            }
+
+        private static bool HasOpenGenericContext(IMethodSymbol method)
+        {
+                if (method.TypeParameters.Length > 0)
+                {
+                    return true;
+                }
+
+                for (INamedTypeSymbol? containingType = method.ContainingType; containingType != null; containingType = containingType.ContainingType)
+                {
+                    if (containingType.TypeParameters.Length > 0)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
         internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
