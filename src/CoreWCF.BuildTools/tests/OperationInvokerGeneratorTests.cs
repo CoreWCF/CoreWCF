@@ -61,7 +61,7 @@ namespace MyProject
 
     [Theory]
     [MemberData(nameof(GetTestVariations))]
-    public async Task OpenGenericServiceContractDoesNotGenerateInvokerTest(string attributeNamespace)
+    public async Task OpenGenericServiceContractShouldNotGenerateInvoker(string attributeNamespace)
     {
         var test = new VerifyGenerator.Test
         {
@@ -92,6 +92,9 @@ namespace MyProject
 is_global = true
 build_property.EnableCoreWCFOperationInvokerGenerator = true
 """)
+                },
+                GeneratedSources =
+                {
                 }
             }
         };
