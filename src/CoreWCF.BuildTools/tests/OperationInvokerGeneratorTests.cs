@@ -61,7 +61,7 @@ namespace MyProject
 
     [Theory]
     [MemberData(nameof(GetTestVariations))]
-    public async Task OpenGenericServiceContractShouldNotGenerateInvoker(string attributeNamespace)
+    public async Task OpenGenericServiceContractDoesNotGenerateInvoker(string attributeNamespace)
     {
         var test = new VerifyGenerator.Test
         {
