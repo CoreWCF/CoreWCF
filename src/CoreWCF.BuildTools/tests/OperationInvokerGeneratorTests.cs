@@ -65,6 +65,8 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.Errors,
+            IncludeCompilerDiagnostics = true,
             TestState =
             {
                 Sources =
