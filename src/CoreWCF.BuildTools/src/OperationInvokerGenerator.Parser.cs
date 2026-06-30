@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -13,6 +15,14 @@ public sealed partial class OperationInvokerGenerator
 {
     private sealed class Parser
     {
+        private static readonly SymbolDisplayFormat s_methodDisplayFormat = new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeContainingType,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         private readonly Compilation _compilation;
         private readonly OperationInvokerSourceGenerationContext _context;
         private readonly INamedTypeSymbol? _sSMOperationContractSymbol;
@@ -31,28 +41,31 @@ public sealed partial class OperationInvokerGenerator
                 _coreWCFServiceContractSymbol = _compilation.GetTypeByMetadataName("CoreWCF.ServiceContractAttribute");
             }
 
-        public SourceGenerationSpec GetGenerationSpec(ImmutableArray<MethodDeclarationSyntax> methodDeclarationSyntaxes)
+        public SourceGenerationSpec GetGenerationSpec(ImmutableArray<InterfaceDeclarationSyntax> interfaceDeclarationSyntaxes)
         {
-                var methodSymbols = (from methodDeclarationSyntax in methodDeclarationSyntaxes
-                    let semanticModel = _compilation.GetSemanticModel(methodDeclarationSyntax.SyntaxTree)
-                    let symbol = semanticModel.GetDeclaredSymbol(methodDeclarationSyntax)
-                    where symbol is not null
-                    let methodSymbol = symbol
-                    select methodSymbol).ToImmutableArray();
-
-                var methods = (from method in methodSymbols
-                    where method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is not null
-                    let @interface = method.ContainingSymbol
-                    where @interface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
-                    where !HasOpenGenericContext(method)
-                    where !method.IsPrivate()
-                    select method).ToImmutableArray();
-
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
+                HashSet<string> emittedMethods = new(StringComparer.Ordinal);
 
-                foreach (var value in methods)
+                var serviceContracts = (from interfaceDeclarationSyntax in interfaceDeclarationSyntaxes
+                    let semanticModel = _compilation.GetSemanticModel(interfaceDeclarationSyntax.SyntaxTree)
+                    let symbol = semanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax)
+                    where symbol is not null
+                    let serviceContract = symbol
+                    where serviceContract.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null
+                    where !HasOpenGenericContext(serviceContract)
+                    where !serviceContract.IsPrivate()
+                    select serviceContract).ToImmutableArray();
+
+                foreach (INamedTypeSymbol serviceContract in serviceContracts)
                 {
-                    builder.Add(new OperationContractSpec(value));
+                    foreach (IMethodSymbol operationContract in GetOperationContracts(serviceContract))
+                    {
+                        string operationKey = operationContract.ToDisplayString(s_methodDisplayFormat);
+                        if (emittedMethods.Add(operationKey))
+                        {
+                            builder.Add(new OperationContractSpec(operationContract));
+                        }
+                    }
                 }
 
                 ImmutableArray<OperationContractSpec> operationContractSpecs = builder.ToImmutable();
@@ -65,6 +78,41 @@ public sealed partial class OperationInvokerGenerator
                 return new SourceGenerationSpec(operationContractSpecs);
             }
 
+        private IEnumerable<IMethodSymbol> GetOperationContracts(INamedTypeSymbol serviceContract)
+        {
+            foreach (INamedTypeSymbol inheritedServiceContract in EnumerateServiceContracts(serviceContract))
+            {
+                foreach (IMethodSymbol method in inheritedServiceContract.GetMembers().OfType<IMethodSymbol>())
+                {
+                    if (method.GetOneAttributeOf(_sSMOperationContractSymbol, _coreWCFOperationContractSymbol) is null)
+                    {
+                        continue;
+                    }
+
+                    IMethodSymbol operationContract = serviceContract.FindImplementationForInterfaceMember(method) as IMethodSymbol ?? method;
+                    if (HasOpenGenericContext(operationContract) || operationContract.IsPrivate())
+                    {
+                        continue;
+                    }
+
+                    yield return operationContract;
+                }
+            }
+        }
+
+        private IEnumerable<INamedTypeSymbol> EnumerateServiceContracts(INamedTypeSymbol serviceContract)
+        {
+            yield return serviceContract;
+
+            foreach (INamedTypeSymbol inheritedInterface in serviceContract.AllInterfaces)
+            {
+                if (inheritedInterface.GetOneAttributeOf(_sSMServiceContractSymbol, _coreWCFServiceContractSymbol) is not null)
+                {
+                    yield return inheritedInterface;
+                }
+            }
+        }
+
         private static bool HasOpenGenericContext(IMethodSymbol method)
         {
             if (method.TypeParameters.Length > 0)
@@ -72,9 +120,14 @@ public sealed partial class OperationInvokerGenerator
                 return true;
             }
 
-            for (INamedTypeSymbol? containingType = method.ContainingType; containingType != null; containingType = containingType.ContainingType)
+            return HasOpenGenericContext(method.ContainingType);
+        }
+
+        private static bool HasOpenGenericContext(INamedTypeSymbol? containingType)
+        {
+            for (; containingType != null; containingType = containingType.ContainingType)
             {
-                if (containingType.TypeParameters.Length > 0)
+                if (IsOpenGenericType(containingType))
                 {
                     return true;
                 }
@@ -83,14 +136,40 @@ public sealed partial class OperationInvokerGenerator
             return false;
         }
 
-        internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is MethodDeclarationSyntax methodDeclarationSyntax
-                                                                             && methodDeclarationSyntax.AttributeLists.Count > 0
-                                                                             && methodDeclarationSyntax.Ancestors().Any(static ancestor => ancestor.IsKind(SyntaxKind.InterfaceDeclaration) && ((InterfaceDeclarationSyntax)ancestor).AttributeLists.Count > 0);
-
-        internal static MethodDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        private static bool IsOpenGenericType(INamedTypeSymbol type)
         {
-                var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-                foreach (var attributeList in methodDeclarationSyntax.AttributeLists)
+            return type.IsGenericType && type.TypeArguments.Any(ContainsTypeParameter);
+        }
+
+        private static bool ContainsTypeParameter(ITypeSymbol type)
+        {
+            if (type.TypeKind == TypeKind.TypeParameter)
+            {
+                return true;
+            }
+
+            if (type is IArrayTypeSymbol arrayType)
+            {
+                return ContainsTypeParameter(arrayType.ElementType);
+            }
+
+            if (type is IPointerTypeSymbol pointerType)
+            {
+                return ContainsTypeParameter(pointerType.PointedAtType);
+            }
+
+            return type is INamedTypeSymbol namedType
+                   && namedType.IsGenericType
+                   && namedType.TypeArguments.Any(ContainsTypeParameter);
+        }
+
+        internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is InterfaceDeclarationSyntax interfaceDeclarationSyntax
+                                                                             && interfaceDeclarationSyntax.AttributeLists.Count > 0;
+
+        internal static InterfaceDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        {
+                var interfaceDeclarationSyntax = (InterfaceDeclarationSyntax)context.Node;
+                foreach (var attributeList in interfaceDeclarationSyntax.AttributeLists)
                 {
                     foreach (var attribute in attributeList.Attributes)
                     {
@@ -103,9 +182,9 @@ public sealed partial class OperationInvokerGenerator
                         var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                         var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                        if (fullName == "CoreWCF.OperationContractAttribute" || fullName == "System.ServiceModel.OperationContractAttribute")
+                        if (fullName == "CoreWCF.ServiceContractAttribute" || fullName == "System.ServiceModel.ServiceContractAttribute")
                         {
-                            return methodDeclarationSyntax;
+                            return interfaceDeclarationSyntax;
                         }
                     }
                 }

@@ -18,44 +18,44 @@ public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
                 options.GlobalOptions.TryGetValue("build_property.EnableCoreWCFOperationInvokerGenerator", out string? val)
                 && val == "true");
 
-        IncrementalValuesProvider<MethodDeclarationSyntax> coreWCFMethods = context.SyntaxProvider
+        IncrementalValuesProvider<InterfaceDeclarationSyntax> coreWCFInterfaces = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                "CoreWCF.OperationContractAttribute",
-                predicate: static (node, _) => node is MethodDeclarationSyntax,
-                transform: static (ctx, _) => (MethodDeclarationSyntax)ctx.TargetNode);
+                "CoreWCF.ServiceContractAttribute",
+                predicate: static (node, _) => node is InterfaceDeclarationSyntax,
+                transform: static (ctx, _) => (InterfaceDeclarationSyntax)ctx.TargetNode);
 
-        IncrementalValuesProvider<MethodDeclarationSyntax> ssmMethods = context.SyntaxProvider
+        IncrementalValuesProvider<InterfaceDeclarationSyntax> ssmInterfaces = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                "System.ServiceModel.OperationContractAttribute",
-                predicate: static (node, _) => node is MethodDeclarationSyntax,
-                transform: static (ctx, _) => (MethodDeclarationSyntax)ctx.TargetNode);
+                "System.ServiceModel.ServiceContractAttribute",
+                predicate: static (node, _) => node is InterfaceDeclarationSyntax,
+                transform: static (ctx, _) => (InterfaceDeclarationSyntax)ctx.TargetNode);
 
-        IncrementalValueProvider<ImmutableArray<MethodDeclarationSyntax>> methodDeclarations = coreWCFMethods.Collect()
-            .Combine(ssmMethods.Collect())
+        IncrementalValueProvider<ImmutableArray<InterfaceDeclarationSyntax>> interfaceDeclarations = coreWCFInterfaces.Collect()
+            .Combine(ssmInterfaces.Collect())
             .Select(static (pair, _) => pair.Left.AddRange(pair.Right));
 
-        IncrementalValueProvider<(bool Enabled, (Compilation Compilation, ImmutableArray<MethodDeclarationSyntax> Methods) CompilationAndMethods)> compilationAndMethods =
-            enabledProvider.Combine(context.CompilationProvider.Combine(methodDeclarations));
+        IncrementalValueProvider<(bool Enabled, (Compilation Compilation, ImmutableArray<InterfaceDeclarationSyntax> Interfaces) CompilationAndMethods)> compilationAndMethods =
+            enabledProvider.Combine(context.CompilationProvider.Combine(interfaceDeclarations));
 
         context.RegisterSourceOutput(compilationAndMethods, (spc, source)
-            => Execute(source.Enabled, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Methods, spc));
+            => Execute(source.Enabled, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Interfaces, spc));
     }
 
-    private void Execute(bool enabled, Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
+    private void Execute(bool enabled, Compilation compilation, ImmutableArray<InterfaceDeclarationSyntax> contextInterfaces, SourceProductionContext sourceProductionContext)
     {
         if (!enabled)
         {
             return;
         }
 
-        if (contextMethods.IsDefaultOrEmpty)
+        if (contextInterfaces.IsDefaultOrEmpty)
         {
             return;
         }
 
         OperationInvokerSourceGenerationContext context = new(sourceProductionContext);
         Parser parser = new(compilation, context);
-        SourceGenerationSpec spec = parser.GetGenerationSpec(contextMethods);
+        SourceGenerationSpec spec = parser.GetGenerationSpec(contextInterfaces);
         if (spec != SourceGenerationSpec.None)
         {
             Emitter emitter = new(context, spec);
