@@ -44,7 +44,7 @@ public sealed partial class OperationInvokerGenerator
         public SourceGenerationSpec GetGenerationSpec(ImmutableArray<InterfaceDeclarationSyntax> interfaceDeclarationSyntaxes)
         {
                 var builder = ImmutableArray.CreateBuilder<OperationContractSpec>();
-                HashSet<string> emittedMethods = new(StringComparer.Ordinal);
+                HashSet<string> emittedOperations = new(StringComparer.Ordinal);
 
                 var serviceContracts = (from interfaceDeclarationSyntax in interfaceDeclarationSyntaxes
                     let semanticModel = _compilation.GetSemanticModel(interfaceDeclarationSyntax.SyntaxTree)
@@ -61,7 +61,7 @@ public sealed partial class OperationInvokerGenerator
                     foreach (IMethodSymbol operationContract in GetOperationContracts(serviceContract))
                     {
                         string operationKey = operationContract.ToDisplayString(s_methodDisplayFormat);
-                        if (emittedMethods.Add(operationKey))
+                        if (emittedOperations.Add(operationKey))
                         {
                             builder.Add(new OperationContractSpec(operationContract));
                         }

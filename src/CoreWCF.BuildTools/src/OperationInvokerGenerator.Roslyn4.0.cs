@@ -34,11 +34,11 @@ public sealed partial class OperationInvokerGenerator : IIncrementalGenerator
             .Combine(ssmInterfaces.Collect())
             .Select(static (pair, _) => pair.Left.AddRange(pair.Right));
 
-        IncrementalValueProvider<(bool Enabled, (Compilation Compilation, ImmutableArray<InterfaceDeclarationSyntax> Interfaces) CompilationAndMethods)> compilationAndMethods =
+        IncrementalValueProvider<(bool Enabled, (Compilation Compilation, ImmutableArray<InterfaceDeclarationSyntax> Interfaces) CompilationAndInterfaces)> compilationAndInterfaces =
             enabledProvider.Combine(context.CompilationProvider.Combine(interfaceDeclarations));
 
-        context.RegisterSourceOutput(compilationAndMethods, (spc, source)
-            => Execute(source.Enabled, source.CompilationAndMethods.Compilation, source.CompilationAndMethods.Interfaces, spc));
+        context.RegisterSourceOutput(compilationAndInterfaces, (spc, source)
+            => Execute(source.Enabled, source.CompilationAndInterfaces.Compilation, source.CompilationAndInterfaces.Interfaces, spc));
     }
 
     private void Execute(bool enabled, Compilation compilation, ImmutableArray<InterfaceDeclarationSyntax> contextInterfaces, SourceProductionContext sourceProductionContext)
