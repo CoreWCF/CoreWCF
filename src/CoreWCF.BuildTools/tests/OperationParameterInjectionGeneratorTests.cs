@@ -260,6 +260,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -317,6 +318,7 @@ using Microsoft.Extensions.DependencyInjection;
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -373,6 +375,7 @@ using Microsoft.Extensions.DependencyInjection;
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -515,6 +518,7 @@ public partial class IdentityService
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2013,6 +2017,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2744,6 +2749,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2788,6 +2794,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2835,6 +2842,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2885,6 +2893,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2921,6 +2930,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -2960,6 +2970,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -3003,6 +3014,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -3040,6 +3052,7 @@ namespace MyProject
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =

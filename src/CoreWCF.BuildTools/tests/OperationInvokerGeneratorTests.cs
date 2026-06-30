@@ -66,7 +66,6 @@ namespace MyProject
         var test = new VerifyGenerator.Test
         {
             CompilerDiagnostics = CompilerDiagnostics.Errors,
-            IncludeCompilerDiagnostics = true,
             TestState =
             {
                 Sources =
@@ -110,6 +109,7 @@ build_property.EnableCoreWCFOperationInvokerGenerator = true
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -209,6 +209,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -305,6 +306,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -349,6 +351,7 @@ build_property.EnableCoreWCFOperationInvokerGenerator = true
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -396,6 +399,7 @@ private partial class Container
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -529,6 +533,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -628,6 +633,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -721,6 +727,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -814,6 +821,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -907,6 +915,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -1000,6 +1009,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =
@@ -1093,6 +1103,7 @@ namespace CoreWCF.Dispatcher
     {
         var test = new VerifyGenerator.Test
         {
+            CompilerDiagnostics = CompilerDiagnostics.None,
             TestState =
             {
                 Sources =

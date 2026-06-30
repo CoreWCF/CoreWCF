@@ -34,7 +34,6 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         }
 
         public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
-        public bool IncludeCompilerDiagnostics { get; set; }
 
         private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
         {
@@ -49,7 +48,7 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
             => ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
 
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
-            => IncludeCompilerDiagnostics && base.IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics);
+            => base.IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics);
 
         protected override IEnumerable<Type> GetSourceGenerators()
         {
