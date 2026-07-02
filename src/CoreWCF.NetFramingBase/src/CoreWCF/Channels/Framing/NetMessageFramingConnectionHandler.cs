@@ -147,7 +147,7 @@ namespace CoreWCF.Channels.Framing
                     var identity = (streamUpgradeProvider as StreamSecurityUpgradeProvider)?.Identity;
                     if (identity != null)
                     {
-                        TryApplyIdentityToChannelDispatchers(dispatcher.Host.ChannelDispatchers, identity);
+                        TryApplyIdentityToChannelDispatchers(dispatcher.Host.ChannelDispatchers, dispatcher.BaseAddress, identity);
                     }
                 }
             }
@@ -170,15 +170,54 @@ namespace CoreWCF.Channels.Framing
             };
         }
 
-        private static void TryApplyIdentityToChannelDispatchers(ChannelDispatcherCollection channelDispatchers, EndpointIdentity identity)
+        private static void TryApplyIdentityToChannelDispatchers(ChannelDispatcherCollection channelDispatchers, Uri baseAddress, EndpointIdentity identity)
         {
+            // The stream upgrade provider (and therefore the identity) is specific to a single
+            // ListenUri/ChannelDispatcher. The handshake delegate is built once per dispatcher, so
+            // only apply the identity to the endpoints that belong to the dispatcher currently being
+            // processed. Applying it to every endpoint hosted by the service would incorrectly set a
+            // different identity on endpoints listening on other addresses, which throws because an
+            // endpoint's identity can only be set once.
             foreach (ChannelDispatcher channelDispatcher in channelDispatchers)
             {
                 foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
                 {
-                    endpointDispatcher.Identity = identity;
+                    EndpointAddress endpointAddress = endpointDispatcher.EndpointAddress;
+                    if (endpointAddress == null)
+                    {
+                        // No address to compare against, so this isn't an endpoint we're looking for.
+                        continue;
+                    }
+
+                    if (MatchesBaseAddress(endpointAddress.Uri, baseAddress))
+                    {
+                        endpointDispatcher.Identity = identity;
+                    }
                 }
             }
+        }
+
+        private static bool MatchesBaseAddress(Uri endpointUri, Uri baseAddress)
+        {
+            if (endpointUri == null || baseAddress == null)
+            {
+                return false;
+            }
+
+            // Compare the scheme and the path. The scheme distinguishes transports, so two
+            // ChannelDispatchers listening on the same path but different transports (e.g. net.tcp
+            // and net.pipe) are not treated as the same endpoint. The host and port are intentionally
+            // ignored: they can legitimately differ from the registered listen URI depending on the
+            // HostNameComparisonMode (the default doesn't require the host to match), so including
+            // them could cause a valid endpoint to be skipped.
+            if (string.Compare(endpointUri.Scheme, baseAddress.Scheme, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                return false;
+            }
+
+            string endpointPath = endpointUri.AbsolutePath.TrimEnd('/');
+            string basePath = baseAddress.AbsolutePath.TrimEnd('/');
+            return string.Compare(endpointPath, basePath, StringComparison.OrdinalIgnoreCase) == 0;
         }
 
         private static async Task PerformServiceHandshake(IFramingConnectionHandshakeBuilder configuration, FramingConnection connection, HandshakeDelegate next)
