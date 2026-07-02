@@ -1,8 +1,8 @@
 {
-  "total": 23788,
-  "passed": 23072,
+  "total": 24588,
+  "passed": 23862,
   "failed": 0,
-  "skipped": 716,
+  "skipped": 726,
   "other": 0,
   "matrix": [
     {
@@ -63,10 +63,10 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net472",
-      "total": 954,
-      "passed": 944,
+      "total": 1314,
+      "passed": 1299,
       "failed": 0,
-      "skipped": 10
+      "skipped": 15
     },
     {
       "cfg": "Debug",
@@ -81,8 +81,8 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net9.0",
-      "total": 1287,
-      "passed": 1244,
+      "total": 1367,
+      "passed": 1324,
       "failed": 0,
       "skipped": 43
     },
@@ -144,10 +144,10 @@
       "cfg": "Release",
       "os": "Windows",
       "tfm": "net472",
-      "total": 954,
-      "passed": 944,
+      "total": 1314,
+      "passed": 1299,
       "failed": 0,
-      "skipped": 10
+      "skipped": 15
     },
     {
       "cfg": "Release",
@@ -169,5 +169,5 @@
     }
   ],
   "title": "CoreWCF Test Results — PR #1744",
-  "subtitle": "PR #1744 · commit 034cf4d · [run 28558472374](https://github.com/CoreWCF/CoreWCF/actions/runs/28558472374)"
+  "subtitle": "PR #1744 · commit 7e88018 · [run 28559203552](https://github.com/CoreWCF/CoreWCF/actions/runs/28559203552)"
 }
