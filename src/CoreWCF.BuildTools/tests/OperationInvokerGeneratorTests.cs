@@ -105,6 +105,145 @@ build_property.EnableCoreWCFOperationInvokerGenerator = true
 
     [Theory]
     [MemberData(nameof(GetTestVariations))]
+    public async Task GenericOperationOnNonGenericServiceContractDoesNotGenerateInvoker(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            CompilerDiagnostics = CompilerDiagnostics.Errors,
+            TestState =
+            {
+                Sources =
+                {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IRepositoryService
+    {{
+        [{attributeNamespace}.OperationContract]
+        TItem Find<TItem>(string id)
+            where TItem : class, new();
+    }}
+}}
+"
+                },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator), "/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                },
+                GeneratedSources =
+                {
+                }
+            }
+        };
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
+    public async Task ServiceContractNestedInGenericContainingTypeDoesNotGenerateInvoker(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            CompilerDiagnostics = CompilerDiagnostics.Errors,
+            TestState =
+            {
+                Sources =
+                {
+@$"
+namespace MyProject
+{{
+    public class RepositoryHost<TItem>
+        where TItem : class, new()
+    {{
+        [{attributeNamespace}.ServiceContract]
+        public interface IRepositoryService
+        {{
+            [{attributeNamespace}.OperationContract]
+            TItem Find(string id);
+        }}
+    }}
+}}
+"
+                },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator), "/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                },
+                GeneratedSources =
+                {
+                }
+            }
+        };
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
+    public async Task PartiallyClosedDerivedServiceContractDoesNotGenerateInvoker(string attributeNamespace)
+    {
+        var test = new VerifyGenerator.Test
+        {
+            CompilerDiagnostics = CompilerDiagnostics.Errors,
+            TestState =
+            {
+                Sources =
+                {
+@$"
+namespace MyProject
+{{
+    [{attributeNamespace}.ServiceContract]
+    public interface IRepositoryService<TItem, TFilter>
+        where TItem : class, new()
+        where TFilter : class, new()
+    {{
+        [{attributeNamespace}.OperationContract]
+        System.Collections.Generic.IEnumerable<TItem> Find(TFilter filter);
+
+        [{attributeNamespace}.OperationContract]
+        int CountItems(TFilter filter);
+    }}
+
+    [{attributeNamespace}.ServiceContract]
+    public interface ICityRepository<TFilter> : IRepositoryService<City, TFilter>
+        where TFilter : class, new()
+    {{
+    }}
+
+    public class City
+    {{
+        public string Name {{ get; set; }}
+        public int Population {{ get; set; }}
+    }}
+}}
+"
+                },
+                AnalyzerConfigFiles =
+                {
+                    (typeof(OperationInvokerGenerator), "/.globalconfig", """
+is_global = true
+build_property.EnableCoreWCFOperationInvokerGenerator = true
+""")
+                },
+                GeneratedSources =
+                {
+                }
+            }
+        };
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [MemberData(nameof(GetTestVariations))]
     public async Task ClosedDerivedServiceContractGeneratesInvokersForInheritedGenericOperations(string attributeNamespace)
     {
         var test = new VerifyGenerator.Test
