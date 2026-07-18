@@ -44,6 +44,7 @@ namespace CoreWCF.Dispatcher
             SecurityImpersonation = SecurityImpersonationBehavior.CreateIfNecessary(dispatch);
             RequireClaimsPrincipalOnOperationContext = dispatch.RequireClaimsPrincipalOnOperationContext;
             SupportsAuthorizationData = dispatch.SupportsAuthorizationData;
+            HasPolicyBasedAuthorization = dispatch.HasPolicyBasedAuthorization;
             IsImpersonationEnabledOnSerializingReply = dispatch.ImpersonateOnSerializingReply;
             _terminate = TerminatingOperationBehavior.CreateIfNecessary(dispatch);
             _thread = new ThreadBehavior(dispatch);
@@ -101,6 +102,8 @@ namespace CoreWCF.Dispatcher
         internal bool RequireClaimsPrincipalOnOperationContext { get; }
 
         internal bool SupportsAuthorizationData { get; }
+
+        internal bool HasPolicyBasedAuthorization { get; }
 
         internal bool ManualAddressing { get; }
 
@@ -641,7 +644,7 @@ namespace CoreWCF.Dispatcher
                 rpc.Operation.SetClaimsPrincipalToOperationContext(rpc);
             }
 
-            if (_authorizationBehavior != null && SupportsAuthorizationData)
+            if (_authorizationBehavior != null && (SupportsAuthorizationData || HasPolicyBasedAuthorization))
             {
                 rpc = await _authorizationBehavior.AuthorizePolicyAsync(rpc);
             }

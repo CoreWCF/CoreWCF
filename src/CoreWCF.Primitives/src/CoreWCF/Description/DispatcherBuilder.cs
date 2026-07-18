@@ -598,6 +598,7 @@ namespace CoreWCF.Description
             var authorizationPolicyProvider = services.GetService<IAuthorizationPolicyProvider>();
             if (authorizationPolicyProvider != null)
             {
+                parent.HasPolicyBasedAuthorization = true;
                 child.AuthorizationPolicy = new Lazy<AuthorizationPolicy>(() =>
                 {
                     object serviceInstance = OperationContext.Current.InstanceContext.GetServiceInstance();

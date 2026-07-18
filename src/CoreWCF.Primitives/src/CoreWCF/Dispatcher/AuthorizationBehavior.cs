@@ -11,6 +11,7 @@ using CoreWCF.IdentityModel.Policy;
 using CoreWCF.Runtime;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace CoreWCF.Dispatcher
 {
@@ -57,10 +58,25 @@ namespace CoreWCF.Dispatcher
 
         internal async ValueTask<MessageRpc> AuthorizePolicyAsync(MessageRpc rpc)
         {
-            ClaimsPrincipal principal = rpc.OperationContext.ClaimsPrincipal;
             AuthorizationPolicy authorizationPolicy = rpc.Operation.AuthorizationPolicy?.Value;
-            if (principal != null && authorizationPolicy != null)
+            if (authorizationPolicy != null)
             {
+                ClaimsPrincipal principal = rpc.OperationContext.ClaimsPrincipal;
+                if (principal == null)
+                {
+                    // For bindings that don't use InheritedFromHost/AlwaysUseAuthorizationPolicySupport,
+                    // the ClaimsPrincipal may not be set on the OperationContext. Try to obtain it from
+                    // the ASP.NET Core HttpContext (which is populated when UseAuthentication() is called
+                    // in the application pipeline).
+                    if (rpc.Request.Properties.TryGetValue("Microsoft.AspNetCore.Http.HttpContext", out object httpContextObj)
+                        && httpContextObj is HttpContext httpContext)
+                    {
+                        principal = httpContext.User;
+                    }
+                }
+
+                principal ??= new ClaimsPrincipal(new ClaimsIdentity());
+
                 var result = await _authorizationService.AuthorizeAsync(principal, authorizationPolicy);
                 if (!result.Succeeded)
                 {
@@ -100,7 +116,7 @@ namespace CoreWCF.Dispatcher
             {
                 { RequiresAuthorization: true, SupportsAuthorizationData: true } =>
                     throw new NotSupportedException(SR.AuthorizationFeaturesAreMutuallyExclusive),
-                { RequiresAuthorization: true } or { SupportsAuthorizationData: true } =>
+                { RequiresAuthorization: true } or { SupportsAuthorizationData: true } or { HasPolicyBasedAuthorization: true } =>
                     CreateAuthorizationBehavior(dispatch),
                 _ => null
             };

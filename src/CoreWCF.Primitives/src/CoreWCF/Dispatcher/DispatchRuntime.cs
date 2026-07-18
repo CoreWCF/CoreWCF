@@ -51,6 +51,7 @@ namespace CoreWCF.Dispatcher
         private readonly SharedRuntimeState _shared;
         private bool _requireClaimsPrincipalOnOperationContext;
         private bool _supportsAuthorizationData;
+        private bool _hasPolicyBasedAuthorization;
 
         internal DispatchRuntime(EndpointDispatcher endpointDispatcher)
             : this(new SharedRuntimeState(true))
@@ -330,6 +331,22 @@ namespace CoreWCF.Dispatcher
                 {
                     InvalidateRuntime();
                     _supportsAuthorizationData = value;
+                }
+            }
+        }
+
+        internal bool HasPolicyBasedAuthorization
+        {
+            get
+            {
+                return _hasPolicyBasedAuthorization;
+            }
+            set
+            {
+                lock (ThisLock)
+                {
+                    InvalidateRuntime();
+                    _hasPolicyBasedAuthorization = value;
                 }
             }
         }
