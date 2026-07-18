@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Pipelines;
+using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -313,7 +314,7 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
     internal class TopicPartitionOffsetTracker
     {
-        private readonly ConcurrentDictionary<TopicPartition, SortedList<ConsumeResult<byte[], byte[]>, bool>> _topicPartitions = new();
+        private readonly ConcurrentDictionary<TopicPartition, SortedDictionary<ConsumeResult<byte[], byte[]>, bool>> _topicPartitions = new();
         private readonly IConsumer<byte[], byte[]> _consumer;
         private readonly ConsumerConfig _config;
         private readonly ILogger<KafkaTransportPump> _logger;
@@ -327,26 +328,30 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
 
         public void Received(ConsumeResult<byte[], byte[]> consumeResult)
         {
-            SortedList<ConsumeResult<byte[], byte[]>, bool> sortedList =
-                _topicPartitions.GetOrAdd(consumeResult.TopicPartition, new SortedList<ConsumeResult<byte[], byte[]>, bool>(ConsumeResultComparer.Default));
-            lock (sortedList)
+            SortedDictionary<ConsumeResult<byte[], byte[]>, bool> sortedDictionary =
+                _topicPartitions.GetOrAdd(consumeResult.TopicPartition, new SortedDictionary<ConsumeResult<byte[], byte[]>, bool>(ConsumeResultComparer.Default));
+            lock (sortedDictionary)
             {
-                sortedList.Add(consumeResult, false);
+                sortedDictionary.Add(consumeResult, false);
             }
         }
 
         public void MarkAsProcessed(ConsumeResult<byte[], byte[]> consumeResult)
         {
             ConsumeResult<byte[], byte[]> highestConsumeResult = null;
-            SortedList<ConsumeResult<byte[], byte[]>, bool> sortedList = _topicPartitions[consumeResult.TopicPartition];
-            lock (sortedList)
+            SortedDictionary<ConsumeResult<byte[], byte[]>, bool> sortedDictionary = _topicPartitions[consumeResult.TopicPartition];
+            lock (sortedDictionary)
             {
-                sortedList[consumeResult] = true;
-                while (sortedList.Count > 0 && sortedList.Values[0])
+                sortedDictionary[consumeResult] = true;
+                while (sortedDictionary.Count > 0)
                 {
-                    ConsumeResult<byte[], byte[]> first = sortedList.Keys[0];
-                    highestConsumeResult = first;
-                    sortedList.RemoveAt(0);
+                    KeyValuePair<ConsumeResult<byte[], byte[]>, bool> first = sortedDictionary.First();
+                    if (!first.Value)
+                    {
+                        break;
+                    }
+                    highestConsumeResult = first.Key;
+                    sortedDictionary.Remove(first.Key);
                 }
 
                 if (highestConsumeResult != null)
