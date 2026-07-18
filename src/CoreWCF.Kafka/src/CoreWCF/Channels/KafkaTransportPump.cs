@@ -343,13 +343,9 @@ internal sealed class KafkaTransportPump : QueueTransportPump, IDisposable
             lock (sortedDictionary)
             {
                 sortedDictionary[consumeResult] = true;
-                while (sortedDictionary.Count > 0)
+                KeyValuePair<ConsumeResult<byte[], byte[]>, bool> first;
+                while (sortedDictionary.Count > 0 && (first = sortedDictionary.First()).Value)
                 {
-                    KeyValuePair<ConsumeResult<byte[], byte[]>, bool> first = sortedDictionary.First();
-                    if (!first.Value)
-                    {
-                        break;
-                    }
                     highestConsumeResult = first.Key;
                     sortedDictionary.Remove(first.Key);
                 }
