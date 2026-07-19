@@ -66,7 +66,6 @@ namespace CoreWCF.Channels
             public UnixPosixIdentitySecurityUpgradeAcceptor(UnixPosixIdentitySecurityUpgradeProvider parent)
             {
                 _parent = parent;
-                _remoteSecurity = new SecurityMessageProperty();
                 _upgradeString = "application/unixposix";
             }
 

@@ -4,14 +4,15 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Kafka.Tests.Helpers;
 
 internal class DependencyResolverHelper
 {
-    private readonly IWebHost _webHost;
+    private readonly IHost _webHost;
 
-    public DependencyResolverHelper(IWebHost webHost)
+    public DependencyResolverHelper(IHost webHost)
     {
         _webHost = webHost;
     }

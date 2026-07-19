@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using CoreWCF.Runtime;
@@ -175,23 +175,8 @@ namespace CoreWCF.Security
             MaxTokenInfoClass  // MaxTokenInfoClass should always be the last enum  
         }
 
-        [DllImport(KERNEL32, SetLastError = true)]
-        internal static unsafe extern bool CancelIoEx(SafePipeHandle handle, NativeOverlapped* lpOverlapped);
-
         [DllImport(KERNEL32)]
         internal static extern int CloseHandle(IntPtr handle);
-
-        internal static void CloseInvalidOutSafeHandle(SafeCloseHandle handle)
-        {
-            // Workaround for 64-bit CLR bug - sometimes invalid SafeHandles come back null.
-            if (handle != null)
-            {
-                Fx.Assert(handle.IsInvalid, "CloseInvalidOutSafeHandle called with a valid handle!");
-
-                // Calls SuppressFinalize.
-                handle.SetHandleAsInvalid();
-            }
-        }
 
         [DllImport(KERNEL32, CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern SafeFileMappingHandle CreateFileMapping(
@@ -229,14 +214,30 @@ namespace CoreWCF.Security
         );
 
         [DllImport(ADVAPI32, ExactSpelling = true, SetLastError = true)]
-        internal static extern bool GetTokenInformation(SafeAccessTokenHandle tokenHandle, TOKEN_INFORMATION_CLASS tokenInformationClass, [Out] byte[] pTokenInformation, int tokenInformationLength, out int returnLength);
+        internal static extern bool GetTokenInformation(IntPtr token, TOKEN_INFORMATION_CLASS tokenInformationClass, [Out] byte[] pTokenInformation, uint tokenInformationLength, out uint returnLength);
 
-        [DllImport(ADVAPI32, SetLastError = true, EntryPoint = "OpenProcessToken")]
-        internal static extern bool
-        OpenProcessToken(
-            [In] IntPtr ProcessHandle,
-            [In] TokenAccessLevels DesiredAccess,
-            [Out] out SafeCloseHandle TokenHandle);
+        internal static uint GetTokenInformationLength(IntPtr token, TOKEN_INFORMATION_CLASS tokenInformationClass)
+        {
+            uint lengthNeeded;
+            bool success;
+            if (!(success = GetTokenInformation(
+                                       token,
+                                       tokenInformationClass,
+                                       null,
+                                       0,
+                                       out lengthNeeded)))
+            {
+                int error = Marshal.GetLastWin32Error();
+                if (error != UnsafeNativeMethods.ERROR_INSUFFICIENT_BUFFER)
+                {
+                    throw Fx.Exception.AsError(new Win32Exception(error));
+                }
+            }
+
+            Fx.Assert(!success, "Retrieving the length should always fail.");
+
+            return lengthNeeded;
+        }
 
         [DllImport(KERNEL32, SetLastError = true)]
         internal static extern SafeViewOfFileHandle MapViewOfFile

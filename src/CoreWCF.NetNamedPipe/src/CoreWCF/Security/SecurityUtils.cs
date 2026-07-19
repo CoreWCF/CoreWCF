@@ -42,7 +42,7 @@ namespace CoreWCF.Security
             SafeAccessTokenHandle token = processIdentity.AccessToken;
             try
             {
-                int lengthToken = GetTokenInformationLength(token, UnsafeNativeMethods.TOKEN_INFORMATION_CLASS.TokenGroups);
+                uint lengthToken = GetTokenInformationLength(token, UnsafeNativeMethods.TOKEN_INFORMATION_CLASS.TokenGroups);
                 byte[] tokenInformation = new byte[lengthToken];
                 // tokenInformation needs to be pinned as it will be populated with structures that have pointers to other structures
                 // within the same buffer. If GC moves it, those pointers will be invalid.
@@ -76,17 +76,17 @@ namespace CoreWCF.Security
 
         private static void GetTokenInformation(SafeAccessTokenHandle token, UnsafeNativeMethods.TOKEN_INFORMATION_CLASS tic, byte[] tokenInformation)
         {
-            if (!UnsafeNativeMethods.GetTokenInformation(token, tic, tokenInformation, tokenInformation.Length, out _))
+            if (!UnsafeNativeMethods.GetTokenInformation(token.DangerousGetHandle(), tic, tokenInformation, (uint)tokenInformation.Length, out _))
             {
                 int error = Marshal.GetLastWin32Error();
                 throw new Win32Exception(error);
             }
         }
 
-        private static int GetTokenInformationLength(SafeAccessTokenHandle token, UnsafeNativeMethods.TOKEN_INFORMATION_CLASS tic)
+        private static uint GetTokenInformationLength(SafeAccessTokenHandle token, UnsafeNativeMethods.TOKEN_INFORMATION_CLASS tic)
         {
-            int lengthNeeded;
-            bool success = UnsafeNativeMethods.GetTokenInformation(token, tic, null, 0, out lengthNeeded);
+            uint lengthNeeded;
+            bool success = UnsafeNativeMethods.GetTokenInformation(token.DangerousGetHandle(), tic, null, 0, out lengthNeeded);
             if (!success)
             {
                 int error = Marshal.GetLastWin32Error();

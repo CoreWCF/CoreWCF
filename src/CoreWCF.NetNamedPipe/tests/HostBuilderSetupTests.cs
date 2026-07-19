@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using Contract;
 using CoreWCF.Configuration;
 using Helpers;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Services;
 using Xunit;
-using Xunit.Abstractions;
 
+#if !NET472
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
 public class HostBuilderSetupTests
 {
     public ITestOutputHelper _output;
@@ -22,7 +23,7 @@ public class HostBuilderSetupTests
         _output = output;
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task NetPipeRequestReplyEchoString()
     {
         string testString = new string('a', 3000);

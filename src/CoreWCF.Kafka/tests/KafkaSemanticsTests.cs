@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -12,16 +12,16 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
 public class KafkaSemanticsTests : IntegrationTest
 {
-    public KafkaSemanticsTests(ITestOutputHelper output)
-        : base(output)
+    public KafkaSemanticsTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
     }
 
@@ -31,7 +31,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnce>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -41,7 +41,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -66,7 +66,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitOrderTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnceCommitOrder>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -76,7 +76,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             for (int i = 0; i < messageCount; i++)
@@ -121,7 +121,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtLeastOnceCommitPerMessageTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtLeastOnceCommitPerMessage>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -131,7 +131,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -157,7 +157,7 @@ public class KafkaSemanticsTests : IntegrationTest
     [InlineData(100)]
     public async Task AtMostOnceTests(int messageCount)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<StartupAtMostOnce>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<StartupAtMostOnce>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -167,7 +167,7 @@ public class KafkaSemanticsTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             List<string> expected = new(messageCount);
@@ -196,7 +196,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -214,7 +214,7 @@ public class KafkaSemanticsTests : IntegrationTest
                 var transport = customBinding.Elements.Find<KafkaTransportBindingElement>();
                 // transport.AutoCommitIntervalMs = 5000;
                 // transport.Debug = "consumer";
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -228,7 +228,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -240,7 +240,7 @@ public class KafkaSemanticsTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtLeastOnce,
                     GroupId = consumerGroupAccessor.Invoke(),
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -254,7 +254,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -272,7 +272,7 @@ public class KafkaSemanticsTests : IntegrationTest
                 // we do support disabling auto-commit and commit synchronously per message but as this is discouraged for performance reason,
                 // this configuration requires a CustomBinding
                 transport.EnableAutoCommit = false;
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }
@@ -287,7 +287,7 @@ public class KafkaSemanticsTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -299,7 +299,7 @@ public class KafkaSemanticsTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

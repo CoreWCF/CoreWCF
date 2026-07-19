@@ -24,18 +24,24 @@ stages:
             targetFramework: 'net9.0'
             testArgs: ''
             dotnetSdk: '9.0.x'
-            artifactName: 'Windows${{ configuration }}Build'   
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_net10.0:
             imageName: 'windows-latest'
             targetFramework: 'net10.0'
             testArgs: ''
             dotnetSdk: '10.0.x'
-            artifactName: 'Windows${{ configuration }}Build'                        
+            artifactName: 'Windows${{ configuration }}Build'
+          Windows_net11.0:
+            imageName: 'windows-latest'
+            targetFramework: 'net11.0'
+            testArgs: ''
+            dotnetSdk: '11.0.x'
+            artifactName: 'Windows${{ configuration }}Build'
           Windows_netfx:
             imageName: 'windows-latest'
             targetFramework: 'net472'
             testArgs: ''
-            dotnetSdk: '9.0.x'
+            dotnetSdk: '10.0.x'
             artifactName: 'Windows${{ configuration }}Build'
           Linux_net8.0:
             imageName: 'ubuntu-latest'
@@ -48,28 +54,25 @@ stages:
             targetFramework: 'net9.0'
             testArgs: ''
             dotnetSdk: '9.0.x'
-            artifactName: 'Linux${{ configuration }}Build'            
+            artifactName: 'Linux${{ configuration }}Build'
           Linux_net10.0:
             imageName: 'ubuntu-latest'
             targetFramework: 'net10.0'
             testArgs: ''
             dotnetSdk: '10.0.x'
-            artifactName: 'Linux${{ configuration }}Build'                        
+            artifactName: 'Linux${{ configuration }}Build'
+          Linux_net11.0:
+            imageName: 'ubuntu-latest'
+            targetFramework: 'net11.0'
+            testArgs: ''
+            dotnetSdk: '11.0.x'
+            artifactName: 'Linux${{ configuration }}Build'
       displayName: Test ${{ configuration }}
       pool:
         vmImage: $(imageName)
       variables:
         ci: true
       steps:
-      - bash: |
-          echo 'Starting docker services...'
-          docker compose up -d
-        name: DockerComposeLinuxServices
-        displayName: Start services hosted by linux containers
-        condition: eq(variables.imageName, 'ubuntu-latest')
-        timeoutInMinutes: 5
-        retryCountOnTaskFailure: 2
-
       - task: DownloadPipelineArtifact@2
         displayName: Download build artifacts
         inputs:
@@ -78,16 +81,16 @@ stages:
           path: $(System.DefaultWorkingDirectory)/bin
 
       - task: UseDotNet@2
-        displayName: 'Use .NET sdk 10.0.x'
+        displayName: 'Use .NET sdk 11.0.x'
         inputs:
           packageType: sdk
-          version: 10.0.x
+          version: 11.0.x
           installationPath: $(Agent.ToolsDirectory)/dotnet
           includePreviewVersions: true
 
       - task: UseDotNet@2
         displayName: 'Use Additional .NET sdk $(dotnetSdk)'
-        condition: and(succeeded(), ne(variables.dotnetSdk, '10.0.x'))
+        condition: and(succeeded(), ne(variables.dotnetSdk, '11.0.x'))
         inputs:
           packageType: sdk
           version: $(dotnetSdk)
@@ -99,8 +102,32 @@ stages:
         name: SetupIISExpressCertificates
         displayName: Setup IIS Express certificates for HTTPS tests
         condition: eq(variables.imageName, 'windows-latest')
-        continueOnError: true
         timeoutInMinutes: 2
+
+      - bash: |
+          set -euo pipefail
+          root="$(System.DefaultWorkingDirectory)"
+          tfm="$(targetFramework)"
+          configuration="${{ configuration }}"
+          echo "Searching for test executables under: $root (TFM=$tfm)"
+          # Find: .../bin/<configuration>/<ProjectName>/<TFM>/<ProjectName>
+          # and chmod +x each match
+          found=0
+          while IFS= read -r -d '' exe; do
+            echo "chmod +x: $exe"
+            chmod +x "$exe"
+            found=$((found+1))
+          done < <(
+            find "$root" -type f \
+            -path "*/bin/$configuration/CoreWCF.*.Tests/$tfm/CoreWCF.*.Tests" \
+            -print0
+          )
+          echo "Fixed execute bit on $found test executables."
+          if [ "$found" -eq 0 ]; then
+              echo "##vso[task.logissue type=warning]No test executables found matching pattern under $root for TFM=$tfm"
+          fi
+        displayName: Restore +x on CoreWCF.*.Tests executables
+        condition: eq(variables.imageName, 'ubuntu-latest')
 
       - task: DotNetCoreCLI@2
         displayName: Run Tests
@@ -110,13 +137,4 @@ stages:
           projects: ${{ parameters.testProjects }}
           publishTestResults: true
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
-
-      - bash: |
-          echo 'Cleaning up docker services...'
-          docker compose down --rmi all
-        name: DockerComposeDownLinuxServices
-        displayName: Clean up containers used to host services
-        condition: eq(variables.imageName, 'ubuntu-latest')
-        timeoutInMinutes: 5
-        retryCountOnTaskFailure: 2
 

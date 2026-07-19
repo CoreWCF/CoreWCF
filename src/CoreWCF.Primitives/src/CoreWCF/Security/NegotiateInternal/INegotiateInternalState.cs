@@ -2,21 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Security.Authentication.ExtendedProtection;
 using System.Security.Principal;
-using System.Text;
 
 namespace CoreWCF.Security.NegotiateInternal
 {
     internal interface INegotiateInternalState : IDisposable
     {
-        string GetOutgoingBlob(string incomingBlob, out BlobErrorType status, out Exception error);
+        void SetChannelBinding(ChannelBinding channelBinding);
+
+        void SetExtendedProtectionPolicy(ExtendedProtectionPolicy protectionPolicy);
+
+        byte[] GetOutgoingBlob(byte[] incomingBlob, out BlobErrorType status, out Exception error);
 
         bool IsCompleted { get; }
+
+        bool IsValidContext { get; }
 
         string Protocol { get; }
 
         IIdentity GetIdentity();
+
+        byte[] Encrypt(byte[] input);
     }
 
     internal enum BlobErrorType

@@ -12,9 +12,9 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
@@ -26,8 +26,8 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Create></s:Body>"
         + @"</s:Envelope>";
 
-    public RegexSubscriptionTests(ITestOutputHelper output)
-        : base(output)
+    public RegexSubscriptionTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -35,7 +35,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, TopicRegex);
         using (host)
         {
             await host.StartAsync();
@@ -44,7 +44,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
             testService.CountdownEvent.Reset(Topics.Count);
             using var producer = new ProducerBuilder<Null, string>(new ProducerConfig
                 {
-                    BootstrapServers = "localhost:9092",
+                    BootstrapServers = KafkaEx.GetBootstrapServers(),
                     Acks = Acks.All
                 })
                 .SetKeySerializer(Serializers.Null)
@@ -74,7 +74,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, TopicRegex).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, TopicRegex);
         using (host)
         {
             await host.StartAsync();
@@ -87,7 +87,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
             {
                 ServiceModel.Channels.KafkaBinding kafkaBinding = new();
                 var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                    new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{topic}")));
+                    new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{topic}")));
                 ITestContract channel = factory.CreateChannel();
 
                 string name = Guid.NewGuid().ToString();
@@ -117,7 +117,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -129,7 +129,7 @@ public class RegexSubscriptionTests : MultipleTopicsIntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

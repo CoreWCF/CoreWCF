@@ -289,3 +289,6 @@ TestTemplates/
 
 # docker compose override
 docker-compose.override.yml
+
+# Structured binlog files
+*.binlog

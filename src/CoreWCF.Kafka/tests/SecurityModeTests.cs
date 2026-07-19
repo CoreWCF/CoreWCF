@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -13,9 +13,9 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
@@ -27,8 +27,8 @@ public class SecurityModeTests : IntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Create></s:Body>"
         + @"</s:Envelope>";
 
-    public SecurityModeTests(ITestOutputHelper output)
-        : base(output )
+    public SecurityModeTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -96,7 +96,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_KafkaProducerTest_TestVariations))]
     public async Task KafkaProducerTest(Type startupType, ProducerConfig producerConfig)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -209,7 +209,7 @@ public class SecurityModeTests : IntegrationTest
     [MemberData(nameof(Get_ClientSideKafkaBindingTests_TestVariations))]
     public void ClientSideKafkaBindingTests(Type startupType, System.ServiceModel.Channels.Binding binding, int port)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -238,7 +238,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -273,7 +273,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -308,7 +308,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -344,7 +344,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -385,7 +385,7 @@ public class SecurityModeTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {

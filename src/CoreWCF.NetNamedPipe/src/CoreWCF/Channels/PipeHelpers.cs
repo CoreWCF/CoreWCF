@@ -125,6 +125,7 @@ namespace CoreWCF.Channels
     internal unsafe class PipeSharedMemory : IDisposable
     {
         internal const string PipePrefix = @"\\.\pipe\";
+        internal const string PipeLocalPrefix = @"\\.\pipe\Local\";
         private SafeFileMappingHandle _fileMapping;
         private string _pipeName;
         private string _pipeNameGuidPart;
@@ -309,7 +310,7 @@ namespace CoreWCF.Channels
 
         private static string BuildPipeName(string pipeGuid)
         {
-            return PipePrefix + pipeGuid;
+            return (AppContainerInfo.IsRunningInAppContainer ? PipeLocalPrefix : PipePrefix) + pipeGuid;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -423,13 +424,14 @@ namespace CoreWCF.Channels
             logger.LogDebug("Adding ACL allow Process Logon SID {processLogonSid} to security identifiers", processLogonSid);
             dacl.AddAccess(AccessControlType.Allow, processLogonSid, accessRights, InheritanceFlags.None, PropagationFlags.None);
 
-            // In WCF there is code here to grant access to the current app container SID if running in an
-            // AppContainer. The responsibility for this is now going to shift to explicitly configuring
-            // in the app via NamedPipeListenOptions. The original functionality was intended for named pipes
-            // to be used between processes in the same app container. The reality is that communication
-            // into/out of a container is a needed scenario and WCF was getting in the way. Making it
-            // needing to be configured explicitly requires a little more work on the originally intended
-            // scenario, but enables all scenarios without having to resort to hackery.
+            if (AppContainerInfo.IsRunningInAppContainer)
+            {
+                // NamedPipeBinding requires dacl with current AppContainer SID
+                // to setup multiple NamedPipes in the BeginAccept loop.
+                var appContainerSid = AppContainerInfo.GetCurrentAppContainerSid();
+                logger.LogDebug("Adding ACL allow App Container SID {appContainerSid} to security identifiers", appContainerSid);
+                dacl.AddAccess(AccessControlType.Allow, appContainerSid, accessRights, InheritanceFlags.None, PropagationFlags.None);
+            }
 
             CommonSecurityDescriptor securityDescriptor =
                 new CommonSecurityDescriptor(false, false, ControlFlags.None, null, null, null, dacl);

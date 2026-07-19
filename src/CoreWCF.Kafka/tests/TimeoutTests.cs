@@ -11,16 +11,16 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
 public class TimeoutTests : IntegrationTest
 {
-    public TimeoutTests(ITestOutputHelper output)
-        : base(output)
+    public TimeoutTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -28,7 +28,7 @@ public class TimeoutTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -44,7 +44,7 @@ public class TimeoutTests : IntegrationTest
                     ServiceModel.Channels.KafkaBinding kafkaBinding = new();
                     kafkaBinding.SendTimeout = TimeSpan.FromSeconds(5);
                     var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                        new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                        new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
                     ITestContract channel = factory.CreateChannel();
                     await channel.CreateAsync(Guid.NewGuid().ToString());
                 }
@@ -63,7 +63,7 @@ public class TimeoutTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingCustomBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -81,7 +81,7 @@ public class TimeoutTests : IntegrationTest
                     var transportBindingElement = customBinding.Elements.Find<ServiceModel.Channels.KafkaTransportBindingElement>();
                     transportBindingElement.MessageTimeoutMs = 5000;
                     var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                        new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                        new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
                     ITestContract channel = factory.CreateChannel();
                     await channel.CreateAsync(Guid.NewGuid().ToString());
                 }
@@ -106,7 +106,7 @@ public class TimeoutTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -123,7 +123,7 @@ public class TimeoutTests : IntegrationTest
                 KafkaTransportBindingElement transport = customBinding.Elements.Find<KafkaTransportBindingElement>();
                 transport.Debug = "consumer";
                 transport.SessionTimeoutMs = 60000 + 10000;
-                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                services.AddServiceEndpoint<TestService, ITestContract>(customBinding, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

@@ -147,7 +147,7 @@ namespace CoreWCF.Channels.Framing
                     var identity = (streamUpgradeProvider as StreamSecurityUpgradeProvider)?.Identity;
                     if (identity != null)
                     {
-                        TryApplyIdentityToChannelDispatchers(dispatcher.Host.ChannelDispatchers, identity);
+                        TryApplyIdentityToChannelDispatcher(dispatcher, identity);
                     }
                 }
             }
@@ -170,13 +170,21 @@ namespace CoreWCF.Channels.Framing
             };
         }
 
-        private static void TryApplyIdentityToChannelDispatchers(ChannelDispatcherCollection channelDispatchers, EndpointIdentity identity)
+        private static void TryApplyIdentityToChannelDispatcher(IServiceDispatcher dispatcher, EndpointIdentity identity)
         {
-            foreach (ChannelDispatcher channelDispatcher in channelDispatchers)
+            // The transport-derived identity applies only to the endpoints hosted on the
+            // ChannelDispatcher for this service dispatcher's listen address. Applying it to
+            // every ChannelDispatcher on the host would set a distinct identity instance on
+            // endpoints that already had one, tripping EndpointDispatcher's set-once guard when
+            // multiple net.tcp endpoints are hosted under transport security (see issue #1742).
+            foreach (ChannelDispatcher channelDispatcher in dispatcher.Host.ChannelDispatchers)
             {
-                foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
+                if (channelDispatcher.ListenUri == dispatcher.BaseAddress)
                 {
-                    endpointDispatcher.Identity = identity;
+                    foreach (EndpointDispatcher endpointDispatcher in channelDispatcher.Endpoints)
+                    {
+                        endpointDispatcher.Identity = identity;
+                    }
                 }
             }
         }

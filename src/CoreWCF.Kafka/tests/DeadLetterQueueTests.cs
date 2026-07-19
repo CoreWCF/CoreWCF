@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -11,9 +11,9 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
@@ -31,8 +31,8 @@ public class DeadLetterQueueTests : IntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Throw></s:Body>"
         + @"</s:Envelope>";
 
-    public DeadLetterQueueTests(ITestOutputHelper output)
-        : base(output, true)
+    public DeadLetterQueueTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture, true)
     {
 
     }
@@ -40,7 +40,7 @@ public class DeadLetterQueueTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -49,7 +49,7 @@ public class DeadLetterQueueTests : IntegrationTest
             testService.CountdownEvent.Reset(1);
             using var producer = new ProducerBuilder<Null, string>(new ProducerConfig
                 {
-                    BootstrapServers = "localhost:9092",
+                    BootstrapServers = KafkaEx.GetBootstrapServers(),
                     Acks = Acks.All
                 })
                 .SetKeySerializer(Serializers.Null)
@@ -67,16 +67,23 @@ public class DeadLetterQueueTests : IntegrationTest
             Assert.Equal(0, producer.Flush(TimeSpan.FromSeconds(3)));
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Single(testService.Names);
-        }
 
-        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
-        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            // Verify DLQ delivery and that all messages have been committed before
+            // leaving the using block (which disposes the host). The Throw handler
+            // does not signal CountdownEvent, so the second message may still be in
+            // flight when CountdownEvent.Wait returns; on a heavily loaded CI host
+            // it can still be mid-dispatch when the host begins shutdown. Waiting
+            // here keeps the host alive until the pipeline has finished processing
+            // the second message and produced it to the DLQ.
+            await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        }
     }
 
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -86,7 +93,7 @@ public class DeadLetterQueueTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             // send a first a message so the consumerGroup has consumed at least one message of the topic partition.
@@ -96,10 +103,19 @@ public class DeadLetterQueueTests : IntegrationTest
 
             Assert.True(testService.CountdownEvent.Wait(TimeSpan.FromSeconds(10)));
             Assert.Contains(name, testService.Names);
-        }
 
-        await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
-        await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            await Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(channel)).BeginClose(null, null), new Action<IAsyncResult>(((System.ServiceModel.ICommunicationObject)(channel)).EndClose));
+
+            // Verify DLQ delivery and that all messages have been committed before
+            // leaving the using block (which disposes the host). The Throw handler
+            // does not signal CountdownEvent, so the second message may still be in
+            // flight when CountdownEvent.Wait returns; on a heavily loaded CI host
+            // it can still be mid-dispatch when the host begins shutdown. Waiting
+            // here keeps the host alive until the pipeline has finished processing
+            // the second message and produced it to the DLQ.
+            await AssertEx.RetryAsync(() => Assert.Equal(1, KafkaEx.GetMessageCount(Output, DeadLetterQueueTopic)));
+            await AssertEx.RetryAsync(() => Assert.Equal(0, KafkaEx.GetConsumerLag(Output, ConsumerGroup, Topic)));
+        }
     }
 
     private class Startup
@@ -111,7 +127,7 @@ public class DeadLetterQueueTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -126,7 +142,7 @@ public class DeadLetterQueueTests : IntegrationTest
                     ErrorHandlingStrategy = KafkaErrorHandlingStrategy.DeadLetterQueue,
                     DeadLetterQueueTopic = deadLetterQueueTopicNameAccessor.Invoke(),
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

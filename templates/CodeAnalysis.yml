@@ -15,20 +15,20 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - bash: |
-        echo 'Starting docker services...'
-        docker compose up -d awaiter
-      name: DockerComposeLinuxServices
-      displayName: Start services hosted by linux containers
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 11 sdk'
+      inputs:
+        packageType: sdk
+        version: '11.0.x'
+        includePreviewVersions: true
+        installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: UseDotNet@2
       displayName: 'Use .NET 10 sdk'
       inputs:
         packageType: sdk
-        version: '10.0.x'
-        includePreviewVersions: true
+        version: 10.0.x
         installationPath: $(Agent.ToolsDirectory)/dotnet
 
     - task: DotNetCoreCLI@2
@@ -84,10 +84,3 @@ stages:
         pollingTimeoutSec: '300'
       condition: not(eq(variables['build.reason'], 'PullRequest'))
 
-    - bash: |
-        echo 'Cleaning up docker services...'
-        docker compose down --rmi all
-      name: DockerComposeDownLinuxServices
-      displayName: Clean up containers used to host services
-      timeoutInMinutes: 5
-      retryCountOnTaskFailure: 2

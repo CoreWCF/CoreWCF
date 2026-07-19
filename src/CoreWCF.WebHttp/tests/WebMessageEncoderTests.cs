@@ -41,6 +41,36 @@ namespace CoreWCF.WebHttp.Tests
             TestGetReaderAtBodyContents(webEncoder.ReadMessage(new ArraySegment<byte>(bytes), bufferManager), encodedMessage, true);
         }
 
+        [Fact]
+        public async Task TextMessageEncoderUsesReaderQuotasFromBindingElement()
+        {
+            // Regression test for https://github.com/CoreWCF/CoreWCF/issues/1704.
+            // The Text (XML) encoder used internally by the WebMessageEncoder must honor the
+            // XmlDictionaryReaderQuotas configured on the WebMessageEncodingBindingElement.
+            // Default MaxStringContentLength is 8192; we configure a larger value and verify
+            // that XML containing a string node larger than the default is read successfully.
+            const int largeStringLength = 50000;
+            string longString = new string('a', largeStringLength);
+            string xml = "<root>" + longString + "</root>";
+            byte[] bytes = Encoding.UTF8.GetBytes(xml);
+
+            WebMessageEncodingBindingElement bindingElement = new WebMessageEncodingBindingElement();
+            bindingElement.ReaderQuotas.MaxStringContentLength = largeStringLength * 2;
+
+            MessageEncoder encoder = bindingElement.CreateMessageEncoderFactory().Encoder;
+
+            using (MemoryStream stream = new MemoryStream(bytes))
+            {
+                Message message = await encoder.ReadMessageAsync(stream, int.MaxValue, "application/xml");
+                using (XmlDictionaryReader reader = message.GetReaderAtBodyContents())
+                {
+                    reader.ReadStartElement("root");
+                    string value = reader.ReadContentAsString();
+                    Assert.Equal(longString, value);
+                }
+            }
+        }
+
         private static void TestGetReaderAtBodyContents(Message message, string expectedValue, bool readerShouldBePositionedOnContent)
         {
             // The first call to GetReaderAtBodyContents() should return a usable reader.

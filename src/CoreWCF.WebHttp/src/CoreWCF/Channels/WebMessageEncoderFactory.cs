@@ -135,7 +135,13 @@ namespace CoreWCF.Channels
                         {
                             if (_textMessageEncoder == null)
                             {
-                                _textMessageEncoder = new TextMessageEncodingBindingElement(MessageVersion.None, _writeEncoding).CreateMessageEncoderFactory().Encoder;
+                                TextMessageEncodingBindingElement textBindingElement = new TextMessageEncodingBindingElement(MessageVersion.None, _writeEncoding)
+                                {
+                                    MaxReadPoolSize = _maxReadPoolSize,
+                                    MaxWritePoolSize = _maxWritePoolSize,
+                                };
+                                _readerQuotas.CopyTo(textBindingElement.ReaderQuotas);
+                                _textMessageEncoder = textBindingElement.CreateMessageEncoderFactory().Encoder;
                             }
                         }
                     }

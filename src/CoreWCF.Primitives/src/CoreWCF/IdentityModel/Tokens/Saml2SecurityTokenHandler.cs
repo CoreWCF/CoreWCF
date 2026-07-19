@@ -89,7 +89,22 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(token));
             }
 
-            Saml2SecurityToken samlToken = (Saml2SecurityToken)token;
+            Saml2SecurityToken samlToken = token as Saml2SecurityToken;
+            if (samlToken == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(token), SR.Format(SR.ID4151));
+            }
+
+            if (Configuration == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperInvalidOperation(SR.Format(SR.ID4274));
+            }
+
+            if (samlToken.Assertion == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgument(nameof(token), SR.Format(SR.ID1034));
+            }
+
             string assertionXML = samlToken.AssertionXML;
             SamlTokenValidationParameters tokenValidation = new SamlTokenValidationParameters();
             ClaimsPrincipal claim = _internalSaml2SecurityTokenHandler.ValidateToken(assertionXML,

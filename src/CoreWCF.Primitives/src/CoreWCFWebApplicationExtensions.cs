@@ -7,6 +7,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Hosting;
 
 namespace CoreWCF.Configuration
 {

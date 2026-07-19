@@ -298,6 +298,15 @@ namespace CoreWCF.Channels
         {
             try
             {
+                // Guard against calling CloseOutputAsync when the WebSocket has already sent or completed close.
+                // This can happen if CloseAsync is called after the close handshake has already begun.
+                if (WebSocket.State == WebSocketState.Closed ||
+                    WebSocket.State == WebSocketState.Aborted ||
+                    WebSocket.State == WebSocketState.CloseSent)
+                {
+                    return Task.CompletedTask;
+                }
+
                 return WebSocket.CloseOutputAsync(_webSocketCloseDetails.OutputCloseStatus, _webSocketCloseDetails.OutputCloseStatusDescription, cancellationToken);
             }
             catch (Exception e)

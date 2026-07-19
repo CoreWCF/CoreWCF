@@ -7,7 +7,7 @@ using Helpers;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace CoreWCF.MSMQ.Tests.Helpers
 {

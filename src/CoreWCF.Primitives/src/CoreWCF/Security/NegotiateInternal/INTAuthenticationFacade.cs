@@ -1,11 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Security.Authentication.ExtendedProtection;
+using System.Security.Principal;
+
 namespace CoreWCF.Security.NegotiateInternal
 {
-    internal interface INTAuthenticationFacade
+    internal interface INTAuthenticationFacade : IDisposable
     {
-        object Instance { get; }
+        void SetChannelBinding(ChannelBinding channelBinding);
+
+        void SetExtendedProtectionPolicy(ExtendedProtectionPolicy protectionPolicy);
 
         bool IsCompleted { get; }
 
@@ -13,10 +19,10 @@ namespace CoreWCF.Security.NegotiateInternal
 
         bool IsValidContext { get; }
 
-        byte[] GetOutgoingBlob(byte[] incomingBlob, bool throwOnError, out object statusCode);
+        byte[] GetOutgoingBlob(byte[] incomingBlob, out NegotiateInternalSecurityStatusPal status);
 
-        int Encrypt(byte[] input, ref byte[] output);
+        byte[] Encrypt(byte[] input);
 
-        void CloseContext();
+        IIdentity GetIdentity();
     }
 }

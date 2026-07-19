@@ -14,8 +14,6 @@
     <AdditionalFiles Include="..\src\AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="3.11.0" />

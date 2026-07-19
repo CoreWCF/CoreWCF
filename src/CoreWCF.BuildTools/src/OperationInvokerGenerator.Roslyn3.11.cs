@@ -28,7 +28,7 @@ namespace CoreWCF.BuildTools
                 return;
             }
 
-            if (executionContext.SyntaxContextReceiver is not SyntaxContextReceiver receiver || receiver.MethodDeclarationSyntaxList == null)
+            if (executionContext.SyntaxContextReceiver is not SyntaxContextReceiver receiver || receiver.InterfaceDeclarationSyntaxList == null)
             {
                 // nothing to do yet
                 return;
@@ -36,7 +36,7 @@ namespace CoreWCF.BuildTools
 
             OperationInvokerSourceGenerationContext context = new(executionContext);
             Parser parser = new(executionContext.Compilation, context);
-            SourceGenerationSpec spec = parser.GetGenerationSpec(receiver.MethodDeclarationSyntaxList.ToImmutableArray());
+            SourceGenerationSpec spec = parser.GetGenerationSpec(receiver.InterfaceDeclarationSyntaxList.ToImmutableArray());
             if (spec != SourceGenerationSpec.None)
             {
                 Emitter emitter = new(context, spec);
@@ -46,16 +46,16 @@ namespace CoreWCF.BuildTools
 
         private sealed class SyntaxContextReceiver : ISyntaxContextReceiver
         {
-            public List<MethodDeclarationSyntax>? MethodDeclarationSyntaxList { get; private set; }
+            public List<InterfaceDeclarationSyntax>? InterfaceDeclarationSyntaxList { get; private set; }
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
                 if (Parser.IsSyntaxTargetForGeneration(context.Node))
                 {
-                    MethodDeclarationSyntax? methodDeclarationSyntax = Parser.GetSemanticTargetForGeneration(context);
-                    if (methodDeclarationSyntax != null)
+                    InterfaceDeclarationSyntax? interfaceDeclarationSyntax = Parser.GetSemanticTargetForGeneration(context);
+                    if (interfaceDeclarationSyntax != null)
                     {
-                        (MethodDeclarationSyntaxList ??= new List<MethodDeclarationSyntax>()).Add(methodDeclarationSyntax);
+                        (InterfaceDeclarationSyntaxList ??= new List<InterfaceDeclarationSyntax>()).Add(interfaceDeclarationSyntax);
                     }
                 }
             }

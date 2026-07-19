@@ -72,7 +72,7 @@ Here are the steps to release a new version:
        dotnet outdated -u -vl Minor -inc Microsoft.AspNetCore -inc Microsoft.CodeAnalysis -inc System CoreWCF.sln
        dotnet outdated -u -inc Microsoft.NET CoreWCF.sln
        dotnet outdated -u -vl Major -inc Microsoft.IdentityModel CoreWCF.sln
-       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System -exc RabbitMQ CoreWCF.sln
+       dotnet outdated -u -exc Microsoft -exc Nerdbank.GitVersioning -exc System -exc RabbitMQ -exc Xunit.StaFact CoreWCF.sln
        dotnet outdated -u -vl Minor -inc Microsoft.Build CoreWCF.sln
    ```
 

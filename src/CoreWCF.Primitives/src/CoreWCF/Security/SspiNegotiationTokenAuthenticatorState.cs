@@ -13,14 +13,14 @@ namespace CoreWCF.Security
             : base()
         {
             SspiNegotiation = sspiNegotiation ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(sspiNegotiation));
-            NegotiationDigest = CryptoHelper.NewSha1HashAlgorithm();
+            NegotiationDigest = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
         }
 
         public ISspiNegotiation SspiNegotiation { get; }
 
         internal int RequestedKeySize { get; set; }
 
-        internal HashAlgorithm NegotiationDigest { get; }
+        internal IncrementalHash NegotiationDigest { get; }
 
         internal string Context { get; set; }
 

@@ -11,26 +11,29 @@ using CoreWCF.Configuration;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.RabbitMQ.Tests
 {
+    [Collection(nameof(RabbitMqCollection))]
     public class IntegrationTests
     {
         private readonly ITestOutputHelper _output;
+        private readonly Helpers.RabbitMqContainerFixture _containerFixture;
 
-        public IntegrationTests(ITestOutputHelper output)
+        public IntegrationTests(ITestOutputHelper output, Helpers.RabbitMqContainerFixture containerFixture)
         {
             _output = output;
+            _containerFixture = containerFixture;
         }
 
         [LinuxWhenCIOnlyFact(Skip = "Requires RabbitMQ host with SSL")]
         public void ClassicQueueWithTls_SendReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<ClassicQueueWithTLSStartup>(_output).Build();
+            IHost host = ServiceHelper.CreateHost<ClassicQueueWithTLSStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -64,7 +67,8 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultClassicQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultClassicQueueStartup>(_output).Build();
+            DefaultClassicQueueStartup.SetPort(_containerFixture.Port);
+            IHost host = ServiceHelper.CreateHost<DefaultClassicQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -94,7 +98,8 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQuorumQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQuorumQueueStartup>(_output).Build();
+            DefaultQuorumQueueStartup.SetPort(_containerFixture.Port);
+            IHost host = ServiceHelper.CreateHost<DefaultQuorumQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -124,7 +129,8 @@ namespace CoreWCF.RabbitMQ.Tests
         [LinuxWhenCIOnlyFact]
         public void DefaultQueueConfiguration_ReceiveMessage_Success()
         {
-            IWebHost host = ServiceHelper.CreateWebHostBuilder<DefaultQueueStartup>(_output).Build();
+            DefaultQueueStartup.SetPort(_containerFixture.Port);
+            IHost host = ServiceHelper.CreateHost<DefaultQueueStartup>(_output);
             using (host)
             {
                 host.Start();
@@ -169,7 +175,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -188,7 +194,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultClassicQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-classic-queue#corewcf-test-default-classic-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);
@@ -199,7 +207,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -217,7 +225,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQuorumQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-quorum-queue#corewcf-test-default-quorum-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings =>
@@ -229,7 +239,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -247,7 +257,9 @@ namespace CoreWCF.RabbitMQ.Tests
 
     public class DefaultQueueStartup
     {
-        public static Uri Uri = new("soap.amqp://localhost:5672/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
+        private static int s_port = 5672;
+        public static void SetPort(int port) => s_port = port;
+        public static Uri Uri => new($"soap.amqp://localhost:{s_port}/amq.direct/corewcf-test-default-queue#corewcf-test-default-key");
         public static readonly ICredentials Credentials = new NetworkCredential(ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass);
 
         public static RabbitMqConnectionSettings ConnectionSettings => RabbitMqConnectionSettings.FromUri(Uri, Credentials);
@@ -258,7 +270,7 @@ namespace CoreWCF.RabbitMQ.Tests
             services.AddServiceModelServices();
             services.AddQueueTransport();
         }
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {

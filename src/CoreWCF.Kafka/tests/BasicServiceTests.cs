@@ -11,9 +11,9 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
@@ -25,8 +25,8 @@ public class BasicServiceTests : IntegrationTest
         + @"<s:Body><Create xmlns=""http://tempuri.org/""><name>{0}</name></Create></s:Body>"
         + @"</s:Envelope>";
 
-    public BasicServiceTests(ITestOutputHelper output)
-        : base(output)
+    public BasicServiceTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -34,7 +34,7 @@ public class BasicServiceTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaProducerTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -43,7 +43,7 @@ public class BasicServiceTests : IntegrationTest
             testService.CountdownEvent.Reset(1);
             using var producer = new ProducerBuilder<Null, string>(new ProducerConfig
                 {
-                    BootstrapServers = "localhost:9092",
+                    BootstrapServers = KafkaEx.GetBootstrapServers(),
                     Acks = Acks.All
                 })
                 .SetKeySerializer(Serializers.Null)
@@ -67,7 +67,7 @@ public class BasicServiceTests : IntegrationTest
     [LinuxWhenCIOnlyFact]
     public async Task KafkaClientBindingTest()
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(Output, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost<Startup>(Output, ConsumerGroup, Topic);
         using (host)
         {
             await host.StartAsync();
@@ -77,7 +77,7 @@ public class BasicServiceTests : IntegrationTest
 
             ServiceModel.Channels.KafkaBinding kafkaBinding = new();
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -99,7 +99,7 @@ public class BasicServiceTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -111,7 +111,7 @@ public class BasicServiceTests : IntegrationTest
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

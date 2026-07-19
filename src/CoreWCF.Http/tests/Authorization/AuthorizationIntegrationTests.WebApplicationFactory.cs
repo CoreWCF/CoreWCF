@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -42,13 +41,16 @@ public partial class AuthorizationIntegrationTests
 
         protected override IWebHostBuilder CreateWebHostBuilder()
         {
-            SetSelfHostedContentRoot();
-
             return ServiceHelper.CreateWebHostBuilder<TStartup>();
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Use the output directory as content root. WebApplicationFactory's default
+            // resolution can fail (e.g. UseSolutionRelativeContentRoot constructs a path
+            // that doesn't exist). These tests don't need a real content root.
+            builder.UseContentRoot(AppContext.BaseDirectory);
+
             builder.ConfigureTestServices(services =>
             {
 
@@ -76,15 +78,6 @@ public partial class AuthorizationIntegrationTests
                 services.AddScoped<AuthenticationService>();
                 services.AddScoped<IAuthenticationService, AuthenticationServiceInterceptor>();
             });
-        }
-
-        private static void SetSelfHostedContentRoot()
-        {
-            var contentRoot = Directory.GetCurrentDirectory();
-            var assemblyName = typeof(AuthorizationWebApplicationFactory<TStartup>).Assembly.GetName().Name;
-            var settingSuffix = assemblyName.ToUpperInvariant().Replace(".", "_");
-            var settingName = $"ASPNETCORE_TEST_CONTENTROOT_{settingSuffix}";
-            Environment.SetEnvironmentVariable(settingName, contentRoot);
         }
     }
 }

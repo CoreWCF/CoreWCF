@@ -16,12 +16,12 @@ namespace Helpers
         private readonly Message _requestMessage;
         private string _replyMessageString;
         private MessageBuffer _bufferedCopy;
-        private readonly ManualResetEvent _mre;
+        private readonly SemaphoreSlim _semaphore;
 
         public TestRequestContext(Message requestMessage)
         {
             _requestMessage = requestMessage;
-            _mre = new ManualResetEvent(false);
+            _semaphore = new SemaphoreSlim(0, 1);
         }
 
         public override Message RequestMessage => _requestMessage;
@@ -61,7 +61,7 @@ namespace Helpers
         {
             ReplyMessage = message;
             SerializeReply();
-            _mre.Set();
+            _semaphore.Release();
             return Task.CompletedTask;
         }
 
@@ -76,14 +76,16 @@ namespace Helpers
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }
 
-        internal void ValidateReply()
+        internal void ValidateReply(string replyAction = null)
         {
-            Assert.Equal(s_replyMessage, _replyMessageString);
+            replyAction ??= "http://tempuri.org/ISimpleService/EchoResponse";
+            string expectedReplyMessage = s_replyMessage.Replace("####REPLY_ACTION####", replyAction);
+            Assert.Equal(expectedReplyMessage, _replyMessageString);
         }
 
-        internal static TestRequestContext Create(string toAddress)
+        internal static TestRequestContext Create(string toAddress, string action = null)
         {
-            Message requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa");
+            Message requestMessage = TestHelper.CreateEchoRequestMessage("aaaaa", action);
             requestMessage.Headers.To = new Uri(toAddress);
             return new TestRequestContext(requestMessage);
         }
@@ -97,11 +99,19 @@ namespace Helpers
   </s:Body>
 </s:Envelope>";
 
-        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">http://tempuri.org/ISimpleService/EchoResponse</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
+        private static readonly string s_replyMessage = @"<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/""><s:Header><Action s:mustUnderstand=""1"" xmlns=""http://schemas.microsoft.com/ws/2005/05/addressing/none"">####REPLY_ACTION####</Action></s:Header><s:Body><EchoResponse xmlns=""http://tempuri.org/""><EchoResult>aaaaa</EchoResult></EchoResponse></s:Body></s:Envelope>";
 
-        internal bool WaitForReply(TimeSpan timeout)
+        internal async Task<bool> WaitForReplyAsync(CancellationToken token)
         {
-            return _mre.WaitOne(timeout);
+            try
+            {
+                await _semaphore.WaitAsync(token);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
         }
     }
 }

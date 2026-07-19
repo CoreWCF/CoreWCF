@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -10,17 +11,67 @@ public sealed partial class OperationParameterInjectionGenerator : IIncrementalG
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<MethodDeclarationSyntax?> methodDeclarations = context.SyntaxProvider.CreateSyntaxProvider(
-                predicate: static (token, _) => Parser.IsSyntaxTargetForGeneration(token),
-                transform: static (s, _) => Parser.GetSemanticTargetForGeneration(s))
-            .Where(static c => c is not null);
+        IncrementalValuesProvider<MethodDeclarationSyntax?> coreWCFInjected = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "CoreWCF.InjectedAttribute",
+                predicate: IsInjectedParameter,
+                transform: static (ctx, _) => ctx.TargetNode.Parent?.Parent as MethodDeclarationSyntax);
 
-        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<MethodDeclarationSyntax?> Methods)> compilationAndMethods =
-            context.CompilationProvider.Combine(methodDeclarations.Collect());
+        IncrementalValuesProvider<MethodDeclarationSyntax?> fromServices = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "Microsoft.AspNetCore.Mvc.FromServicesAttribute",
+                predicate: IsInjectedParameter,
+                transform: static (ctx, _) => ctx.TargetNode.Parent?.Parent as MethodDeclarationSyntax);
+
+        IncrementalValuesProvider<MethodDeclarationSyntax?> fromKeyedServices = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute",
+                predicate: IsInjectedParameter,
+                transform: static (ctx, _) => ctx.TargetNode.Parent?.Parent as MethodDeclarationSyntax);
+
+        IncrementalValueProvider<ImmutableArray<MethodDeclarationSyntax>> methodDeclarations = coreWCFInjected.Collect()
+            .Combine(fromServices.Collect())
+            .Combine(fromKeyedServices.Collect())
+            .Select(static (pair, _) =>
+            {
+                var ((injected, services), keyed) = pair;
+                var seen = new HashSet<(string FilePath, TextSpan Span)>();
+                var builder = ImmutableArray.CreateBuilder<MethodDeclarationSyntax>();
+                foreach (var method in injected)
+                {
+                    if (method is not null && seen.Add((method.SyntaxTree.FilePath, method.Span)))
+                    {
+                        builder.Add(method);
+                    }
+                }
+                foreach (var method in services)
+                {
+                    if (method is not null && seen.Add((method.SyntaxTree.FilePath, method.Span)))
+                    {
+                        builder.Add(method);
+                    }
+                }
+                foreach (var method in keyed)
+                {
+                    if (method is not null && seen.Add((method.SyntaxTree.FilePath, method.Span)))
+                    {
+                        builder.Add(method);
+                    }
+                }
+                return builder.ToImmutable();
+            });
+
+        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<MethodDeclarationSyntax> Methods)> compilationAndMethods =
+            context.CompilationProvider.Combine(methodDeclarations);
 
         context.RegisterSourceOutput(compilationAndMethods, (spc, source)
-            => Execute(source.Compilation, source.Methods!, spc));
+            => Execute(source.Compilation, source.Methods, spc));
     }
+
+    private static bool IsInjectedParameter(SyntaxNode node, System.Threading.CancellationToken _) =>
+        node is ParameterSyntax p
+        && p.Parent?.Parent is MethodDeclarationSyntax m
+        && (m.Body != null || m.ExpressionBody != null);
 
     private void Execute(Compilation compilation, ImmutableArray<MethodDeclarationSyntax> contextMethods, SourceProductionContext sourceProductionContext)
     {

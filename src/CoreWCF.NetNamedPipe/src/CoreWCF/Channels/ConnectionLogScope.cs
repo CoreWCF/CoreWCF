@@ -16,7 +16,7 @@ namespace CoreWCF.Channels
     {
         private readonly string _connectionId;
 
-        private string? _cachedToString;
+        private string _cachedToString;
 
         public ConnectionLogScope(string connectionId)
         {

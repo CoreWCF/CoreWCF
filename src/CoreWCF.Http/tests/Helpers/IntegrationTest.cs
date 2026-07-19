@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.IO;
-using System.Net.Http;
 using Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -37,18 +35,15 @@ namespace CoreWCF.Http.Tests.Helpers
 
         protected override IWebHostBuilder CreateWebHostBuilder()
         {
-            SetSelfHostedContentRoot();
-
             return ServiceHelper.CreateWebHostBuilder<TStartup>();
         }
 
-        private static void SetSelfHostedContentRoot()
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            var contentRoot = Directory.GetCurrentDirectory();
-            var assemblyName = typeof(IntegrationTest<TStartup>).Assembly.GetName().Name;
-            var settingSuffix = assemblyName.ToUpperInvariant().Replace(".", "_");
-            var settingName = $"ASPNETCORE_TEST_CONTENTROOT_{settingSuffix}";
-            Environment.SetEnvironmentVariable(settingName, contentRoot);
+            // Use the output directory as content root. WebApplicationFactory's default
+            // resolution can fail (e.g. UseSolutionRelativeContentRoot constructs a path
+            // that doesn't exist). These tests don't need a real content root.
+            builder.UseContentRoot(AppContext.BaseDirectory);
         }
     }
 }

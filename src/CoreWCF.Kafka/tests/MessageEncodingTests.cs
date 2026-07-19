@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -10,16 +10,16 @@ using CoreWCF.Kafka.Tests.Helpers;
 using CoreWCF.Queue.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace CoreWCF.Kafka.Tests;
 
 public class MessageEncodingTests : IntegrationTest
 {
-    public MessageEncodingTests(ITestOutputHelper output)
-        : base(output)
+    public MessageEncodingTests(ITestOutputHelper output, KafkaContainerFixture containerFixture)
+        : base(output, containerFixture)
     {
 
     }
@@ -29,7 +29,7 @@ public class MessageEncodingTests : IntegrationTest
     [InlineData(ServiceModel.Channels.KafkaMessageEncoding.Binary, typeof(StartupBinaryEncoding))]
     public void EncodingTests(ServiceModel.Channels.KafkaMessageEncoding encoding, Type startupType)
     {
-        IWebHost host = ServiceHelper.CreateWebHostBuilder(Output, startupType, ConsumerGroup, Topic).Build();
+        IHost host = ServiceHelper.CreateHost(Output, startupType, ConsumerGroup, Topic);
         using (host)
         {
             host.Start();
@@ -42,7 +42,7 @@ public class MessageEncodingTests : IntegrationTest
                 MessageEncoding = encoding
             };
             var factory = new System.ServiceModel.ChannelFactory<ITestContract>(kafkaBinding,
-                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://localhost:9092/{Topic}")));
+                new System.ServiceModel.EndpointAddress(new Uri($"net.kafka://{KafkaEx.GetBootstrapServers()}/{Topic}")));
             ITestContract channel = factory.CreateChannel();
 
             string name = Guid.NewGuid().ToString();
@@ -57,7 +57,11 @@ public class MessageEncodingTests : IntegrationTest
     {
         private readonly KafkaMessageEncoding _messageEncoding;
 
-        public Startup(KafkaMessageEncoding kafkaMessageEncoding = KafkaMessageEncoding.Text)
+        public Startup() : this(KafkaMessageEncoding.Text)
+        {
+        }
+
+        protected Startup(KafkaMessageEncoding kafkaMessageEncoding)
         {
             _messageEncoding = kafkaMessageEncoding;
         }
@@ -69,7 +73,7 @@ public class MessageEncodingTests : IntegrationTest
             services.AddQueueTransport();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseServiceModel(services =>
             {
@@ -82,7 +86,7 @@ public class MessageEncodingTests : IntegrationTest
                     MessageEncoding = _messageEncoding,
                     DeliverySemantics = KafkaDeliverySemantics.AtMostOnce,
                     GroupId = consumerGroupAccessor.Invoke()
-                }, $"net.kafka://localhost:9092/{topicNameAccessor.Invoke()}");
+                }, $"net.kafka://{KafkaEx.GetBootstrapServers()}/{topicNameAccessor.Invoke()}");
             });
         }
     }

@@ -64,13 +64,19 @@ It supports the following arguments:
 
 ### Development Builds
 
-There are pre-release packages available for development builds of main from a NuGet feed hosted in Azure DevOps. You can download the packages by adding the following package source to your list of feeds using the `dotnet` CLI.
+Pre-release packages built from `main` are published to the **GitHub Packages** NuGet feed of the [CoreWCF organization](https://github.com/CoreWCF). The feed URL is owner-scoped:
 
-```cmd
-dotnet nuget add source https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json
+```
+https://nuget.pkg.github.com/CoreWCF/index.json
 ```
 
-If you are using a nuget.config file with only the default nuget.org package source, after adding the CoreWCF feed it would look like this:
+GitHub Packages requires authentication even for public packages. Generate a [personal access token (classic)](https://github.com/settings/tokens) with the `read:packages` scope, then add the feed:
+
+```cmd
+dotnet nuget add source https://nuget.pkg.github.com/CoreWCF/index.json --name CoreWCF-Dev --username <your-github-username> --password <your-PAT> --store-password-in-clear-text
+```
+
+If you are using a `nuget.config` file with only the default `nuget.org` package source, after adding the CoreWCF dev feed it would look like this:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -78,8 +84,14 @@ If you are using a nuget.config file with only the default nuget.org package sou
   <packageSources>
     <clear />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-    <add key="CoreWCF" value="https://pkgs.dev.azure.com/dotnet/CoreWCF/_packaging/CoreWCF/nuget/v3/index.json" />
+    <add key="CoreWCF-Dev" value="https://nuget.pkg.github.com/CoreWCF/index.json" />
   </packageSources>
+  <packageSourceCredentials>
+    <CoreWCF-Dev>
+      <add key="Username" value="<your-github-username>" />
+      <add key="ClearTextPassword" value="<your-PAT>" />
+    </CoreWCF-Dev>
+  </packageSourceCredentials>
 </configuration>
 ```
 

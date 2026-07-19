@@ -47,7 +47,8 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         protected override ParseOptions CreateParseOptions()
             => ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
 
-        protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics) => false;
+        protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
+            => base.IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics);
 
         protected override IEnumerable<Type> GetSourceGenerators()
         {
@@ -55,4 +56,3 @@ public static class CSharpGeneratorVerifier<TSourceGenerator>
         }
     }
 }
-

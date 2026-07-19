@@ -680,7 +680,16 @@ namespace CoreWCF.Runtime
 
             private void PostNewThread()
             {
-                var thread = new Thread(new ThreadStart(Callback));
+                // The waiter thread used on non-Windows platforms must be a background thread,
+                // otherwise it keeps the process alive until WaitAny returns, which can take
+                // up to the longest IOThreadTimer due time (default session idle timeout is
+                // measured in minutes). Background threads are torn down by the runtime when
+                // the process exits, mirroring the Windows IOCP behavior where the equivalent
+                // work runs on thread-pool threads (which are background by default).
+                var thread = new Thread(new ThreadStart(Callback))
+                {
+                    IsBackground = true,
+                };
                 thread.Start();
             }
 

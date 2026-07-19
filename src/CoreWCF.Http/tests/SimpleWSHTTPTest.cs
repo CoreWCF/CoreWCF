@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.HttpSys;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Xunit.Abstractions;
 using System.Collections.ObjectModel;
 using CoreWCF.IdentityModel.Policy;
 using CoreWCF.IdentityModel.Claims;
@@ -68,7 +67,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }                
+                }
             }
         }
 
@@ -149,7 +148,7 @@ namespace WSHttp
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
                 }
-                
+
             }
         }
 
@@ -191,7 +190,44 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }               
+                }
+            }
+        }
+
+        [Theory(Skip = "This requires unshipped WCF Client functionality"), Description("transport-security-with-basic-authentication")]
+        [InlineData("WSHttpBinding")]
+        [InlineData("WS2007HttpBinding")]
+        public void WSHttpRequestReplyWithTransportMessageWindowsAuthEchoString(string bindingType)
+        {
+            string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateHttpsWebHostBuilder<WSHttpTransportWithMessageCredentialWithWindowsAuth>(_output).UseSetting("bindingType", bindingType).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.WSHttpBinding wsHttpBinding = ClientHelper.GetBufferedModeWSHttpBinding(bindingType, System.ServiceModel.SecurityMode.TransportWithMessageCredential);
+                    wsHttpBinding.Security.Message.ClientCredentialType = System.ServiceModel.MessageCredentialType.Windows;
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(wsHttpBinding,
+                        new System.ServiceModel.EndpointAddress(new Uri($"https://localhost:{host.GetHttpsPort()}/WSHttpWcfService/basichttp.svc")));
+                    ClientCredentials clientCredentials = (ClientCredentials)factory.Endpoint.EndpointBehaviors[typeof(ClientCredentials)];
+                    clientCredentials.Windows.ClientCredential = System.Net.CredentialCache.DefaultNetworkCredentials;
+                    factory.Credentials.ServiceCertificate.SslCertificateAuthentication = new System.ServiceModel.Security.X509ServiceCertificateAuthentication
+                    {
+                        CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None
+                    };
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
             }
         }
 
@@ -229,7 +265,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }               
+                }
             }
         }
 
@@ -267,7 +303,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }               
+                }
             }
         }
 
@@ -304,7 +340,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }               
+                }
             }
         }
 
@@ -340,7 +376,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }                
+                }
             }
         }
 
@@ -380,7 +416,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }                
+                }
             }
         }
 
@@ -415,7 +451,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }                
+                }
             }
         }
 
@@ -454,7 +490,7 @@ namespace WSHttp
                 finally
                 {
                     ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
-                }                
+                }
             }
         }
 
@@ -586,6 +622,18 @@ namespace WSHttp
             }
         }
 
+        internal class WSHttpTransportWithMessageCredentialWithWindowsAuth : StartupWSHttpBase
+        {
+            public WSHttpTransportWithMessageCredentialWithWindowsAuth() :
+                base(SecurityMode.TransportWithMessageCredential, MessageCredentialType.Windows)
+            {
+            }
+
+            public override void ChangeHostBehavior(ServiceHostBase host)
+            {
+            }
+        }
+
         internal class WSHttpTransportWithMessageCredentialWithUserNameExpire : WSHttpTransportWithMessageCredentialWithUserName
         {
             public override CoreWCF.Channels.Binding ChangeBinding(WSHttpBinding binding)
@@ -596,6 +644,7 @@ namespace WSHttp
                 return customBinding;
             }
         }
+
 
         internal class WSHttpTransportWithMessageCredentialWithUserName : StartupWSHttpBase
         {

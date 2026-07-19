@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Mime;
 using CoreWCF.Channels;
 using CoreWCF.Runtime;
+using Microsoft.Net.Http.Headers;
 
 namespace CoreWCF.Web
 {
@@ -63,9 +64,9 @@ namespace CoreWCF.Web
                 string dateTime = this.MessageProperty.Headers[HttpRequestHeader.IfModifiedSince];
                 if (!string.IsNullOrEmpty(dateTime))
                 {
-                    if (HttpDateParse.ParseHttpDate(dateTime, out DateTime parsedDateTime))
+                    if (HeaderUtilities.TryParseDate(dateTime, out DateTimeOffset parsedDateTime))
                     {
-                        return parsedDateTime;
+                        return parsedDateTime.LocalDateTime;
                     }
                 }
 
@@ -80,9 +81,9 @@ namespace CoreWCF.Web
                 string dateTime = MessageProperty.Headers[HttpRequestHeader.IfUnmodifiedSince];
                 if (!string.IsNullOrEmpty(dateTime))
                 {
-                    if (HttpDateParse.ParseHttpDate(dateTime, out DateTime parsedDateTime))
+                    if (HeaderUtilities.TryParseDate(dateTime, out DateTimeOffset parsedDateTime))
                     {
-                        return parsedDateTime;
+                        return parsedDateTime.LocalDateTime;
                     }
                 }
 

@@ -138,6 +138,12 @@
   <data name="SspiErrorOrInvalidClientCredentials" xml:space="preserve">
     <value>Either the client credential was invalid or there was an error collecting the client credentials by the SSPI.</value>
   </data>
+  <data name="SspiWrapFailed" xml:space="preserve">
+    <value>The SSPI/GSS Wrap operation failed with status code '{0}'.</value>
+  </data>
+  <data name="SspiWrapDidNotEncrypt" xml:space="preserve">
+    <value>The negotiated security package did not provide confidentiality for the wrapped buffer. Sensitive data such as the proof key for a SecurityContextToken must not be transmitted in the clear. The negotiated package or its configuration does not support message confidentiality.</value>
+  </data>
   <data name="CustomCryptoAlgorithmIsNotValidAsymmetricSignature" xml:space="preserve">
     <value>The custom crypto algorithm '{0}' obtained using CryptoConfig is not a valid or supported asymmetric signature algorithm.</value>
   </data>
@@ -8334,6 +8340,12 @@
   <data name="SAMLAssertionRequireOneStatement" xml:space="preserve">
     <value>A SamlAssertion requires at least one statement.  Ensure that you have added at least one SamlStatement to the SamlAssertion you are creating.</value>
   </data>
+  <data name="SAMLHolderOfKeyRequiresKeyInfo" xml:space="preserve">
+    <value>The SamlSubject specifies the holder-of-key confirmation method but does not contain a SubjectConfirmationData &lt;KeyInfo&gt;. Holder-of-key tokens require a proof key.</value>
+  </data>
+  <data name="SAMLUnrecognizedConfirmationMethod" xml:space="preserve">
+    <value>The SamlSubject contains an unrecognized confirmation method '{0}'. Only the bearer, sender-vouches, and holder-of-key methods defined by SAML 1.1 are accepted.</value>
+  </data>
   <data name="SAMLAssertionRequireOneStatementOnRead" xml:space="preserve">
     <value>The SamlAssertion being read did not contain any SamlStatement.  A SamlAssertion must contain at least one SamlStatement.</value>
   </data>
@@ -9723,7 +9735,16 @@
   <data name="SamlRSANotSupported" xml:space="preserve">
     <value>RSA keys in SAML tokens not supported.</value>
   </data>
+  <data name="SamlSignatureVerificationKeyNotSupported" xml:space="preserve">
+    <value>The SAML assertion signature cannot be verified because the resolved verification key of type '{0}' cannot be bridged to a Microsoft.IdentityModel.Tokens.SecurityKey.</value>
+  </data>
   <data name="OnlySetIdentityOnce" xml:space="preserve">
     <value>EndpointDispatcher.Identity can only be set once.</value>
+  </data>
+  <data name="BufferWriterAdvancedTooFar" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer, which has a size of {0}.</value>
+  </data>
+  <data name="BufferMaximumSizeExceeded" xml:space="preserve">
+    <value>Cannot allocate a buffer of size {0}.</value>
   </data>
 </root>

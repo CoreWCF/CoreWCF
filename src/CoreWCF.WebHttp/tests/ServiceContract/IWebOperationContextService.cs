@@ -20,5 +20,11 @@ namespace ServiceContract
 
         [WebGet(UriTemplate = "/match", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         string InspectRouteMatch();
+
+        [WebGet(UriTemplate = "/ifmodifiedsince", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        string GetIfModifiedSince();
+
+        [WebGet(UriTemplate = "/ifunmodifiedsince", BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        string GetIfUnmodifiedSince();
     }
 }

@@ -34,7 +34,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleService, ISimpleService>(binding, serviceAddress);
-            await serviceBuilder.OpenAsync();
+            await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
             Assert.Single(dispatchers);
@@ -45,7 +45,7 @@ namespace DispatchBuilder
             IServiceChannelDispatcher dispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
             var requestContext = TestRequestContext.Create(serviceAddress);
             await dispatcher.DispatchAsync(requestContext);
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
+            Assert.True(await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -67,7 +67,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            await serviceBuilder.OpenAsync();
+            await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -78,7 +78,7 @@ namespace DispatchBuilder
             IServiceChannelDispatcher dispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
             var requestContext = TestRequestContext.Create(serviceAddress);
             await dispatcher.DispatchAsync(requestContext);
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
+            Assert.True(await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -101,7 +101,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleSingletonService, ISimpleService>(binding, serviceAddress);
-            await serviceBuilder.OpenAsync();
+            await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleSingletonService));
             Assert.Single(dispatchers);
@@ -112,7 +112,7 @@ namespace DispatchBuilder
             IServiceChannelDispatcher dispatcher = await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
             var requestContext = TestRequestContext.Create(serviceAddress);
             await dispatcher.DispatchAsync(requestContext);
-            Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(30)), "Dispatcher didn't send reply");
+            Assert.True(await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken), "Dispatcher didn't send reply");
             requestContext.ValidateReply();
         }
 
@@ -138,7 +138,7 @@ namespace DispatchBuilder
             var binding = new CustomBinding("BindingName", "BindingNS");
             binding.Elements.Add(new MockTransportBindingElement());
             serviceBuilder.AddServiceEndpoint<SimpleXmlSerializerService, ISimpleXmlSerializerService>(binding, serviceAddress);
-            await serviceBuilder.OpenAsync();
+            await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
 
             IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
             System.Collections.Generic.List<IServiceDispatcher> dispatchers = dispatcherBuilder.BuildDispatchers(typeof(SimpleXmlSerializerService));

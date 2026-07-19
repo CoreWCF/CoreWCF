@@ -1,19 +1,20 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Net;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore;
-using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
 using System.Runtime.CompilerServices;
 using CoreWCF.Configuration;
-using System.Diagnostics;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace Helpers
 {
+#if !NET472
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
     internal static class ServiceHelper
     {
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string basePath = "", [CallerMemberName] string callerMethodName = "") where TStartup : class =>

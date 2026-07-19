@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.Configuration;
-using CoreWCF.Telemetry;
 using Helpers;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,17 +25,27 @@ public class TelemetryTests
     [Fact]
     public async Task Basic_Telemetry_Test()
     {
-        var startedActivities = new List<Activity>();
-        var stoppedActivities = new List<Activity>();
+        string telemetryEchoAction = "http://tempuri.org/ISimpleTelemetryService/Echo";
+        var startedActivities = new ConcurrentBag<Activity>();
+        var stoppedActivities = new ConcurrentBag<Activity>();
 
+        // ShouldListenTo must be set to its final predicate before AddActivityListener is called.
+        // ActivitySource attaches a listener at AddActivityListener time (for existing sources) and at
+        // ActivitySource construction time (for sources created later). In both cases ShouldListenTo is
+        // evaluated only once per (listener, source) pair; mutating ShouldListenTo afterwards does NOT
+        // retroactively attach the listener to an already-existing source. The static
+        // WcfInstrumentationActivitySource.ActivitySource may be initialized by a concurrent test
+        // (e.g. DispatchBuilderTests in the default xUnit collection) before this test reaches
+        // AddActivityListener, so a "_ => false" predicate at that moment would permanently prevent
+        // attachment regardless of subsequent updates. Filtering by the unique DisplayName below
+        // ensures activities created by concurrent tests do not interfere with the assertions.
         using var listener = new ActivityListener
         {
-            ShouldListenTo = _ => false,
+            ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives",
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
             ActivityStarted = activity => startedActivities.Add(activity),
             ActivityStopped = activity => stoppedActivities.Add(activity)
         };
-
 
         string serviceAddress = "http://localhost/dummy";
         var services = new ServiceCollection();
@@ -48,14 +58,14 @@ public class TelemetryTests
         ServiceProvider serviceProvider = services.BuildServiceProvider();
         IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
         serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
-        serviceBuilder.AddService<SimpleService>();
+        serviceBuilder.AddService<SimpleTelemetryService>();
         var binding = new CustomBinding("BindingName", "BindingNS");
         binding.Elements.Add(new MockTransportBindingElement());
-        serviceBuilder.AddServiceEndpoint<SimpleService, ISimpleService>(binding, serviceAddress);
-        await serviceBuilder.OpenAsync();
+        serviceBuilder.AddServiceEndpoint<SimpleTelemetryService, ISimpleTelemetryService>(binding, serviceAddress);
+        await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
         IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
         System.Collections.Generic.List<IServiceDispatcher> dispatchers =
-            dispatcherBuilder.BuildDispatchers(typeof(SimpleService));
+            dispatcherBuilder.BuildDispatchers(typeof(SimpleTelemetryService));
         Assert.Single(dispatchers);
         IServiceDispatcher serviceDispatcher = dispatchers[0];
         Assert.Equal("foo", serviceDispatcher.Binding.Scheme);
@@ -63,24 +73,41 @@ public class TelemetryTests
         IChannel mockChannel = new MockReplyChannel(serviceProvider);
         IServiceChannelDispatcher dispatcher =
             await serviceDispatcher.CreateServiceChannelDispatcherAsync(mockChannel);
-        var requestContext = TestRequestContext.Create(serviceAddress);
+        var requestContext = TestRequestContext.Create(serviceAddress, telemetryEchoAction);
 
         ActivitySource.AddActivityListener(listener);
-        listener.ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives";
         await dispatcher.DispatchAsync(requestContext);
-        listener.ShouldListenTo = _ => false;
-        Assert.True(requestContext.WaitForReply(TimeSpan.FromSeconds(5)), "Dispatcher didn't send reply");
-        requestContext.ValidateReply();
+        Assert.True(await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken), "Dispatcher didn't send reply");
+        requestContext.ValidateReply(telemetryEchoAction + "Response");
 
-        // Other tests running in parallel may have started activities, so we filter for the specific activity we expect
-        // and verify there's only one of the activity we expect.
-        var startedActivity = Assert.Single(startedActivities, a => a.DisplayName == "http://tempuri.org/ISimpleService/Echo");
-        var stoppedActivity = Assert.Single(stoppedActivities, a => a.DisplayName == "http://tempuri.org/ISimpleService/Echo");
+        // ActivityStarted/ActivityStopped callbacks run synchronously inside Activity.Start()/Stop(),
+        // and CoreWCF stops the activity before sending the reply, so by the time WaitForReplyAsync
+        // returns the activity should already be in the bags. Poll briefly with the test cancellation
+        // token in case there is any small async window on a heavily loaded machine. If the activity
+        // is genuinely missing this fails fast with an explicit message rather than a TaskCanceledException.
+        using var pollCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        pollCts.CancelAfter(TimeSpan.FromSeconds(30));
+        try
+        {
+            while (!stoppedActivities.Any(a => a.DisplayName == telemetryEchoAction))
+            {
+                await Task.Delay(50, pollCts.Token);
+            }
+        }
+        catch (OperationCanceledException) when (pollCts.IsCancellationRequested && !TestContext.Current.CancellationToken.IsCancellationRequested)
+        {
+            Assert.Fail($"No Activity with DisplayName '{telemetryEchoAction}' was captured within 30s. " +
+                $"Started count: {startedActivities.Count}, Stopped count: {stoppedActivities.Count}. " +
+                "This usually indicates the ActivityListener was not attached to the CoreWCF.Primitives ActivitySource.");
+        }
+
+        var startedActivity = Assert.Single(startedActivities, a => a.DisplayName == telemetryEchoAction);
+        var stoppedActivity = Assert.Single(stoppedActivities, a => a.DisplayName == telemetryEchoAction);
 
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", startedActivity.OperationName);
         Assert.Equal("CoreWCF.Primitives.IncomingRequest", stoppedActivity.OperationName);
-        Assert.Equal("http://tempuri.org/ISimpleService/Echo", startedActivity.DisplayName);
-        Assert.Equal("http://tempuri.org/ISimpleService/Echo", stoppedActivity.DisplayName);
+        Assert.Equal(telemetryEchoAction, startedActivity.DisplayName);
+        Assert.Equal(telemetryEchoAction, stoppedActivity.DisplayName);
         Assert.Equal(ActivityKind.Server, startedActivity.Kind);
         Assert.Equal(ActivityKind.Server, stoppedActivity.Kind);
         Assert.Equal(startedActivity.RootId, stoppedActivity.RootId);
@@ -96,7 +123,7 @@ public class TelemetryTests
         Assert.Equal("dotnet_wcf", startedTags[0].Value);
 
         Assert.Equal("rpc.method", startedTags[1].Key);
-        Assert.Equal("http://tempuri.org/ISimpleService/Echo", startedTags[1].Value);
+        Assert.Equal(telemetryEchoAction, startedTags[1].Value);
 
         Assert.Equal("soap.message_version", startedTags[2].Key);
         Assert.Equal("Soap11 (http://schemas.xmlsoap.org/soap/envelope/) AddressingNone (http://schemas.microsoft.com/ws/2005/05/addressing/none)", startedTags[2].Value);
@@ -111,7 +138,7 @@ public class TelemetryTests
         Assert.Equal("/dummy", startedTags[5].Value);
 
         Assert.Equal("soap.reply_action", startedTags[6].Key);
-        Assert.Equal("http://tempuri.org/ISimpleService/EchoResponse", startedTags[6].Value);
+        Assert.Equal(telemetryEchoAction + "Response", startedTags[6].Value);
 
         Assert.Equivalent(startedTags[1], stoppedTags[1]);
         Assert.Equivalent(startedTags[2], stoppedTags[2]);
@@ -119,5 +146,22 @@ public class TelemetryTests
         Assert.Equivalent(startedTags[4], stoppedTags[4]);
         Assert.Equivalent(startedTags[5], stoppedTags[5]);
         Assert.Equivalent(startedTags[6], stoppedTags[6]);
+    }
+
+    [CoreWCF.ServiceContract]
+    [System.ServiceModel.ServiceContract]
+    public interface ISimpleTelemetryService
+    {
+        [CoreWCF.OperationContract]
+        [System.ServiceModel.OperationContract]
+        string Echo(string echo);
+    }
+
+    internal class SimpleTelemetryService : ISimpleTelemetryService
+    {
+        public string Echo(string echo)
+        {
+            return echo;
+        }
     }
 }

@@ -9,17 +9,21 @@
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <Compile Remove="**\*.cs" />
     <Compile Remove="*.cs" />
+    <Compile Include="DummyTest.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <PackageReference Include="Microsoft.AspNetCore" />
   </ItemGroup>
+  
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Testcontainers.RabbitMq" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'!='net472'">

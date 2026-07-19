@@ -7,20 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Templates.Test.Helpers;
 
 public class ProjectFactoryFixture : IDisposable
 {
     private readonly ConcurrentDictionary<string, Project> _projects = new ConcurrentDictionary<string, Project>();
-
-    public IMessageSink DiagnosticsMessageSink { get; }
-
-    public ProjectFactoryFixture(IMessageSink diagnosticsMessageSink)
-    {
-        DiagnosticsMessageSink = diagnosticsMessageSink;
-    }
 
     public Project GetOrCreateProject(string projectKey, string targetFramework, ITestOutputHelper output)
     {
@@ -38,7 +31,6 @@ public class ProjectFactoryFixture : IDisposable
                 {
                     Output = outputHelper,
                     TargetFramework = targetFramework,
-                    DiagnosticsMessageSink = DiagnosticsMessageSink,
                     ProjectGuid = Path.GetRandomFileName().Replace(".", string.Empty)
                 };
                 project.ProjectName = $"CoreWCFService.{project.ProjectGuid}";

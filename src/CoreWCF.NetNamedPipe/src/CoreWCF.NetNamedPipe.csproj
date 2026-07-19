@@ -9,11 +9,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" />
-    <!-- See rationale in comment https://github.com/CoreWCF/CoreWCF/issues/1171#issuecomment-1675183317 -->
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
