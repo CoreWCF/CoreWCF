@@ -13,12 +13,14 @@ namespace CoreWCF.Channels
     internal sealed class BufferManagerBufferWriter : IBufferWriter<byte>, IDisposable
     {
         private readonly BufferManager _bufferManager;
+        private readonly int _maxBufferSize;
         private byte[] _buffer;
         private int _writtenCount;
 
-        public BufferManagerBufferWriter(BufferManager bufferManager, int initialCapacity)
+        public BufferManagerBufferWriter(BufferManager bufferManager, int initialCapacity, int maxBufferSize)
         {
             _bufferManager = bufferManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
+            _maxBufferSize = maxBufferSize;
             _buffer = bufferManager.TakeBuffer(initialCapacity);
         }
 
@@ -95,7 +97,12 @@ namespace CoreWCF.Channels
                 return;
             }
 
-            int newSize = checked(_writtenCount + Math.Max(sizeHint, _buffer.Length));
+            if (sizeHint > _maxBufferSize - _writtenCount)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(_maxBufferSize));
+            }
+
+            int newSize = Math.Min(_maxBufferSize, checked(_writtenCount + Math.Max(sizeHint, _buffer.Length)));
             byte[] newBuffer = _bufferManager.TakeBuffer(newSize);
             Buffer.BlockCopy(_buffer, 0, newBuffer, 0, _writtenCount);
             _bufferManager.ReturnBuffer(_buffer);
@@ -115,7 +122,7 @@ namespace CoreWCF.Channels
     {
         internal static async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize, int initialBufferSize)
         {
-            using (BufferManagerBufferWriter writer = new BufferManagerBufferWriter(bufferManager, initialBufferSize))
+            using (BufferManagerBufferWriter writer = new BufferManagerBufferWriter(bufferManager, initialBufferSize, maxBufferSize))
             {
                 int currentBufferSize = Math.Min(writer.Capacity, maxBufferSize);
 
@@ -123,7 +130,11 @@ namespace CoreWCF.Channels
                 {
                     int bytesToRead = currentBufferSize - writer.WrittenCount;
                     Memory<byte> memory = writer.GetMemory(bytesToRead);
-                    MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer);
+                    if (!MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException());
+                    }
+
                     int count = await stream.ReadAsync(buffer.Array, buffer.Offset, bytesToRead);
                     if (count == 0)
                     {

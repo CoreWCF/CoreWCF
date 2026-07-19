@@ -133,6 +133,7 @@ namespace CoreWCF.Primitives.Tests
         private static async Task<ArraySegment<byte>> InvokeBufferMessageStreamAsync(MessageEncoder encoder, Stream stream, BufferManager bufferManager, int maxBufferSize)
         {
             MethodInfo method = typeof(MessageEncoder).GetMethod("BufferMessageStreamAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
             Task<ArraySegment<byte>> task = (Task<ArraySegment<byte>>)method.Invoke(encoder, new object[] { stream, bufferManager, maxBufferSize });
             return await task;
         }
@@ -142,7 +143,7 @@ namespace CoreWCF.Primitives.Tests
             byte[] payload = new byte[size];
             for (int i = 0; i < payload.Length; i++)
             {
-                payload[i] = (byte)(i % byte.MaxValue);
+                payload[i] = (byte)i;
             }
 
             return payload;
