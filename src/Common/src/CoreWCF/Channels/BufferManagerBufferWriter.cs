@@ -39,8 +39,7 @@ namespace CoreWCF.Channels
 
             if (_writtenCount > _buffer.Length - count)
             {
-                int available = _buffer.Length - _writtenCount;
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException($"Cannot advance by {count} bytes; only {available} bytes remain in buffer capacity."));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Cannot advance past the end of the buffer."));
             }
 
             _writtenCount += count;
@@ -133,7 +132,7 @@ namespace CoreWCF.Channels
                     Memory<byte> memory = writer.GetMemory(bytesToRead);
                     if (!MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Unable to obtain the underlying array from Memory<byte>; ensure the buffered writer is array-backed."));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Internal error: BufferManagerBufferWriter should always provide array-backed Memory<byte>."));
                     }
 
                     int count = await stream.ReadAsync(buffer.Array, buffer.Offset, Math.Min(bytesToRead, buffer.Count));
