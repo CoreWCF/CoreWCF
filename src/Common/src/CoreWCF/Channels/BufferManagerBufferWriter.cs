@@ -127,6 +127,8 @@ namespace CoreWCF.Channels
 
     internal sealed class BufferManagerBufferWriterStream : Stream
     {
+        private const string ReadNotSupportedMessage = "Read not supported.";
+        private const string SeekNotSupportedMessage = "Seek not supported.";
         private readonly BufferManagerBufferWriter _writer;
 
         public BufferManagerBufferWriterStream(string quotaExceededString, int initialSize, int maxSize, BufferManager bufferManager)
@@ -149,8 +151,8 @@ namespace CoreWCF.Channels
 
         public override long Position
         {
-            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
-            set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SeekNotSupportedMessage));
+            set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SeekNotSupportedMessage));
         }
 
         public void Skip(int size)
@@ -183,13 +185,13 @@ namespace CoreWCF.Channels
         }
 
         public override int Read(byte[] buffer, int offset, int count)
-            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.ReadNotSupported));
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(ReadNotSupportedMessage));
 
         public override long Seek(long offset, SeekOrigin origin)
-            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SeekNotSupportedMessage));
 
         public override void SetLength(long value)
-            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SeekNotSupportedMessage));
 
         public override void Write(byte[] buffer, int offset, int count)
         {
@@ -240,7 +242,7 @@ namespace CoreWCF.Channels
 
             if (bufferLength - offset < count)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.OffsetExceedsBufferSize, bufferLength), nameof(offset)));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset)));
             }
         }
 
