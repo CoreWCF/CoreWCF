@@ -105,7 +105,7 @@ namespace CoreWCF.Primitives.Tests
                 Buffer.BlockCopy(buffered.Array, buffered.Offset, actual, 0, buffered.Count);
 
                 Assert.Equal(expected, actual);
-                ArrayPoolBufferManager.Shared.ReturnBuffer(buffered.Array);
+                ArrayPool<byte>.Shared.Return(buffered.Array);
             }
         }
 
