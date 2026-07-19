@@ -95,12 +95,12 @@ namespace CoreWCF.Primitives.Tests
         public async Task BufferMessageStreamAsync_GrowsAndTransfersFinalBuffer()
         {
             byte[] expected = CreateBufferTestPayload(10000);
-            MessageEncoder encoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
+            MessageEncoder testEncoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
             TrackingBufferManager bufferManager = new TrackingBufferManager();
 
             using (MemoryStream stream = new MemoryStream(expected))
             {
-                ArraySegment<byte> buffered = await InvokeBufferMessageStreamAsync(encoder, stream, bufferManager, 20000);
+                ArraySegment<byte> buffered = await InvokeBufferMessageStreamAsync(testEncoder, stream, bufferManager, 20000);
                 byte[] actual = new byte[buffered.Count];
                 Buffer.BlockCopy(buffered.Array, buffered.Offset, actual, 0, buffered.Count);
 
@@ -117,12 +117,12 @@ namespace CoreWCF.Primitives.Tests
         public async Task BufferMessageStreamAsync_ReturnsBufferOnMaxSizeException()
         {
             byte[] expected = CreateBufferTestPayload(9000);
-            MessageEncoder encoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
+            MessageEncoder testEncoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
             TrackingBufferManager bufferManager = new TrackingBufferManager();
 
             using (MemoryStream stream = new MemoryStream(expected))
             {
-                await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(encoder, stream, bufferManager, 8192));
+                await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(testEncoder, stream, bufferManager, 8192));
             }
 
             Assert.Single(bufferManager.TakenBuffers);
