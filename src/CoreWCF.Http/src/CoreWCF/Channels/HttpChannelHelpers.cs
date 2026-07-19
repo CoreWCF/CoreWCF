@@ -183,7 +183,7 @@ namespace CoreWCF.Channels
         {
             try
             {
-                return _messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, _bufferManager, _settings.MaxBufferSize), _bufferManager, ContentType);
+                return _messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, _settings.MaxBufferSize), ArrayPoolBufferManager.Shared, ContentType);
             }
             catch (XmlException xmlException)
             {
@@ -208,8 +208,8 @@ namespace CoreWCF.Channels
         }
 
         // used for buffered streaming
-        internal Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
-            => BufferedMessageStreamHelper.BufferMessageStreamAsync(stream, bufferManager, maxBufferSize, ConnectionOrientedTransportDefaults.ConnectionBufferSize);
+        internal Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, int maxBufferSize)
+            => BufferedMessageStreamHelper.BufferMessageStreamAsync(stream, maxBufferSize, ConnectionOrientedTransportDefaults.ConnectionBufferSize);
 
         protected abstract void AddProperties(Message message);
 

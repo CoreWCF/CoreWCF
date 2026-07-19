@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -42,14 +43,14 @@ namespace CoreWCF.Channels
         public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
 
         // used for buffered streaming
-        internal Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
-            => BufferedMessageStreamHelper.BufferMessageStreamAsync(stream, bufferManager, maxBufferSize, ConnectionOrientedTransportDefaults.ConnectionBufferSize);
+        internal Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, int maxBufferSize)
+            => BufferedMessageStreamHelper.BufferMessageStreamAsync(stream, maxBufferSize, ConnectionOrientedTransportDefaults.ConnectionBufferSize);
 
         // used for buffered streaming
         internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
             string contentType)
         {
-            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
+            return ReadMessage(await BufferMessageStreamAsync(stream, maxBufferSize), ArrayPoolBufferManager.Shared, contentType);
         }
 
         public override string ToString()
@@ -63,6 +64,49 @@ namespace CoreWCF.Channels
         {
             ArraySegment<byte> arraySegment = WriteMessage(message, maxMessageSize, bufferManager, 0);
             return arraySegment;
+        }
+
+        public void WriteMessage(Message message, int maxMessageSize, IBufferWriter<byte> bufferWriter)
+        {
+            WriteMessage(message, maxMessageSize, bufferWriter, 0);
+        }
+
+        public virtual void WriteMessage(Message message, int maxMessageSize, IBufferWriter<byte> bufferWriter, int messageOffset)
+        {
+            if (bufferWriter == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferWriter));
+            }
+
+            if (maxMessageSize < 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize, SRCommon.ValueMustBeNonNegative));
+            }
+
+            if (messageOffset < 0 || messageOffset > maxMessageSize)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(messageOffset), messageOffset, SR.Format(SR.ValueMustBeInRange, 0, maxMessageSize)));
+            }
+
+            if (messageOffset > 0)
+            {
+                bufferWriter.GetSpan(messageOffset);
+                bufferWriter.Advance(messageOffset);
+            }
+
+            ArraySegment<byte> messageBuffer = WriteMessage(message, maxMessageSize - messageOffset, ArrayPoolBufferManager.Shared, 0);
+            try
+            {
+                messageBuffer.AsSpan().CopyTo(bufferWriter.GetSpan(messageBuffer.Count));
+                bufferWriter.Advance(messageBuffer.Count);
+            }
+            finally
+            {
+                if (messageBuffer.Array != null)
+                {
+                    ArrayPoolBufferManager.Shared.ReturnBuffer(messageBuffer.Array);
+                }
+            }
         }
 
         public abstract ArraySegment<byte> WriteMessage(Message message, int maxMessageSize,

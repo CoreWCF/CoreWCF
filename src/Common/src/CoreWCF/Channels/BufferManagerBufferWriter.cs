@@ -10,6 +10,39 @@ using CoreWCF.Diagnostics;
 
 namespace CoreWCF.Channels
 {
+    internal sealed class ArrayPoolBufferManager : BufferManager
+    {
+        internal static ArrayPoolBufferManager Shared { get; } = new ArrayPoolBufferManager();
+
+        private ArrayPoolBufferManager()
+        {
+        }
+
+        public override void ReturnBuffer(byte[] buffer)
+        {
+            if (buffer == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(buffer));
+            }
+
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+
+        public override byte[] TakeBuffer(int bufferSize)
+        {
+            if (bufferSize < 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, SRCommon.ValueMustBeNonNegative));
+            }
+
+            return ArrayPool<byte>.Shared.Rent(bufferSize);
+        }
+
+        public override void Clear()
+        {
+        }
+    }
+
     internal sealed class BufferManagerBufferWriter : IBufferWriter<byte>, IDisposable
     {
         private readonly BufferManager _bufferManager;
@@ -109,7 +142,20 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_quotaExceededExceptionFactory(_maxBufferSize));
             }
 
-            int newSize = checked(_writtenCount + sizeHint);
+            int newSize = _buffer.Length == 0 ? sizeHint : _buffer.Length;
+            int minimumSize = checked(_writtenCount + sizeHint);
+            while (newSize < minimumSize)
+            {
+                int nextSize = newSize > _maxBufferSize / 2 ? _maxBufferSize : newSize * 2;
+                if (nextSize <= newSize)
+                {
+                    newSize = minimumSize;
+                    break;
+                }
+
+                newSize = nextSize;
+            }
+
             byte[] newBuffer = _bufferManager.TakeBuffer(newSize);
             Buffer.BlockCopy(_buffer, 0, newBuffer, 0, _writtenCount);
             _bufferManager.ReturnBuffer(_buffer);
@@ -248,9 +294,9 @@ namespace CoreWCF.Channels
 
     internal static class BufferedMessageStreamHelper
     {
-        internal static async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize, int initialBufferSize)
+        internal static async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, int maxBufferSize, int initialBufferSize)
         {
-            using (BufferManagerBufferWriter writer = new BufferManagerBufferWriter(bufferManager, initialBufferSize, maxBufferSize))
+            using (BufferManagerBufferWriter writer = new BufferManagerBufferWriter(ArrayPoolBufferManager.Shared, initialBufferSize, maxBufferSize))
             {
                 int currentBufferSize = Math.Min(writer.Capacity, maxBufferSize);
 

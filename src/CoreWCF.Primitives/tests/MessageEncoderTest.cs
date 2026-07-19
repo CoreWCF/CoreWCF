@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -96,20 +97,15 @@ namespace CoreWCF.Primitives.Tests
         {
             byte[] expected = CreateBufferTestPayload(10000);
             MessageEncoder testEncoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
-            TrackingBufferManager bufferManager = new TrackingBufferManager();
 
             using (MemoryStream stream = new MemoryStream(expected))
             {
-                ArraySegment<byte> buffered = await InvokeBufferMessageStreamAsync(testEncoder, stream, bufferManager, 20000);
+                ArraySegment<byte> buffered = await InvokeBufferMessageStreamAsync(testEncoder, stream, 20000);
                 byte[] actual = new byte[buffered.Count];
                 Buffer.BlockCopy(buffered.Array, buffered.Offset, actual, 0, buffered.Count);
 
                 Assert.Equal(expected, actual);
-                Assert.Single(bufferManager.ReturnedBuffers);
-
-                bufferManager.ReturnBuffer(buffered.Array);
-                Assert.Equal(2, bufferManager.ReturnedBuffers.Count);
-                Assert.Same(buffered.Array, bufferManager.ReturnedBuffers[1]);
+                ArrayPoolBufferManager.Shared.ReturnBuffer(buffered.Array);
             }
         }
 
@@ -118,16 +114,11 @@ namespace CoreWCF.Primitives.Tests
         {
             byte[] expected = CreateBufferTestPayload(9000);
             MessageEncoder testEncoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
-            TrackingBufferManager bufferManager = new TrackingBufferManager();
 
             using (MemoryStream stream = new MemoryStream(expected))
             {
-                await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(testEncoder, stream, bufferManager, 8192));
+                await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(testEncoder, stream, 8192));
             }
-
-            Assert.Single(bufferManager.TakenBuffers);
-            Assert.Single(bufferManager.ReturnedBuffers);
-            Assert.Same(bufferManager.TakenBuffers[0], bufferManager.ReturnedBuffers[0]);
         }
 
         [Fact]
@@ -165,11 +156,35 @@ namespace CoreWCF.Primitives.Tests
             Assert.Same(bufferManager.TakenBuffers[0], bufferManager.ReturnedBuffers[0]);
         }
 
-        private static async Task<ArraySegment<byte>> InvokeBufferMessageStreamAsync(MessageEncoder encoder, Stream stream, BufferManager bufferManager, int maxBufferSize)
+        [Fact]
+        public void WriteMessage_IBufferWriter_ReservesOffsetAndWritesPayload()
+        {
+            byte[] expected = CreateBufferTestPayload(10000);
+            MessageEncoder encoder = new ByteStreamMessageEncodingBindingElement().CreateMessageEncoderFactory().Encoder;
+            Message message = ByteStreamMessage.CreateMessage(new ArraySegment<byte>(expected));
+            ArrayBufferWriter<byte> bufferWriter = new ArrayBufferWriter<byte>();
+
+            encoder.WriteMessage(message, 20000, bufferWriter, 32);
+
+            Assert.Equal(expected.Length + 32, bufferWriter.WrittenCount);
+            Assert.Equal(expected, bufferWriter.WrittenSpan.Slice(32).ToArray());
+        }
+
+        [Fact]
+        public void WriteMessage_IBufferWriter_ThrowsOnInvalidOffset()
+        {
+            MessageEncoder encoder = new ByteStreamMessageEncodingBindingElement().CreateMessageEncoderFactory().Encoder;
+            Message message = ByteStreamMessage.CreateMessage(new ArraySegment<byte>(Array.Empty<byte>()));
+            ArrayBufferWriter<byte> bufferWriter = new ArrayBufferWriter<byte>();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => encoder.WriteMessage(message, 8, bufferWriter, 9));
+        }
+
+        private static async Task<ArraySegment<byte>> InvokeBufferMessageStreamAsync(MessageEncoder encoder, Stream stream, int maxBufferSize)
         {
             MethodInfo method = typeof(MessageEncoder).GetMethod("BufferMessageStreamAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(method);
-            Task<ArraySegment<byte>> task = (Task<ArraySegment<byte>>)method.Invoke(encoder, new object[] { stream, bufferManager, maxBufferSize });
+            Task<ArraySegment<byte>> task = (Task<ArraySegment<byte>>)method.Invoke(encoder, new object[] { stream, maxBufferSize });
             return await task;
         }
 
