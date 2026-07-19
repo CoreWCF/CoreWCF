@@ -102,7 +102,7 @@ namespace CoreWCF.Channels
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(_maxBufferSize));
             }
 
-            int newSize = Math.Min(_maxBufferSize, checked(_writtenCount + Math.Max(sizeHint, _buffer.Length)));
+            int newSize = checked(_writtenCount + sizeHint);
             byte[] newBuffer = _bufferManager.TakeBuffer(newSize);
             Buffer.BlockCopy(_buffer, 0, newBuffer, 0, _writtenCount);
             _bufferManager.ReturnBuffer(_buffer);
@@ -135,7 +135,7 @@ namespace CoreWCF.Channels
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException());
                     }
 
-                    int count = await stream.ReadAsync(buffer.Array, buffer.Offset, bytesToRead);
+                    int count = await stream.ReadAsync(buffer.Array, buffer.Offset, Math.Min(bytesToRead, buffer.Count));
                     if (count == 0)
                     {
                         stream.Dispose();
