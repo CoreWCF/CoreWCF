@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using CoreWCF;
 using CoreWCF.Channels;
 using Helpers;
 using Xunit;
@@ -124,6 +125,41 @@ namespace CoreWCF.Primitives.Tests
             {
                 await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(testEncoder, stream, bufferManager, 8192));
             }
+
+            Assert.Single(bufferManager.TakenBuffers);
+            Assert.Single(bufferManager.ReturnedBuffers);
+            Assert.Same(bufferManager.TakenBuffers[0], bufferManager.ReturnedBuffers[0]);
+        }
+
+        [Fact]
+        public void ByteStreamWriteMessage_GrowsAndTransfersFinalBuffer()
+        {
+            byte[] expected = CreateBufferTestPayload(10000);
+            MessageEncoder encoder = new ByteStreamMessageEncodingBindingElement().CreateMessageEncoderFactory().Encoder;
+            TrackingBufferManager bufferManager = new TrackingBufferManager();
+            Message message = ByteStreamMessage.CreateMessage(new ArraySegment<byte>(expected));
+
+            ArraySegment<byte> encoded = encoder.WriteMessage(message, 20000, bufferManager);
+            byte[] actual = new byte[encoded.Count];
+            Buffer.BlockCopy(encoded.Array, encoded.Offset, actual, 0, encoded.Count);
+
+            Assert.Equal(expected, actual);
+            Assert.Single(bufferManager.ReturnedBuffers);
+
+            bufferManager.ReturnBuffer(encoded.Array);
+            Assert.Equal(2, bufferManager.ReturnedBuffers.Count);
+            Assert.Same(encoded.Array, bufferManager.ReturnedBuffers[1]);
+        }
+
+        [Fact]
+        public void ByteStreamWriteMessage_ReturnsBufferOnMaxSizeException()
+        {
+            byte[] expected = CreateBufferTestPayload(9000);
+            MessageEncoder encoder = new ByteStreamMessageEncodingBindingElement().CreateMessageEncoderFactory().Encoder;
+            TrackingBufferManager bufferManager = new TrackingBufferManager();
+            Message message = ByteStreamMessage.CreateMessage(new ArraySegment<byte>(expected));
+
+            Assert.Throws<QuotaExceededException>(() => encoder.WriteMessage(message, 8192, bufferManager));
 
             Assert.Single(bufferManager.TakenBuffers);
             Assert.Single(bufferManager.ReturnedBuffers);

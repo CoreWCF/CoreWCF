@@ -18,7 +18,7 @@ namespace CoreWCF.Channels
             MemoryStream memoryStream = new MemoryStream(buffer.Array, buffer.Offset, buffer.Count);
             int maxDecompressedSize = (int)Math.Min(maxReceivedMessageSize, int.MaxValue);
 
-            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SRCommon.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize, bufferManager))
+            using (BufferManagerBufferWriterStream bufferedOutStream = new BufferManagerBufferWriterStream(SRCommon.MaxReceivedMessageSizeExceeded, 1024, maxDecompressedSize, bufferManager))
             {
                 bufferedOutStream.Write(buffer.Array, 0, buffer.Offset);
 
@@ -48,15 +48,15 @@ namespace CoreWCF.Channels
                     bufferManager.ReturnBuffer(tempBuffer);
                 }
 
-                byte[] decompressedBytes = bufferedOutStream.ToArray(out int length);
+                ArraySegment<byte> decompressedBytes = bufferedOutStream.DetachBuffer();
                 bufferManager.ReturnBuffer(buffer.Array);
-                buffer = new ArraySegment<byte>(decompressedBytes, buffer.Offset, length - buffer.Offset);
+                buffer = new ArraySegment<byte>(decompressedBytes.Array, buffer.Offset, decompressedBytes.Count - buffer.Offset);
             }
         }
 
         internal static void CompressBuffer(ref ArraySegment<byte> buffer, BufferManager bufferManager, CompressionFormat compressionFormat)
         {
-            using (BufferManagerOutputStream bufferedOutStream = new BufferManagerOutputStream(SRCommon.MaxSentMessageSizeExceeded, 1024, int.MaxValue, bufferManager))
+            using (BufferManagerBufferWriterStream bufferedOutStream = new BufferManagerBufferWriterStream(SRCommon.MaxSentMessageSizeExceeded, 1024, int.MaxValue, bufferManager))
             {
                 bufferedOutStream.Write(buffer.Array, 0, buffer.Offset);
 
@@ -67,9 +67,9 @@ namespace CoreWCF.Channels
                     ds.Write(buffer.Array, buffer.Offset, buffer.Count);
                 }
 
-                byte[] compressedBytes = bufferedOutStream.ToArray(out int length);
+                ArraySegment<byte> compressedBytes = bufferedOutStream.DetachBuffer();
                 bufferManager.ReturnBuffer(buffer.Array);
-                buffer = new ArraySegment<byte>(compressedBytes, buffer.Offset, length - buffer.Offset);
+                buffer = new ArraySegment<byte>(compressedBytes.Array, buffer.Offset, compressedBytes.Count - buffer.Offset);
             }
         }
 

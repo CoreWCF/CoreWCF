@@ -177,16 +177,17 @@ namespace CoreWCF.Channels
 
             ArraySegment<byte> messageBuffer;
 
-            using (BufferManagerOutputStream stream = new BufferManagerOutputStream(_maxSentMessageSizeExceededResourceString, 0, maxMessageSize, bufferManager))
+            using (BufferManagerBufferWriterStream stream = new BufferManagerBufferWriterStream(_maxSentMessageSizeExceededResourceString, 0, maxMessageSize, bufferManager))
             {
                 stream.Skip(messageOffset);
                 using (XmlWriter writer = new XmlByteStreamWriter(stream, true))
                 {
                     message.WriteMessage(writer);
                     writer.Flush();
-                    byte[] bytes = stream.ToArray(out int size);
-                    messageBuffer = new ArraySegment<byte>(bytes, messageOffset, size - messageOffset);
                 }
+
+                ArraySegment<byte> bytes = stream.DetachBuffer();
+                messageBuffer = new ArraySegment<byte>(bytes.Array, messageOffset, bytes.Count - messageOffset);
             }
 
             //if (SMTD.MessageWrittenByEncoderIsEnabled())

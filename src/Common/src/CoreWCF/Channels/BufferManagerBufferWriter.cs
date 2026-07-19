@@ -14,13 +14,20 @@ namespace CoreWCF.Channels
     {
         private readonly BufferManager _bufferManager;
         private readonly int _maxBufferSize;
+        private readonly Func<int, Exception> _quotaExceededExceptionFactory;
         private byte[] _buffer;
         private int _writtenCount;
 
         public BufferManagerBufferWriter(BufferManager bufferManager, int initialCapacity, int maxBufferSize)
+            : this(bufferManager, initialCapacity, maxBufferSize, MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException)
+        {
+        }
+
+        public BufferManagerBufferWriter(BufferManager bufferManager, int initialCapacity, int maxBufferSize, Func<int, Exception> quotaExceededExceptionFactory)
         {
             _bufferManager = bufferManager ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(bufferManager));
             _maxBufferSize = maxBufferSize;
+            _quotaExceededExceptionFactory = quotaExceededExceptionFactory ?? throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(quotaExceededExceptionFactory));
             _buffer = bufferManager.TakeBuffer(initialCapacity);
         }
 
@@ -99,7 +106,7 @@ namespace CoreWCF.Channels
 
             if (sizeHint > _maxBufferSize - _writtenCount)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(_maxBufferSize));
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(_quotaExceededExceptionFactory(_maxBufferSize));
             }
 
             int newSize = checked(_writtenCount + sizeHint);
@@ -115,6 +122,132 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ObjectDisposedException(nameof(BufferManagerBufferWriter)));
             }
+        }
+    }
+
+    internal sealed class BufferManagerBufferWriterStream : Stream
+    {
+        private readonly BufferManagerBufferWriter _writer;
+
+        public BufferManagerBufferWriterStream(string quotaExceededString, int initialSize, int maxSize, BufferManager bufferManager)
+            : this(initialSize, maxSize, bufferManager, maxSizeQuota => CreateQuotaExceededException(quotaExceededString, maxSizeQuota))
+        {
+        }
+
+        public BufferManagerBufferWriterStream(int initialSize, int maxSize, BufferManager bufferManager, Func<int, Exception> quotaExceededExceptionFactory)
+        {
+            _writer = new BufferManagerBufferWriter(bufferManager, initialSize, maxSize, quotaExceededExceptionFactory);
+        }
+
+        public override bool CanRead => false;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => true;
+
+        public override long Length => _writer.WrittenCount;
+
+        public override long Position
+        {
+            get => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+            set => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+        }
+
+        public void Skip(int size)
+        {
+            if (size < 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(size), size, SRCommon.ValueMustBeNonNegative));
+            }
+
+            if (size == 0)
+            {
+                return;
+            }
+
+            _writer.GetSpan(size);
+            _writer.Advance(size);
+        }
+
+        public ArraySegment<byte> DetachBuffer() => _writer.DetachBuffer();
+
+        public byte[] ToArray(out int size)
+        {
+            ArraySegment<byte> buffer = DetachBuffer();
+            size = buffer.Count;
+            return buffer.Array;
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.ReadNotSupported));
+
+        public override long Seek(long offset, SeekOrigin origin)
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+
+        public override void SetLength(long value)
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.SeekNotSupported));
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (buffer == null)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(buffer));
+            }
+
+            ValidateWriteParameters(buffer.Length, offset, count);
+
+            if (count == 0)
+            {
+                return;
+            }
+
+            buffer.AsSpan(offset, count).CopyTo(_writer.GetSpan(count));
+            _writer.Advance(count);
+        }
+
+        public override void WriteByte(byte value)
+        {
+            Span<byte> span = _writer.GetSpan(1);
+            span[0] = value;
+            _writer.Advance(1);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _writer.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        private static void ValidateWriteParameters(int bufferLength, int offset, int count)
+        {
+            if (offset < 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(offset), offset, SRCommon.ValueMustBeNonNegative));
+            }
+
+            if (count < 0)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(count), count, SRCommon.ValueMustBeNonNegative));
+            }
+
+            if (bufferLength - offset < count)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.Format(SR.OffsetExceedsBufferSize, bufferLength), nameof(offset)));
+            }
+        }
+
+        private static Exception CreateQuotaExceededException(string quotaExceededString, int maxSizeQuota)
+        {
+            string message = SR.Format(quotaExceededString, maxSizeQuota);
+            return new QuotaExceededException(message);
         }
     }
 
