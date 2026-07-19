@@ -19,7 +19,7 @@ namespace CoreWCF.Channels
         private int _writtenCount;
 
         public BufferManagerBufferWriter(BufferManager bufferManager, int initialCapacity, int maxBufferSize)
-            : this(bufferManager, initialCapacity, maxBufferSize, MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException)
+            : this(bufferManager, initialCapacity, maxBufferSize, maxSize => MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxSize))
         {
         }
 
