@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -87,6 +89,86 @@ namespace CoreWCF.Primitives.Tests
             message2 = Message.CreateMessage(new XmlTextReader(new StringReader(s)), 2147483647, MessageVersion.Default);
             Message two = MessageTestUtilities.SendAndReceiveMessage(message);
             Assert.True(MessageTestUtilities.AreBodiesEqual(message2, two));
+        }
+
+        [Fact]
+        public async Task BufferMessageStreamAsync_GrowsAndTransfersFinalBuffer()
+        {
+            byte[] expected = CreateBufferTestPayload(10000);
+            MessageEncoder encoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
+            TrackingBufferManager bufferManager = new TrackingBufferManager();
+
+            using (MemoryStream stream = new MemoryStream(expected))
+            {
+                ArraySegment<byte> buffered = await InvokeBufferMessageStreamAsync(encoder, stream, bufferManager, 20000);
+                byte[] actual = new byte[buffered.Count];
+                Buffer.BlockCopy(buffered.Array, buffered.Offset, actual, 0, buffered.Count);
+
+                Assert.Equal(expected, actual);
+                Assert.Single(bufferManager.ReturnedBuffers);
+
+                bufferManager.ReturnBuffer(buffered.Array);
+                Assert.Equal(2, bufferManager.ReturnedBuffers.Count);
+                Assert.Same(buffered.Array, bufferManager.ReturnedBuffers[1]);
+            }
+        }
+
+        [Fact]
+        public async Task BufferMessageStreamAsync_ReturnsBufferOnMaxSizeException()
+        {
+            byte[] expected = CreateBufferTestPayload(9000);
+            MessageEncoder encoder = new TextMessageEncodingBindingElement(MessageVersion.Soap12WSAddressing10, Encoding.UTF8).CreateMessageEncoderFactory().Encoder;
+            TrackingBufferManager bufferManager = new TrackingBufferManager();
+
+            using (MemoryStream stream = new MemoryStream(expected))
+            {
+                await Assert.ThrowsAsync<CommunicationException>(() => InvokeBufferMessageStreamAsync(encoder, stream, bufferManager, 8192));
+            }
+
+            Assert.Single(bufferManager.TakenBuffers);
+            Assert.Single(bufferManager.ReturnedBuffers);
+            Assert.Same(bufferManager.TakenBuffers[0], bufferManager.ReturnedBuffers[0]);
+        }
+
+        private static async Task<ArraySegment<byte>> InvokeBufferMessageStreamAsync(MessageEncoder encoder, Stream stream, BufferManager bufferManager, int maxBufferSize)
+        {
+            MethodInfo method = typeof(MessageEncoder).GetMethod("BufferMessageStreamAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Task<ArraySegment<byte>> task = (Task<ArraySegment<byte>>)method.Invoke(encoder, new object[] { stream, bufferManager, maxBufferSize });
+            return await task;
+        }
+
+        private static byte[] CreateBufferTestPayload(int size)
+        {
+            byte[] payload = new byte[size];
+            for (int i = 0; i < payload.Length; i++)
+            {
+                payload[i] = (byte)(i % byte.MaxValue);
+            }
+
+            return payload;
+        }
+
+        private sealed class TrackingBufferManager : BufferManager
+        {
+            public List<byte[]> ReturnedBuffers { get; } = new List<byte[]>();
+
+            public List<byte[]> TakenBuffers { get; } = new List<byte[]>();
+
+            public override void Clear()
+            {
+            }
+
+            public override void ReturnBuffer(byte[] buffer)
+            {
+                ReturnedBuffers.Add(buffer);
+            }
+
+            public override byte[] TakeBuffer(int bufferSize)
+            {
+                byte[] buffer = new byte[bufferSize];
+                TakenBuffers.Add(buffer);
+                return buffer;
+            }
         }
     }
 }
