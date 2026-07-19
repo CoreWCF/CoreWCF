@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using CoreWCF;
 using CoreWCF.Channels;
 using Helpers;
 using Xunit;
@@ -159,7 +158,7 @@ namespace CoreWCF.Primitives.Tests
             TrackingBufferManager bufferManager = new TrackingBufferManager();
             Message message = ByteStreamMessage.CreateMessage(new ArraySegment<byte>(expected));
 
-            Assert.Throws<QuotaExceededException>(() => encoder.WriteMessage(message, 8192, bufferManager));
+            Assert.Throws<CoreWCF.QuotaExceededException>(() => encoder.WriteMessage(message, 8192, bufferManager));
 
             Assert.Single(bufferManager.TakenBuffers);
             Assert.Single(bufferManager.ReturnedBuffers);

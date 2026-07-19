@@ -173,13 +173,6 @@ namespace CoreWCF.Channels
 
         public ArraySegment<byte> DetachBuffer() => _writer.DetachBuffer();
 
-        public byte[] ToArray(out int size)
-        {
-            ArraySegment<byte> buffer = DetachBuffer();
-            size = buffer.Count;
-            return buffer.Array;
-        }
-
         public override void Flush()
         {
         }
@@ -267,7 +260,7 @@ namespace CoreWCF.Channels
                     Memory<byte> memory = writer.GetMemory(bytesToRead);
                     if (!MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Internal error: BufferManagerBufferWriter should always provide array-backed Memory<byte>."));
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Internal error while buffering a message stream: BufferManagerBufferWriter must return array-backed Memory<byte>."));
                     }
 
                     int count = await stream.ReadAsync(buffer.Array, buffer.Offset, Math.Min(bytesToRead, buffer.Count));
