@@ -179,14 +179,15 @@ namespace CoreWCF.Channels
 
             using (BufferManagerBufferWriterStream stream = new BufferManagerBufferWriterStream(_maxSentMessageSizeExceededResourceString, 0, maxMessageSize, bufferManager))
             {
+                ArraySegment<byte> bytes;
                 stream.Skip(messageOffset);
                 using (XmlWriter writer = new XmlByteStreamWriter(stream, true))
                 {
                     message.WriteMessage(writer);
                     writer.Flush();
+                    bytes = stream.DetachBuffer();
                 }
 
-                ArraySegment<byte> bytes = stream.DetachBuffer();
                 messageBuffer = new ArraySegment<byte>(bytes.Array, messageOffset, bytes.Count - messageOffset);
             }
 
