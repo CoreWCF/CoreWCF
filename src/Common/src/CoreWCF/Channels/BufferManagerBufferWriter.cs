@@ -39,7 +39,7 @@ namespace CoreWCF.Channels
 
             if (_writtenCount > _buffer.Length - count)
             {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException());
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Cannot advance past buffer capacity."));
             }
 
             _writtenCount += count;
@@ -132,7 +132,7 @@ namespace CoreWCF.Channels
                     Memory<byte> memory = writer.GetMemory(bytesToRead);
                     if (!MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
                     {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException());
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new InvalidOperationException("Failed to extract array from Memory<byte>."));
                     }
 
                     int count = await stream.ReadAsync(buffer.Array, buffer.Offset, Math.Min(bytesToRead, buffer.Count));
