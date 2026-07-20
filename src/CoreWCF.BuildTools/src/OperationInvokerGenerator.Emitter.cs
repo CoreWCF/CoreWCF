@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CoreWCF.BuildTools;
@@ -108,6 +109,7 @@ public sealed partial class OperationInvokerGenerator
         {
             var indentor = new Indentor();
             string operationInvokerTypeName = GetOperationInvokerTypeName(index);
+            string escapedMethodName = EscapeIdentifier(operationContractSpec.Method!.Name);
             _builder.AppendLine($$"""
                                   namespace CoreWCF.Dispatcher
                                   {
@@ -159,22 +161,22 @@ public sealed partial class OperationInvokerGenerator
             {
                 if (isTaskReturnType)
                 {
-                    _builder.AppendLine($"{indentor}await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{escapedMethodName}({string.Join(", ", invocationParams)});");
                 }
                 else
                 {
-                    _builder.AppendLine($"{indentor}var result = await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}var result = await (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{escapedMethodName}({string.Join(", ", invocationParams)});");
                 }
             }
             else
             {
                 if (operationContractSpec.Method.ReturnsVoid)
                 {
-                    _builder.AppendLine($"{indentor}(({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}(({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{escapedMethodName}({string.Join(", ", invocationParams)});");
                 }
                 else
                 {
-                    _builder.AppendLine($"{indentor}var result = (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{operationContractSpec.Method.Name}({string.Join(", ", invocationParams)});");
+                    _builder.AppendLine($"{indentor}var result = (({operationContractSpec.Method.ContainingType.ToDisplayString(s_typeDisplayFormat)})instance).{escapedMethodName}({string.Join(", ", invocationParams)});");
                 }
             }
 
@@ -244,6 +246,14 @@ public sealed partial class OperationInvokerGenerator
         }
 
         private static string GetOperationInvokerTypeName(int index) => $"OperationInvoker{index}";
+
+        private static string EscapeIdentifier(string identifier)
+        {
+            return SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None ||
+                   SyntaxFacts.GetContextualKeywordKind(identifier) != SyntaxKind.None
+                ? "@" + identifier
+                : identifier;
+        }
 
         private static bool FlowsIn(IParameterSymbol parameterSymbol)
         {
