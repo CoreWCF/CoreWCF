@@ -27,10 +27,22 @@ namespace CoreWCF.Channels
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(context));
             }
+            if (typeof(T) == typeof(IBindingDeliveryCapabilities))
+            {
+                return (T)(object)new BindingDeliveryCapabilitiesHelper();
+            }
             else
             {
                 return base.GetProperty<T>(context);
             }
         }
+
+        private class BindingDeliveryCapabilitiesHelper : IBindingDeliveryCapabilities
+        {
+            internal BindingDeliveryCapabilitiesHelper() { }
+            bool IBindingDeliveryCapabilities.AssuresOrderedDelivery => true;
+            bool IBindingDeliveryCapabilities.QueuedDelivery => false;
+        }
+
     }
 }

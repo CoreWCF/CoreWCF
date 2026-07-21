@@ -61,6 +61,12 @@ namespace CoreWCF.Channels
         internal const string WebSocketUpgradeHeaderValue = "websocket";
     }
 
+    internal static class ReliableSessionDefaults
+    {
+        internal const bool Ordered = true;
+    }
+
+
     internal static class NetHttpBindingDefaults
     {
         internal const NetHttpMessageEncoding MessageEncoding = NetHttpMessageEncoding.Binary;

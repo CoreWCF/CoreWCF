@@ -520,8 +520,10 @@ namespace CoreWCF.Channels
 
             return BuildServiceDispatcherCore<TChannel>(context, innerDispatcher);
         }
+
         protected abstract IServiceDispatcher BuildServiceDispatcherCore<TChannel>(BindingContext context, IServiceDispatcher serviceDispatcher)
             where TChannel : class, IChannel;
+
         public override bool CanBuildServiceDispatcher<TChannel>(BindingContext context)
         {
             if (context == null)

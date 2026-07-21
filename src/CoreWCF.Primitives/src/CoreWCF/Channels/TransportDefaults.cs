@@ -162,6 +162,13 @@ namespace CoreWCF.Channels
 
         internal const SslProtocols SslProtocols = System.Security.Authentication.SslProtocols.None; // Let the OS decide
 
+        // Calling CreateFault on an incoming message can expose some DoS-related security 
+        // vulnerabilities when a service is in streaming mode.  See MB 47592 for more details. 
+        // The RM protocol service does not use streaming mode on any of its bindings, so the
+        // message we have in hand has already passed the binding’s MaxReceivedMessageSize check.
+        // Custom transports can use RM so int.MaxValue is dangerous.
+        internal const int MaxRMFaultSize = (int)MaxReceivedMessageSize;
+
         internal static MessageEncoderFactory GetDefaultMessageEncoderFactory()
         {
             return new BinaryMessageEncodingBindingElement().CreateMessageEncoderFactory();
@@ -171,5 +178,21 @@ namespace CoreWCF.Channels
     internal static class ConnectionOrientedTransportDefaults
     {
         internal const int ConnectionBufferSize = 8192;
+    }
+
+    internal static class ReliableSessionDefaults
+    {
+        internal const string AcknowledgementIntervalString = "00:00:00.2";
+        internal static TimeSpan AcknowledgementInterval { get { return TimeSpan.FromMilliseconds(200); } }
+        internal const bool Enabled = false;
+        internal const bool FlowControlEnabled = true;
+        internal const string InactivityTimeoutString = "00:10:00";
+        internal static TimeSpan InactivityTimeout { get { return TimeSpan.FromMinutes(10); } }
+        internal const int MaxPendingChannels = 4;
+        internal const int MaxRetryCount = 8;
+        internal const int MaxTransferWindowSize = 8;
+        internal const bool Ordered = true;
+        internal static ReliableMessagingVersion ReliableMessagingVersion { get { return ReliableMessagingVersion.WSReliableMessagingFebruary2005; } }
+        internal const string ReliableMessagingVersionString = "WSReliableMessagingFebruary2005";
     }
 }
