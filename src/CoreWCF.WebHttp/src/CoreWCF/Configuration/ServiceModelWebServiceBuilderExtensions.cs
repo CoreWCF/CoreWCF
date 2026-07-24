@@ -239,6 +239,7 @@ namespace CoreWCF.Configuration
                     documentProvider.Contracts.Add(new OpenApiContractInfo
                     {
                         Contract = implementedContract,
+                        Address = address,
                         ResponseFormat = webHttpBehavior.DefaultOutgoingResponseFormat
                     });
                 }
