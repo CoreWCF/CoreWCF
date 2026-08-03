@@ -1,6 +1,6 @@
 {
-  "total": 25410,
-  "passed": 24683,
+  "total": 25426,
+  "passed": 24699,
   "failed": 1,
   "skipped": 726,
   "other": 0,
@@ -9,8 +9,8 @@
       "cfg": "Debug",
       "os": "Linux",
       "tfm": "net10.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -18,8 +18,8 @@
       "cfg": "Debug",
       "os": "Linux",
       "tfm": "net11.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -27,8 +27,8 @@
       "cfg": "Debug",
       "os": "Linux",
       "tfm": "net8.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -36,8 +36,8 @@
       "cfg": "Debug",
       "os": "Linux",
       "tfm": "net9.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -45,8 +45,8 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net10.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -54,8 +54,8 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net11.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -72,8 +72,8 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net8.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -81,8 +81,8 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net9.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -90,8 +90,8 @@
       "cfg": "Release",
       "os": "Linux",
       "tfm": "net10.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -99,8 +99,8 @@
       "cfg": "Release",
       "os": "Linux",
       "tfm": "net11.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -108,8 +108,8 @@
       "cfg": "Release",
       "os": "Linux",
       "tfm": "net8.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -117,8 +117,8 @@
       "cfg": "Release",
       "os": "Linux",
       "tfm": "net9.0",
-      "total": 1425,
-      "passed": 1381,
+      "total": 1426,
+      "passed": 1382,
       "failed": 0,
       "skipped": 44
     },
@@ -126,8 +126,8 @@
       "cfg": "Release",
       "os": "Windows",
       "tfm": "net10.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -135,8 +135,8 @@
       "cfg": "Release",
       "os": "Windows",
       "tfm": "net11.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -153,8 +153,8 @@
       "cfg": "Release",
       "os": "Windows",
       "tfm": "net8.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -162,8 +162,8 @@
       "cfg": "Release",
       "os": "Windows",
       "tfm": "net9.0",
-      "total": 1414,
-      "passed": 1371,
+      "total": 1415,
+      "passed": 1372,
       "failed": 0,
       "skipped": 43
     },
@@ -178,5 +178,5 @@
     }
   ],
   "title": "CoreWCF Test Results — PR #1757",
-  "subtitle": "PR #1757 · commit 64d199f · [run 30816534980](https://github.com/CoreWCF/CoreWCF/actions/runs/30816534980)"
+  "subtitle": "PR #1757 · commit 8ddb441 · [run 30819070420](https://github.com/CoreWCF/CoreWCF/actions/runs/30819070420)"
 }
