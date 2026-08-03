@@ -36,16 +36,16 @@
 <div class="card">
 <div class="card-header">Line coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar0">100%</div>
+<div class="large cardpercentagebar cardpercentagebar100">0%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered lines:</th>
-<td class="limit-width right" title="9">9</td>
+<td class="limit-width right" title="0">0</td>
 </tr>
 <tr>
 <th>Uncovered lines:</th>
-<td class="limit-width right" title="0">0</td>
+<td class="limit-width right" title="9">9</td>
 </tr>
 <tr>
 <th>Coverable lines:</th>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <th>Line coverage:</th>
-<td class="limit-width right" title="9 of 9">100%</td>
+<td class="limit-width right" title="0 of 9">0%</td>
 </tr>
 </table>
 </div>
@@ -107,8 +107,8 @@
 </colgroup>
 <thead><tr><th>Method</th><th>Branch coverage <a href="https://en.wikipedia.org/wiki/Code_coverage" target="_blank"><i class="icon-info-circled"></i></a></th><th>Cyclomatic complexity <a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" target="_blank"><i class="icon-info-circled"></i></a></th><th>NPath complexity <a href="https://modess.io/npath-complexity-cyclomatic-complexity-explained" target="_blank"><i class="icon-info-circled"></i></a></th><th>Sequence coverage <a href="https://en.wikipedia.org/wiki/Code_coverage" target="_blank"><i class="icon-info-circled"></i></a></th></tr></thead>
 <tbody>
-<tr><td title="System.Void CoreWCF.Xml.Serialization.AccessorSurrogate::.cctor()"><a href="#file0_line85" class="navigatetohash">.cctor()</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
-<tr><td title="System.Void CoreWCF.Xml.Serialization.AccessorSurrogate::.ctor(System.Object)"><a href="#file0_line91" class="navigatetohash">.ctor(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
+<tr><td title="System.Void CoreWCF.Xml.Serialization.AccessorSurrogate::.cctor()"><a href="#file0_line85" class="navigatetohash">.cctor()</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
+<tr><td title="System.Void CoreWCF.Xml.Serialization.AccessorSurrogate::.ctor(System.Object)"><a href="#file0_line91" class="navigatetohash">.ctor(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
 </tbody>
 </table>
 </div>
@@ -201,18 +201,18 @@
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line81"></a><code>81</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line82"></a><code>82</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;class&nbsp;AccessorSurrogate</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line83"></a><code>83</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Covered (4 visits)" data-coverage="{'AllTestMethods': {'VC': '4', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">4</td><td class="rightmargin right"><a id="file0_line84"></a><code>84</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;static&nbsp;Type&nbsp;AccessorType&nbsp;{&nbsp;get;&nbsp;}&nbsp;=&nbsp;typeof(XmlElementAttribute).Assembly.GetType(&quot;System.Xml.Serializat</code></td></tr>
-<tr class="coverableline" title="Covered (1 visits)" data-coverage="{'AllTestMethods': {'VC': '1', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1</td><td class="rightmargin right"><a id="file0_line85"></a><code>85</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;object&gt;&nbsp;s_getMappingDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;object&gt;(Accessor</code></td></tr>
-<tr class="coverableline" title="Covered (1 visits)" data-coverage="{'AllTestMethods': {'VC': '1', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1</td><td class="rightmargin right"><a id="file0_line86"></a><code>86</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;string&gt;&nbsp;s_getNameDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;string&gt;(AccessorTyp</code></td></tr>
-<tr class="coverableline" title="Covered (1 visits)" data-coverage="{'AllTestMethods': {'VC': '1', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1</td><td class="rightmargin right"><a id="file0_line87"></a><code>87</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;string&gt;&nbsp;s_getNamespaceDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;string&gt;(Access</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line84"></a><code>84</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;static&nbsp;Type&nbsp;AccessorType&nbsp;{&nbsp;get;&nbsp;}&nbsp;=&nbsp;typeof(XmlElementAttribute).Assembly.GetType(&quot;System.Xml.Serializat</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line85"></a><code>85</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;object&gt;&nbsp;s_getMappingDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;object&gt;(Accessor</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line86"></a><code>86</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;string&gt;&nbsp;s_getNameDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;string&gt;(AccessorTyp</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line87"></a><code>87</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;Func&lt;object,&nbsp;string&gt;&nbsp;s_getNamespaceDelegate&nbsp;=&nbsp;ReflectionHelper.GetPropertyDelegate&lt;string&gt;(Access</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line88"></a><code>88</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Covered (42 visits)" data-coverage="{'AllTestMethods': {'VC': '42', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">42</td><td class="rightmargin right"><a id="file0_line89"></a><code>89</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;object&nbsp;WrappedAccessor&nbsp;{&nbsp;get;&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line89"></a><code>89</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;object&nbsp;WrappedAccessor&nbsp;{&nbsp;get;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line90"></a><code>90</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Covered (44 visits)" data-coverage="{'AllTestMethods': {'VC': '44', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">44</td><td class="rightmargin right"><a id="file0_line91"></a><code>91</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;AccessorSurrogate(object&nbsp;accessor)&nbsp;=&gt;&nbsp;WrappedAccessor&nbsp;=&nbsp;accessor;</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line91"></a><code>91</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;AccessorSurrogate(object&nbsp;accessor)&nbsp;=&gt;&nbsp;WrappedAccessor&nbsp;=&nbsp;accessor;</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line92"></a><code>92</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Covered (27 visits)" data-coverage="{'AllTestMethods': {'VC': '27', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">27</td><td class="rightmargin right"><a id="file0_line93"></a><code>93</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;MappingSurrogate&nbsp;Mapping&nbsp;=&gt;&nbsp;new&nbsp;MappingSurrogate(s_getMappingDelegate(WrappedAccessor));</code></td></tr>
-<tr class="coverableline" title="Covered (5 visits)" data-coverage="{'AllTestMethods': {'VC': '5', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">5</td><td class="rightmargin right"><a id="file0_line94"></a><code>94</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;string&nbsp;Name&nbsp;=&gt;&nbsp;s_getNameDelegate(WrappedAccessor);</code></td></tr>
-<tr class="coverableline" title="Covered (5 visits)" data-coverage="{'AllTestMethods': {'VC': '5', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">5</td><td class="rightmargin right"><a id="file0_line95"></a><code>95</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;string&nbsp;Namespace&nbsp;=&gt;&nbsp;s_getNamespaceDelegate(WrappedAccessor);</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line93"></a><code>93</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;MappingSurrogate&nbsp;Mapping&nbsp;=&gt;&nbsp;new&nbsp;MappingSurrogate(s_getMappingDelegate(WrappedAccessor));</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line94"></a><code>94</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;string&nbsp;Name&nbsp;=&gt;&nbsp;s_getNameDelegate(WrappedAccessor);</code></td></tr>
+<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line95"></a><code>95</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;string&nbsp;Namespace&nbsp;=&gt;&nbsp;s_getNamespaceDelegate(WrappedAccessor);</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line96"></a><code>96</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line97"></a><code>97</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line98"></a><code>98</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;class&nbsp;ElementAccessorSurrogate&nbsp;:&nbsp;AccessorSurrogate</code></td></tr>
@@ -533,17 +533,17 @@
 </tbody>
 </table>
 </div>
-<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/03/2026 - 14:10:27<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
+<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/03/2026 - 14:16:30<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
 <div class="containerright">
 <div class="containerrightfixed">
 <h1>Methods/Properties</h1>
-<a href="#file0_line84" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - AccessorType()"><i class="icon-wrench"></i>AccessorType()</a><br />
-<a href="#file0_line85" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - .cctor()"><i class="icon-cube"></i>.cctor()</a><br />
-<a href="#file0_line89" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - WrappedAccessor()"><i class="icon-wrench"></i>WrappedAccessor()</a><br />
-<a href="#file0_line91" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - .ctor(System.Object)"><i class="icon-cube"></i>.ctor(System.Object)</a><br />
-<a href="#file0_line93" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - Mapping()"><i class="icon-wrench"></i>Mapping()</a><br />
-<a href="#file0_line94" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - Name()"><i class="icon-wrench"></i>Name()</a><br />
-<a href="#file0_line95" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - Namespace()"><i class="icon-wrench"></i>Namespace()</a><br />
+<a href="#file0_line84" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - AccessorType()"><i class="icon-wrench"></i>AccessorType()</a><br />
+<a href="#file0_line85" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - .cctor()"><i class="icon-cube"></i>.cctor()</a><br />
+<a href="#file0_line89" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - WrappedAccessor()"><i class="icon-wrench"></i>WrappedAccessor()</a><br />
+<a href="#file0_line91" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - .ctor(System.Object)"><i class="icon-cube"></i>.ctor(System.Object)</a><br />
+<a href="#file0_line93" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - Mapping()"><i class="icon-wrench"></i>Mapping()</a><br />
+<a href="#file0_line94" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - Name()"><i class="icon-wrench"></i>Name()</a><br />
+<a href="#file0_line95" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - Namespace()"><i class="icon-wrench"></i>Namespace()</a><br />
 <br/></div>
 </div></div>
 <script type="text/javascript" src="class.js"></script>
