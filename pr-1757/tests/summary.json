@@ -1,10 +1,20 @@
 {
-  "total": 0,
-  "passed": 0,
+  "total": 17,
+  "passed": 17,
   "failed": 0,
   "skipped": 0,
   "other": 0,
-  "matrix": [],
+  "matrix": [
+    {
+      "cfg": "unknown",
+      "os": "unknown",
+      "tfm": "unknown",
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
   "title": "CoreWCF Test Results — PR #1757",
-  "subtitle": "PR #1757 · commit 3d2c73d · [run 30931262172](https://github.com/CoreWCF/CoreWCF/actions/runs/30931262172)"
+  "subtitle": "PR #1757 · commit 774f7ec · [run 30931352380](https://github.com/CoreWCF/CoreWCF/actions/runs/30931352380)"
 }
