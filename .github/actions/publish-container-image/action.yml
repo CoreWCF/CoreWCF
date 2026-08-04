@@ -1,0 +1,93 @@
+name: 'Publish a CoreWCF container image'
+description: |
+  Builds a project's container image with SDK container publishing, optionally tags it under a
+  registry, and optionally pushes it.
+
+  Without `push`, the image is only loaded into the runner's Docker daemon. That is deliberate: a
+  pull_request run from a fork gets a read-only GITHUB_TOKEN and no secrets, so it cannot push
+  anywhere - but Aspire resolves a locally tagged image without contacting the registry, so the
+  integration tests exercise the real image all the same. Pushing happens from the trusted triggers
+  in ci.yml.
+
+  Requires a Linux container runtime; the images are linux-x64 ASP.NET Core images.
+inputs:
+  project:
+    description: 'Project to publish. Must set EnableSdkContainerSupport and ContainerRepository.'
+    required: true
+  repository:
+    description: 'Image repository. Must match ContainerRepository in the project.'
+    required: true
+  image-tag:
+    description: 'Primary tag to build, e.g. pr-1757-a1b2c3d.'
+    required: true
+  additional-tags:
+    description: 'Optional extra tags for the same image, space separated (e.g. "main latest").'
+    required: false
+    default: ''
+  registry:
+    description: |
+      Registry to tag the image under. Leave empty for an image that is only ever consumed locally,
+      such as the sample service the integration tests run.
+    required: false
+    default: ''
+  push:
+    description: 'Push the tags to the registry. Requires `registry` and a prior docker login.'
+    required: false
+    default: 'false'
+outputs:
+  image:
+    description: 'Fully qualified primary image reference.'
+    value: ${{ steps.build.outputs.image }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Publish container image
+      id: build
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
+        ADDITIONAL_TAGS: ${{ inputs.additional-tags }}
+        REGISTRY: ${{ inputs.registry }}
+        REPOSITORY: ${{ inputs.repository }}
+      run: |
+        set -euo pipefail
+
+        # No ContainerRegistry property, so the SDK loads the image into the local Docker daemon
+        # under the project's ContainerRepository rather than pushing it anywhere.
+        dotnet publish "$PROJECT" \
+          --configuration Release \
+          -t:PublishContainer \
+          -p:ContainerImageTag="$IMAGE_TAG"
+
+        if [ -z "$REGISTRY" ]; then
+          echo "image=$REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Retag under the registry the consumer resolves the image from. Aspire looks the image up by
+        # that fully qualified name and uses the local one when it is present.
+        for tag in $IMAGE_TAG $ADDITIONAL_TAGS; do
+          docker tag "$REPOSITORY:$IMAGE_TAG" "$REGISTRY/$REPOSITORY:$tag"
+          echo "Tagged $REGISTRY/$REPOSITORY:$tag"
+        done
+
+        echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+    - name: Push container image
+      if: inputs.push == 'true'
+      shell: bash
+      env:
+        IMAGE_TAG: ${{ inputs.image-tag }}
+        ADDITIONAL_TAGS: ${{ inputs.additional-tags }}
+        REGISTRY: ${{ inputs.registry }}
+        REPOSITORY: ${{ inputs.repository }}
+      run: |
+        set -euo pipefail
+        if [ -z "$REGISTRY" ]; then
+          echo "::error::push was requested without a registry."
+          exit 1
+        fi
+        for tag in $IMAGE_TAG $ADDITIONAL_TAGS; do
+          docker push "$REGISTRY/$REPOSITORY:$tag"
+        done

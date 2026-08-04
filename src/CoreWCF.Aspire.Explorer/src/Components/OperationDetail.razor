@@ -1,0 +1,124 @@
+@* The right-hand pane. Request and Response are accordion sections rather than cards, so both stay
+   on screen at once (WCF Test Client parity) and the pane matches the Aspire resource-details view. *@
+
+<section class="detail-pane" aria-label="Operation details">
+    @if (Selection is null)
+    {
+        <div class="detail-placeholder">
+            <span class="placeholder-icon" aria-hidden="true">@((MarkupString)Icons.ServiceLarge)</span>
+            <p class="placeholder-title">No operation selected</p>
+            <p class="placeholder-hint subtext">
+                Choose an operation in the tree to build a request and invoke it.
+                Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to send it.
+            </p>
+        </div>
+    }
+    else
+    {
+        <header class="detail-head">
+            <div class="detail-heading">
+                <h1 class="detail-title">@Selection.Operation.Name</h1>
+                <span class="detail-contract subtext">@Selection.Service.Name · @Selection.Contract.Name</span>
+            </div>
+
+            <div class="detail-actions">
+                @if (IsInvoking)
+                {
+                    <FluentButton Appearance="Appearance.Neutral" OnClick="Cancel" Class="action-button">
+                        <span class="action-glyph" aria-hidden="true">@((MarkupString)Icons.Stop)</span>
+                        Cancel
+                    </FluentButton>
+                }
+                else
+                {
+                    <FluentButton Appearance="Appearance.Accent" OnClick="Invoke" Class="action-button"
+                                  Title="Invoke (Ctrl+Enter)">
+                        <span class="action-glyph" aria-hidden="true">@((MarkupString)Icons.Play)</span>
+                        Invoke
+                    </FluentButton>
+                }
+            </div>
+        </header>
+
+        <dl class="meta">
+            <dt>Endpoint</dt>
+            <dd>
+                <code class="meta-code">@Selection.EndpointAddress</code>
+                <CopyButton Text="@Selection.EndpointAddress" Label="Copy endpoint address" />
+            </dd>
+
+            <dt>SOAP</dt>
+            <dd>@(Selection.Operation.SoapVersion == SoapVersion.Soap12 ? "1.2" : "1.1")</dd>
+
+            <dt>Action</dt>
+            <dd>
+                @if (Selection.Operation.SoapAction is { Length: > 0 } action)
+                {
+                    <code class="meta-code">@action</code>
+                    <CopyButton Text="@action" Label="Copy SOAP action" />
+                }
+                else
+                {
+                    <span class="subtext">(none)</span>
+                }
+            </dd>
+        </dl>
+
+        <div class="detail-sections">
+            <FluentAccordion ExpandMode="AccordionExpandMode.Multi">
+                <FluentAccordionItem Heading="Request" Expanded="true">
+                    <RequestEditor Operation="Selection.Operation"
+                                   Envelope="@Envelope" EnvelopeChanged="EnvelopeChanged"
+                                   ActiveTab="@RequestTab" ActiveTabChanged="RequestTabChanged" />
+                </FluentAccordionItem>
+
+                <FluentAccordionItem Heading="Response" Expanded="true">
+                    <ResponseView Result="Result" Parsed="Parsed" Error="@Error" IsInvoking="IsInvoking"
+                                  OperationName="@Selection.Operation.Name"
+                                  ActiveTab="@ResponseTab" ActiveTabChanged="ResponseTabChanged" />
+                </FluentAccordionItem>
+            </FluentAccordion>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public OperationSelection? Selection { get; set; }
+
+    [Parameter]
+    public string Envelope { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> EnvelopeChanged { get; set; }
+
+    [Parameter]
+    public string RequestTab { get; set; } = "req-formatted";
+
+    [Parameter]
+    public EventCallback<string> RequestTabChanged { get; set; }
+
+    [Parameter]
+    public string ResponseTab { get; set; } = "resp-formatted";
+
+    [Parameter]
+    public EventCallback<string> ResponseTabChanged { get; set; }
+
+    [Parameter]
+    public SoapInvocationResult? Result { get; set; }
+
+    [Parameter]
+    public ParsedSoapResponse? Parsed { get; set; }
+
+    [Parameter]
+    public string? Error { get; set; }
+
+    [Parameter]
+    public bool IsInvoking { get; set; }
+
+    [Parameter]
+    public EventCallback Invoke { get; set; }
+
+    [Parameter]
+    public EventCallback Cancel { get; set; }
+}

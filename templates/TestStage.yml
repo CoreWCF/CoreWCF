@@ -1,6 +1,11 @@
 parameters:
 - name: testProjects
   default: ''
+# Same list minus the projects that have no .NET Framework flavour. DotNetCoreCLI@2 runs every
+# match against the leg's target framework, so on the net472 legs a .NET-only project fails with
+# "test source file ... was not found".
+- name: netFrameworkTestProjects
+  default: ''
 - name: configurations
   default: Debug,Release
 
@@ -131,10 +136,23 @@ stages:
 
       - task: DotNetCoreCLI@2
         displayName: Run Tests
+        condition: and(succeeded(), ne(variables.targetFramework, 'net472'))
         timeoutInMinutes: 30
         inputs:
           command: 'test'
           projects: ${{ parameters.testProjects }}
+          publishTestResults: true
+          arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
+
+      # Same task against the narrower list. targetFramework is a matrix variable, so it only exists
+      # at run time - which is why this is a second task with a condition rather than an ${{ if }}.
+      - task: DotNetCoreCLI@2
+        displayName: Run Tests (.NET Framework)
+        condition: and(succeeded(), eq(variables.targetFramework, 'net472'))
+        timeoutInMinutes: 30
+        inputs:
+          command: 'test'
+          projects: ${{ parameters.netFrameworkTestProjects }}
           publishTestResults: true
           arguments: '--no-restore --no-build -c ${{ configuration }} -f $(targetFramework) $(testArgs)'
 

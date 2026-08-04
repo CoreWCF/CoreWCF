@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
+
+  <!--
+    The AppHost under test. It exists so the integration tests can exercise AddCoreWcfExplorer -
+    the container path the hosting package actually ships - rather than the AddProject shortcut the
+    sample uses. Kept separate from samples/CoreWcfSample.AppHost so the sample stays runnable
+    offline, without a published explorer image.
+
+    Not named "*.Tests.csproj": the run-tests CI action sweeps that glob, and this project is an
+    executable, not a test.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAspireHost>true</IsAspireHost>
+    <IsPackable>false</IsPackable>
+    <!-- Directory.Build.props turns this on for every project that is not a test, sample, BuildTools,
+         Templates or Client project, which would compile the shared netstandard2.0 CoreWCF sources
+         into this net8.0 AppHost. Same opt-out as CoreWCF.Aspire.Hosting and the explorer. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+    <!-- The Aspire AppHost SDK adds implicitly-versioned package references; opt out of central
+         package management here to avoid conflicts. Same as the sample AppHost. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+    <!-- Directory.Build.props adds Nerdbank.GitVersioning to every project that is neither a test nor
+         a sample, taking its version from central package management. This one is a test asset that is
+         never packed or versioned, and it has central package management switched off - so the
+         reference would arrive without a version and fail restore with NU1015. -->
+    <PackageReference Remove="Nerdbank.GitVersioning" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The integration under test: AddCoreWcfExplorer / WithCoreWcfService. -->
+    <ProjectReference Include="../../src/CoreWCF.Aspire.Hosting.csproj" IsAspireProjectResource="false" />
+    <!--
+      No reference to CoreWcfSampleService: it is run as a container image, not as a project resource
+      (see Program.cs for why). The image is built separately - see integrationtests/README.md.
+    -->
+  </ItemGroup>
+
+</Project>

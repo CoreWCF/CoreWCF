@@ -1,0 +1,208 @@
+/* Token, reset and global-override layer.
+   Component rules live in the matching .razor.css. What stays here is what a scoped sheet cannot
+   express: rules against Fluent web-component internals that are rendered several components deep
+   (fluent-tree-item, fluent-accordion-item, fluent-data-grid), and the tokens everything reads. */
+
+html, body {
+    margin: 0;
+    height: 100%;
+    font-family: var(--body-font, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif);
+}
+
+/* Hide web components until they upgrade, so the page does not flash unstyled markup. */
+:not(:defined) {
+    visibility: hidden;
+}
+
+* {
+    scrollbar-color: var(--scrollbar-color) transparent;
+}
+
+:root {
+    /* Spacing follows Aspire's idiom of scaling Fluent's --design-unit (4) rather than
+       introducing a separate scale. The fallback covers the pre-upgrade render. */
+    --space-1: calc(var(--design-unit, 4) * 1px);
+    --space-2: calc(var(--design-unit, 4) * 2px);
+    --space-3: calc(var(--design-unit, 4) * 3px);
+    --space-4: calc(var(--design-unit, 4) * 4px);
+    --space-6: calc(var(--design-unit, 4) * 6px);
+    --layout-left-padding: calc(var(--design-unit, 4) * 4.5px);
+    --layout-right-padding: calc(var(--design-unit, 4) * 2px);
+    --inline-icon-margin: 5px;
+
+    --radius-control: calc(var(--control-corner-radius, 4) * 1px);
+    --radius-layer: calc(var(--layer-corner-radius, 8) * 1px);
+
+    --mono-font: 'Cascadia Mono', 'Cascadia Code', Consolas, 'Courier New', monospace;
+
+    /* Surfaces alias Fluent tokens, so they follow the theme with no branching. */
+    --surface-chrome: var(--neutral-layer-4);
+    --surface-panel: var(--neutral-layer-1);
+    --surface-code: var(--neutral-layer-3);
+    --stroke-divider: var(--neutral-stroke-divider-rest, var(--neutral-stroke-rest));
+
+    /* The only genuinely theme-branched values. Status colours are used on icons, borders and
+       accents only - never on text, which would fail contrast in dark. */
+    --scrollbar-color: #8B8B8B;
+    --foreground-subtext-rest: #5D5D5D;
+    --status-success: #108310;
+    --status-error: #D13438;
+}
+
+.layout[data-theme="dark"] {
+    --scrollbar-color: #9F9F9F;
+    --foreground-subtext-rest: #8D8D8D;
+    --status-error: #E10B11;
+}
+
+/* System mode leaves data-theme off, so honour the OS preference. Duplicated deliberately:
+   CSS cannot share a declaration block between a selector and a media query. */
+@media (prefers-color-scheme: dark) {
+    .layout:not([data-theme]) {
+        --scrollbar-color: #9F9F9F;
+        --foreground-subtext-rest: #8D8D8D;
+        --status-error: #E10B11;
+    }
+}
+
+.subtext {
+    color: var(--foreground-subtext-rest);
+}
+
+/* reboot.css colours <code> a saturated blue-violet, which reads as a hyperlink. These are values,
+   not links, so keep them on the body colour and let the monospace face carry the distinction. */
+code {
+    font-family: var(--mono-font);
+    font-size: 0.9em;
+    color: inherit;
+}
+
+/* Never remove the focus ring. Fluent draws its own on its components; this covers plain elements. */
+:focus-visible {
+    outline: 1px solid var(--focus-stroke-outer, currentColor);
+    outline-offset: 1px;
+}
+
+/* Toolbar ------------------------------------------------------------------------------------
+   Aspire's own metrics, so the explorer's toolbar sits on the same grid as the dashboard's. */
+
+fluent-toolbar fluent-divider {
+    border: 0;
+}
+
+fluent-toolbar[orientation="horizontal"].main-toolbar {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--surface-panel);
+    border-bottom: 1px solid var(--stroke-divider);
+}
+
+fluent-toolbar[orientation="horizontal"].main-toolbar::part(positioning-region) {
+    align-items: center;
+    padding-block: var(--space-1);
+}
+
+@media (min-width: 768px) {
+    fluent-toolbar[orientation="horizontal"].main-toolbar {
+        padding-left: var(--layout-left-padding);
+        padding-right: var(--layout-right-padding);
+    }
+}
+
+@media (max-width: 768px) {
+    fluent-toolbar[orientation="horizontal"].main-toolbar {
+        padding-left: var(--space-2);
+        padding-right: var(--space-2);
+    }
+}
+
+/* Splitter -----------------------------------------------------------------------------------
+   FluentSplitter renders a <split-panels> custom element, not a .fluent-splitter class. */
+
+.explorer-body,
+.explorer-body > split-panels {
+    height: 100%;
+}
+
+/* Tree ---------------------------------------------------------------------------------------
+   fluent-tree-item is rendered by FluentTreeItem, several components below the page, so these
+   cannot be scoped to ServiceTree.razor.css. */
+
+.service-tree {
+    --tree-item-nested-width: calc(var(--design-unit, 4) * 3px);
+}
+
+.service-tree fluent-tree-item::part(positioning-region) {
+    height: 26px;
+    border-radius: var(--radius-control);
+}
+
+/* Keyed off data-selected rather than a class: see the note in ServiceTree.razor - a Class that
+   varies between renders makes Blazor rewrite the class attribute and destroy the "nested" class
+   fluent-tree-item adds itself, which is what indents nested rows. */
+.service-tree fluent-tree-item.op-item[data-selected]::part(positioning-region) {
+    background-color: var(--neutral-fill-secondary-rest);
+}
+
+.service-tree fluent-tree-item.op-item[data-selected] {
+    font-weight: 600;
+}
+
+/* Accordion ----------------------------------------------------------------------------------
+   The dashboard uses accordions, not cards, for its property panels; match its density. */
+
+.detail-sections fluent-accordion-item::part(button) {
+    padding: var(--space-2) 0;
+    font-weight: 600;
+}
+
+.detail-sections fluent-accordion-item::part(region) {
+    padding: 0 0 var(--space-3);
+}
+
+/* Data grid ----------------------------------------------------------------------------------
+   Both grids are dense, read-mostly property tables rather than record lists. */
+
+.param-grid,
+.resp-grid {
+    --data-grid-cell-padding: var(--space-1) var(--space-2);
+}
+
+.param-grid fluent-data-grid-cell,
+.resp-grid fluent-data-grid-cell {
+    align-items: center;
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.param-grid fluent-data-grid-row[row-type="header"] fluent-data-grid-cell,
+.resp-grid fluent-data-grid-row[row-type="header"] fluent-data-grid-cell {
+    color: var(--foreground-subtext-rest);
+    font-weight: 600;
+}
+
+/* Error banner -------------------------------------------------------------------------------
+   Sits outside .layout, so it only ever sees :root - keep it self-contained rather than
+   depending on theme-branched tokens it cannot reach. */
+
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #b32121;
+    color: #fff;
+    padding: var(--space-2) var(--space-4);
+    box-shadow: 0 -2px 8px rgb(0 0 0 / 25%);
+}
+
+#blazor-error-ui .reload,
+#blazor-error-ui .dismiss {
+    color: #fff;
+}
+
+#blazor-error-ui .dismiss {
+    float: right;
+    cursor: pointer;
+}

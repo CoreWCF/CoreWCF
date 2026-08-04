@@ -13,6 +13,12 @@ variables:
   _testProjects: |
     **/CoreWCF.*.Tests.csproj
     !**/CoreWCF.Templates.Tests.csproj
+  # The net472 legs run this narrower list. The Aspire projects are .NET (Core) only - they build no
+  # net472 output, so testing them there fails with "test source file ... was not found".
+  _netFrameworkTestProjects: |
+    **/CoreWCF.*.Tests.csproj
+    !**/CoreWCF.Templates.Tests.csproj
+    !**/CoreWCF.Aspire.*.Tests.csproj
 
 stages:
 - template: templates/BuildStage.yml
@@ -22,6 +28,7 @@ stages:
 - template: templates/TestStage.yml
   parameters:
     testProjects: $(_testProjects)
+    netFrameworkTestProjects: $(_netFrameworkTestProjects)
 
 - template: templates/TestTemplatesStage.yml    
 

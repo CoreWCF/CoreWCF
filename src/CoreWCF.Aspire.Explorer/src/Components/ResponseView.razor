@@ -1,0 +1,125 @@
+@* The response half of the detail pane: status line, fault surfacing, and Formatted / XML views. *@
+
+<div class="response-view">
+    @if (Error is { Length: > 0 } error)
+    {
+        <FluentMessageBar Intent="MessageIntent.Error" Type="MessageType.MessageBar"
+                          AllowDismiss="false" Title="Invocation failed">
+            @error
+        </FluentMessageBar>
+    }
+    else if (IsInvoking)
+    {
+        <div class="response-busy" role="status" aria-live="polite">
+            <FluentProgressRing Class="busy-ring" />
+            <span class="subtext">Invoking @OperationName…</span>
+        </div>
+    }
+    else if (Result is null)
+    {
+        <p class="response-idle subtext">Not invoked yet. Choose <strong>Invoke</strong> to send the request.</p>
+    }
+    else
+    {
+        <div class="response-status" role="status" aria-live="polite">
+            @* Status colour lands on the dot, never on the text: #108310 on a dark surface is about
+               3:1, which fails AA for body text but is fine for a non-text indicator. *@
+            <span class="status-dot @(Result.IsSuccess ? "ok" : "fail")" aria-hidden="true"></span>
+            <span class="status-text">@Result.StatusCode @Result.ReasonPhrase</span>
+            <span class="status-sep" aria-hidden="true">·</span>
+            <span class="status-elapsed subtext">@($"{Result.Elapsed.TotalMilliseconds:F0} ms")</span>
+            <span class="status-spacer"></span>
+            <CopyButton Text="@Result.Body" Label="Copy response XML" />
+        </div>
+
+        @if (Parsed is { IsFault: true })
+        {
+            @* The code comes from MessageFault, so it reads correctly for both SOAP versions:
+               "Client" on 1.1, "Sender" on 1.2. *@
+            <FluentMessageBar Intent="MessageIntent.Warning" Type="MessageType.MessageBar"
+                              AllowDismiss="false"
+                              Title="@(Parsed.FaultCode is { Length: > 0 } code ? $"SOAP fault ({code})" : "SOAP fault")">
+                @(Parsed.FaultText ?? "The service returned a fault with no reason.")
+            </FluentMessageBar>
+        }
+
+        <FluentTabs ActiveTabId="@ActiveTab" ActiveTabIdChanged="OnTabChangedAsync" Class="response-tabs">
+            <FluentTab Id="resp-formatted" Label="Formatted">
+                @if (_rows is not null)
+                {
+                    @* MultiLine matters here in a way it does not for the request grid: a complex return
+                       type arrives as a serialised XML fragment, which a single-line cell just clips. *@
+                    <FluentDataGrid TGridItem="ResponseRowView" Items="@_rows" ItemKey="@(r => r.Index)"
+                                    GridTemplateColumns="minmax(120px, 1fr) minmax(200px, 2.5fr)"
+                                    MultiLine="true"
+                                    Class="resp-grid" aria-label="Response values">
+                        <PropertyColumn Property="@(r => r.Name)" Title="Name" />
+                        <TemplateColumn Title="Value">
+                            <span class="resp-value">@context.Value</span>
+                        </TemplateColumn>
+                    </FluentDataGrid>
+                }
+                else if (Parsed is { IsFault: true })
+                {
+                    <p class="response-idle subtext">The fault detail is shown above; the raw envelope is on the XML tab.</p>
+                }
+                else
+                {
+                    <p class="response-idle subtext">No structured content. See the XML tab.</p>
+                }
+            </FluentTab>
+
+            <FluentTab Id="resp-xml" Label="XML">
+                <pre class="response-xml">@Result.Body</pre>
+            </FluentTab>
+        </FluentTabs>
+    }
+</div>
+
+@code {
+    /// <summary>Projection with a stable key: response rows can repeat a name, and a record's value
+    /// equality would make duplicates collide in the grid's item key.</summary>
+    private sealed record ResponseRowView(int Index, string Name, string Value);
+
+    [Parameter]
+    public SoapInvocationResult? Result { get; set; }
+
+    [Parameter]
+    public ParsedSoapResponse? Parsed { get; set; }
+
+    /// <summary>A transport-level or cancellation message, shown instead of a result.</summary>
+    [Parameter]
+    public string? Error { get; set; }
+
+    [Parameter]
+    public bool IsInvoking { get; set; }
+
+    /// <summary>Name of the operation in flight, for the busy message.</summary>
+    [Parameter]
+    public string OperationName { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string ActiveTab { get; set; } = "resp-formatted";
+
+    [Parameter]
+    public EventCallback<string> ActiveTabChanged { get; set; }
+
+    private IQueryable<ResponseRowView>? _rows;
+    private ParsedSoapResponse? _boundParsed;
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_boundParsed, Parsed))
+        {
+            return;
+        }
+
+        _boundParsed = Parsed;
+        _rows = Parsed is { Rows.Count: > 0 }
+            ? Parsed.Rows.Select((row, index) => new ResponseRowView(index, row.Name, row.Value)).AsQueryable()
+            : null;
+    }
+
+    private Task OnTabChangedAsync(string? tabId)
+        => tabId is { Length: > 0 } id ? ActiveTabChanged.InvokeAsync(id) : Task.CompletedTask;
+}

@@ -1,0 +1,71 @@
+@inject IJSRuntime JS
+@implements IDisposable
+
+@* Feedback is a transient in-button check mark rather than a toast: it appears next to the thing that
+   was copied, and it needs no service registration to work. *@
+<span class="copy-wrap">
+    <FluentButton Appearance="Appearance.Stealth" Class="copy-button"
+                  Title="@CurrentTitle" AriaLabel="@CurrentTitle" OnClick="CopyAsync">
+        <span class="copy-glyph @(_copied ? "copied" : null)" aria-hidden="true">
+            @((MarkupString)(_copied ? Icons.Check : Icons.Copy))
+        </span>
+    </FluentButton>
+</span>
+
+@code {
+    /// <summary>The text placed on the clipboard.</summary>
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>Describes what is being copied, for the tooltip and the accessible name.</summary>
+    [Parameter]
+    public string Label { get; set; } = "Copy";
+
+    private bool _copied;
+    private CancellationTokenSource? _resetCts;
+
+    private string CurrentTitle => _copied ? "Copied" : Label;
+
+    private async Task CopyAsync()
+    {
+        try
+        {
+            // navigator.clipboard needs a secure context; localhost counts as one, so no shim is needed.
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Text);
+        }
+        catch (JSException)
+        {
+            return;
+        }
+        catch (JSDisconnectedException)
+        {
+            return;
+        }
+
+        _copied = true;
+        _resetCts?.Cancel();
+        _resetCts?.Dispose();
+        _resetCts = new CancellationTokenSource();
+        var token = _resetCts.Token;
+
+        // Fire and forget: awaiting here would hold the click handler open for a second and a half.
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1.5), token);
+                _copied = false;
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    public void Dispose()
+    {
+        _resetCts?.Cancel();
+        _resetCts?.Dispose();
+    }
+}

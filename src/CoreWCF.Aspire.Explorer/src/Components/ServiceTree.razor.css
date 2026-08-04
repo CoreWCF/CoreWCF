@@ -1,0 +1,99 @@
+/* Scoping note, applied throughout: a scope attribute is stamped onto the plain HTML written in this
+   file, never onto the root element a child component renders. Rules that target FluentButton,
+   FluentProgressRing or a ::part() therefore have to reach through ::deep from a plain ancestor. */
+
+.tree-pane {
+    height: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: var(--space-2) var(--space-1) var(--space-4) 0;
+    background-color: var(--surface-panel);
+    border-right: 1px solid var(--stroke-divider);
+}
+
+.tree-empty {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--type-ramp-minus-1-font-size);
+    line-height: var(--type-ramp-minus-1-line-height);
+}
+
+/* One row of the tree: icon, label, then any trailing affordance. */
+.row {
+    display: flex;
+    align-items: center;
+    gap: var(--inline-icon-margin);
+    min-width: 0;
+}
+
+.row-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--foreground-subtext-rest);
+}
+
+.row-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.svc-name {
+    font-weight: 600;
+}
+
+.op-row .row-icon {
+    /* The arrow reads as decoration next to the operation name, not as a peer of it. */
+    opacity: 0.7;
+}
+
+.error-text {
+    color: var(--neutral-foreground-rest);
+    white-space: normal;
+}
+
+.row ::deep .row-ring {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    margin-inline-start: var(--space-1);
+}
+
+/* Trailing actions stay out of the way until the row is hovered or something inside it has focus.
+   :focus-within is not optional - without it the button is unreachable by keyboard. */
+.row-actions {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+    opacity: 0;
+    transition: opacity 100ms linear;
+}
+
+.row:hover .row-actions,
+.row-actions:focus-within {
+    opacity: 1;
+}
+
+.row-actions ::deep .row-action::part(control) {
+    min-width: 22px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+}
+
+.row-action-glyph {
+    display: inline-flex;
+    align-items: center;
+    color: var(--foreground-subtext-rest);
+}
+
+.row-actions:hover .row-action-glyph {
+    color: var(--neutral-foreground-rest);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .row-actions {
+        transition: none;
+    }
+}

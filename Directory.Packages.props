@@ -7,6 +7,15 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
+    <!-- Aspire hosting integration (CoreWCF.Aspire.Hosting / Explorer). 9.5.2 is the supported
+         floor and the version the shipped assembly compiles against. Aspire.Hosting 13.x still
+         ships lib/net8.0, so one net8.0 asset serves both the 9.x and 13.x lines; the test legs
+         below pin 13.x to prove it. -->
+    <PackageVersion Include="Aspire.Hosting" Version="9.5.2" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="9.5.2" />
+    <!-- Fluent UI Blazor components, matching the .NET Aspire dashboard look and feel. -->
+    <PackageVersion Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.12.1" />
     <PackageVersion Include="AngleSharp" Version="1.4.0" />
     <PackageVersion Include="AngleSharp.Diffing" Version="1.1.1" />
     <PackageVersion Include="Confluent.Kafka" Version="2.14.0" />
@@ -87,6 +96,9 @@
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Xunit.StaFact" Version="3.0.13" />
+    <!-- Browser automation for the explorer UI tests. Those tests are deliberately outside the
+         CoreWCF.*.Tests.csproj glob the CI test action sweeps, because they need a browser. -->
+    <PackageVersion Include="Microsoft.Playwright" Version="1.61.0" />
     <PackageVersion Include="Testcontainers" Version="4.11.0" />
     <PackageVersion Include="Testcontainers.RabbitMq" Version="4.11.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.1" />
@@ -168,5 +180,13 @@
     <PackageVersion Update="Microsoft.Extensions.ObjectPool" Version="11.0.0-preview.3.26207.106" />
     <PackageVersion Update="Microsoft.Extensions.Options" Version="11.0.0-preview.3.26207.106" />
     <PackageVersion Update="Microsoft.Extensions.Primitives" Version="11.0.0-preview.3.26207.106" />
+  </ItemGroup>
+  <!-- Prove the shipped net8.0 assembly works against the Aspire 13.x line as well as 9.5.2:
+       the net8.0/net9.0 test legs resolve Aspire 9.5.2, the net10.0/net11.0 legs resolve 13.x.
+       net11.0 must be listed - CI builds that leg and it resolves the same lib/net8.0 asset.
+       'Update' rather than 'Include': a second Include of the same id is NU1011. -->
+  <ItemGroup Condition="('$(TargetFramework)' == 'net10.0') OR ('$(TargetFramework)' == 'net11.0')">
+    <PackageVersion Update="Aspire.Hosting" Version="13.4.6" />
+    <PackageVersion Update="Aspire.Hosting.Testing" Version="13.4.6" />
   </ItemGroup>
 </Project>

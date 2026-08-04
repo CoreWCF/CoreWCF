@@ -1,0 +1,48 @@
+/* Toolbar row then a body row that takes the rest; the splitter needs a parent with a real height. */
+.explorer {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+}
+
+.explorer-body {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.explorer ::deep .filter-input {
+    width: 260px;
+    max-width: 40vw;
+}
+
+.toolbar-count {
+    font-size: var(--type-ramp-minus-1-font-size);
+    white-space: nowrap;
+}
+
+.explorer ::deep .toolbar-button::part(control) {
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+}
+
+.toolbar-glyph {
+    display: inline-flex;
+    align-items: center;
+    color: var(--foreground-subtext-rest);
+}
+
+/* Between 768 and 1024 the count is the first thing worth dropping: the tree still shows it. */
+@media (max-width: 1024px) {
+    /* Narrower, but still wide enough that the placeholder is not clipped mid-word. */
+    .explorer ::deep .filter-input {
+        width: 200px;
+    }
+}
+
+@media (max-width: 900px) {
+    .toolbar-count {
+        display: none;
+    }
+}

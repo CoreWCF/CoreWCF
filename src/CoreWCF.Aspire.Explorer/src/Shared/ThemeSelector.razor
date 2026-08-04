@@ -1,0 +1,47 @@
+@* Three-state theme switch. The previous toggle flipped Light/Dark only and could never return
+   to System once used. *@
+
+<FluentButton Appearance="Appearance.Stealth" AriaLabel="@($"Theme: {Label}. Change theme.")"
+              Title="@($"Theme: {Label}")" @onclick="Cycle" Class="theme-selector">
+    <span class="theme-icon" aria-hidden="true">@((MarkupString)Icon)</span>
+    <span class="theme-label">@Label</span>
+</FluentButton>
+
+@code {
+    [Parameter, EditorRequired]
+    public DesignThemeModes Mode { get; set; }
+
+    [Parameter]
+    public EventCallback<DesignThemeModes> ModeChanged { get; set; }
+
+    private string Label => Mode switch
+    {
+        DesignThemeModes.Light => "Light",
+        DesignThemeModes.Dark => "Dark",
+        _ => "System",
+    };
+
+    // Inline SVG rather than the Fluent icons package, which would add a large assembly to the
+    // published explorer container image for a handful of glyphs.
+    private string Icon => Mode switch
+    {
+        DesignThemeModes.Light =>
+            """<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.5 4.5l1.4 1.4M14.1 14.1l1.4 1.4M15.5 4.5l-1.4 1.4M5.9 14.1l-1.4 1.4" stroke-linecap="round"/></svg>""",
+        DesignThemeModes.Dark =>
+            """<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5Z" stroke-linejoin="round"/></svg>""",
+        _ =>
+            """<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="4" width="15" height="10" rx="1.5"/><path d="M7 17h6" stroke-linecap="round"/></svg>""",
+    };
+
+    private Task Cycle()
+    {
+        var next = Mode switch
+        {
+            DesignThemeModes.System => DesignThemeModes.Light,
+            DesignThemeModes.Light => DesignThemeModes.Dark,
+            _ => DesignThemeModes.System,
+        };
+        Mode = next;
+        return ModeChanged.InvokeAsync(next);
+    }
+}

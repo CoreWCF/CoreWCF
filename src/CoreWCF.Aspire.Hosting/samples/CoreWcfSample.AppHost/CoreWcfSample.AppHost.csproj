@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAspireHost>true</IsAspireHost>
+    <!-- The Aspire AppHost SDK adds implicitly-versioned package references; opt out of central
+         package management for this sample project to avoid conflicts. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <UserSecretsId>corewcf-aspire-sample</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The hosting integration library provides AddCoreWcfExplorer / WithCoreWcfService. -->
+    <ProjectReference Include="../../src/CoreWCF.Aspire.Hosting.csproj" IsAspireProjectResource="false" />
+    <!-- Explored service and the explorer web app, orchestrated as Aspire resources. -->
+    <ProjectReference Include="../CoreWcfSampleService/CoreWcfSampleService.csproj" />
+    <ProjectReference Include="../../../CoreWCF.Aspire.Explorer/src/CoreWCF.Aspire.Explorer.csproj" />
+  </ItemGroup>
+
+</Project>
