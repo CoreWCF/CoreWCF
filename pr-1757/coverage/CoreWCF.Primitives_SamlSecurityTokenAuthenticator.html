@@ -36,16 +36,16 @@
 <div class="card">
 <div class="card-header">Line coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar100">0%</div>
+<div class="large cardpercentagebar cardpercentagebar90">10%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered lines:</th>
-<td class="limit-width right" title="0">0</td>
+<td class="limit-width right" title="10">10</td>
 </tr>
 <tr>
 <th>Uncovered lines:</th>
-<td class="limit-width right" title="97">97</td>
+<td class="limit-width right" title="87">87</td>
 </tr>
 <tr>
 <th>Coverable lines:</th>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <th>Line coverage:</th>
-<td class="limit-width right" title="0 of 97">0%</td>
+<td class="limit-width right" title="10 of 97">10.3%</td>
 </tr>
 </table>
 </div>
@@ -66,12 +66,12 @@
 <div class="card">
 <div class="card-header">Branch coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar100">0%</div>
+<div class="large cardpercentagebar cardpercentagebar99">1%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered branches:</th>
-<td class="limit-width right" title="0">0</td>
+<td class="limit-width right" title="1">1</td>
 </tr>
 <tr>
 <th>Total branches:</th>
@@ -79,7 +79,7 @@
 </tr>
 <tr>
 <th>Branch coverage:</th>
-<td class="limit-width right" title="0 of 84">0%</td>
+<td class="limit-width right" title="1 of 84">1.1%</td>
 </tr>
 </table>
 </div>
@@ -107,9 +107,9 @@
 </colgroup>
 <thead><tr><th>Method</th><th>Branch coverage <a href="https://en.wikipedia.org/wiki/Code_coverage" target="_blank"><i class="icon-info-circled"></i></a></th><th>Cyclomatic complexity <a href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" target="_blank"><i class="icon-info-circled"></i></a></th><th>NPath complexity <a href="https://modess.io/npath-complexity-cyclomatic-complexity-explained" target="_blank"><i class="icon-info-circled"></i></a></th><th>Sequence coverage <a href="https://en.wikipedia.org/wiki/Code_coverage" target="_blank"><i class="icon-info-circled"></i></a></th></tr></thead>
 <tbody>
-<tr><td title="System.Void CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)"><a href="#file0_line24" class="navigatetohash">.ctor(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
-<tr><td title="System.Void CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)"><a href="#file0_line27" class="navigatetohash">.ctor(...)</a></td><td>0%</td><td>2</td><td>2</td><td>0%</td></tr>
-<tr><td title="System.Boolean CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)"><a href="#file0_line49" class="navigatetohash">CanValidateTokenCore(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
+<tr><td title="System.Void CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)"><a href="#file0_line24" class="navigatetohash">.ctor(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
+<tr><td title="System.Void CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)"><a href="#file0_line27" class="navigatetohash">.ctor(...)</a></td><td>50%</td><td>2</td><td>2</td><td>100%</td></tr>
+<tr><td title="System.Boolean CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)"><a href="#file0_line49" class="navigatetohash">CanValidateTokenCore(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
 <tr><td title="ValidateTokenCoreAsync()"><a href="#file0_line54" class="navigatetohash">ValidateTokenCoreAsync()</a></td><td>0%</td><td>36</td><td>36</td><td>0%</td></tr>
 <tr><td title="System.Boolean CoreWCF.IdentityModel.Selectors.SamlSecurityTokenAuthenticator::ValidateAudienceRestriction(Microsoft.IdentityModel.Tokens.Saml.SamlAudienceRestrictionCondition)"><a href="#file0_line121" class="navigatetohash">ValidateAudienceRestriction(...)</a></td><td>0%</td><td>12</td><td>12</td><td>0%</td></tr>
 <tr><td title="ResolveClaimSetAsyc()"><a href="#file0_line144" class="navigatetohash">ResolveClaimSetAsyc()</a></td><td>0%</td><td>8</td><td>8</td><td>0%</td></tr>
@@ -149,16 +149,16 @@
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line21"></a><code>21</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;TimeSpan&nbsp;_maxClockSkew;</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line22"></a><code>22</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line23"></a><code>23</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;SamlSecurityTokenAuthenticator(IList&lt;SecurityTokenAuthenticator&gt;&nbsp;supportingAuthenticators)</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line24"></a><code>24</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;this(supportingAuthenticators,&nbsp;TimeSpan.Zero)</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line25"></a><code>25</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line24"></a><code>24</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;this(supportingAuthenticators,&nbsp;TimeSpan.Zero)</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line25"></a><code>25</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line26"></a><code>26</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line27"></a><code>27</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;SamlSecurityTokenAuthenticator(IList&lt;SecurityTokenAuthenticator&gt;&nbsp;supportingAuthenticators,&nbsp;TimeSpan&nbsp;maxCl</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line27"></a><code>27</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;SamlSecurityTokenAuthenticator(IList&lt;SecurityTokenAuthenticator&gt;&nbsp;supportingAuthenticators,&nbsp;TimeSpan&nbsp;maxCl</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line28"></a><code>28</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits, 0 of 2 branches are covered)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line29"></a><code>29</code></td><td class="percentagebar percentagebar0"><i class="icon-fork"></i></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_supportingAuthenticators&nbsp;=&nbsp;new&nbsp;List&lt;SecurityTokenAuthenticator&gt;(supportingAuthenticators&nbsp;??</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line30"></a><code>30</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(supportingAuthenticators)));</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line31"></a><code>31</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_maxClockSkew&nbsp;=&nbsp;maxClockSkew;</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line32"></a><code>32</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_audienceUriMode&nbsp;=&nbsp;AudienceUriMode.Always;</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line33"></a><code>33</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Partially covered (2 visits, 1 of 2 branches are covered)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'orange'}}"><td class="orange">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line29"></a><code>29</code></td><td class="percentagebar percentagebar50"><i class="icon-fork"></i></td><td class="lightorange"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_supportingAuthenticators&nbsp;=&nbsp;new&nbsp;List&lt;SecurityTokenAuthenticator&gt;(supportingAuthenticators&nbsp;??</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line30"></a><code>30</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(supportingAuthenticators)));</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line31"></a><code>31</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_maxClockSkew&nbsp;=&nbsp;maxClockSkew;</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line32"></a><code>32</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_audienceUriMode&nbsp;=&nbsp;AudienceUriMode.Always;</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line33"></a><code>33</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line34"></a><code>34</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line35"></a><code>35</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;AudienceUriMode&nbsp;AudienceUriMode</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line36"></a><code>36</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
@@ -170,11 +170,11 @@
 <tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line42"></a><code>42</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line43"></a><code>43</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line44"></a><code>44</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line45"></a><code>45</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;IList&lt;string&gt;&nbsp;AllowedAudienceUris&nbsp;{&nbsp;get;&nbsp;}&nbsp;=&nbsp;new&nbsp;Collection&lt;string&gt;();</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line45"></a><code>45</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;IList&lt;string&gt;&nbsp;AllowedAudienceUris&nbsp;{&nbsp;get;&nbsp;}&nbsp;=&nbsp;new&nbsp;Collection&lt;string&gt;();</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line46"></a><code>46</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line47"></a><code>47</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;protected&nbsp;override&nbsp;bool&nbsp;CanValidateTokenCore(SecurityToken&nbsp;token)</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line48"></a><code>48</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line49"></a><code>49</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;token&nbsp;is&nbsp;SamlSecurityToken;</code></td></tr>
+<tr class="coverableline" title="Covered (188 visits)" data-coverage="{'AllTestMethods': {'VC': '188', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">188</td><td class="rightmargin right"><a id="file0_line49"></a><code>49</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;token&nbsp;is&nbsp;SamlSecurityToken;</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line50"></a><code>50</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line51"></a><code>51</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line52"></a><code>52</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;protected&nbsp;override&nbsp;async&nbsp;ValueTask&lt;ReadOnlyCollection&lt;IAuthorizationPolicy&gt;&gt;&nbsp;ValidateTokenCoreAsync(SecurityToke</code></td></tr>
@@ -362,16 +362,16 @@
 </tbody>
 </table>
 </div>
-<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/04/2026 - 17:07:19<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
+<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/04/2026 - 17:35:55<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
 <div class="containerright">
 <div class="containerrightfixed">
 <h1>Methods/Properties</h1>
-<a href="#file0_line24" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - .ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)"><i class="icon-cube"></i>.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)</a><br />
-<a href="#file0_line27" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - .ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)"><i class="icon-cube"></i>.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)</a><br />
+<a href="#file0_line24" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - .ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)"><i class="icon-cube"></i>.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;)</a><br />
+<a href="#file0_line27" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - .ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)"><i class="icon-cube"></i>.ctor(System.Collections.Generic.IList`1&lt;CoreWCF.IdentityModel.Selectors.SecurityTokenAuthenticator&gt;,System.TimeSpan)</a><br />
 <a href="#file0_line37" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - AudienceUriMode()"><i class="icon-wrench"></i>AudienceUriMode()</a><br />
 <a href="#file0_line40" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - AudienceUriMode(CoreWCF.IdentityModel.Selectors.AudienceUriMode)"><i class="icon-wrench"></i>AudienceUriMode(CoreWCF.IdentityModel.Selectors.AudienceUriMode)</a><br />
-<a href="#file0_line45" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - AllowedAudienceUris()"><i class="icon-wrench"></i>AllowedAudienceUris()</a><br />
-<a href="#file0_line49" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)"><i class="icon-cube"></i>CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)</a><br />
+<a href="#file0_line45" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - AllowedAudienceUris()"><i class="icon-wrench"></i>AllowedAudienceUris()</a><br />
+<a href="#file0_line49" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)"><i class="icon-cube"></i>CanValidateTokenCore(CoreWCF.IdentityModel.Tokens.SecurityToken)</a><br />
 <a href="#file0_line54" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - ValidateTokenCoreAsync()"><i class="icon-cube"></i>ValidateTokenCoreAsync()</a><br />
 <a href="#file0_line121" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - ValidateAudienceRestriction(Microsoft.IdentityModel.Tokens.Saml.SamlAudienceRestrictionCondition)"><i class="icon-cube"></i>ValidateAudienceRestriction(Microsoft.IdentityModel.Tokens.Saml.SamlAudienceRestrictionCondition)</a><br />
 <a href="#file0_line144" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - ResolveClaimSetAsyc()"><i class="icon-cube"></i>ResolveClaimSetAsyc()</a><br />
