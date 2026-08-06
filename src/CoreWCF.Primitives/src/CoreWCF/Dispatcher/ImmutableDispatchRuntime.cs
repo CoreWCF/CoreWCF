@@ -226,7 +226,17 @@ namespace CoreWCF.Dispatcher
 
             try
             {
-                await rpc.RequestContext.ReplyAsync(rpc.Reply, rpc.ReplyTimeoutHelper.GetCancellationToken());
+                var replyToken = rpc.ReplyTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration replyRegistration);
+                try
+                {
+                    await rpc.RequestContext.ReplyAsync(rpc.Reply, replyToken);
+                }
+                finally
+                {
+                    // Release the coalesced cancellation token source now the reply has completed
+                    // instead of leaving it to linger until the send timeout expires (issue #1735).
+                    replyRegistration.Dispose();
+                }
                 rpc.RequestContextThrewOnReply = false;
                 rpc.SuccessfullySendReply = true;
 

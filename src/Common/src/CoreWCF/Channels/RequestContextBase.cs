@@ -106,10 +106,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override Task CloseAsync()
+        public override async Task CloseAsync()
         {
             var helper = new TimeoutHelper(_defaultCloseTimeout);
-            return CloseAsync(helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await CloseAsync(token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public override async Task CloseAsync(CancellationToken token)
@@ -215,10 +223,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        public override Task ReplyAsync(Message message)
+        public override async Task ReplyAsync(Message message)
         {
             var helper = new TimeoutHelper(_defaultSendTimeout);
-            return ReplyAsync(message, helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await ReplyAsync(message, token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public override async Task ReplyAsync(Message message, CancellationToken token)

@@ -32,6 +32,7 @@ namespace CoreWCF.Runtime
         private bool _deadlineSet;
 
         private CancellationToken _cancellationToken;
+        private RecoverableTimeoutCancellationTokenSource _recoverableTokenSource;
         private DateTime _deadline;
         private TimeSpan _originalTimeout;
 
@@ -49,6 +50,24 @@ namespace CoreWCF.Runtime
 
         public CancellationToken GetCancellationToken()
         {
+            EnsureCancellationToken();
+            return _cancellationToken;
+        }
+
+        // Scoped variant that hands back a registration handle. Dispose the handle on the
+        // completion path of the operation the token was requested for; this unregisters the
+        // underlying coalesced cancellation token source and disposes it, instead of letting
+        // it linger in the coalesced timer until the (potentially very long) timeout expires.
+        // See https://github.com/CoreWCF/CoreWCF/issues/1735.
+        public CancellationToken GetCancellationToken(out RecoverableTokenRegistration registration)
+        {
+            EnsureCancellationToken();
+            registration = new RecoverableTokenRegistration(_recoverableTokenSource);
+            return _cancellationToken;
+        }
+
+        private void EnsureCancellationToken()
+        {
             if (!_cancellationTokenInitialized)
             {
                 TimeSpan timeout = RemainingTime();
@@ -58,7 +77,7 @@ namespace CoreWCF.Runtime
                 }
                 else if (timeout > TimeSpan.Zero)
                 {
-                    _cancellationToken = TimeoutTokenSource.FromTimeout((int)timeout.TotalMilliseconds);
+                    _cancellationToken = TimeoutTokenSource.FromTimeout((int)timeout.TotalMilliseconds, out _recoverableTokenSource);
                 }
                 else
                 {
@@ -66,8 +85,6 @@ namespace CoreWCF.Runtime
                 }
                 _cancellationTokenInitialized = true;
             }
-
-            return _cancellationToken;
         }
 
 
@@ -271,6 +288,11 @@ namespace CoreWCF.Runtime
 
         public static CancellationToken FromTimeout(int millisecondsTimeout)
         {
+            return FromTimeout(millisecondsTimeout, out _);
+        }
+
+        public static CancellationToken FromTimeout(int millisecondsTimeout, out RecoverableTimeoutCancellationTokenSource tokenSource)
+        {
             // Note that CancellationTokenSource constructor requires input to be >= -1,
             // restricting millisecondsTimeout to be >= -1 would enforce that
             if (millisecondsTimeout < -1)
@@ -315,15 +337,16 @@ namespace CoreWCF.Runtime
                     if (!s_timerCache.TryGetValue(targetTime, out ctsTimer))
                     {
                         // In unlikely scenario the timer has already fired, we would not find it in cache.
-                        // In this case we would simply create a CTS which doesn't use the coalesced timer. 
+                        // In this case we would simply create a CTS which doesn't use the coalesced timer.
                         var cts = new RecoverableTimeoutCancellationTokenSource(millisecondsTimeout);
                         cts.CancelAfter(millisecondsTimeout);
+                        tokenSource = cts;
                         return cts.Token;
                     }
                 }
             }
 
-            var tokenSource = new RecoverableTimeoutCancellationTokenSource(millisecondsTimeout);
+            tokenSource = new RecoverableTimeoutCancellationTokenSource(millisecondsTimeout);
             ctsTimer.RegisterTokenSourceForCancellation(tokenSource);
             return tokenSource.Token;
         }

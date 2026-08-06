@@ -206,7 +206,16 @@ namespace CoreWCF.Channels
                             if (envelopeSize > maxBufferSize)
                             {
                                 _connection.Input.AdvanceTo(buffer.Start); // Advance the input pipe so that SendFaultAsync can read from it
-                                await _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, TransportDefaults.MaxDrainSize, new TimeoutHelper(_connection.ServiceDispatcher.Binding.SendTimeout).GetCancellationToken());
+                                var sendTimeoutHelper = new TimeoutHelper(_connection.ServiceDispatcher.Binding.SendTimeout);
+                                var faultToken = sendTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                                try
+                                {
+                                    await _connection.SendFaultAsync(FramingEncodingString.MaxMessageSizeExceededFault, TransportDefaults.MaxDrainSize, faultToken);
+                                }
+                                finally
+                                {
+                                    registration.Dispose();
+                                }
 
                                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                     MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));

@@ -499,10 +499,18 @@ namespace CoreWCF.Channels
                 }
             }
 
-            public Task CloseOutputSessionAsync()
+            public async Task CloseOutputSessionAsync()
             {
                 var timeoutHelper = new TimeoutHelper(Channel.DefaultCloseTimeout);
-                return CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
+                var token = timeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                try
+                {
+                    await CloseOutputSessionAsync(token);
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
             }
 
             public Task CloseOutputSessionAsync(CancellationToken token)

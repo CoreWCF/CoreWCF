@@ -142,8 +142,17 @@ namespace CoreWCF.Channels
             }
             else
             {
-                CancellationToken openTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).OpenTimeout).GetCancellationToken();
-                WebSocketContext webSocketContext = await AcceptWebSocketAsync(context, openTimeoutToken);
+                var openTimeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).OpenTimeout);
+                CancellationToken openTimeoutToken = openTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration openRegistration);
+                WebSocketContext webSocketContext;
+                try
+                {
+                    webSocketContext = await AcceptWebSocketAsync(context, openTimeoutToken);
+                }
+                finally
+                {
+                    openRegistration.Dispose();
+                }
                 if (webSocketContext == null)
                 {
                     return;
@@ -158,8 +167,16 @@ namespace CoreWCF.Channels
                 // when the handler returns, causing the client to see WebSocketException ('Aborted').
                 try
                 {
-                    CancellationToken closeTimeoutToken = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).CloseTimeout).GetCancellationToken();
-                    await channel.CloseAsync(closeTimeoutToken);
+                    var closeTimeoutHelper = new TimeoutHelper(((IDefaultCommunicationTimeouts)_httpSettings).CloseTimeout);
+                    CancellationToken closeTimeoutToken = closeTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration closeRegistration);
+                    try
+                    {
+                        await channel.CloseAsync(closeTimeoutToken);
+                    }
+                    finally
+                    {
+                        closeRegistration.Dispose();
+                    }
                 }
                 catch (Exception ex)
                 {

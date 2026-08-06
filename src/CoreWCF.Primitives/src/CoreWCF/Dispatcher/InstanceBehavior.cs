@@ -142,6 +142,7 @@ namespace CoreWCF.Dispatcher
             if (rpc.InstanceContext.State == CommunicationState.Created)
             {
                 Task openTask = null;
+                RecoverableTokenRegistration registration = default;
                 lock (rpc.InstanceContext.ThisLock)
                 {
                     if (rpc.InstanceContext.State == CommunicationState.Created)
@@ -149,12 +150,19 @@ namespace CoreWCF.Dispatcher
                         var helper = new TimeoutHelper(rpc.Channel.CloseTimeout);
                         // awaiting the task outside the lock is safe as OpenAsync will transition the state away from Created before
                         // it returns an uncompleted Task.
-                        openTask = rpc.InstanceContext.OpenAsync(helper.GetCancellationToken());
+                        openTask = rpc.InstanceContext.OpenAsync(helper.GetCancellationToken(out registration));
                         Fx.Assert(rpc.InstanceContext.State != CommunicationState.Created, "InstanceContext.OpenAsync should transition away from Created before returning a Task");
                     }
                 }
 
-                await openTask;
+                try
+                {
+                    await openTask;
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
             }
 
             rpc.InstanceContext.BindRpc(rpc);
