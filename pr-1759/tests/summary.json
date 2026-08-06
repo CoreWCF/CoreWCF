@@ -1,7 +1,7 @@
 {
-  "total": 24970,
-  "passed": 24243,
-  "failed": 1,
+  "total": 25110,
+  "passed": 24384,
+  "failed": 0,
   "skipped": 726,
   "other": 0,
   "matrix": [
@@ -81,9 +81,9 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net9.0",
-      "total": 1256,
-      "passed": 1212,
-      "failed": 1,
+      "total": 1396,
+      "passed": 1353,
+      "failed": 0,
       "skipped": 43
     },
     {
@@ -169,5 +169,5 @@
     }
   ],
   "title": "CoreWCF Test Results — PR #1759",
-  "subtitle": "PR #1759 · commit c6d97dc · [run 31087808500](https://github.com/CoreWCF/CoreWCF/actions/runs/31087808500)"
+  "subtitle": "PR #1759 · commit 815b49e · [run 31094028672](https://github.com/CoreWCF/CoreWCF/actions/runs/31094028672)"
 }
