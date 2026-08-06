@@ -25,7 +25,10 @@ namespace CoreWCF.Dispatcher
         internal readonly object[] Correlation;
         internal readonly ServiceHostBase Host;
         internal readonly OperationContext OperationContext;
-        //internal ServiceModelActivity Activity;
+        // The OpenTelemetry Activity for this request. Stored per-request (rather than on the
+        // shared ImmutableDispatchRuntime) so concurrent requests cannot overwrite and leak each
+        // other's Activity. See https://github.com/CoreWCF/CoreWCF/issues/1677.
+        internal Activity Activity;
         internal Guid ResponseActivityId;
         internal IAsyncResult AsyncResult;
         internal Task TaskResult;
@@ -77,7 +80,7 @@ namespace CoreWCF.Dispatcher
             // TODO: ChannelHandler supplied an ErrorHandler, need to supply this some other way.
             //Fx.Assert(channelHandler != null, "System.ServiceModel.Dispatcher.MessageRpc.MessageRpc(), channelHandler == null");
 
-            //this.Activity = null;
+            Activity = null;
             //this.EventTraceActivity = eventTraceActivity;
             AsyncResult = null;
             TaskResult = null;
@@ -505,6 +508,27 @@ namespace CoreWCF.Dispatcher
             }
             finally
             {
+                // Safety net for the Activity owned by this rpc. It is normally stopped in
+                // ImmutableDispatchRuntime.PrepareReplyAsync, once the reply tags have been applied;
+                // this runs after that (including after the error processor above has run), so on
+                // every path that already stopped it Activity.Stop() is a no-op. It only bites when
+                // an exception escaped the pipeline without ever reaching the reply code, where the
+                // Activity would otherwise never be stopped and would live on until process exit.
+                try
+                {
+                    Activity?.Stop();
+                }
+                catch (Exception e)
+                {
+                    if (Fx.IsFatal(e))
+                    {
+#pragma warning disable CA2219 // Do not raise exceptions in finally clauses - Fx.IsFatal filters out non-process ending exceptions
+                        throw;
+#pragma warning restore CA2219 // Do not raise exceptions in finally clauses
+                    }
+                    DiagnosticUtility.TraceHandledException(e, TraceEventType.Error);
+                }
+
                 try
                 {
                     DecrementBusyCount();
