@@ -1,7 +1,7 @@
 {
-  "total": 25110,
-  "passed": 24382,
-  "failed": 2,
+  "total": 24970,
+  "passed": 24243,
+  "failed": 1,
   "skipped": 726,
   "other": 0,
   "matrix": [
@@ -64,8 +64,8 @@
       "os": "Windows",
       "tfm": "net472",
       "total": 1343,
-      "passed": 1327,
-      "failed": 1,
+      "passed": 1328,
+      "failed": 0,
       "skipped": 15
     },
     {
@@ -81,9 +81,9 @@
       "cfg": "Debug",
       "os": "Windows",
       "tfm": "net9.0",
-      "total": 1396,
-      "passed": 1353,
-      "failed": 0,
+      "total": 1256,
+      "passed": 1212,
+      "failed": 1,
       "skipped": 43
     },
     {
@@ -145,8 +145,8 @@
       "os": "Windows",
       "tfm": "net472",
       "total": 1343,
-      "passed": 1327,
-      "failed": 1,
+      "passed": 1328,
+      "failed": 0,
       "skipped": 15
     },
     {
@@ -169,5 +169,5 @@
     }
   ],
   "title": "CoreWCF Test Results — PR #1759",
-  "subtitle": "PR #1759 · commit 9b73716 · [run 31079205723](https://github.com/CoreWCF/CoreWCF/actions/runs/31079205723)"
+  "subtitle": "PR #1759 · commit c6d97dc · [run 31087808500](https://github.com/CoreWCF/CoreWCF/actions/runs/31087808500)"
 }
