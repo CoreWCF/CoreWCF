@@ -59,9 +59,8 @@ namespace CoreWCF.IdentityModel.Tokens
                         else
                         {
                             _privateKey = _certificate.GetECDsaPrivateKey();
-                            // We don't support DSA certificates as we need DSACertificateExtensions which is in netstandard2.1 and netcore2.0.
-                            // As we target netstandard2.0, we don't have access to DSACertificateExtensions. If there's demand, we could move our
-                            // dependencies forward to provide support.
+                            // TODO: DSA certificates are still unsupported. DSACertificateExtensions is available now
+                            // that we target net8.0, so this can be implemented if there is demand.
                         }
 
                         if (_certificate.HasPrivateKey && _privateKey == null)
@@ -89,8 +88,8 @@ namespace CoreWCF.IdentityModel.Tokens
                             _publicKey = _certificate.GetRSAPublicKey();
                             if (_publicKey == null)
                             {
-                                // Need DSACertificateExtensions  to support DSA certificate which is in netstandard2.1 and netcore2.0. As we target netstandard2.0, we don't
-                                // have access to DSACertificateExtensions
+                                // TODO: DSA certificates are still unsupported. DSACertificateExtensions is available now
+                                // that we target net8.0, so this can be implemented if there is demand.
                                 DiagnosticUtility.ExceptionUtility.ThrowHelperError(new NotSupportedException(SR.PublicKeyNotSupported));
                             }
 

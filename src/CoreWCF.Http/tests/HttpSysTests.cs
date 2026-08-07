@@ -25,9 +25,7 @@ namespace CoreWCF.Http.Tests
         }
 
         [WindowsOnlyFact]
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public async Task BasicHttpRequestReplyEchoString()
         {
             string testString = new string('a', 3000);

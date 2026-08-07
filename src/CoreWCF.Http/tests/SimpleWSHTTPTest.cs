@@ -27,9 +27,7 @@ using CoreWCF.Security;
 using CoreWCF.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 
-#if NETCOREAPP3_1_OR_GREATER
 using Microsoft.AspNetCore.Authentication.Negotiate;
-#endif
 
 namespace WSHttp
 {
@@ -383,9 +381,7 @@ namespace WSHttp
         [WindowsOnlyTheory]
         [Description("transport-security-with-windows-authentication-httpsys")]
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         [InlineData("WSHttpBinding")]
         [InlineData("WS2007HttpBinding")]
         internal void WSHttpRequestImpersonateWithHttpSys(string bindingType)
@@ -457,9 +453,7 @@ namespace WSHttp
 
         [WindowsOnlyTheory]
         [Description("no-security-with-an-anonymous-client-using-impersonation-httpsys")]
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         [InlineData("WSHttpBinding")]
         [InlineData("WS2007HttpBinding")]
         public void WSHttpRequestImpersonateWithHttpSysFailsWithoutAuthentication(string bindingType)
@@ -690,16 +684,8 @@ namespace WSHttp
 
             protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
-                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
-                    {
-                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
-                    });
-#else
                 return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
                     .AddNegotiate();
-#endif
             }
         }
 
@@ -726,16 +712,8 @@ namespace WSHttp
         {
             protected override AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
-                    .AddPolicyScheme("Negotiate", "Negotiate", options =>
-                    {
-                        options.ForwardDefault = HttpSysDefaults.AuthenticationScheme;
-                    });
-#else
                 return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme)
                     .AddNegotiate();
-#endif
             }
         }
 
@@ -770,12 +748,8 @@ namespace WSHttp
 
             protected virtual AuthenticationBuilder AddAuthenticationService(IServiceCollection services)
             {
-#if NET472
-                return services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
-#else
                 return services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
                     .AddNegotiate();
-#endif
             }
 
             public virtual void ChangeHostBehavior(ServiceHostBase host)

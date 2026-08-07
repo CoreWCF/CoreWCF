@@ -36,9 +36,7 @@ public class ScopedAuthorizationHandlerTests
             .UseDefaultServiceProvider(options =>
             {
                 options.ValidateScopes = true;
-#if !NETFRAMEWORK
                 options.ValidateOnBuild = true;
-#endif
             })
             .Build();
         using (host)
@@ -61,9 +59,7 @@ public class ScopedAuthorizationHandlerTests
             .UseDefaultServiceProvider(options =>
             {
                 options.ValidateScopes = true;
-#if !NETFRAMEWORK
                 options.ValidateOnBuild = true;
-#endif
             })
             .Build();
         using (host)
@@ -86,9 +82,7 @@ public class ScopedAuthorizationHandlerTests
             .UseDefaultServiceProvider(options =>
             {
                 options.ValidateScopes = true;
-#if !NETFRAMEWORK
                 options.ValidateOnBuild = true;
-#endif
             })
             .Build();
         using (host)

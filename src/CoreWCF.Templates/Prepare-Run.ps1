@@ -78,10 +78,18 @@ Invoke-Checked { dotnet pack $SourceDir/src/CoreWCF.Http/src/CoreWCF.Http.csproj
 # install runtime assemblies in TemplatedProject. The CoreWCFTemplates-Feed source added above is
 # globally registered in the user's NuGet config, so 'dotnet add package' can resolve the locally
 # packed pre-release versions while still pulling transitive dependencies from upstream feeds.
+#
+# --no-restore is required, not an optimisation. Without it each 'dotnet add package' runs a restore
+# preview over the *whole* template project, including the package reference it has not rewritten
+# yet. The checked-in template carries a floating major (e.g. 2.*) which deliberately excludes
+# pre-release, so until that major has a stable release on nuget.org the preview fails with NU1102
+# and takes the whole run down. That made every major version bump break this script. The rewritten
+# references are validated for real moments later, when the tests restore and build a project
+# generated from the packed template.
 $TemplatedProjectPath = [IO.Path]::Combine($PSScriptRoot, 'src', 'templates', 'CoreWCFService')
 Set-Location $TemplatedProjectPath
-Invoke-Checked { dotnet add package CoreWCF.Primitives -v $version } 'Failed to add CoreWCF.Primitives package reference to template'
-Invoke-Checked { dotnet add package CoreWCF.Http -v $version } 'Failed to add CoreWCF.Http package reference to template'
+Invoke-Checked { dotnet add package CoreWCF.Primitives -v $version --no-restore } 'Failed to add CoreWCF.Primitives package reference to template'
+Invoke-Checked { dotnet add package CoreWCF.Http -v $version --no-restore } 'Failed to add CoreWCF.Http package reference to template'
 Set-Location $PSScriptRoot
 # Pack current code (templates) into the nuget feed
 Invoke-Checked { dotnet build $SourceDir/src/CoreWCF.Templates/src/CoreWCF.Templates.csproj } 'Failed to build CoreWCF.Templates'

@@ -9,7 +9,7 @@ inputs:
     description: 'MSBuild configuration that was built (Debug or Release).'
     required: true
   target-framework:
-    description: 'Target framework moniker (e.g. net8.0, net472).'
+    description: 'Target framework moniker (e.g. net8.0, net10.0).'
     required: true
   artifact-name:
     description: 'Name of the build artifact produced by the build job.'

@@ -55,11 +55,7 @@ namespace DependencyInjection
             public void ConfigureServices(IServiceCollection services)
             {
                 services.AddServiceModelServices();
-#if NETCOREAPP3_1_OR_GREATER
                 services.AddHttpContextAccessor();
-#else
-                services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-#endif
                 services.AddTransient<TService>();
             }
 

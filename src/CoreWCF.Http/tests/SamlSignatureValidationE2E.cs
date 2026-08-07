@@ -1,10 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#if NET472
-extern alias bcl;
-#endif
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,11 +35,7 @@ using MSamlTokens = Microsoft.IdentityModel.Tokens.Saml;
 using WSFederationHttpBinding = System.ServiceModel.Federation.WSFederationHttpBinding;
 using SigningCredentials = Microsoft.IdentityModel.Tokens.SigningCredentials;
 using SecurityAlgorithms = Microsoft.IdentityModel.Tokens.SecurityAlgorithms;
-#if NET472
-using SamlAssertionKeyIdentifierClause = bcl::System.IdentityModel.Tokens.SamlAssertionKeyIdentifierClause;
-#else
 using SamlAssertionKeyIdentifierClause = System.IdentityModel.Tokens.SamlAssertionKeyIdentifierClause;
-#endif
 using Xunit;
 
 namespace SamlE2E

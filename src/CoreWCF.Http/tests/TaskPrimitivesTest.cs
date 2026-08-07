@@ -23,9 +23,6 @@ namespace BasicHttp
             _output = output;
         }
 
-#if NET472
-        // Unstable on NET472
-#else
         [Fact]
         public async Task InvokeTaskBaseAsycn()
         {
@@ -92,7 +89,6 @@ namespace BasicHttp
                 Assert.Equal(Color.Blue, await (Task<Color>)tasks[21]);
             }
         }
-#endif
 
         internal class Startup
         {

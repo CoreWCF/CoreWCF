@@ -20,10 +20,6 @@ using Microsoft.Extensions.Logging;
 using Xunit;
 using CoreWCF;
 
-#if NET472
-using System.Security.Authentication;
-#endif // NET472
-
 namespace Helpers
 {
     internal static class ServiceHelper
@@ -286,12 +282,7 @@ namespace Helpers
                 {
                     options.Listen(IPAddress.Loopback, 0, listenOptions =>
                     {
-                        listenOptions.UseHttps(httpsOptions =>
-                        {
-#if NET472
-                            httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                        });
+                        listenOptions.UseHttps();
 
                         listeningPortHelper.AddSchemeToPortDelegate(Uri.UriSchemeHttps, () => listenOptions?.IPEndPoint?.Port ?? 0);
 

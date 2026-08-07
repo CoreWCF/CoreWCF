@@ -49,13 +49,12 @@
     <TestTargetFrameworks Condition="('$(BuildingInsideVisualStudio)' != 'true') OR $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '$(VSMinimumVersionNeededForLatestTfm)'))">$(TestTargetFrameworks);$(LatestDotNetTfm)</TestTargetFrameworks>
     <!-- Add preview dotnet tfm if IncludePreviewTfm is set to true -->
     <TestTargetFrameworks Condition="'$(IncludePreviewTfm)' == 'true'">$(TestTargetFrameworks);$(PreviewDotNetTfm)</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
   </PropertyGroup>
 
   <!-- UT concurrency -->
   <PropertyGroup>
     <RunUnitTestsConcurrently Condition="$(IsTestProject)">true</RunUnitTestsConcurrently>
-    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject) OR ($(IsHttpProject) AND $(TargetFramework.StartsWith('net4'))))">false</RunUnitTestsConcurrently>
+    <RunUnitTestsConcurrently Condition="$(IsTestProject) AND ($(IsMetadataProject) OR $(IsMsmqProject) OR $(IsQueueProject) OR $(IsKafkaProject))">false</RunUnitTestsConcurrently>
   </PropertyGroup>
 
   <!-- Output directories -->

@@ -9,18 +9,10 @@
   <ItemGroup>
     <PackageReference Include="System.ServiceModel.Primitives" />
     <PackageReference Include="System.ServiceModel.NetTcp" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" />
     <PackageReference Include="Xunit.StaFact" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <PackageReference Include="Microsoft.AspNetCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net472' ">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

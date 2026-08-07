@@ -1,27 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <!-- Default the OperationInvokerGenerator to enabled only on TFMs where the SDK's default C#
-         language version is >= 11 (the version required by the generator's emitted 'file' types and
-         '[ModuleInitializer]'). That is .NETCoreApp 7.0 and later. .NETFramework, .NETStandard, and
-         older .NETCoreApp targets remain off-by-default and use the reflection-based fallback at
-         runtime. Consumers on those targets can still opt in by explicitly setting
-         EnableCoreWCFOperationInvokerGenerator=true and raising LangVersion to 11 or higher. -->
-    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'=='' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion.TrimStart('v')), '7.0'))">true</EnableCoreWCFOperationInvokerGenerator>
-    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">false</EnableCoreWCFOperationInvokerGenerator>
+    <!-- The OperationInvokerGenerator emits 'file' types and '[ModuleInitializer]', which require
+         C# 11. Every target framework able to consume CoreWCF (.NET 8 and later) defaults to a
+         higher language version than that, so the generator is on by default. Consumers who pin
+         LangVersion below 11 can opt out by setting EnableCoreWCFOperationInvokerGenerator=false,
+         which falls back to the reflection-based invoker at runtime. -->
+    <EnableCoreWCFOperationInvokerGenerator Condition="'$(EnableCoreWCFOperationInvokerGenerator)'==''">true</EnableCoreWCFOperationInvokerGenerator>
   </PropertyGroup>
   <ItemGroup>
     <!-- Exposes EnableCoreWCFOperationInvokerGenerator to the source generator at build time -->
     <CompilerVisibleProperty Include="EnableCoreWCFOperationInvokerGenerator" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' AND
-                        '$(_CoreWCFSuppressWebApplicationExtensions)' != 'true' AND
-                        '$(TargetFramework.TrimEnd(`0123456789`))' != 'net' AND
-                        !$(TargetFramework.StartsWith('netstandard')) AND
-                        (@(FrameworkReference->WithMetadataValue('Identity', 'Microsoft.AspNetCore.App')->Count()) != 0)">
-    <Compile Include="$(MSBuildThisFileDirectory)/../contentFiles/CoreWCFWebApplicationExtensions.cs">
-      <Visible>false</Visible>
-    </Compile>
   </ItemGroup>
   <ItemGroup Condition="'$(_CoreWCFSuppressOperationInvokerGeneratorAttribute)'!='true'">
       <!-- Exposes EnableCoreWCFOperationInvokerGenerator at runtime -->
