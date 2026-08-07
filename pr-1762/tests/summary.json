@@ -1,10 +1,173 @@
 {
-  "total": 0,
-  "passed": 0,
+  "total": 25740,
+  "passed": 25014,
   "failed": 0,
-  "skipped": 0,
+  "skipped": 726,
   "other": 0,
-  "matrix": [],
+  "matrix": [
+    {
+      "cfg": "Debug",
+      "os": "Linux",
+      "tfm": "net10.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Debug",
+      "os": "Linux",
+      "tfm": "net11.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Debug",
+      "os": "Linux",
+      "tfm": "net8.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Debug",
+      "os": "Linux",
+      "tfm": "net9.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Debug",
+      "os": "Windows",
+      "tfm": "net10.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Debug",
+      "os": "Windows",
+      "tfm": "net11.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Debug",
+      "os": "Windows",
+      "tfm": "net472",
+      "total": 1378,
+      "passed": 1363,
+      "failed": 0,
+      "skipped": 15
+    },
+    {
+      "cfg": "Debug",
+      "os": "Windows",
+      "tfm": "net8.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Debug",
+      "os": "Windows",
+      "tfm": "net9.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Release",
+      "os": "Linux",
+      "tfm": "net10.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Release",
+      "os": "Linux",
+      "tfm": "net11.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Release",
+      "os": "Linux",
+      "tfm": "net8.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Release",
+      "os": "Linux",
+      "tfm": "net9.0",
+      "total": 1442,
+      "passed": 1398,
+      "failed": 0,
+      "skipped": 44
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
+      "tfm": "net10.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
+      "tfm": "net11.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
+      "tfm": "net472",
+      "total": 1378,
+      "passed": 1363,
+      "failed": 0,
+      "skipped": 15
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
+      "tfm": "net8.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    },
+    {
+      "cfg": "Release",
+      "os": "Windows",
+      "tfm": "net9.0",
+      "total": 1431,
+      "passed": 1388,
+      "failed": 0,
+      "skipped": 43
+    }
+  ],
   "title": "CoreWCF Test Results — PR #1762",
-  "subtitle": "PR #1762 · commit d9ca9d4 · [run 31194955323](https://github.com/CoreWCF/CoreWCF/actions/runs/31194955323)"
+  "subtitle": "PR #1762 · commit 31c785f · [run 31195253997](https://github.com/CoreWCF/CoreWCF/actions/runs/31195253997)"
 }
