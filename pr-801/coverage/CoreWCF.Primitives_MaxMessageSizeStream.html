@@ -36,16 +36,16 @@
 <div class="card">
 <div class="card-header">Line coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar60">40%</div>
+<div class="large cardpercentagebar cardpercentagebar52">47%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered lines:</th>
-<td class="limit-width right" title="16">16</td>
+<td class="limit-width right" title="19">19</td>
 </tr>
 <tr>
 <th>Uncovered lines:</th>
-<td class="limit-width right" title="24">24</td>
+<td class="limit-width right" title="21">21</td>
 </tr>
 <tr>
 <th>Coverable lines:</th>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <th>Line coverage:</th>
-<td class="limit-width right" title="16 of 40">40%</td>
+<td class="limit-width right" title="19 of 40">47.5%</td>
 </tr>
 </table>
 </div>
@@ -114,7 +114,7 @@
 <tr><td title="System.Int32 CoreWCF.Channels.MaxMessageSizeStream::ReadByte()"><a href="#file0_line44" class="navigatetohash">ReadByte()</a></td><td>100%</td><td>2</td><td>2</td><td>100%</td></tr>
 <tr><td title="System.Void CoreWCF.Channels.MaxMessageSizeStream::Write(System.Byte[],System.Int32,System.Int32)"><a href="#file0_line56" class="navigatetohash">Write(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
 <tr><td title="System.Void CoreWCF.Channels.MaxMessageSizeStream::WriteByte(System.Byte)"><a href="#file0_line62" class="navigatetohash">WriteByte(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
-<tr><td title="System.Exception CoreWCF.Channels.MaxMessageSizeStream::CreateMaxReceivedMessageSizeExceededException(System.Int64)"><a href="#file0_line68" class="navigatetohash">CreateMaxReceivedMessageSizeExceededException(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
+<tr><td title="System.Exception CoreWCF.Channels.MaxMessageSizeStream::CreateMaxReceivedMessageSizeExceededException(System.Int64)"><a href="#file0_line68" class="navigatetohash">CreateMaxReceivedMessageSizeExceededException(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
 <tr><td title="System.Exception CoreWCF.Channels.MaxMessageSizeStream::CreateMaxSentMessageSizeExceededException(System.Int64)"><a href="#file0_line76" class="navigatetohash">CreateMaxSentMessageSizeExceededException(...)</a></td><td>100%</td><td>1</td><td>1</td><td>0%</td></tr>
 <tr><td title="System.Int32 CoreWCF.Channels.MaxMessageSizeStream::PrepareRead(System.Int32)"><a href="#file0_line84" class="navigatetohash">PrepareRead(...)</a></td><td>50%</td><td>4</td><td>4</td><td>66.66%</td></tr>
 <tr><td title="System.Int32 CoreWCF.Channels.MaxMessageSizeStream::FinishRead(System.Int32)"><a href="#file0_line103" class="navigatetohash">FinishRead(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
@@ -195,10 +195,10 @@
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line65"></a><code>65</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line66"></a><code>66</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;Exception&nbsp;CreateMaxReceivedMessageSizeExceededException(long&nbsp;maxMessageSize)</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line67"></a><code>67</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line68"></a><code>68</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;message&nbsp;=&nbsp;SRCommon.Format(SRCommon.MaxReceivedMessageSizeExceeded,&nbsp;maxMessageSize);</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line69"></a><code>69</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exception&nbsp;inner&nbsp;=&nbsp;new&nbsp;QuotaExceededException(message);</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line68"></a><code>68</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;message&nbsp;=&nbsp;SRCommon.Format(SRCommon.MaxReceivedMessageSizeExceeded,&nbsp;maxMessageSize);</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line69"></a><code>69</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exception&nbsp;inner&nbsp;=&nbsp;new&nbsp;QuotaExceededException(message);</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line70"></a><code>70</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line71"></a><code>71</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;new&nbsp;CommunicationException(message,&nbsp;inner);</code></td></tr>
+<tr class="coverableline" title="Covered (2 visits)" data-coverage="{'AllTestMethods': {'VC': '2', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">2</td><td class="rightmargin right"><a id="file0_line71"></a><code>71</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;new&nbsp;CommunicationException(message,&nbsp;inner);</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line72"></a><code>72</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line73"></a><code>73</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line74"></a><code>74</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;internal&nbsp;static&nbsp;Exception&nbsp;CreateMaxSentMessageSizeExceededException(long&nbsp;maxMessageSize)</code></td></tr>
@@ -248,7 +248,7 @@
 </tbody>
 </table>
 </div>
-<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/08/2026 - 14:33:24<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
+<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />08/08/2026 - 18:24:02<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
 <div class="containerright">
 <div class="containerrightfixed">
 <h1>Methods/Properties</h1>
@@ -259,7 +259,7 @@
 <a href="#file0_line44" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - ReadByte()"><i class="icon-cube"></i>ReadByte()</a><br />
 <a href="#file0_line56" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - Write(System.Byte[],System.Int32,System.Int32)"><i class="icon-cube"></i>Write(System.Byte[],System.Int32,System.Int32)</a><br />
 <a href="#file0_line62" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - WriteByte(System.Byte)"><i class="icon-cube"></i>WriteByte(System.Byte)</a><br />
-<a href="#file0_line68" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - CreateMaxReceivedMessageSizeExceededException(System.Int64)"><i class="icon-cube"></i>CreateMaxReceivedMessageSizeExceededException(System.Int64)</a><br />
+<a href="#file0_line68" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - CreateMaxReceivedMessageSizeExceededException(System.Int64)"><i class="icon-cube"></i>CreateMaxReceivedMessageSizeExceededException(System.Int64)</a><br />
 <a href="#file0_line76" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - CreateMaxSentMessageSizeExceededException(System.Int64)"><i class="icon-cube"></i>CreateMaxSentMessageSizeExceededException(System.Int64)</a><br />
 <a href="#file0_line84" class="navigatetohash percentagebar percentagebar60" title="Line coverage: 66.6% - PrepareRead(System.Int32)"><i class="icon-cube"></i>PrepareRead(System.Int32)</a><br />
 <a href="#file0_line103" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - FinishRead(System.Int32)"><i class="icon-cube"></i>FinishRead(System.Int32)</a><br />
