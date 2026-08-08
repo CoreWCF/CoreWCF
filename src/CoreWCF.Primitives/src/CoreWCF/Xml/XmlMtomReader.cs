@@ -2099,6 +2099,14 @@ namespace CoreWCF.Xml
             EOF
         }
 
+        // Names and values are appended one buffer-full (or one folded continuation
+        // line) at a time, so they accumulate into StringBuilders rather than by string
+        // concatenation, which was O(N^2) on long or folded headers. The materialized
+        // string is cached because Name/Value are read once per Read() by the callers.
+        private readonly StringBuilder valueBuilder = new StringBuilder();
+        private readonly StringBuilder nameBuilder = new StringBuilder();
+        private bool hasValue;
+        private bool hasName;
         private string value;
         private byte[] buffer = new byte[1024];
         private int maxOffset;
@@ -2115,9 +2123,9 @@ namespace CoreWCF.Xml
             this.stream = stream;
         }
 
-        public string Value => value;
+        public string Value => hasValue ? (value ??= valueBuilder.ToString()) : null;
 
-        public string Name => name;
+        public string Name => hasName ? (name ??= nameBuilder.ToString()) : null;
 
         public void Close()
         {
@@ -2129,6 +2137,10 @@ namespace CoreWCF.Xml
         {
             name = null;
             value = null;
+            hasName = false;
+            hasValue = false;
+            nameBuilder.Clear();
+            valueBuilder.Clear();
 
             while (readState != ReadState.EOF)
             {
@@ -2143,7 +2155,7 @@ namespace CoreWCF.Xml
                     break;
             }
 
-            return value != null;
+            return hasValue;
         }
 
         private bool ProcessBuffer(int maxBuffer, ref int remaining)
@@ -2282,19 +2294,17 @@ namespace CoreWCF.Xml
         private void AppendValue(string value, int maxBuffer, ref int remaining)
         {
             XmlMtomReader.DecrementBufferQuota(maxBuffer, ref remaining, value.Length * sizeof(char));
-            if (this.value == null)
-                this.value = value;
-            else
-                this.value += value;
+            valueBuilder.Append(value);
+            hasValue = true;
+            this.value = null;
         }
 
         private void AppendName(string value, int maxBuffer, ref int remaining)
         {
             XmlMtomReader.DecrementBufferQuota(maxBuffer, ref remaining, value.Length * sizeof(char));
-            if (name == null)
-                name = value;
-            else
-                name += value;
+            nameBuilder.Append(value);
+            hasName = true;
+            name = null;
         }
 
     }
