@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -183,13 +184,13 @@ namespace CoreWCF.Channels
 
     internal class BufferedMessageBuffer : MessageBuffer
     {
-        private IBufferedMessageData _messageData;
+        private IBufferedMessageData2 _messageData;
         private readonly KeyValuePair<string, object>[] _properties;
         private bool _closed;
         private readonly bool[] _understoodHeaders;
         private readonly bool _understoodHeadersModified;
 
-        public BufferedMessageBuffer(IBufferedMessageData messageData,
+        public BufferedMessageBuffer(IBufferedMessageData2 messageData,
             KeyValuePair<string, object>[] properties, bool[] understoodHeaders, bool understoodHeadersModified)
         {
             _messageData = messageData;
@@ -210,7 +211,7 @@ namespace CoreWCF.Channels
                         throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                     }
 
-                    return _messageData.Buffer.Count;
+                    return (int)_messageData.ReadOnlyBuffer.Length;
                 }
             }
         }
@@ -229,8 +230,11 @@ namespace CoreWCF.Channels
                     throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(CreateBufferDisposedException());
                 }
 
-                ArraySegment<byte> buffer = _messageData.Buffer;
-                stream.Write(buffer.Array, buffer.Offset, buffer.Count);
+                ReadOnlySequence<byte> buffer = _messageData.ReadOnlyBuffer;
+                foreach (var memory in buffer)
+                {
+                    stream.Write(memory);
+                }
             }
         }
 

@@ -2,16 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Xml;
 using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
-    internal abstract class BufferedMessageData : IBufferedMessageData
+    internal abstract class BufferedMessageData : IBufferedMessageData2
     {
-        private ArraySegment<byte> _buffer;
+        private ReadOnlySequence<byte> _readOnlyBuffer;
+        private BufferManager _bufferManager;
+        private ReadOnlySequence<byte> _rentedBuffer;
         private int _refCount;
         private int _outstandingReaders;
+        private bool _closePending;
         private bool _multipleUsers;
         private RecycledMessageState _messageState;
         private readonly SynchronizedPool<RecycledMessageState> _messageStatePool;
@@ -21,12 +26,12 @@ namespace CoreWCF.Channels
             _messageStatePool = messageStatePool;
         }
 
+        [Obsolete]
         public ArraySegment<byte> Buffer
-        {
-            get { return _buffer; }
-        }
+            => throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                new NotSupportedException(SR.BufferedMessageDataBufferNotSupported));
 
-        public BufferManager BufferManager { get; private set; }
+        public ReadOnlySequence<byte> ReadOnlyBuffer => _readOnlyBuffer;
 
         public virtual XmlDictionaryReaderQuotas Quotas
         {
@@ -65,13 +70,24 @@ namespace CoreWCF.Channels
 
         private void DoClose()
         {
-            BufferManager.ReturnBuffer(_buffer.Array);
             if (_outstandingReaders == 0)
             {
-                BufferManager = null;
-                _buffer = new ArraySegment<byte>();
-                OnClosed();
+                Release();
             }
+            else
+            {
+                // A body reader is still out, so the buffer can't go back yet without being
+                // recycled underneath it. DoReturnXmlReader finishes the job when the last one
+                // closes; without this the buffer and the pooled message data are stranded.
+                _closePending = true;
+            }
+        }
+
+        private void Release()
+        {
+            ReturnRentedBuffer();
+            _readOnlyBuffer = default;
+            OnClosed();
         }
 
         public void DoReturnMessageState(RecycledMessageState messageState)
@@ -90,6 +106,12 @@ namespace CoreWCF.Channels
         {
             ReturnXmlReader(reader);
             _outstandingReaders--;
+
+            if (_closePending && _outstandingReaders == 0)
+            {
+                _closePending = false;
+                Release();
+            }
         }
 
         public RecycledMessageState DoTakeMessageState()
@@ -172,12 +194,47 @@ namespace CoreWCF.Channels
             }
         }
 
-        public void Open(ArraySegment<byte> buffer, BufferManager bufferManager)
+        public void Open(ReadOnlySequence<byte> buffer)
         {
             _refCount = 1;
-            BufferManager = bufferManager;
-            _buffer = buffer;
+            _readOnlyBuffer = buffer;
             _multipleUsers = false;
+        }
+
+        /// <summary>
+        /// Hands ownership of <paramref name="rentedBuffer"/> to this instance: the array behind it
+        /// goes back to <paramref name="bufferManager"/> once the message closes. Callers reading
+        /// out of memory they don't own - a PipeReader's own buffers, for instance - never call
+        /// this, and the sequence the message reads from may differ from the one owned here.
+        /// </summary>
+        public void OwnBuffer(ReadOnlySequence<byte> rentedBuffer, BufferManager bufferManager)
+        {
+            if (bufferManager != null && !rentedBuffer.IsEmpty)
+            {
+                _rentedBuffer = rentedBuffer;
+                _bufferManager = bufferManager;
+            }
+        }
+
+        private void ReturnRentedBuffer()
+        {
+            if (_bufferManager == null)
+            {
+                return;
+            }
+
+            // One array per segment: a message received in pieces is chained rather than copied
+            // into a single buffer, and every piece came from the manager.
+            foreach (ReadOnlyMemory<byte> memory in _rentedBuffer)
+            {
+                if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> segment) && segment.Array != null)
+                {
+                    _bufferManager.ReturnBuffer(segment.Array);
+                }
+            }
+
+            _bufferManager = null;
+            _rentedBuffer = default;
         }
 
         protected abstract void ReturnXmlReader(XmlDictionaryReader xmlReader);

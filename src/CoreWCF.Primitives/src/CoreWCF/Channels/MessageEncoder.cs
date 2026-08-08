@@ -2,15 +2,50 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 using CoreWCF.Diagnostics;
+using CoreWCF.Runtime;
 
 namespace CoreWCF.Channels
 {
     public abstract class MessageEncoder
     {
+        // Keyed by encoder type: CreateSessionEncoder() builds one encoder per session, so the
+        // reflection below would otherwise run on every connection.
+        private static readonly ConcurrentDictionary<Type, bool> s_asyncImplementations = new();
+
+        private readonly bool _isAsyncImplementation;
+
+        protected MessageEncoder()
+        {
+            _isAsyncImplementation = s_asyncImplementations.GetOrAdd(GetType(), IsAsyncOverloadOverridden);
+        }
+
+        private static bool IsAsyncOverloadOverridden(Type implementorType)
+        {
+            MethodInfo[] methods = implementorType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            // ReadMessageAsync is overloaded on (Stream, int, string) too, so the buffer overload
+            // is identified by the type of its first parameter.
+            MethodInfo readMessageAsyncMethodInfo = (from method in methods
+                where method.Name == nameof(ReadMessageAsync)
+                let parameters = method.GetParameters()
+                where parameters.Length == 3
+                let firstParameter = parameters[0]
+                where firstParameter.ParameterType == typeof(ReadOnlySequence<byte>)
+                select method).SingleOrDefault();
+
+            MethodInfo baseReadMessageAsyncMethodInfo = readMessageAsyncMethodInfo!.GetBaseDefinition();
+
+            return baseReadMessageAsyncMethodInfo.DeclaringType != readMessageAsyncMethodInfo.DeclaringType;
+        }
+
         public abstract string ContentType { get; }
 
         public abstract string MediaType { get; }
@@ -34,54 +69,48 @@ namespace CoreWCF.Channels
 
         public abstract Task<Message> ReadMessageAsync(Stream stream, int maxSizeOfHeaders, string contentType);
 
+        [Obsolete("Use ReadMessageAsync(ReadOnlySequence<byte> buffer, BufferManager bufferManager).")]
         public Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager)
         {
             return ReadMessage(buffer, bufferManager, null);
         }
 
-        public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
-
-        // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        [Obsolete("Implementers should override ReadMessageAsync(ReadOnlySequence<byte> buffer, BufferManager bufferManager, string contentType).")]
+        public virtual Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
         {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
+            if (!_isAsyncImplementation)
             {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
+                // Reaching the base implementation of both overloads means the encoder implements
+                // neither: forwarding on would bounce between the two until the stack runs out.
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new NotImplementedException(SR.Format(SR.MessageEncoderReadMessageNotImplemented, GetType())));
             }
 
-            return new ArraySegment<byte>(buffer, 0, offset);
+            return ReadMessageAsync(new ReadOnlySequence<byte>(buffer), bufferManager, contentType).AsTask().GetAwaiter().GetResult();
         }
 
-        // used for buffered streaming
-        internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
-            string contentType)
+        public ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, BufferManager bufferManager) => ReadMessageAsync(buffer, bufferManager, contentType: null);
+
+        // Default to forward the call to ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+        // to support derived type implementations
+        public virtual ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, BufferManager bufferManager, string contentType)
         {
-            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
+            int bufferLength = (int)buffer.Length;
+            byte[] bytes = bufferManager.TakeBuffer(bufferLength);
+            try
+            {
+                buffer.CopyTo(bytes.AsSpan(0, bufferLength));
+#pragma warning disable CS0612
+                Message message = ReadMessage(new ArraySegment<byte>(bytes, 0, bufferLength), bufferManager, contentType);
+#pragma warning restore CS0612
+                return new ValueTask<Message>(message);
+            }
+            catch
+            {
+                // Ownership only passes to the message once there is one.
+                bufferManager.ReturnBuffer(bytes);
+                throw;
+            }
         }
 
         public override string ToString()

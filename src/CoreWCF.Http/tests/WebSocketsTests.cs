@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -114,6 +114,37 @@ namespace NetHttp
         public void NetHttpWebSocketsBufferedTransferMode()
         {
             string testString = new string('a', 3000);
+            IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
+            using (host)
+            {
+                System.ServiceModel.ChannelFactory<ClientContract.IEchoService> factory = null;
+                ClientContract.IEchoService channel = null;
+                host.Start();
+                try
+                {
+                    System.ServiceModel.NetHttpBinding binding = ClientHelper.GetBufferedModeWebSocketBinding();
+                    factory = new System.ServiceModel.ChannelFactory<ClientContract.IEchoService>(binding,
+                        new System.ServiceModel.EndpointAddress(new Uri(GetNetHttpBufferedServiceUri(host))));
+                    channel = factory.CreateChannel();
+                    ((IChannel)channel).Open();
+                    string result = channel.EchoString(testString);
+                    Assert.Equal(testString, result);
+                    ((IChannel)channel).Close();
+                    factory.Close();
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
+            }
+        }
+
+        [Fact]
+        public void NetHttpWebSocketsBufferedTransferModeSpanningSeveralReceives()
+        {
+            // Larger than the 16KB receive buffer, so the server takes several receives to get the
+            // whole message and chains them instead of holding it in one buffer.
+            string testString = new string('a', 50000);
             IWebHost host = ServiceHelper.CreateWebHostBuilder<Startup>(_output).Build();
             using (host)
             {
