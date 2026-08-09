@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <!-- On net472 the emitted code cannot be compiled at all, so only the dummy is built. Mirrors
+       CoreWCF.Kafka.Tests; the reason is spelled out in DummyTest.cs. -->
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <Compile Remove="**\*.cs" />
+    <Compile Remove="*.cs" />
+    <Compile Include="DummyTest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Verify.XunitV3" />
+    <PackageReference Include="Verify.SourceGenerators" />
+    <!-- Verify pulls a newer Microsoft.Bcl.AsyncInterfaces than the repository pins centrally.
+         Overridden here rather than raised for everyone: this is a test project, and the pin
+         governs what the shipping libraries carry. -->
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" VersionOverride="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Snapshots are the generated code as committed; they must never be reformatted by an
+         editorconfig pass or normalised to CRLF, or every one of them shows a whole-file diff. -->
+    <None Update="Snapshots\*.verified.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\src\AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="..\src\AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="4.12.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\CoreWCF.DataContractSerialization.Generator.csproj" />
+    <!-- Referenced so generated code can be compiled against the real types it emits calls to,
+         rather than against a stand-in that could drift from them. -->
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization\src\CoreWCF.DataContractSerialization.csproj" />
+    <!-- Provides a contract type that lives in a *different* assembly from the generated context,
+         which is the case where private [DataMember]s become invisible to the generator. -->
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization.TestCorpus\src\CoreWCF.DataContractSerialization.TestCorpus.csproj" />
+  </ItemGroup>
+</Project>

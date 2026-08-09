@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <RootNamespace>CoreWCF.DataContractSerialization.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Surfaces the build TFM to FixtureStore's per-TFM baseline probe without an #if ladder,
+         so new target frameworks need no code change. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>TargetFramework</_Parameter1>
+      <_Parameter2>$(TargetFramework)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <PackageReference Include="Microsoft.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/CoreWCF.DataContractSerialization.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization.TestCorpus\src\CoreWCF.DataContractSerialization.TestCorpus.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Inspecting generated code with EmitCompilerGeneratedFiles writes it under the project, where
+         the default glob would compile it as ordinary source - so the next build sees every
+         generated member declared twice. Exclude it so that inspection stays a read-only act. -->
+    <Compile Remove="generated/**" />
+    <None Remove="generated/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Golden fixtures are byte-exact serializer output and must sit next to the test binary:
+         CI runs a no-build `dotnet test` against a prebuilt bin/ artifact. -->
+    <None Update="Fixtures\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\net472\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\net9.0\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\net10.0\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\net11.0\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

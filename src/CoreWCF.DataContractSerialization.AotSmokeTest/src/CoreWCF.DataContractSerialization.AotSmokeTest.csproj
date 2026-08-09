@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+  <!--
+    Publishes a real CoreWCF service with Native AOT and calls it over HTTP, so the premise the
+    generator exists for is executed rather than assumed. Everything else in this area is verified
+    under a normal runtime, where dynamic code is available and nothing is trimmed.
+
+    Not referenced by any test project and not run by `dotnet test`: it proves something only once
+    published, which is a separate command. See the README beside this file.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(LatestDotNetTfm)</TargetFramework>
+    <RootNamespace>CoreWCF.DataContractSerialization.AotSmokeTest</RootNamespace>
+    <IsPackable>false</IsPackable>
+
+    <!-- An executable, not a library that ships: none of the shared assembly plumbing applies. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+    <SignAssembly>false</SignAssembly>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- The repository pins C# 11 so that shipping libraries compile everywhere they target. This
+         is an executable on net10.0 only, and the ASP.NET Core generators that PublishAot turns on
+         refuse anything below 12 (SYSLIB1102). -->
+    <LangVersion>12.0</LangVersion>
+
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- The point of the exercise. Without this the publish would report nothing and the run would
+         be the only signal; with it, a reflection dependency anywhere on the path is a build
+         warning naming the call site. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SourceDir)CoreWCF.Http\src\CoreWCF.Http.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization\src\CoreWCF.DataContractSerialization.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization.Generator\src\CoreWCF.DataContractSerialization.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- Referenced by project rather than by package, so the .props/.targets that gate the generator
+       by target framework never run. Set what they would have set. -->
+  <PropertyGroup>
+    <EnableCoreWCFDataContractSerializerGenerator>true</EnableCoreWCFDataContractSerializerGenerator>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFDataContractSerializerGenerator" />
+  </ItemGroup>
+
+</Project>

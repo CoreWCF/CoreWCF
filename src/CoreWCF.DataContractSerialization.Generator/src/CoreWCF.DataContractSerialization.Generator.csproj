@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Not named *BuildTools*, so IncludeCommonCode would default to true and pull in all of
+         src/Common/src/CoreWCF/**. Those sources reference SR, which is not generated here. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <!-- Records use init-only setters, which netstandard2.0 lacks the marker type for. -->
+    <PackageReference Include="IsExternalInit" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
