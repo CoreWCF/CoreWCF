@@ -22,6 +22,10 @@ namespace CoreWCF.Primitives.Tests;
 [Collection("TelemetryTests")]
 public class TelemetryTests
 {
+    private const string TraceContextNamespace = "https://www.w3.org/TR/trace-context/";
+    private const string TraceParent = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+    private const string TraceState = "vendor=value";
+
     [Fact]
     public async Task Basic_Telemetry_Test()
     {
@@ -146,6 +150,195 @@ public class TelemetryTests
         Assert.Equivalent(startedTags[4], stoppedTags[4]);
         Assert.Equivalent(startedTags[5], stoppedTags[5]);
         Assert.Equivalent(startedTags[6], stoppedTags[6]);
+    }
+
+    [Fact]
+    public async Task Soap_Trace_Context_Is_Used_As_Remote_Parent_Without_Ambient_Activity()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync(traceParent: TraceParent);
+        Assert.True(ActivityContext.TryParse(TraceParent, null, isRemote: true, out ActivityContext expectedParent));
+
+        Assert.Equal(expectedParent.TraceId, result.Activity.TraceId);
+        Assert.Equal(expectedParent.SpanId, result.Activity.ParentSpanId);
+        Assert.True(result.SampledParentContext.IsRemote);
+    }
+
+    [Fact]
+    public async Task Missing_Trace_Context_Creates_Root_Activity()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync();
+
+        Assert.Equal(default, result.Activity.ParentSpanId);
+        Assert.Equal(default, result.SampledParentContext);
+    }
+
+    [Fact]
+    public async Task Malformed_Trace_Parent_Is_Ignored()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync(traceParent: "not-a-trace-parent");
+
+        Assert.Equal(default, result.Activity.ParentSpanId);
+        Assert.Equal(default, result.SampledParentContext);
+    }
+
+    [Fact]
+    public async Task Ambient_Activity_Takes_Precedence_Over_Soap_Trace_Context()
+    {
+        var ambientParentContext = new ActivityContext(
+            ActivityTraceId.CreateRandom(),
+            ActivitySpanId.CreateRandom(),
+            ActivityTraceFlags.Recorded);
+
+        DispatchResult result = await DispatchAndCaptureActivityAsync(
+            traceParent: TraceParent,
+            ambientParentContext: ambientParentContext);
+
+        Assert.Equal(result.AmbientContext.TraceId, result.Activity.TraceId);
+        Assert.Equal(result.AmbientContext.SpanId, result.Activity.ParentSpanId);
+        Assert.False(result.SampledParentContext.IsRemote);
+    }
+
+    [Fact]
+    public async Task Soap_Trace_State_Is_Propagated()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync(
+            traceParent: TraceParent,
+            traceState: TraceState);
+
+        Assert.Equal(TraceState, result.Activity.TraceStateString);
+        Assert.Equal(TraceState, result.SampledParentContext.TraceState);
+    }
+
+    [Fact]
+    public async Task Trace_Context_In_Different_Namespace_Is_Ignored()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync(
+            traceParent: TraceParent,
+            headerNamespace: "urn:not-w3c-trace-context");
+
+        Assert.Equal(default, result.Activity.ParentSpanId);
+        Assert.Equal(default, result.SampledParentContext);
+    }
+
+    [Fact]
+    public async Task Duplicate_Trace_Parent_Is_Ignored()
+    {
+        DispatchResult result = await DispatchAndCaptureActivityAsync(
+            traceParent: TraceParent,
+            duplicateTraceParent: true);
+
+        Assert.Equal(default, result.Activity.ParentSpanId);
+        Assert.Equal(default, result.SampledParentContext);
+    }
+
+    private static async Task<DispatchResult> DispatchAndCaptureActivityAsync(
+        string traceParent = null,
+        string traceState = null,
+        string headerNamespace = TraceContextNamespace,
+        bool duplicateTraceParent = false,
+        ActivityContext? ambientParentContext = null)
+    {
+        const string telemetryEchoAction = "http://tempuri.org/ISimpleTelemetryService/Echo";
+        const string serviceAddress = "http://localhost/dummy";
+        var stoppedActivities = new ConcurrentBag<Activity>();
+        ActivityContext sampledParentContext = default;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives",
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+            {
+                sampledParentContext = options.Parent;
+                return ActivitySamplingResult.AllData;
+            },
+            ActivityStopped = activity => stoppedActivities.Add(activity)
+        };
+
+        Activity previousActivity = Activity.Current;
+        Activity ambientActivity = null;
+        Activity.Current = null;
+
+        try
+        {
+            if (ambientParentContext.HasValue)
+            {
+                ActivityContext parent = ambientParentContext.Value;
+                ambientActivity = new Activity("ambient")
+                    .SetIdFormat(ActivityIdFormat.W3C)
+                    .SetParentId(parent.TraceId, parent.SpanId, parent.TraceFlags)
+                    .Start();
+            }
+
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddServiceModelServices();
+            IServer server = new MockServer();
+            services.AddSingleton(server);
+            services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+            services.RegisterApplicationLifetime();
+            using ServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceBuilder serviceBuilder = serviceProvider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.BaseAddresses.Add(new Uri(serviceAddress));
+            serviceBuilder.AddService<SimpleTelemetryService>();
+            var binding = new CustomBinding("BindingName", "BindingNS");
+            binding.Elements.Add(new MockTransportBindingElement());
+            serviceBuilder.AddServiceEndpoint<SimpleTelemetryService, ISimpleTelemetryService>(binding, serviceAddress);
+            await serviceBuilder.OpenAsync(TestContext.Current.CancellationToken);
+            IDispatcherBuilder dispatcherBuilder = serviceProvider.GetRequiredService<IDispatcherBuilder>();
+            System.Collections.Generic.List<IServiceDispatcher> dispatchers =
+                dispatcherBuilder.BuildDispatchers(typeof(SimpleTelemetryService));
+            IServiceChannelDispatcher dispatcher =
+                await Assert.Single(dispatchers).CreateServiceChannelDispatcherAsync(new MockReplyChannel(serviceProvider));
+            var requestContext = TestRequestContext.Create(serviceAddress, telemetryEchoAction);
+
+            if (traceParent != null)
+            {
+                requestContext.RequestMessage.Headers.Add(
+                    MessageHeader.CreateHeader("traceparent", headerNamespace, traceParent));
+            }
+
+            if (duplicateTraceParent)
+            {
+                requestContext.RequestMessage.Headers.Add(
+                    MessageHeader.CreateHeader("traceparent", headerNamespace, traceParent));
+            }
+
+            if (traceState != null)
+            {
+                requestContext.RequestMessage.Headers.Add(
+                    MessageHeader.CreateHeader("tracestate", headerNamespace, traceState));
+            }
+
+            ActivitySource.AddActivityListener(listener);
+            await dispatcher.DispatchAsync(requestContext);
+            Assert.True(
+                await requestContext.WaitForReplyAsync(TestContext.Current.CancellationToken),
+                "Dispatcher didn't send reply");
+
+            Activity activity = Assert.Single(stoppedActivities, a => a.DisplayName == telemetryEchoAction);
+            return new DispatchResult(activity, sampledParentContext, ambientActivity?.Context ?? default);
+        }
+        finally
+        {
+            ambientActivity?.Stop();
+            Activity.Current = previousActivity;
+        }
+    }
+
+    private sealed class DispatchResult
+    {
+        public DispatchResult(Activity activity, ActivityContext sampledParentContext, ActivityContext ambientContext)
+        {
+            Activity = activity;
+            SampledParentContext = sampledParentContext;
+            AmbientContext = ambientContext;
+        }
+
+        public Activity Activity { get; }
+
+        public ActivityContext SampledParentContext { get; }
+
+        public ActivityContext AmbientContext { get; }
     }
 
     [CoreWCF.ServiceContract]
