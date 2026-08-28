@@ -241,14 +241,17 @@ public class TelemetryTests
         const string telemetryEchoAction = "http://tempuri.org/ISimpleTelemetryService/Echo";
         const string serviceAddress = "http://localhost/dummy";
         var stoppedActivities = new ConcurrentBag<Activity>();
-        ActivityContext sampledParentContext = default;
+
+        // ActivityListener is global, so sampling callbacks can also run for concurrent CoreWCF requests.
+        // Correlate each sampled parent with the activity created from that sampling decision.
+        var sampledParentContexts = new ConcurrentDictionary<ActivityTraceId, ActivityContext>();
 
         using var listener = new ActivityListener
         {
             ShouldListenTo = activitySource => activitySource.Name == "CoreWCF.Primitives",
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
             {
-                sampledParentContext = options.Parent;
+                sampledParentContexts[options.TraceId] = options.Parent;
                 return ActivitySamplingResult.AllData;
             },
             ActivityStopped = activity => stoppedActivities.Add(activity)
@@ -316,6 +319,7 @@ public class TelemetryTests
                 "Dispatcher didn't send reply");
 
             Activity activity = Assert.Single(stoppedActivities, a => a.DisplayName == telemetryEchoAction);
+            Assert.True(sampledParentContexts.TryGetValue(activity.TraceId, out ActivityContext sampledParentContext));
             return new DispatchResult(activity, sampledParentContext, ambientActivity?.Context ?? default);
         }
         finally
