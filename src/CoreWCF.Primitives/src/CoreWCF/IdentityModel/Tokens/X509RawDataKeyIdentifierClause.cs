@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -12,7 +13,7 @@ namespace CoreWCF.IdentityModel.Tokens
         private X509AsymmetricSecurityKey _key;
 
         public X509RawDataKeyIdentifierClause(X509Certificate2 certificate)
-            : this(GetRawData(certificate), false)
+            : base(null, GetRawData(certificate), false)
         {
             _certificate = certificate;
         }
@@ -23,7 +24,7 @@ namespace CoreWCF.IdentityModel.Tokens
         }
 
         internal X509RawDataKeyIdentifierClause(byte[] certificateRawData, bool cloneBuffer)
-            : base(null, certificateRawData, cloneBuffer)
+            : base(null, SecurityUtils.VerifyCertificateContentType(certificateRawData), cloneBuffer)
         {
         }
 
@@ -38,7 +39,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 if (_certificate == null)
                 {
-                    _certificate = new X509Certificate2(GetBuffer());
+                    _certificate = SecurityUtils.CreateCertificateFromRawData(GetBuffer());
                 }
 
                 _key = new X509AsymmetricSecurityKey(_certificate);

@@ -60,7 +60,7 @@ namespace CoreWCF
             reader.ReadStartElement(XD.XmlSignatureDictionary.X509Data, XD.XmlSignatureDictionary.Namespace);
             while (reader.IsStartElement(XD.XmlSignatureDictionary.X509Certificate, XD.XmlSignatureDictionary.Namespace))
             {
-                X509Certificate2 certificate = new X509Certificate2(Convert.FromBase64String(reader.ReadElementString()));
+                X509Certificate2 certificate = Security.SecurityUtils.CreateCertificateFromRawData(Convert.FromBase64String(reader.ReadElementString()));
                 if (Certificates.Count == 0)
                 {
                     // This is the first certificate. We assume this as the primary 

@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 using Microsoft.IdentityModel.Tokens.Saml;
 using MSSAmlSerializer = Microsoft.IdentityModel.Tokens.Saml.SamlSerializer;
 
@@ -270,7 +270,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 // Check if this is a X509RawDataKeyIdentifier Clause.
                 if (ski.TryFind(out X509RawDataKeyIdentifierClause rawDataKeyIdentifierClause))
-                    token = new X509SecurityToken(new X509Certificate2(rawDataKeyIdentifierClause.GetX509RawData()));
+                    token = new X509SecurityToken(SecurityUtils.CreateCertificateFromRawData(rawDataKeyIdentifierClause.GetX509RawData()));
             }
 
             return token;

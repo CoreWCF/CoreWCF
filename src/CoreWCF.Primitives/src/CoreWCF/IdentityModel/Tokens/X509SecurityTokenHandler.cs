@@ -295,9 +295,10 @@ namespace CoreWCF.IdentityModel.Tokens
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.ID4068)));
             }
 
+            using X509Certificate2 certificate = SecurityUtils.CreateCertificateFromRawData(binaryData);
             return string.IsNullOrEmpty(wsuId) ?
-                new X509SecurityToken(new X509Certificate2(binaryData)) :
-                new X509SecurityToken(new X509Certificate2(binaryData), wsuId);
+                new X509SecurityToken(certificate) :
+                new X509SecurityToken(certificate, wsuId);
         }
 
         /// <summary>

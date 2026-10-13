@@ -693,9 +693,31 @@ namespace CoreWCF.Security
             return result;
         }
 
+        internal static X509Certificate2 CreateCertificateFromRawData(byte[] rawData)
+        {
+            return new X509Certificate2(VerifyCertificateContentType(rawData));
+        }
+
+        internal static byte[] VerifyCertificateContentType(byte[] rawData)
+        {
+            if (AppContext.TryGetSwitch("CoreWCF.Security.AllowNonCertificateX509Data", out bool allowNonCertificateX509Data)
+                && allowNonCertificateX509Data)
+            {
+                return rawData;
+            }
+
+            // Serialized certificates can carry unsigned native properties that affect chain trust.
+            if (X509Certificate2.GetCertContentType(rawData) != X509ContentType.Cert)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CryptographicException());
+            }
+
+            return rawData;
+        }
+
         internal static bool TryCreateX509CertificateFromRawData(byte[] rawData, out X509Certificate2 certificate)
         {
-            certificate = (rawData == null || rawData.Length == 0) ? null : new X509Certificate2(rawData);
+            certificate = (rawData == null || rawData.Length == 0) ? null : CreateCertificateFromRawData(rawData);
             return certificate != null && certificate.Handle != IntPtr.Zero;
         }
 

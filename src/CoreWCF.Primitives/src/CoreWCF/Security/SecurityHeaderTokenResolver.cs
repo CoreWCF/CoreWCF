@@ -191,7 +191,7 @@ namespace CoreWCF.Security
             }
             if ((resolvedToken == null) && (keyIdentifierClause is X509RawDataKeyIdentifierClause) && (!matchOnlyExternal) && (resolveIntrinsicKeyClause))
             {
-                resolvedToken = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()));
+                resolvedToken = new X509SecurityToken(SecurityUtils.CreateCertificateFromRawData(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()));
             }
             byte[] derivationNonce = keyIdentifierClause.GetDerivationNonce();
             if ((resolvedToken != null) && (derivationNonce != null))

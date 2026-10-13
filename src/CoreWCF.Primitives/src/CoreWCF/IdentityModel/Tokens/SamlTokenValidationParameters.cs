@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 using Microsoft.IdentityModel.Tokens;
 using MsIdentityTokens = Microsoft.IdentityModel.Tokens;
 
@@ -83,7 +84,7 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             byte[] data = Convert.FromBase64String(x509Datas.FirstOrDefault().Certificates.FirstOrDefault());
-            X509Certificate2 cert = new X509Certificate2(data);
+            X509Certificate2 cert = SecurityUtils.CreateCertificateFromRawData(data);
             validator.Validate(cert);
             return true;
         }
@@ -139,7 +140,7 @@ namespace CoreWCF.IdentityModel.Tokens
                         continue;
                     }
 
-                    X509Certificate2 cert = new X509Certificate2(Convert.FromBase64String(base64Cert));
+                    X509Certificate2 cert = SecurityUtils.CreateCertificateFromRawData(Convert.FromBase64String(base64Cert));
                     yield return new MsIdentityTokens.X509SecurityKey(cert);
                 }
             }

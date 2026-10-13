@@ -351,7 +351,7 @@ namespace CoreWCF.Security
                 reader.ReadStartElement();
                 byte[] rawData = reader.ReadContentAsBase64();
                 reader.ReadEndElement();
-                return new X509CertificateClaimSet(new X509Certificate2(rawData), false);
+                return new X509CertificateClaimSet(SecurityUtils.CreateCertificateFromRawData(rawData), false);
             }
             else if (reader.IsStartElement(dictionary.SystemClaimSet, dictionary.EmptyString))
             {

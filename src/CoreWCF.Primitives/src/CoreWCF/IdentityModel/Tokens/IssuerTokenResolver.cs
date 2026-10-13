@@ -3,6 +3,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 using CoreWCF.IdentityModel.Selectors;
+using CoreWCF.Security;
 
 namespace CoreWCF.IdentityModel.Tokens
 {
@@ -111,7 +112,7 @@ namespace CoreWCF.IdentityModel.Tokens
             //
             if (keyIdentifierClause is X509RawDataKeyIdentifierClause rawDataClause)
             {
-                token = new X509SecurityToken(new X509Certificate2(rawDataClause.GetX509RawData()));
+                token = new X509SecurityToken(SecurityUtils.CreateCertificateFromRawData(rawDataClause.GetX509RawData()));
                 return true;
             }
 

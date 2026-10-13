@@ -1970,7 +1970,7 @@ namespace CoreWCF.Security
             }
             else if (keyIdentifierClause is X509RawDataKeyIdentifierClause)
             {
-                token = new X509SecurityToken(new X509Certificate2(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()), false);
+                token = new X509SecurityToken(SecurityUtils.CreateCertificateFromRawData(((X509RawDataKeyIdentifierClause)keyIdentifierClause).GetX509RawData()), false);
                 return true;
             }
             else if (keyIdentifierClause is EncryptedKeyIdentifierClause keyClause)
