@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -34,6 +35,12 @@ namespace CoreWCF.Channels.Framing
             catch (CoreWCF.Security.SecurityNegotiationException) { } // TODO: Work out where this needs to be caught
             catch (System.IO.IOException) { } // TODO: Work out where this needs to be caught
             catch (CommunicationException) { } // TODO: Work out how this is logged in WCF and replicate
+            catch (OperationCanceledException exception) when (!connection.IsInitializationComplete
+                && connection.ChannelInitializationCancellationToken.IsCancellationRequested)
+            {
+                DiagnosticUtility.TraceHandledException(exception, TraceEventType.Information);
+                connection.Abort(exception);
+            }
         }
 
         public async Task OnConnectedCoreAsync(FramingConnection connection)

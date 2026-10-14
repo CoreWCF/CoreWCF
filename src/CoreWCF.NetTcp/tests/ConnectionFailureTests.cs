@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using System.Threading;
+using System.Text;
 
 namespace CoreWCF.NetTcp.Tests
 {
@@ -163,6 +164,95 @@ namespace CoreWCF.NetTcp.Tests
                     stopwatch.Elapsed,
                     TimeSpan.Zero,
                     TimeSpan.FromSeconds(channelInitializationTimeoutSeconds + 10));
+            }
+        }
+
+        [Theory]
+        [InlineData((byte)0x02)]
+        [InlineData((byte)0x01)]
+        public async Task OpenConnectionAfterViaAndContentTypeTimesOut(byte framingMode)
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilderWithoutNetTcp<ReceiveTimeoutStartup>(_output)
+                .UseNetTcp(options =>
+                {
+                    options.Listen("net.tcp://localhost:0/", listenOptions =>
+                    {
+                        listenOptions.ConnectionPoolSettings.ChannelInitializationTimeout = TimeSpan.FromSeconds(1);
+                    });
+                })
+                .Build();
+            using (host)
+            {
+                host.Start();
+                Uri address = new Uri(host.GetNetTcpAddressInUse() + ReceiveTimeoutStartup.BufferedRelatveAddress);
+                IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, address.Port);
+                using Socket client = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                client.NoDelay = true;
+                client.ReceiveTimeout = 6000;
+                await client.ConnectAsync(endpoint);
+                byte[] via = Encoding.UTF8.GetBytes(address.AbsoluteUri);
+                byte[] preamble = new byte[via.Length + 9];
+                preamble[0] = 0x00;
+                preamble[1] = 0x01;
+                preamble[2] = 0x00;
+                preamble[3] = 0x01;
+                preamble[4] = framingMode;
+                preamble[5] = 0x02;
+                preamble[6] = checked((byte)via.Length);
+                Buffer.BlockCopy(via, 0, preamble, 7, via.Length);
+                preamble[preamble.Length - 2] = 0x03;
+                preamble[preamble.Length - 1] = framingMode == 0x02 ? (byte)0x08 : (byte)0x07;
+                Assert.Equal(preamble.Length, client.Send(preamble));
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                int received;
+                try
+                {
+                    received = client.Receive(new byte[1]);
+                }
+                catch (SocketException exception) when (exception.SocketErrorCode != SocketError.TimedOut)
+                {
+                    received = 0;
+                }
+                Assert.Equal(0, received);
+                Assert.InRange(stopwatch.Elapsed, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            }
+        }
+
+        [Fact]
+        public async Task EstablishedChannelSurvivesInitializationDeadline()
+        {
+            IWebHost host = ServiceHelper.CreateWebHostBuilderWithoutNetTcp<ReceiveTimeoutStartup>(_output)
+                .UseNetTcp(options =>
+                {
+                    options.Listen("net.tcp://localhost:0/", listenOptions =>
+                    {
+                        listenOptions.ConnectionPoolSettings.ChannelInitializationTimeout = TimeSpan.FromSeconds(1);
+                    });
+                })
+                .Build();
+            using (host)
+            {
+                host.Start();
+                UriBuilder endpoint = new UriBuilder(
+                    host.GetNetTcpAddressInUse() + ReceiveTimeoutStartup.BufferedRelatveAddress)
+                {
+                    Host = IPAddress.Loopback.ToString()
+                };
+                System.ServiceModel.ChannelFactory<ClientContract.ITestService> factory =
+                    new System.ServiceModel.ChannelFactory<ClientContract.ITestService>(
+                        new System.ServiceModel.NetTcpBinding(System.ServiceModel.SecurityMode.None),
+                        new System.ServiceModel.EndpointAddress(endpoint.Uri));
+                ClientContract.ITestService channel = factory.CreateChannel();
+                try
+                {
+                    Assert.Equal("first", channel.EchoString("first"));
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    Assert.Equal("second", channel.EchoString("second"));
+                }
+                finally
+                {
+                    ServiceHelper.CloseServiceModelObjects((IChannel)channel, factory);
+                }
             }
         }
 

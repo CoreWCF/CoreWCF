@@ -23,6 +23,7 @@ namespace CoreWCF.Channels.Framing
     public class FramingConnection
     {
         private readonly ConnectionContext _context;
+        private volatile bool _isInitializationComplete;
 
         public FramingConnection(ConnectionContext context)
         {
@@ -39,6 +40,7 @@ namespace CoreWCF.Channels.Framing
         }
 
         internal CancellationToken ChannelInitializationCancellationToken { get; private set; }
+        internal bool IsInitializationComplete => _isInitializationComplete;
         public MessageEncoderFactory MessageEncoderFactory { get; internal set; }
         public StreamUpgradeAcceptor StreamUpgradeAcceptor { get; internal set; }
         public ISecurityCapabilities SecurityCapabilities { get; internal set; }
@@ -116,7 +118,7 @@ namespace CoreWCF.Channels.Framing
             try
             {
                 await Output.WriteAsync(encodedFault.EncodedBytes, cancellationToken);
-                await Output.FlushAsync();
+                await Output.FlushAsync(cancellationToken);
                 // Connection will be closed on completion of Task returned from NetMessageFramingConnectionHandler.OnConnectedAsync
             }
             catch (CommunicationException e) // TODO: Consider exception filters to remvoe duplicate code
@@ -249,6 +251,22 @@ namespace CoreWCF.Channels.Framing
             ).Compile();
         }
 
+        internal CancellationTokenRegistration RegisterInitializationCancellation()
+        {
+            // Legacy authentication APIs can ignore stream cancellation, so also abort the transport.
+            return ChannelInitializationCancellationToken.Register(state =>
+            {
+                FramingConnection connection = (FramingConnection)state;
+                connection.Abort(new OperationCanceledException(connection.ChannelInitializationCancellationToken));
+            }, this);
+        }
+
+        internal void CompleteInitialization()
+        {
+            ChannelInitializationCancellationToken.ThrowIfCancellationRequested();
+            _isInitializationComplete = true;
+        }
+
         internal void SetInitializationToken(bool isFirstChannel)
         {
             // The first time the ChannelInitializationToken token is used, we use the ChannelInitializationTimeout. On subsequent times
@@ -261,6 +279,7 @@ namespace CoreWCF.Channels.Framing
             }
 
             ChannelInitializationCancellationToken = new TimeoutHelper(connectionInitializationTimeout).GetCancellationToken();
+            _isInitializationComplete = false;
         }
     }
 }

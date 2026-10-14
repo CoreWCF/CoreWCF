@@ -16,12 +16,16 @@ namespace CoreWCF.Channels.Framing
     {
         private readonly PipeReader _input;
         private readonly PipeWriter _output;
+        private readonly FramingConnection _connection;
+        private readonly CancellationToken _initializationCancellationToken;
         private IInputLengthDecider _inputLengthDecider;
 
-        public DuplexPipeStream(PipeReader input, PipeWriter output)
+        public DuplexPipeStream(PipeReader input, PipeWriter output, FramingConnection connection = null)
         {
             _input = input;
             _output = output;
+            _connection = connection;
+            _initializationCancellationToken = connection?.ChannelInitializationCancellationToken ?? default;
             _inputLengthDecider = NoopInputLengthDecider.Instance;
         }
 
@@ -79,9 +83,13 @@ namespace CoreWCF.Channels.Framing
             WriteAsync(buffer, offset, count).GetAwaiter().GetResult();
         }
 
-        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return _output.WriteAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+            CancellationToken token = GetCancellationToken(cancellationToken, out CancellationTokenSource linkedSource);
+            using (linkedSource)
+            {
+                await _output.WriteAsync(buffer.AsMemory(offset, count), token);
+            }
         }
 
         // TODO: Enable code when moving to .NET 5
@@ -95,38 +103,67 @@ namespace CoreWCF.Channels.Framing
             FlushAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        public override Task FlushAsync(CancellationToken cancellationToken)
+        public override async Task FlushAsync(CancellationToken cancellationToken)
         {
-            return _output.FlushAsync(cancellationToken).AsTask();
+            CancellationToken token = GetCancellationToken(cancellationToken, out CancellationTokenSource linkedSource);
+            using (linkedSource)
+            {
+                await _output.FlushAsync(token);
+            }
         }
 
         private async ValueTask<int> ReadAsyncInternal(Memory<byte> destination, CancellationToken cancellationToken)
         {
-            while (true)
+            CancellationToken token = GetCancellationToken(cancellationToken, out CancellationTokenSource linkedSource);
+            using (linkedSource)
             {
-                var result = await _input.ReadAsync(cancellationToken);
-                var readableBuffer = result.Buffer;
-                try
+                while (true)
                 {
-                    if (!readableBuffer.IsEmpty)
+                    var result = await _input.ReadAsync(token);
+                    var readableBuffer = result.Buffer;
+                    try
                     {
-                        // buffer.Count is int
-                        var count = _inputLengthDecider.LengthToConsume(readableBuffer, destination.Length);
-                        readableBuffer = readableBuffer.Slice(0, count);
-                        readableBuffer.CopyTo(destination.Span);
-                        return count;
-                    }
+                        if (!readableBuffer.IsEmpty)
+                        {
+                            // buffer.Count is int
+                            var count = _inputLengthDecider.LengthToConsume(readableBuffer, destination.Length);
+                            readableBuffer = readableBuffer.Slice(0, count);
+                            readableBuffer.CopyTo(destination.Span);
+                            return count;
+                        }
 
-                    if (result.IsCompleted)
-                    {
-                        return 0;
+                        if (result.IsCompleted)
+                        {
+                            return 0;
+                        }
                     }
-                }
-                finally
-                {
-                    _input.AdvanceTo(readableBuffer.End, readableBuffer.End);
+                    finally
+                    {
+                        _input.AdvanceTo(readableBuffer.End, readableBuffer.End);
+                    }
                 }
             }
+        }
+
+        private CancellationToken GetCancellationToken(CancellationToken cancellationToken, out CancellationTokenSource linkedSource)
+        {
+            linkedSource = null;
+            // Retained upgrade streams must not inherit a reused connection's new deadline.
+            if (_connection == null || _connection.IsInitializationComplete
+                || _connection.ChannelInitializationCancellationToken != _initializationCancellationToken
+                || !_initializationCancellationToken.CanBeCanceled)
+            {
+                return cancellationToken;
+            }
+
+            if (!cancellationToken.CanBeCanceled || cancellationToken == _initializationCancellationToken)
+            {
+                return _initializationCancellationToken;
+            }
+
+            linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken, _initializationCancellationToken);
+            return linkedSource.Token;
         }
 
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)

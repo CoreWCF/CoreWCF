@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
@@ -21,11 +22,12 @@ namespace CoreWCF.Channels.Framing
 
         public async Task OnConnectedAsync(FramingConnection connection)
         {
-            TimeSpan receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
-            var timeoutHelper = new TimeoutHelper(receiveTimeout);
             bool success = false;
+            CancellationToken cancellationToken = connection.ChannelInitializationCancellationToken;
+            CancellationTokenRegistration initializationCancellation = default;
             try
             {
+                initializationCancellation = connection.RegisterInitializationCancellation();
                 var decoder = connection.FramingDecoder as ServerSingletonDecoder;
                 Fx.Assert(decoder != null, "FramingDecoder must be non-null and an instance of ServerSessionDecoder");
 
@@ -38,7 +40,7 @@ namespace CoreWCF.Channels.Framing
                 {
                     if (buffer.Length == 0 && CanReadAndDecode(upgradeState))
                     {
-                        System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
+                        System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync(cancellationToken);
                         buffer = readResult.Buffer;
                         if (readResult.IsCompleted)
                         {
@@ -74,23 +76,29 @@ namespace CoreWCF.Channels.Framing
                                     case UpgradeState.VerifyingUpgradeRequest:
                                         if (connection.StreamUpgradeAcceptor == null)
                                         {
-                                            connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
+                                            if (buffer.Length > 0)
+                                            {
+                                                connection.Input.AdvanceTo(buffer.Start);
+                                            }
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, cancellationToken);
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                                 new ProtocolException(SR.Format(SR.UpgradeRequestToNonupgradableService, decoder.Upgrade)));
                                         }
 
                                         if (!connection.StreamUpgradeAcceptor.CanUpgrade(decoder.Upgrade))
                                         {
-                                            connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
+                                            if (buffer.Length > 0)
+                                            {
+                                                connection.Input.AdvanceTo(buffer.Start);
+                                            }
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, cancellationToken);
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(SR.Format(SR.UpgradeProtocolNotSupported, decoder.Upgrade)));
                                         }
 
                                         ChangeUpgradeState(ref upgradeState, UpgradeState.WritingUpgradeAck);
                                         // accept upgrade
-                                        await connection.Output.WriteAsync(ServerSingletonEncoder.UpgradeResponseBytes, timeoutHelper.GetCancellationToken());
-                                        await connection.Output.FlushAsync(timeoutHelper.GetCancellationToken());
+                                        await connection.Output.WriteAsync(ServerSingletonEncoder.UpgradeResponseBytes, cancellationToken);
+                                        await connection.Output.FlushAsync(cancellationToken);
                                         ChangeUpgradeState(ref upgradeState, UpgradeState.UpgradeAckSent);
                                         break;
                                     case UpgradeState.UpgradeAckSent:
@@ -140,8 +148,8 @@ namespace CoreWCF.Channels.Framing
                                 {
                                     ChangeUpgradeState(ref upgradeState, UpgradeState.WritingPreambleEnd);
                                     // we've finished the preamble. Ack and return.
-                                    await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
-                                    await connection.Output.FlushAsync();
+                                    await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes, cancellationToken);
+                                    await connection.Output.FlushAsync(cancellationToken);
                                     //terminal state
                                     ChangeUpgradeState(ref upgradeState, UpgradeState.PreambleEndSent);
                                 }
@@ -152,6 +160,8 @@ namespace CoreWCF.Channels.Framing
                                     connection.Input.AdvanceTo(buffer.Start);
                                 }
 
+                                initializationCancellation.Dispose();
+                                connection.CompleteInitialization();
                                 success = true;
                                 await _next(connection);
                                 return;
@@ -166,6 +176,7 @@ namespace CoreWCF.Channels.Framing
             }
             finally
             {
+                initializationCancellation.Dispose();
                 if (!success)
                 {
                     connection.Abort();
@@ -246,7 +257,7 @@ namespace CoreWCF.Channels.Framing
 
         public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output, connection);
             connection.RawStream = duplexPipeStream;
             StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
             Stream stream = await upgradeAcceptor.AcceptUpgradeAsync(connection.RawStream);

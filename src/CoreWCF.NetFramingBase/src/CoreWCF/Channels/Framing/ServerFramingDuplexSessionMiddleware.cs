@@ -4,6 +4,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using CoreWCF.Runtime;
@@ -23,8 +24,11 @@ namespace CoreWCF.Channels.Framing
         public async Task OnConnectedAsync(FramingConnection connection)
         {
             bool success = false;
+            CancellationToken cancellationToken = connection.ChannelInitializationCancellationToken;
+            CancellationTokenRegistration initializationCancellation = default;
             try
             {
+                initializationCancellation = connection.RegisterInitializationCancellation();
                 var decoder = connection.FramingDecoder as ServerSessionDecoder;
                 Fx.Assert(decoder != null, "FramingDecoder must be non-null and an instance of ServerSessionDecoder");
                 // first validate our content type
@@ -34,7 +38,7 @@ namespace CoreWCF.Channels.Framing
                 ReadOnlySequence<byte> buffer;
                 while (true)
                 {
-                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync();
+                    System.IO.Pipelines.ReadResult readResult = await connection.Input.ReadAsync(cancellationToken);
                     buffer = readResult.Buffer;
                     if (readResult.IsCompleted)
                     {
@@ -55,8 +59,8 @@ namespace CoreWCF.Channels.Framing
                                 ProcessUpgradeRequest(connection, decoder);
 
                                 // accept upgrade
-                                await connection.Output.WriteAsync(ServerSessionEncoder.UpgradeResponseBytes);
-                                await connection.Output.FlushAsync();
+                                await connection.Output.WriteAsync(ServerSessionEncoder.UpgradeResponseBytes, cancellationToken);
+                                await connection.Output.FlushAsync(cancellationToken);
                                 //await context.Transport.Output.WriteAsync
                                 //Connection.Write(ServerSessionEncoder.UpgradeResponseBytes, 0, ServerSessionEncoder.UpgradeResponseBytes.Length, true, timeoutHelper.RemainingTime());
 
@@ -89,9 +93,11 @@ namespace CoreWCF.Channels.Framing
                             case ServerSessionDecoder.State.Start:
                                 SetupSecurityIfNecessary(connection);
                                 // we've finished the preamble. Ack and continue to the next middleware.
-                                await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes);
-                                await connection.Output.FlushAsync();
+                                await connection.Output.WriteAsync(ServerSessionEncoder.AckResponseBytes, cancellationToken);
+                                await connection.Output.FlushAsync(cancellationToken);
                                 connection.Input.AdvanceTo(buffer.Start);
+                                initializationCancellation.Dispose();
+                                connection.CompleteInitialization();
                                 await _next(connection);
                                 success = true;
                                 return;
@@ -102,6 +108,7 @@ namespace CoreWCF.Channels.Framing
             }
             finally
             {
+                initializationCancellation.Dispose();
                 if (!success)
                 {
                     connection.Abort();
@@ -151,7 +158,7 @@ namespace CoreWCF.Channels.Framing
 
         public static async Task UpgradeConnectionAsync(FramingConnection connection, string contentType)
         {
-            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output);
+            var duplexPipeStream = new DuplexPipeStream(connection.Input, connection.Output, connection);
             connection.RawStream = duplexPipeStream;
             StreamUpgradeAcceptor upgradeAcceptor = connection.StreamUpgradeAcceptor;
             connection.Logger.StartStreamUpgradeAccept(upgradeAcceptor);
