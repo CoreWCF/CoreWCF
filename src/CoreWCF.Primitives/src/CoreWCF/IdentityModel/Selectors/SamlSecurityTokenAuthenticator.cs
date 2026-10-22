@@ -67,6 +67,8 @@ namespace CoreWCF.IdentityModel.Selectors
             if (samlToken.SigningToken == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.SamlSigningTokenMissing)));
 
+            SamlSecurityTokenHandler.ValidateSubjectConfirmations(samlToken.Assertion);
+
             // Build the Issuer ClaimSet for this Saml token.
             ClaimSet issuer = null;
             bool canBeValidated = false;

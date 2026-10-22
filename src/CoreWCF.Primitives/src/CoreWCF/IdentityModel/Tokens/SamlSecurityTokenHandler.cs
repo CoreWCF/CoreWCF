@@ -129,7 +129,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
         private const string HolderOfKeyConfirmationMethod = "urn:oasis:names:tc:SAML:1.0:cm:holder-of-key";
 
-        private static void ValidateSubjectConfirmations(SamlAssertion assertion)
+        internal static void ValidateSubjectConfirmations(SamlAssertion assertion)
         {
             if (assertion?.Statements == null)
             {
