@@ -161,7 +161,13 @@ namespace CoreWCF.IdentityModel.Tokens
                 signingToken = ((Saml2SecurityToken)samlToken).SigningToken;
             }
 
-            return issuerNameRegistry.GetIssuerName(signingToken, issuer);
+            string issuerName = issuerNameRegistry.GetIssuerName(signingToken, issuer);
+            if (string.IsNullOrWhiteSpace(issuerName))
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.Format(SR.ID4175)));
+            }
+
+            return issuerName;
         }
 
         private bool AudienceValidator(IEnumerable<string> audienceUris, MsIdentityTokens.SecurityToken securityToken, TokenValidationParameters validationParameters)

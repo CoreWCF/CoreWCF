@@ -76,6 +76,7 @@ namespace CoreWCF.IdentityModel.Tokens
         /// <exception cref="ArgumentException">SamlSecurityToken.Assertion is null.</exception>
         /// <exception cref="SecurityTokenValidationException">Thrown if SamlSecurityToken.Assertion.SigningToken is null.</exception>
         /// <exception cref="SecurityTokenValidationException">Thrown if the certificate associated with the token issuer does not pass validation.</exception>
+        /// <exception cref="SecurityTokenException">The configured IssuerNameRegistry does not recognize the token issuer.</exception>
         public override ReadOnlyCollection<ClaimsIdentity> ValidateToken(SecurityToken token)
         {
             if (token == null)
