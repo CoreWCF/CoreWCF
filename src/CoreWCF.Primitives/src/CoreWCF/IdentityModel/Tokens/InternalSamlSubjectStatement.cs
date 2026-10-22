@@ -100,7 +100,7 @@ namespace CoreWCF.IdentityModel.Tokens
 
                 if (_subjectToken != null)
                 {
-                    _subjectKeyClaimset = samlAuthenticator.ResolveClaimSet(_securityKeyIdentifier);
+                    _subjectKeyClaimset = await samlAuthenticator.ResolveClaimSetAsyc(_subjectToken);
                     _identity = await samlAuthenticator.ResolveIdentityAsync(_subjectToken);
                     if ((_identity == null) && (_subjectKeyClaimset != null))
                     {

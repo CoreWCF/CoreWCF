@@ -83,6 +83,9 @@ namespace CoreWCF.IdentityModel.Tokens
             }
         }
 
+        /// <summary>
+        /// Gets the proof keys associated with the assertion subjects, not the issuer's signing key.
+        /// </summary>
         public override ReadOnlyCollection<SecurityKey> SecurityKeys => _keys;
 
         public string AssertionXML { get; internal set; }

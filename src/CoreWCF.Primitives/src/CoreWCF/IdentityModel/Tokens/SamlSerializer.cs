@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Text;
 using System.Xml;
 using CoreWCF.IdentityModel.Selectors;
@@ -23,6 +22,10 @@ namespace CoreWCF.IdentityModel.Tokens
             _mSSamlSerializer.DSigSerializer = new Saml.DSigSerializerExtended();
         }
 
+        /// <summary>
+        /// Reads an assertion, verifies its issuer signature, and resolves the subjects' proof keys independently.
+        /// </summary>
+        /// <exception cref="SecurityTokenException">A subject KeyInfo is present but its proof key cannot be resolved.</exception>
         public virtual SamlSecurityToken ReadToken(XmlDictionaryReader reader, SecurityTokenSerializer keyInfoSerializer, SecurityTokenResolver outOfBandTokenResolver)
         {
             if (reader == null)
@@ -45,9 +48,9 @@ namespace CoreWCF.IdentityModel.Tokens
             }
 
             var imSamlSecurityToken = new Microsoft.IdentityModel.Tokens.Saml.SamlSecurityToken(assertion);
-            var samlSecurityToken = new SamlSecurityToken(imSamlSecurityToken, new ReadOnlyCollection<SecurityKey?>(new List<SecurityKey?>(new[] { verificationKey })));
+            List<SecurityKey> subjectKeys = new List<SecurityKey>();
+            var samlSecurityToken = new SamlSecurityToken(imSamlSecurityToken, subjectKeys.AsReadOnly());
             samlSecurityToken.SigningToken = signingToken;
-            SecurityKeyIdentifier securityKeyIdentifier = CreateSecurityKeyIdentifier(assertion.Signature.KeyInfo, keyInfoSerializer);
 
             foreach (var stmt in assertion.Statements)
             {
@@ -57,7 +60,25 @@ namespace CoreWCF.IdentityModel.Tokens
                 if (samlSubject.Subject.KeyInfo != null)
                 {
                     keyIdentifier = CreateSecurityKeyIdentifier(samlSubject.Subject.KeyInfo, keyInfoSerializer);
-                    securityToken = ResolveSecurityToken(securityKeyIdentifier, outOfBandTokenResolver);
+                    if (samlSubject.Subject.KeyInfo is Saml.KeyInfo subjectKeyInfo && subjectKeyInfo.BinarySecret != null)
+                    {
+                        keyIdentifier.Add(new BinarySecretKeyIdentifierClause(subjectKeyInfo.BinarySecret.GetBytes()));
+                    }
+
+                    SecurityKey subjectKey = ResolveSecurityKey(keyIdentifier, outOfBandTokenResolver);
+                    if (subjectKey == null)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityTokenException(SR.SamlUnableToExtractSubjectKey));
+                    }
+
+                    if (!(subjectKey is InMemorySymmetricSecurityKey symmetricKey)
+                        || !subjectKeys.Exists(key => key is InMemorySymmetricSecurityKey existingKey
+                            && SecurityUtils.IsEqual(existingKey.GetSymmetricKey(), symmetricKey.GetSymmetricKey())))
+                    {
+                        subjectKeys.Add(subjectKey);
+                    }
+
+                    securityToken = ResolveSecurityToken(keyIdentifier, outOfBandTokenResolver);
                 }
                 var internalSamlSubjectStatement = new InternalSamlSubjectStatement(samlSubject, keyIdentifier, securityToken);
                 samlSecurityToken.SamlStatements.Add(internalSamlSubjectStatement);
