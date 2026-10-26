@@ -11,8 +11,10 @@ using CoreWCF.Channels.Framing;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
+#if !NETFRAMEWORK
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -56,10 +58,17 @@ namespace CoreWCF.Configuration
             {
                 services.AddNetFramingServices();
                 services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, NetTcpHostedService>());
+#if NETFRAMEWORK
+                // On .NET Framework, NetTcp uses a CoreWCF-owned socket transport instead of
+                // Kestrel. Kestrel 2.x can't load its transport types when the app graph contains
+                // Microsoft.AspNetCore.Connections.Abstractions >= 8.0 (see issue #1681).
+                services.TryAddSingleton<Channels.NetTcpFramingTransportManager>();
+#else
                 services.TryAddSingleton<NetTcpFramingOptionsSetup>();
                 services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<KestrelServerOptions>, NetTcpFramingOptionsSetup>(provider => provider.GetRequiredService<NetTcpFramingOptionsSetup>()));
-                services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<NetTcpOptions>, NetTcpServerOptionsSetup>());
                 services.TryAddSingleton<SocketTransportFactory>();
+#endif
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<NetTcpOptions>, NetTcpServerOptionsSetup>());
             });
             return webHostBuilder;
         }
@@ -96,6 +105,7 @@ namespace CoreWCF.Configuration
         public List<IPEndPoint> EndPoints { get; } = new List<IPEndPoint>();
     }
 
+#if !NETFRAMEWORK
     internal class NetTcpFramingOptionsSetup : IConfigureOptions<KestrelServerOptions>
     {
         private readonly ILogger<NetTcpFramingOptions> _logger;
@@ -247,4 +257,5 @@ namespace CoreWCF.Configuration
             ListenOptions.Clear();
         }
     }
+#endif
 }
