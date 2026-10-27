@@ -267,6 +267,12 @@ namespace CoreWCF.Dispatcher
             else*/
             if (outerChannel is IDuplexSessionChannel duplexSessionChannel)
             {
+                // Security-session channels are opened by the demuxer; non-session
+                // security must open the transport before its receive loop starts.
+                if (duplexSessionChannel.State == CommunicationState.Created)
+                {
+                    await duplexSessionChannel.OpenAsync();
+                }
                 securityChannelDispatcher = new SecurityDuplexSessionChannelDispatcher(this, duplexSessionChannel, securityProtocol, _settingsLifetimeManager);
             }
             else if (outerChannel is IReplyChannel replyChannel)
@@ -604,8 +610,9 @@ namespace CoreWCF.Dispatcher
             message = await ProcessInnerItemAsync(message, ServiceDefaults.SendTimeout);
             if (_serviceChannelDispatcher == null)
             {
-                _serviceChannelDispatcher = await SecurityServiceDispatcher.
-                 SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this);
+                _serviceChannelDispatcher = SecurityServiceDispatcher.SessionMode
+                    ? await SecurityServiceDispatcher.SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this)
+                    : await SecurityServiceDispatcher.GetInnerServiceChannelDispatcher(this);
             }
             await _serviceChannelDispatcher.DispatchAsync(message);
         }
