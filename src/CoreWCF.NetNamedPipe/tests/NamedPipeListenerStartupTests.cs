@@ -83,6 +83,34 @@ public class NamedPipeListenerStartupTests
         }
     }
 
+    // The accept pump keeps MaxPendingAccepts unconnected pipe instances waiting for a
+    // client. Stopping the listener must cancel those waits and dispose the pipes;
+    // otherwise every start/stop cycle leaks MaxPendingAccepts pipe handles.
+    [WindowsOnlyFact]
+    public async Task NetPipeStopAsyncCompletesPendingAcceptPumps()
+    {
+        string basePath = nameof(NetPipeStopAsyncCompletesPendingAcceptPumps);
+        var host = ServiceHelper.CreateWebHostBuilder<Startup>(_output, basePath).Build();
+        using (host)
+        {
+            object listener = CreateListener(host.Services);
+
+            await InvokeBindAsync(listener);
+            InvokeStartAccepting(listener);
+
+            Task[] pumpTasks = GetAcceptPumpTasks(listener);
+            Assert.NotEmpty(pumpTasks);
+            Assert.All(pumpTasks, t => Assert.False(t.IsCompleted, "Accept pumps should be waiting for a client."));
+
+            await InvokeStopAsync(listener);
+
+            Task allPumps = Task.WhenAll(pumpTasks);
+            Task completed = await Task.WhenAny(allPumps, Task.Delay(TimeSpan.FromSeconds(5)));
+            Assert.True(ReferenceEquals(allPumps, completed), "StopAsync should end every pending accept pump.");
+            Assert.All(pumpTasks, t => Assert.Equal(TaskStatus.RanToCompletion, t.Status));
+        }
+    }
+
     private static object CreateListener(IServiceProvider hostServices)
     {
         Assembly assembly = typeof(CoreWCF.NetNamedPipeBinding).Assembly;
