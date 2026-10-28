@@ -190,7 +190,7 @@ namespace CoreWCF.Channels
             {
                 try
                 {
-                    await Task.WhenAll(_tasks).ConfigureAwait(false);
+                    await Task.WhenAll(_tasks);
                 }
                 catch (Exception ex)
                 {
@@ -203,7 +203,7 @@ namespace CoreWCF.Channels
 
             _sharedMemory?.Dispose();
             _sharedMemory = null;
-            await _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken).ConfigureAwait(false);
+            await _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken);
         }
     }
 }
