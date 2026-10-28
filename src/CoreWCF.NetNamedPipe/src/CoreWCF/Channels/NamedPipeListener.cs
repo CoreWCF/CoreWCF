@@ -148,7 +148,22 @@ namespace CoreWCF.Channels
             while (!token.IsCancellationRequested)
             {
                 var pipe = PipeStreamHelper.CreatePipeStream(_options, _sharedMemory.PipeName, ref _firstConnection);
-                await pipe.WaitForConnectionAsync();
+                try
+                {
+                    await pipe.WaitForConnectionAsync(token);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    // Listener is stopping: release the pending pipe instance.
+                    pipe.Dispose();
+                    return;
+                }
+                catch
+                {
+                    pipe.Dispose();
+                    throw;
+                }
+
                 // Add the connection to the connection manager before we queue it for execution
                 var connectionContext = new NamedPipeConnectionContext(pipe, _inputOptions, _outputOptions, _options.ConnectionBufferSize);
                 var logger = new ConnectionIdWrappingLogger(_framingConnectionLogger, connectionContext.ConnectionId);
@@ -163,15 +178,32 @@ namespace CoreWCF.Channels
             }
         }
 
-        internal Task StopAsync(CancellationToken cancellationToken)
+        internal async Task StopAsync(CancellationToken cancellationToken)
         {
             // TODO: Signal the main dispatcher we're closing down and give it some time to cleanly
             // close the channels. If it doesn't close them in time, we'll close the connection from
             // underneath it to avoid leaking the connection.
             // For now we just close the connection from underneath it.
+            // Stop the accept pumps so pending (unconnected) pipe instances are disposed.
+            _acceptPumpCancellationTokenSource?.Cancel();
+            if (_tasks != null)
+            {
+                try
+                {
+                    await Task.WhenAll(_tasks).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Accept pump faulted while stopping");
+                }
+            }
+
+            _acceptPumpCancellationTokenSource?.Dispose();
+            _acceptPumpCancellationTokenSource = null;
+
             _sharedMemory?.Dispose();
             _sharedMemory = null;
-            return _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken);
+            await _transportConnectionManager.CloseAllConnectionsAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
