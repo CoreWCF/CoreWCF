@@ -267,6 +267,12 @@ namespace CoreWCF.Dispatcher
             else*/
             if (outerChannel is IDuplexSessionChannel duplexSessionChannel)
             {
+                // Security-session channels are opened by the demuxer; non-session
+                // security must open the transport before its receive loop starts.
+                if (duplexSessionChannel.State == CommunicationState.Created)
+                {
+                    await duplexSessionChannel.OpenAsync();
+                }
                 securityChannelDispatcher = new SecurityDuplexSessionChannelDispatcher(this, duplexSessionChannel, securityProtocol, _settingsLifetimeManager);
             }
             else if (outerChannel is IReplyChannel replyChannel)
@@ -600,12 +606,14 @@ namespace CoreWCF.Dispatcher
 
         public override async Task DispatchAsync(Message message)
         {
-            Fx.Assert(State == CommunicationState.Opened, "Expected dispatcher state to be Opened, instead it's " + State.ToString());
+            // The receive loop also dispatches null for end-of-stream during channel shutdown.
+            Fx.Assert(message == null || State == CommunicationState.Opened, "Expected dispatcher state to be Opened, instead it's " + State.ToString());
             message = await ProcessInnerItemAsync(message, ServiceDefaults.SendTimeout);
             if (_serviceChannelDispatcher == null)
             {
-                _serviceChannelDispatcher = await SecurityServiceDispatcher.
-                 SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this);
+                _serviceChannelDispatcher = SecurityServiceDispatcher.SessionMode
+                    ? await SecurityServiceDispatcher.SecurityAuthServiceDispatcher.CreateServiceChannelDispatcherAsync(this)
+                    : await SecurityServiceDispatcher.GetInnerServiceChannelDispatcher(this);
             }
             await _serviceChannelDispatcher.DispatchAsync(message);
         }
