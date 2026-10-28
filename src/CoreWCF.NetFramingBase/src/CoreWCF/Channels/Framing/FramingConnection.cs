@@ -206,6 +206,7 @@ namespace CoreWCF.Channels.Framing
         /// <returns>The endpoint of the remote party or null if it was not provided.</returns>
         private static IPEndPoint GetRemoteEndPoint(ConnectionContext context)
         {
+#if !NETFRAMEWORK
             // 1st chance: Server might provide remote endpoint via HTTP feature
             // (mostly the case in ASP.net core v2.x)
             IHttpConnectionFeature connectionFeature = context.Features.Get<IHttpConnectionFeature>();
@@ -213,6 +214,7 @@ namespace CoreWCF.Channels.Framing
             {
                 return new IPEndPoint(connectionFeature.RemoteIpAddress, connectionFeature.RemotePort);
             }
+#endif
 
             // 2nd chance: on ASP.net core 5.0 the ConnectionContext has a direct Property RemoteEndpoint
             // via baseclass.
