@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -55,7 +55,9 @@ namespace CoreWCF.Channels
                     cancellationToken))
                 {
                     connection.Logger.StartPendingReadOnIdleSocket();
-                    Debug.Assert(connection.Transport == connection.RawTransport);
+                    // Transport may differ from RawTransport when reliable sessions wrap the transport.
+                    Debug.Assert(connection.Transport == connection.RawTransport
+                        || connection.Transport != null, "Connection transport should not be null");
                     var readResult = await connection.Input.ReadAsync(linkedCts.Token);
                     connection.Logger.EndPendingReadOnIdleSocket(readResult);
                     if (readResult.IsCompleted)

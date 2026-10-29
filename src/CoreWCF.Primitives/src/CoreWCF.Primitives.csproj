@@ -7,6 +7,11 @@
     <RootNamespace />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Common\src\DuplexChannels\CoreWCF\Channels\ServiceChannelBase.cs" Link="CoreWCF\Channels\ServiceChannelBase.cs">
+      <Visible>true</Visible>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" />
@@ -69,5 +74,9 @@
       <PackagePath>contentFiles</PackagePath>
       <Visible>false</Visible>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="CSharp;Managed;ClassDesigner" />
   </ItemGroup>
 </Project>

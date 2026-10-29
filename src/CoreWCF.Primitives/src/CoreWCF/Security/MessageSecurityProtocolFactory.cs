@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Channels;
 using CoreWCF.IdentityModel.Selectors;
@@ -141,20 +142,11 @@ namespace CoreWCF.Security
 
         protected virtual void ValidateCorrelationSecuritySettings()
         {
-            if (ActAsInitiator && SupportsRequestReply)
-            {
-                bool savesCorrelationTokenOnRequest = ApplyIntegrity || ApplyConfidentiality;
-                bool needsCorrelationTokenOnReply = RequireIntegrity || RequireConfidentiality;
-                if (!savesCorrelationTokenOnRequest && needsCorrelationTokenOnReply)
-                {
-                    OnPropertySettingsError(nameof(ApplyIntegrity), false);
-                }
-            }
         }
 
-        public override Task OnOpenAsync(TimeSpan timeout)
+        public override async Task OnOpenAsync(CancellationToken token)
         {
-            base.OnOpenAsync(timeout);
+            await base.OnOpenAsync(token);
             ProtectionRequirements.MakeReadOnly();
 
             if (DetectReplays && !RequireIntegrity)
@@ -180,7 +172,6 @@ namespace CoreWCF.Security
             WrappedKeySecurityTokenAuthenticator.Add(authenticator);
 
             ValidateCorrelationSecuritySettings();
-            return Task.CompletedTask;
         }
 
         private static MessagePartSpecification ExtractMessageParts(string action,
@@ -221,7 +212,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingEncryptionParts : ProtectionRequirements.IncomingEncryptionParts, false);
+                    return ExtractMessageParts(action, ProtectionRequirements.IncomingEncryptionParts, false);
                 }
             }
             else
@@ -240,7 +231,7 @@ namespace CoreWCF.Security
                 }
                 else
                 {
-                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.OutgoingSignatureParts : ProtectionRequirements.IncomingSignatureParts, true);
+                    return ExtractMessageParts(action, ProtectionRequirements.IncomingSignatureParts, true);
                 }
             }
             else
@@ -253,14 +244,7 @@ namespace CoreWCF.Security
         {
             if (ApplyConfidentiality)
             {
-                if (IsDuplexReply)
-                {
-                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
-                }
-                else
-                {
-                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingEncryptionParts : ProtectionRequirements.OutgoingEncryptionParts, false);
-                }
+                return ExtractMessageParts(action, ProtectionRequirements.OutgoingEncryptionParts, false);
             }
             else
             {
@@ -272,14 +256,7 @@ namespace CoreWCF.Security
         {
             if (ApplyIntegrity)
             {
-                if (IsDuplexReply)
-                {
-                    return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
-                }
-                else
-                {
-                    return ExtractMessageParts(action, (ActAsInitiator) ? ProtectionRequirements.IncomingSignatureParts : ProtectionRequirements.OutgoingSignatureParts, true);
-                }
+                return ExtractMessageParts(action, ProtectionRequirements.OutgoingSignatureParts, true);
             }
             else
             {

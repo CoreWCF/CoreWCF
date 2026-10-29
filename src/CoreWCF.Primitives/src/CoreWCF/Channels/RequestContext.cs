@@ -17,9 +17,6 @@ namespace CoreWCF.Channels
         public abstract Task CloseAsync(CancellationToken token);
         protected virtual void Dispose(bool disposing) { }
         public virtual void OnOperationInvoke() { }
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
-        }
+        void IDisposable.Dispose() => Dispose(true);
     }
 }

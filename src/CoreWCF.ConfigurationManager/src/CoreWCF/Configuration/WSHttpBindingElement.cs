@@ -47,6 +47,7 @@ namespace CoreWCF.Configuration
             };
 
             //binding.AllowCookies = this.AllowCookies;
+            ReliableSession.ApplyConfiguration(binding.ReliableSession);
             Security.ApplyConfiguration(binding.Security);
             return binding;
         }

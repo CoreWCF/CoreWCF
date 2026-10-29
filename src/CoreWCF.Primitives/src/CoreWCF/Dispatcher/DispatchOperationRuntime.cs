@@ -500,7 +500,7 @@ namespace CoreWCF.Dispatcher
 
                 // Add the ImpersonateOnSerializingReplyMessageProperty on the reply message iff
                 // a. reply message is not null.
-                // b. Impersonation is enabled on serializing Reply
+                // b. Impersonation is enabled on serializing ReplyAsync
 
                 if (reply != null && Parent.IsImpersonationEnabledOnSerializingReply)
                 {

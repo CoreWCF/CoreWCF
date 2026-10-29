@@ -12,6 +12,7 @@ namespace CoreWCF
     {
         private TextMessageEncodingBindingElement _textEncoding;
         private MtomMessageEncodingBindingElement _mtomEncoding;
+        private OptionalReliableSession _reliableSession;
 
         protected WSHttpBindingBase()
             : base()
@@ -21,10 +22,7 @@ namespace CoreWCF
 
         protected WSHttpBindingBase(bool reliableSessionEnabled) : this()
         {
-            if (reliableSessionEnabled)
-            {
-                throw new PlatformNotSupportedException();
-            }
+            ReliableSession.Enabled = reliableSessionEnabled;
         }
 
         [DefaultValue(false)]
@@ -86,6 +84,22 @@ namespace CoreWCF
             }
         }
 
+        public OptionalReliableSession ReliableSession
+        {
+            get { return _reliableSession; }
+            set
+            {
+                if (value == null)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentNullException(nameof(value)));
+                }
+
+                _reliableSession.Ordered = value.Ordered;
+                _reliableSession.InactivityTimeout = value.InactivityTimeout;
+                _reliableSession.Enabled = value.Enabled;
+            }
+        }
+
         public override string Scheme { get { return GetTransport().Scheme; } }
 
         public EnvelopeVersion EnvelopeVersion
@@ -107,10 +121,13 @@ namespace CoreWCF
 
         internal HttpsTransportBindingElement HttpsTransport { get; private set; }
 
+        internal ReliableSessionBindingElement ReliableSessionBindingElement { get; private set; }
+
         private void Initialize()
         {
             HttpTransport = new HttpTransportBindingElement();
             HttpsTransport = new HttpsTransportBindingElement();
+            ReliableSessionBindingElement = new ReliableSessionBindingElement(true);
             _textEncoding = new TextMessageEncodingBindingElement
             {
                 MessageVersion = MessageVersion.Soap12WSAddressing10
@@ -119,6 +136,7 @@ namespace CoreWCF
             {
                 MessageVersion = MessageVersion.Soap12WSAddressing10
             };
+            _reliableSession = new CoreWCF.OptionalReliableSession(ReliableSessionBindingElement);
         }
 
         public override BindingElementCollection CreateBindingElements()
@@ -126,6 +144,12 @@ namespace CoreWCF
             BindingElementCollection bindingElements = new BindingElementCollection();
             // order of BindingElements is important
             // context
+
+            // reliable
+            if (_reliableSession.Enabled)
+            {
+                bindingElements.Add(ReliableSessionBindingElement);
+            }
 
             // add security (*optional)
             SecurityBindingElement wsSecurity = CreateMessageSecurity();
