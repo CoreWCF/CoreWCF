@@ -140,6 +140,7 @@ namespace CoreWCF.OpenApi
                         tagsToHide,
                         basePathAttribute?.BasePath,
                         contractInfo.ResponseFormat,
+                        contractInfo.Address,
                         GetMethodUriWebGet);
 
                     PopulateOpenApiPath(
@@ -148,6 +149,7 @@ namespace CoreWCF.OpenApi
                         tagsToHide,
                         basePathAttribute?.BasePath,
                         contractInfo.ResponseFormat,
+                        contractInfo.Address,
                         GetMethodUriWebInvoke);
                 }
             }
@@ -168,6 +170,7 @@ namespace CoreWCF.OpenApi
             IEnumerable<string> tagsToHide,
             string additionalBasePath,
             WebMessageFormat behaviorFormat,
+            Uri address,
             Func<MethodInfo, OperationInfo> getOperationInfo)
         {
             OperationInfo operationInfo = getOperationInfo(methodInfo);
@@ -193,6 +196,10 @@ namespace CoreWCF.OpenApi
 
             string uri = Regex.Replace(operationInfo.UriTemplate, @"\?.*", "");
 
+            if (address != null)
+            {
+                uri = address.OriginalString + "/" + uri;
+            }
             if (!string.IsNullOrEmpty(additionalBasePath))
             {
                 uri = additionalBasePath + uri;
@@ -281,7 +288,7 @@ namespace CoreWCF.OpenApi
             return new OperationInfo
             {
                 Method = "get",
-                UriTemplate = attribute.UriTemplate,
+                UriTemplate = attribute.UriTemplate ?? methodInfo.Name,
                 IsResponseFormatSetExplicitly = attribute.IsResponseFormatSetExplicitly,
                 ResponseFormat = attribute.ResponseFormat,
                 IsRequestFormatSetExplicitly = attribute.IsRequestFormatSetExplicitly,
@@ -306,8 +313,8 @@ namespace CoreWCF.OpenApi
 
             return new OperationInfo
             {
-                Method = attribute.Method?.ToLower(CultureInfo.InvariantCulture),
-                UriTemplate = attribute.UriTemplate,
+                Method = attribute.Method?.ToLower(CultureInfo.InvariantCulture) ?? "post",
+                UriTemplate = attribute.UriTemplate ?? methodInfo.Name,
                 IsResponseFormatSetExplicitly = attribute.IsResponseFormatSetExplicitly,
                 ResponseFormat = attribute.ResponseFormat,
                 IsRequestFormatSetExplicitly = attribute.IsRequestFormatSetExplicitly,
