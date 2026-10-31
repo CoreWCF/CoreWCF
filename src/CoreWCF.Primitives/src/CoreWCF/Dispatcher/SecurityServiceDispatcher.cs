@@ -441,7 +441,15 @@ namespace CoreWCF.Dispatcher
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
                 await innerContext.ReplyAsync(faultMessage);
-                await innerContext.CloseAsync(timeoutHelper.GetCancellationToken());
+                var token = timeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                try
+                {
+                    await innerContext.CloseAsync(token);
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
             }
             catch (Exception ex)
             {
@@ -528,11 +536,19 @@ namespace CoreWCF.Dispatcher
 
         protected IDuplexChannel InnerDuplexChannel { get; }
 
-        public Task SendAsync(Message message, TimeSpan timeout)
+        public async Task SendAsync(Message message, TimeSpan timeout)
         {
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
-            message = SecurityProtocol.SecureOutgoingMessage(message, timeoutHelper.GetCancellationToken());
-            return InnerDuplexChannel.SendAsync(message, timeoutHelper.GetCancellationToken());
+            var token = timeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                message = SecurityProtocol.SecureOutgoingMessage(message, token);
+                await InnerDuplexChannel.SendAsync(message, token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
     }
 

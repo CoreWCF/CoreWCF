@@ -237,6 +237,9 @@ namespace CoreWCF.Security
             else
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+                RecoverableTokenRegistration registration = default;
+                try
+                {
                 SecurityProtocolFactory.ExpectSupportingTokens = true;
                 _mergedSupportingTokenProvidersMap = new Dictionary<string, Collection<SupportingTokenProviderSpecification>>();
                 foreach (string action in ScopedSupportingTokenProviderSpecification.Keys)
@@ -253,7 +256,7 @@ namespace CoreWCF.Security
                     }
                     foreach (SupportingTokenProviderSpecification spec in scopedProviders)
                     {
-                        await SecurityUtils.OpenTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.GetCancellationToken());
+                        await SecurityUtils.OpenTokenProviderIfRequiredAsync(spec.TokenProvider, timeoutHelper.GetCancellationToken(out registration));
                         if (spec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.Endorsing || spec.SecurityTokenAttachmentMode == SecurityTokenAttachmentMode.SignedEndorsing)
                         {
                             if (spec.TokenParameters.RequireDerivedKeys && !spec.TokenParameters.HasAsymmetricKey)
@@ -264,6 +267,11 @@ namespace CoreWCF.Security
                         mergedProviders.Add(spec);
                     }
                     _mergedSupportingTokenProvidersMap.Add(action, mergedProviders);
+                }
+                }
+                finally
+                {
+                    registration.Dispose();
                 }
             }
         }
@@ -310,7 +318,9 @@ namespace CoreWCF.Security
                     else
                     {
                         SecurityProtocolFactory.ExpectSupportingTokens = true;
-                        CancellationToken cancellationToken = timeoutHelper.GetCancellationToken();
+                        CancellationToken cancellationToken = timeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                        try
+                        {
                         foreach (SupportingTokenProviderSpecification tokenProviderSpec in ChannelSupportingTokenProviderSpecification)
                         {
                             await SecurityUtils.OpenTokenProviderIfRequiredAsync(tokenProviderSpec.TokenProvider, cancellationToken);
@@ -324,6 +334,11 @@ namespace CoreWCF.Security
                         }
                         ChannelSupportingTokenProviderSpecification =
                             new ReadOnlyCollection<SupportingTokenProviderSpecification>((Collection<SupportingTokenProviderSpecification>)ChannelSupportingTokenProviderSpecification);
+                        }
+                        finally
+                        {
+                            registration.Dispose();
+                        }
                     }
                 }
                 // create a merged map of the per operation supporting tokens
@@ -467,17 +482,25 @@ namespace CoreWCF.Security
             }
 
             TimeoutHelper timeoutHelper = new TimeoutHelper(timeout);
+            RecoverableTokenRegistration registration = default;
             IList<SupportingTokenProviderSpecification> supportingTokenProviders = GetSupportingTokenProviders(message.Headers.Action);
             if (supportingTokenProviders != null && supportingTokenProviders.Count > 0)
             {
                 supportingTokens = new Collection<SupportingTokenSpecification>();
-                for (int i = 0; i < supportingTokenProviders.Count; ++i)
+                try
                 {
-                    SupportingTokenProviderSpecification spec = supportingTokenProviders[i];
-                    SecurityToken supportingToken;
-                    supportingToken = await spec.TokenProvider.GetTokenAsync(timeoutHelper.GetCancellationToken());
+                    for (int i = 0; i < supportingTokenProviders.Count; ++i)
+                    {
+                        SupportingTokenProviderSpecification spec = supportingTokenProviders[i];
+                        SecurityToken supportingToken;
+                        supportingToken = await spec.TokenProvider.GetTokenAsync(timeoutHelper.GetCancellationToken(out registration));
 
-                    supportingTokens.Add(new SupportingTokenSpecification(supportingToken, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, spec.SecurityTokenAttachmentMode, spec.TokenParameters));
+                        supportingTokens.Add(new SupportingTokenSpecification(supportingToken, EmptyReadOnlyCollection<IAuthorizationPolicy>.Instance, spec.SecurityTokenAttachmentMode, spec.TokenParameters));
+                    }
+                }
+                finally
+                {
+                    registration.Dispose();
                 }
             }
 
@@ -556,9 +579,11 @@ namespace CoreWCF.Security
             }
 
             SecurityToken token;
+            var tokenTimeoutHelper = new TimeoutHelper(timeout);
+            var tokenTimeoutToken = tokenTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
             try
             {
-                token = await provider.GetTokenAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                token = await provider.GetTokenAsync(tokenTimeoutToken);
             }
             catch (SecurityTokenException exception)
             {
@@ -567,6 +592,10 @@ namespace CoreWCF.Security
             catch (SecurityNegotiationException sne)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new SecurityNegotiationException(SR.Format(SR.TokenProviderCannotGetTokensForTarget, target), sne));
+            }
+            finally
+            {
+                registration.Dispose();
             }
 
             return token;

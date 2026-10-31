@@ -391,7 +391,10 @@ namespace CoreWCF.Channels.Framing
 
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                CancellationToken ct = new TimeoutHelper(_timeouts.ReceiveTimeout).GetCancellationToken();
+                var receiveTimeoutHelper = new TimeoutHelper(_timeouts.ReceiveTimeout);
+                CancellationToken ct = receiveTimeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                try
+                {
                 int result = 0;
                 while (true)
                 {
@@ -451,6 +454,11 @@ namespace CoreWCF.Channels.Framing
                     {
                         _connection.Input.AdvanceTo(_buffer.End);
                     }
+                }
+                }
+                finally
+                {
+                    registration.Dispose();
                 }
             }
 

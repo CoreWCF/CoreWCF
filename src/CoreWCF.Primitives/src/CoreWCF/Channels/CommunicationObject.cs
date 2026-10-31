@@ -112,10 +112,18 @@ namespace CoreWCF.Channels
             //}
         }
 
-        public Task CloseAsync()
+        public async Task CloseAsync()
         {
             var helper = new TimeoutHelper(DefaultCloseTimeout);
-            return CloseAsync(helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await CloseAsync(token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public async Task CloseAsync(CancellationToken token)
@@ -198,10 +206,18 @@ namespace CoreWCF.Channels
 
         }
 
-        public System.Threading.Tasks.Task OpenAsync()
+        public async System.Threading.Tasks.Task OpenAsync()
         {
-            CancellationToken token = new TimeoutHelper(DefaultOpenTimeout).GetCancellationToken();
-            return OpenAsync(token);
+            var helper = new TimeoutHelper(DefaultOpenTimeout);
+            CancellationToken token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await OpenAsync(token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public async Task OpenAsync(CancellationToken token)

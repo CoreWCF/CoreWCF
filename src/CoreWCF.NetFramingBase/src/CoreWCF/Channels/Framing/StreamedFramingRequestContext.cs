@@ -229,10 +229,17 @@ namespace CoreWCF.Channels.Framing
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var timeoutHelper = new TimeoutHelper(_timeouts.SendTimeout);
-            CancellationToken ct = timeoutHelper.GetCancellationToken();
-            await WriteChunkSizeAsync(count, ct);
-            await _connection.Output.WriteAsync(new ArraySegment<byte>(buffer, offset, count), ct);
-            await _connection.Output.FlushAsync();
+            CancellationToken ct = timeoutHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await WriteChunkSizeAsync(count, ct);
+                await _connection.Output.WriteAsync(new ArraySegment<byte>(buffer, offset, count), ct);
+                await _connection.Output.FlushAsync();
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public override void Flush()

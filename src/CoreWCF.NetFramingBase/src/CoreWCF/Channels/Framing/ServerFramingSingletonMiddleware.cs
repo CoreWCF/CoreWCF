@@ -23,6 +23,7 @@ namespace CoreWCF.Channels.Framing
         {
             TimeSpan receiveTimeout = connection.ServiceDispatcher.Binding.ReceiveTimeout;
             var timeoutHelper = new TimeoutHelper(receiveTimeout);
+            RecoverableTokenRegistration registration = default;
             bool success = false;
             try
             {
@@ -75,7 +76,7 @@ namespace CoreWCF.Channels.Framing
                                         if (connection.StreamUpgradeAcceptor == null)
                                         {
                                             connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken(out registration));
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                                                 new ProtocolException(SR.Format(SR.UpgradeRequestToNonupgradableService, decoder.Upgrade)));
                                         }
@@ -83,14 +84,14 @@ namespace CoreWCF.Channels.Framing
                                         if (!connection.StreamUpgradeAcceptor.CanUpgrade(decoder.Upgrade))
                                         {
                                             connection.Input.AdvanceTo(buffer.Start); // Make sure that input pipe is able to be read again by SendFaultAsync
-                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken());
+                                            await connection.SendFaultAsync(FramingEncodingString.UpgradeInvalidFault, TransportDefaults.MaxDrainSize, timeoutHelper.GetCancellationToken(out registration));
                                             throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ProtocolException(SR.Format(SR.UpgradeProtocolNotSupported, decoder.Upgrade)));
                                         }
 
                                         ChangeUpgradeState(ref upgradeState, UpgradeState.WritingUpgradeAck);
                                         // accept upgrade
-                                        await connection.Output.WriteAsync(ServerSingletonEncoder.UpgradeResponseBytes, timeoutHelper.GetCancellationToken());
-                                        await connection.Output.FlushAsync(timeoutHelper.GetCancellationToken());
+                                        await connection.Output.WriteAsync(ServerSingletonEncoder.UpgradeResponseBytes, timeoutHelper.GetCancellationToken(out registration));
+                                        await connection.Output.FlushAsync(timeoutHelper.GetCancellationToken(out registration));
                                         ChangeUpgradeState(ref upgradeState, UpgradeState.UpgradeAckSent);
                                         break;
                                     case UpgradeState.UpgradeAckSent:
@@ -166,6 +167,7 @@ namespace CoreWCF.Channels.Framing
             }
             finally
             {
+                registration.Dispose();
                 if (!success)
                 {
                     connection.Abort();
