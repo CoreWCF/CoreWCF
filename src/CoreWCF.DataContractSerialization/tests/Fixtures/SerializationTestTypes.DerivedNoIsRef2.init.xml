@@ -1,0 +1,1 @@
+<Root z:Id="i1" xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/SerializationTestTypes" xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:z="http://schemas.microsoft.com/2003/10/Serialization/"><a:Data z:Id="i2"><a:Data>This is a string</a:Data></a:Data><a:RefData z:Ref="i2"/><a:RefData2 z:Ref="i2"/></Root>

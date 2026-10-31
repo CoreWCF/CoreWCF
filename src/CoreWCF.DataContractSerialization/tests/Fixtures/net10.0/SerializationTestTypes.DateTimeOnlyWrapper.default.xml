@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/SerializationTestTypes" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Date>0001-01-01</a:Date><a:NullableDate i:nil="true"/><a:NullableTime i:nil="true"/><a:Time>00:00:00</a:Time></Root>

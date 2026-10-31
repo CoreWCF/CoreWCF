@@ -1,0 +1,14 @@
+# Golden fixtures are byte-exact serializer output, not source files.
+#
+# src/.editorconfig sets `insert_final_newline = true` and `end_of_line = crlf` under [*], so any
+# editor that opens and saves a fixture would append a newline and corrupt it. Opt out here.
+# src/.editorconfig declares `root = true`, which stops the upward search - it does not prevent
+# this nested file from layering on top.
+
+[*.xml]
+insert_final_newline = false
+trim_trailing_whitespace = false
+end_of_line = unset
+indent_style = unset
+indent_size = unset
+charset = unset

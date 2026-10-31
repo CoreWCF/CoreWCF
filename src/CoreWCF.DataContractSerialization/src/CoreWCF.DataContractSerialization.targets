@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Default the DataContractSerializer generator to enabled only on TFMs whose SDK default C#
+         language version is >= 11, which is what the emitted code requires. That is .NETCoreApp 8.0
+         and later. .NETFramework, .NETStandard and older .NETCoreApp targets stay off and use the
+         reflection-based serializer, so a multi-targeted project compiles everywhere without any
+         conditional compilation in user code - DataContractSerializerContext.GetSerializer simply
+         returns null where nothing was generated.
+
+         Gating here rather than constraining the emitted code to the oldest supported compiler is
+         deliberate: it lets the generator emit modern C# instead of the lowest common denominator.
+
+         Consumers on other targets can opt in explicitly by setting
+         EnableCoreWCFDataContractSerializerGenerator=true and raising LangVersion to 11 or higher. -->
+    <EnableCoreWCFDataContractSerializerGenerator Condition="'$(EnableCoreWCFDataContractSerializerGenerator)'=='' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion.TrimStart('v')), '8.0'))">true</EnableCoreWCFDataContractSerializerGenerator>
+    <EnableCoreWCFDataContractSerializerGenerator Condition="'$(EnableCoreWCFDataContractSerializerGenerator)'==''">false</EnableCoreWCFDataContractSerializerGenerator>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Exposes EnableCoreWCFDataContractSerializerGenerator to the source generator at build time -->
+    <CompilerVisibleProperty Include="EnableCoreWCFDataContractSerializerGenerator" />
+  </ItemGroup>
+</Project>

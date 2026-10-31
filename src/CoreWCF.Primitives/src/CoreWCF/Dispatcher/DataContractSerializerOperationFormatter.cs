@@ -302,7 +302,7 @@ namespace CoreWCF.Dispatcher
         {
             try
             {
-                part.Serializer.WriteObject(writer, graph);
+                part.WriteObject(writer, graph);
             }
             catch (SerializationException sx)
             {
@@ -466,7 +466,7 @@ namespace CoreWCF.Dispatcher
                 while (true)
                 {
                     PartInfo part = messageInfo.ReturnPart;
-                    if (part.Serializer.IsStartObject(reader))
+                    if (part.IsStartObject(reader))
                     {
                         returnValue = DeserializeParameter(reader, part, isRequest);
                         break;
@@ -496,7 +496,7 @@ namespace CoreWCF.Dispatcher
                 for (int i = nextPartIndex; i < parts.Length; i++)
                 {
                     PartInfo part = parts[i];
-                    if (part.Serializer.IsStartObject(reader))
+                    if (part.IsStartObject(reader))
                     {
                         object parameterValue = DeserializeParameter(reader, part, isRequest);
                         parameters[part.Description.Index] = parameterValue;
@@ -520,7 +520,7 @@ namespace CoreWCF.Dispatcher
             if (part.Description.Multiple)
             {
                 ArrayList items = new ArrayList();
-                while (part.Serializer.IsStartObject(reader))
+                while (part.IsStartObject(reader))
                 {
                     items.Add(DeserializeParameterPart(reader, part, isRequest));
                 }
@@ -619,6 +619,8 @@ namespace CoreWCF.Dispatcher
         protected class PartInfo
         {
             private XmlObjectSerializer _serializer;
+            private AotXmlObjectSerializer _aotSerializer;
+            private bool _aotSerializerResolved;
             private readonly IList<Type> _knownTypes;
             private readonly DataContractSerializerOperationBehavior _serializerFactory;
             private readonly bool _isQueryable;
@@ -655,18 +657,110 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
+            /// <summary>
+            /// A source-generated serializer for this part, or null to use <see cref="Serializer"/>.
+            /// </summary>
+            /// <remarks>
+            /// Resolved at most once. When the switch is off this never calls the factory at all, so
+            /// the generated path costs nothing for anyone who has not opted in.
+            /// </remarks>
+            public AotXmlObjectSerializer AotSerializer
+            {
+                get
+                {
+                    if (!_aotSerializerResolved)
+                    {
+                        _aotSerializerResolved = true;
+                        if (GeneratedSerializerSwitch.Enabled)
+                        {
+                            _aotSerializer = _serializerFactory.CreateAotSerializer(
+                                ContractType, DictionaryName, DictionaryNamespace, _knownTypes);
+                        }
+                    }
+
+                    return _aotSerializer;
+                }
+            }
+
+            /// <summary>
+            /// Writes <paramref name="graph"/> using the generated serializer when one is available,
+            /// otherwise the reflection-based one.
+            /// </summary>
+            public void WriteObject(XmlDictionaryWriter writer, object graph)
+            {
+                AotXmlObjectSerializer aotSerializer = AotSerializer;
+                if (aotSerializer != null)
+                {
+                    aotSerializer.WriteObject(writer, graph);
+                    return;
+                }
+
+                Serializer.WriteObject(writer, graph);
+            }
+
+            /// <summary>
+            /// Whether the reader is on this part's element, asked of whichever serializer will read
+            /// it.
+            /// </summary>
+            /// <remarks>
+            /// Asking the reflection-based serializer would construct it, which is the thing the
+            /// generated path exists to avoid - and it has to be the same serializer that goes on to
+            /// read, or a part could be recognised by one and read by the other.
+            /// </remarks>
+            public bool IsStartObject(XmlDictionaryReader reader)
+            {
+                AotXmlObjectSerializer aotSerializer = ReadingSerializer;
+
+                return aotSerializer != null
+                    ? aotSerializer.IsStartObject(reader)
+                    : Serializer.IsStartObject(reader);
+            }
+
+            /// <summary>
+            /// Reads this part using the generated serializer when one can read, otherwise the
+            /// reflection-based one.
+            /// </summary>
             public object ReadObject(XmlDictionaryReader reader)
             {
-                return ReadObject(reader, Serializer);
+                AotXmlObjectSerializer aotSerializer = ReadingSerializer;
+                if (aotSerializer == null)
+                {
+                    return ReadObject(reader, Serializer);
+                }
+
+                return AsQueryableIfNeeded(aotSerializer.ReadObject(reader, false /* verifyObjectName */));
             }
 
             public object ReadObject(XmlDictionaryReader reader, XmlObjectSerializer serializer)
             {
-                object val = _serializer.ReadObject(reader, false /* verifyObjectName */);
+                return AsQueryableIfNeeded(_serializer.ReadObject(reader, false /* verifyObjectName */));
+            }
+
+            /// <summary>
+            /// The generated serializer when it can read, otherwise null.
+            /// </summary>
+            /// <remarks>
+            /// Reading is opt-in separately from writing, so a part can be written by generated code
+            /// and read by reflection. Resolving it through this one property is what keeps
+            /// <see cref="IsStartObject"/> and <see cref="ReadObject"/> agreeing with each other.
+            /// </remarks>
+            private AotXmlObjectSerializer ReadingSerializer
+            {
+                get
+                {
+                    AotXmlObjectSerializer aotSerializer = AotSerializer;
+
+                    return aotSerializer != null && aotSerializer.CanReadObject ? aotSerializer : null;
+                }
+            }
+
+            private object AsQueryableIfNeeded(object val)
+            {
                 if (_isQueryable && val != null)
                 {
                     return Queryable.AsQueryable((IEnumerable)val);
                 }
+
                 return val;
             }
         }
