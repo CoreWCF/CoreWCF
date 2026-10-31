@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -46,21 +47,20 @@ namespace Helpers
             return ReplyAsync(message, CancellationToken.None);
         }
 
-        public override Task ReplyAsync(Message message, CancellationToken token)
+        public override async Task ReplyAsync(Message message, CancellationToken token)
         {
             ReplyMessage = message;
-            SerializeReply();
+            await SerializeReply();
             _mre.Set();
-            return Task.CompletedTask;
         }
 
-        internal void SerializeReply()
+        internal async Task SerializeReply()
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
             MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
             MessageEncoder me = mef.Encoder;
             MemoryStream ms = new MemoryStream();
-            me.WriteMessageAsync(ReplyMessage, ms);
+            await me.WriteMessageAsync(ReplyMessage, ms);
             byte[] messageBytes = ms.ToArray();
             _replyMessageString = Encoding.UTF8.GetString(messageBytes);
         }
@@ -75,13 +75,13 @@ namespace Helpers
             return _mre.WaitOne(timeout);
         }
 
-        internal static XmlSerializerTestRequestContext Create(string toAddress)
+        internal static async Task<XmlSerializerTestRequestContext> CreateAsync(string toAddress)
         {
             MessageEncodingBindingElement mebe = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
             MessageEncoderFactory mef = mebe.CreateMessageEncoderFactory();
             MessageEncoder me = mef.Encoder;
             byte[] requestMessageBytes = Encoding.UTF8.GetBytes(s_requestMessage);
-            Message requestMessage = me.ReadMessage(new ArraySegment<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
+            Message requestMessage = await me.ReadMessageAsync(new ReadOnlySequence<byte>(requestMessageBytes), BufferManager.CreateBufferManager(1, 1));
             requestMessage.Headers.To = new Uri(toAddress);
             requestMessage.Headers.Action = "http://tempuri.org/ISimpleXmlSerializerService/Echo";
             return new XmlSerializerTestRequestContext(requestMessage);

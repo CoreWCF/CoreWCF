@@ -594,4 +594,7 @@
   <data name="XmlWriterBackedStreamPropertySetNotSupported" xml:space="preserve">
     <value>The set accessor of the '{0}' property is not supported by the stream.</value>
   </data>
+  <data name="BufferedMessageDataBufferNotSupported" xml:space="preserve">
+    <value>The message body is no longer backed by a single array. Use IBufferedMessageData2.ReadOnlyBuffer instead.</value>
+  </data>
 </root>

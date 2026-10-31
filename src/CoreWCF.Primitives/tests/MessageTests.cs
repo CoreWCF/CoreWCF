@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Text;
+using System.Threading.Tasks;
 using CoreWCF.Channels;
 using Xunit;
 
@@ -12,7 +14,7 @@ namespace CoreWCF.Primitives.Tests
     {
         [Fact]
         [UseCulture("en-US")]
-        public static void InvalidCharToString()
+        public static async Task InvalidCharToString()
         {
             string invalidSoap11Message = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
@@ -26,7 +28,7 @@ namespace CoreWCF.Primitives.Tests
             MessageEncoderFactory factory = textMessageEncodingBindingElement.CreateMessageEncoderFactory();
             MessageEncoder messageEncoder = factory.Encoder;
             byte[] messageBytes = Encoding.UTF8.GetBytes(invalidSoap11Message);
-            Message message = messageEncoder.ReadMessage(new ArraySegment<byte>(messageBytes), BufferManager.CreateBufferManager(10, 10), "text/xml; charset=utf-8");
+            Message message = await messageEncoder.ReadMessageAsync(new ReadOnlySequence<byte>(messageBytes), BufferManager.CreateBufferManager(10, 10), "text/xml; charset=utf-8");
             string messageStr = message.ToString();
             Assert.NotNull(messageStr);
             Assert.Contains("The byte 0x0F is not valid at this location", messageStr);

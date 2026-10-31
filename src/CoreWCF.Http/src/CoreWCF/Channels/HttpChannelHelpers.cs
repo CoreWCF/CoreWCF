@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Mime;
 using System.Security.Authentication.ExtendedProtection;
@@ -109,137 +111,125 @@ namespace CoreWCF.Channels
 
         private void ThrowMaxReceivedMessageSizeExceeded()
         {
-            if (_isRequest)
-            {
-                ThrowHttpProtocolException(SR.Format(SR.MaxReceivedMessageSizeExceeded, _settings.MaxReceivedMessageSize), HttpStatusCode.RequestEntityTooLarge);
-            }
-            else
-            {
-                string message = SR.Format(SR.MaxReceivedMessageSizeExceeded, _settings.MaxReceivedMessageSize);
-                Exception inner = new QuotaExceededException(message);
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new CommunicationException(message, inner));
-            }
+            throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                CreateMaxReceivedMessageSizeExceededException(_settings.MaxReceivedMessageSize));
         }
 
-        private async Task<Message> DecodeBufferedMessageAsync(ArraySegment<byte> buffer, Stream inputStream)
+        private Exception CreateMaxReceivedMessageSizeExceededException(long maxMessageSize)
+        {
+            string message = SR.Format(SR.MaxReceivedMessageSizeExceeded, maxMessageSize);
+
+            if (_isRequest)
+            {
+                return CreateHttpProtocolException(message, HttpStatusCode.RequestEntityTooLarge, null, WebException);
+            }
+
+            return new CommunicationException(message, new QuotaExceededException(message));
+        }
+
+        private async ValueTask<Message> DecodeBufferedMessageAsync(ReadOnlySequence<byte> buffer)
         {
             try
             {
-                // if we're chunked, make sure we've consumed the whole body
-                if (ContentLength == -1 && buffer.Count == _settings.MaxReceivedMessageSize)
+                return await _messageEncoder.ReadMessageAsync(buffer, _bufferManager, ContentType);
+            }
+            catch (XmlException xmlException)
+            {
+                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                    new ProtocolException(SR.MessageXmlProtocolError, xmlException));
+            }
+        }
+
+        private async Task<Message> ReadBufferedMessageAsync(PipeReader reader)
+        {
+            reader = new MaxMessageSizePipeReader(reader, _settings.MaxReceivedMessageSize, CreateMaxReceivedMessageSizeExceededException);
+
+            ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
+            // AdvanceTo may only be called for a read that hasn't been advanced yet, so calling it
+            // unconditionally in the finally would throw over the top of whatever ReadAsync failed with.
+            bool advancePending = false;
+            Message message = null;
+            try
+            {
+                while (true)
                 {
-                    byte[] extraBuffer = new byte[1];
-                    int extraReceived = await inputStream.ReadAsync(extraBuffer, 0, 1);
-                    if (extraReceived > 0)
+                    ReadResult result = await reader.ReadAsync();
+                    advancePending = true;
+                    buffer = result.Buffer;
+
+                    if (result.IsCanceled)
                     {
-                        ThrowMaxReceivedMessageSizeExceeded();
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new OperationCanceledException());
                     }
+
+                    // MaxReceivedMessageSize is enforced by the reader above. A body of exactly
+                    // that size is allowed, which is what both paths this replaced did:
+                    // GetMessageBuffer() compared ContentLength with >, and the chunked path only
+                    // faulted once a byte past a full buffer arrived.
+
+                    // MaxBufferSize is a tighter, separate ceiling that only applies while a whole
+                    // message is being buffered, and it faults as soon as the buffer is full rather
+                    // than one byte later, so it stays here rather than layering a second reader.
+                    // A chunked body has no ContentLength to size the read against, so the path
+                    // this replaced grew its buffer only up to MaxBufferSize and faulted there.
+                    if (ContentLength == -1 && buffer.Length >= _settings.MaxBufferSize)
+                    {
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                            MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(_settings.MaxBufferSize));
+                    }
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+
+                    reader.AdvanceTo(buffer.Start, buffer.End);
+                    advancePending = false;
                 }
 
+                // The message reads straight out of the buffer it is handed and gives it back to
+                // the BufferManager once it closes, so it can't be handed the reader's own memory:
+                // that belongs to the pipe, which recycles it as soon as the reader is advanced.
+                int messageLength = (int)buffer.Length;
+                byte[] messageBuffer = _bufferManager.TakeBuffer(messageLength);
                 try
                 {
-                    return _messageEncoder.ReadMessage(buffer, _bufferManager, ContentType);
+                    buffer.CopyTo(messageBuffer.AsSpan(0, messageLength));
+                    message = await DecodeBufferedMessageAsync(new ReadOnlySequence<byte>(messageBuffer, 0, messageLength));
                 }
-                catch (XmlException xmlException)
+                catch
                 {
-                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                        new ProtocolException(SR.MessageXmlProtocolError, xmlException));
+                    // Ownership only transfers to the message once it exists.
+                    _bufferManager.ReturnBuffer(messageBuffer);
+                    throw;
                 }
             }
             finally
             {
-                inputStream.Close();
-            }
-        }
-
-        private async Task<Message> ReadBufferedMessageAsync(Stream inputStream)
-        {
-            ArraySegment<byte> messageBuffer = GetMessageBuffer();
-            byte[] buffer = messageBuffer.Array;
-            int offset = 0;
-            int count = messageBuffer.Count;
-
-            while (count > 0)
-            {
-                int bytesRead = await inputStream.ReadAsync(buffer, offset, count);
-                if (bytesRead == 0) // EOF
+                if (advancePending)
                 {
-                    if (ContentLength != -1)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            new ProtocolException(SR.HttpContentLengthIncorrect));
-                    }
-
-                    break;
+                    reader.AdvanceTo(buffer.Start, buffer.End);
                 }
-                count -= bytesRead;
-                offset += bytesRead;
             }
 
-            return await DecodeBufferedMessageAsync(new ArraySegment<byte>(buffer, 0, offset), inputStream);
+            return message;
         }
 
-        private async Task<Message> ReadChunkedBufferedMessageAsync(Stream inputStream)
+        private async Task<Message> ReadStreamedMessageAsync(PipeReader reader)
         {
+            // The default factory, not the one the buffered path uses: streamed reads went through
+            // MaxMessageSizeStream and faulted with a CommunicationException rather than a 413.
+            Stream stream = new MaxMessageSizePipeReader(reader, _settings.MaxReceivedMessageSize).AsStream();
+
             try
             {
-                return _messageEncoder.ReadMessage(await BufferMessageStreamAsync(inputStream, _bufferManager, _settings.MaxBufferSize), _bufferManager, ContentType);
+                return await _messageEncoder.ReadMessageAsync(stream, _settings.MaxBufferSize, ContentType);
             }
             catch (XmlException xmlException)
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
                     new ProtocolException(SR.MessageXmlProtocolError, xmlException));
             }
-        }
-
-        private async Task<Message> ReadStreamedMessageAsync(Stream inputStream)
-        {
-            MaxMessageSizeStream maxMessageSizeStream = new MaxMessageSizeStream(inputStream, _settings.MaxReceivedMessageSize);
-
-            try
-            {
-                return await _messageEncoder.ReadMessageAsync(maxMessageSizeStream, _settings.MaxBufferSize, ContentType);
-            }
-            catch (XmlException xmlException)
-            {
-                throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                    new ProtocolException(SR.MessageXmlProtocolError, xmlException));
-            }
-        }
-
-        // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
-        {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
-            {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
-            }
-
-            return new ArraySegment<byte>(buffer, 0, offset);
         }
 
         protected abstract void AddProperties(Message message);
@@ -383,16 +373,18 @@ namespace CoreWCF.Channels
             }
         }
 
-        public async Task<(Message message, Exception requestException)> ParseIncomingMessageAsync()
+        public async Task<(Message message, Exception requestException, PipeReader reader)> ParseIncomingMessageAsync()
         {
-            Exception requestException = null;
             bool throwing = true;
+            PipeReader reader = null;
             try
             {
                 await CheckForContentAsync();
                 ValidateContentType();
 
+                Exception requestException;
                 Message message;
+
                 if (!HasContent)
                 {
                     if (_messageEncoder.MessageVersion == MessageVersion.None)
@@ -401,35 +393,39 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        return (null, requestException);
+                        return (null, null, null);
                     }
                 }
                 else
                 {
                     Stream stream = GetInputStream(true);
+                    reader = PipeReader.Create(stream);
                     if (_streamed)
                     {
-                        message = await ReadStreamedMessageAsync(stream);
-                    }
-                    else if (ContentLength == -1)
-                    {
-                        message = await ReadChunkedBufferedMessageAsync(stream);
+                        message = await ReadStreamedMessageAsync(reader);
                     }
                     else
                     {
-                        message = await ReadBufferedMessageAsync(stream);
+                        message = await ReadBufferedMessageAsync(reader);
                     }
                 }
 
                 requestException = ProcessHttpAddressing(message);
 
                 throwing = false;
-                return (message, requestException);
+                return (message, requestException, reader);
             }
             finally
             {
                 if (throwing)
                 {
+                    // Only the reader handed back to the caller gets completed there, so one created
+                    // before the failure has to be completed here or its buffers are never released.
+                    if (reader is not null)
+                    {
+                        await reader.CompleteAsync();
+                    }
+
                     Close();
                 }
             }
@@ -459,21 +455,6 @@ namespace CoreWCF.Channels
 
         protected virtual void Close()
         {
-        }
-
-        private ArraySegment<byte> GetMessageBuffer()
-        {
-            long count = ContentLength;
-            int bufferSize;
-
-            if (count > _settings.MaxReceivedMessageSize)
-            {
-                ThrowMaxReceivedMessageSizeExceeded();
-            }
-
-            bufferSize = (int)count;
-
-            return new ArraySegment<byte>(_bufferManager.TakeBuffer(bufferSize), 0, bufferSize);
         }
     }
 

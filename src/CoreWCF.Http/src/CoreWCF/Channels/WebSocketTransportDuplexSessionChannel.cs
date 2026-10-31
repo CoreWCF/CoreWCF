@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -461,25 +462,43 @@ namespace CoreWCF.Channels
 
             private async Task ReadBufferedMessageAsync()
             {
-                byte[] internalBuffer = null;
+                // Receives are chained into a ReadOnlySequence rather than accumulated in one
+                // buffer. The buffer used to be doubled and copied across every time it filled up,
+                // then copied once more into a right sized buffer for the encoder; a sequence needs
+                // neither, so nothing is copied at all.
+                List<byte[]> receivedBuffers = new();
+                bool ownershipTransferred = false;
                 try
                 {
-                    internalBuffer = _bufferManager.TakeBuffer(_receiveBufferSize);
+                    byte[] currentBuffer = _bufferManager.TakeBuffer(_receiveBufferSize);
+                    receivedBuffers.Add(currentBuffer);
 
-                    int receivedByteCount = 0;
+                    int currentOffset = 0;
+                    long receivedByteCount = 0;
                     bool endOfMessage = false;
                     WebSocketReceiveResult result = null;
                     do
                     {
                         try
                         {
-                            //if (TD.WebSocketAsyncReadStartIsEnabled())
-                            //{
-                            //    TD.WebSocketAsyncReadStart(this.webSocket.GetHashCode());
-                            //}
+                            if (currentOffset == currentBuffer.Length)
+                            {
+                                currentBuffer = _bufferManager.TakeBuffer(_receiveBufferSize);
+                                receivedBuffers.Add(currentBuffer);
+                                currentOffset = 0;
+                            }
+
+                            // Never read past the ceiling, so that reaching it is observed rather
+                            // than overshot.
+                            int count = (int)Math.Min(currentBuffer.Length - currentOffset, _maxBufferSize - receivedByteCount);
+                            if (count == 0)
+                            {
+                                _pendingException = Fx.Exception.AsError(new QuotaExceededException(SR.Format(SR.MaxReceivedMessageSizeExceeded, _maxBufferSize)));
+                                return;
+                            }
 
                             Task<WebSocketReceiveResult> receiveTask = _webSocket.ReceiveAsync(
-                                                            new ArraySegment<byte>(internalBuffer, receivedByteCount, internalBuffer.Length - receivedByteCount),
+                                                            new ArraySegment<byte>(currentBuffer, currentOffset, count),
                                                             CancellationToken.None);
 
                             await receiveTask.ConfigureAwait(false);
@@ -488,30 +507,8 @@ namespace CoreWCF.Channels
                             CheckCloseStatus(result);
                             endOfMessage = result.EndOfMessage;
 
+                            currentOffset += result.Count;
                             receivedByteCount += result.Count;
-                            if (receivedByteCount >= internalBuffer.Length && !result.EndOfMessage)
-                            {
-                                if (internalBuffer.Length >= _maxBufferSize)
-                                {
-                                    _pendingException = Fx.Exception.AsError(new QuotaExceededException(SR.Format(SR.MaxReceivedMessageSizeExceeded, _maxBufferSize)));
-                                    return;
-                                }
-
-                                int newSize = (int)Math.Min(((double)internalBuffer.Length) * 2, _maxBufferSize);
-                                Fx.Assert(newSize > 0, "buffer size should be larger than zero.");
-                                byte[] newBuffer = _bufferManager.TakeBuffer(newSize);
-                                Buffer.BlockCopy(internalBuffer, 0, newBuffer, 0, receivedByteCount);
-                                _bufferManager.ReturnBuffer(internalBuffer);
-                                internalBuffer = newBuffer;
-                            }
-
-                            //if (TD.WebSocketAsyncReadStopIsEnabled())
-                            //{
-                            //    TD.WebSocketAsyncReadStop(
-                            //        this.webSocket.GetHashCode(),
-                            //        receivedByteCount,
-                            //        TraceUtility.GetRemoteEndpointAddressPort(this.RemoteEndpointMessageProperty));
-                            //}
                         }
                         catch (AggregateException ex)
                         {
@@ -520,23 +517,10 @@ namespace CoreWCF.Channels
                     }
                     while (!endOfMessage && !_closureReceived);
 
-                    byte[] buffer = null;
-                    bool success = false;
-                    try
-                    {
-                        buffer = _bufferManager.TakeBuffer(receivedByteCount);
-                        Buffer.BlockCopy(internalBuffer, 0, buffer, 0, receivedByteCount);
-                        Fx.Assert(result != null, "Result should not be null");
-                        _pendingMessage = await PrepareMessageAsync(result, buffer, receivedByteCount);
-                        success = true;
-                    }
-                    finally
-                    {
-                        if (buffer != null && (!success || _pendingMessage == null))
-                        {
-                            _bufferManager.ReturnBuffer(buffer);
-                        }
-                    }
+                    Fx.Assert(result != null, "Result should not be null");
+
+                    _pendingMessage = await PrepareMessageAsync(result, BuildSequence(receivedBuffers, currentOffset));
+                    ownershipTransferred = _pendingMessage != null;
                 }
                 catch (Exception ex)
                 {
@@ -549,11 +533,32 @@ namespace CoreWCF.Channels
                 }
                 finally
                 {
-                    if (internalBuffer != null)
+                    // The message reads straight out of these and hands them back when it closes;
+                    // until there is a message, they are still ours.
+                    if (!ownershipTransferred)
                     {
-                        _bufferManager.ReturnBuffer(internalBuffer);
+                        foreach (byte[] receivedBuffer in receivedBuffers)
+                        {
+                            _bufferManager.ReturnBuffer(receivedBuffer);
+                        }
                     }
                 }
+            }
+
+            // Every buffer but the last is full: a new one is only taken once the previous one has
+            // no room left.
+            private static ReadOnlySequence<byte> BuildSequence(List<byte[]> buffers, int lastBufferLength)
+            {
+                int firstLength = buffers.Count == 1 ? lastBufferLength : buffers[0].Length;
+                SequenceBuilder<byte> builder = new(new ReadOnlyMemory<byte>(buffers[0], 0, firstLength));
+
+                for (int i = 1; i < buffers.Count; i++)
+                {
+                    int length = i == buffers.Count - 1 ? lastBufferLength : buffers[i].Length;
+                    builder.Append(new ReadOnlyMemory<byte>(buffers[i], 0, length));
+                }
+
+                return builder.Build();
             }
 
             public async Task<bool> WaitForMessageAsync(CancellationToken token)
@@ -738,6 +743,18 @@ namespace CoreWCF.Channels
                 return null;
             }
 
+            private async Task<Message> PrepareMessageAsync(WebSocketReceiveResult result, ReadOnlySequence<byte> bytes)
+            {
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    return null;
+                }
+
+                Message message = await _encoder.ReadMessageAsync(bytes, _bufferManager);
+
+                return FinishMessage(message, result);
+            }
+
             private async Task<Message> PrepareMessageAsync(WebSocketReceiveResult result, byte[] buffer, int count)
             {
                 if (result.MessageType != WebSocketMessageType.Close)
@@ -762,38 +779,40 @@ namespace CoreWCF.Channels
                     }
                     else
                     {
-                        ArraySegment<byte> bytes = new ArraySegment<byte>(buffer, 0, count);
-                        message = _encoder.ReadMessage(bytes, _bufferManager);
+                        ReadOnlySequence<byte> bytes = new(buffer, 0, count);
+                        message = await _encoder.ReadMessageAsync(bytes, _bufferManager);
                     }
 
-                    if (message.Version.Addressing != AddressingVersion.None || !_localAddress.IsAnonymous)
-                    {
-                        _localAddress.ApplyTo(message);
-                    }
-
-                    if (message.Version.Addressing == AddressingVersion.None && message.Headers.Action == null)
-                    {
-                        if (result.MessageType == WebSocketMessageType.Binary)
-                        {
-                            message.Headers.Action = WebSocketTransportSettings.BinaryMessageReceivedAction;
-                        }
-                        else
-                        {
-                            // WebSocketMesssageType should always be binary or text at this moment. The layer below us will help protect this.
-                            Fx.Assert(result.MessageType == WebSocketMessageType.Text, "result.MessageType must be WebSocketMessageType.Text.");
-                            message.Headers.Action = WebSocketTransportSettings.TextMessageReceivedAction;
-                        }
-                    }
-
-                    if (message != null)
-                    {
-                        AddMessageProperties(message.Properties, result.MessageType);
-                    }
-
-                    return message;
+                    return FinishMessage(message, result);
                 }
 
                 return null;
+            }
+
+            private Message FinishMessage(Message message, WebSocketReceiveResult result)
+            {
+                if (message.Version.Addressing != AddressingVersion.None || !_localAddress.IsAnonymous)
+                {
+                    _localAddress.ApplyTo(message);
+                }
+
+                if (message.Version.Addressing == AddressingVersion.None && message.Headers.Action == null)
+                {
+                    if (result.MessageType == WebSocketMessageType.Binary)
+                    {
+                        message.Headers.Action = WebSocketTransportSettings.BinaryMessageReceivedAction;
+                    }
+                    else
+                    {
+                        // WebSocketMesssageType should always be binary or text at this moment. The layer below us will help protect this.
+                        Fx.Assert(result.MessageType == WebSocketMessageType.Text, "result.MessageType must be WebSocketMessageType.Text.");
+                        message.Headers.Action = WebSocketTransportSettings.TextMessageReceivedAction;
+                    }
+                }
+
+                AddMessageProperties(message.Properties, result.MessageType);
+
+                return message;
             }
 
             private static class AsyncReceiveState

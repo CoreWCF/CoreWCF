@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
@@ -65,11 +66,11 @@ namespace CoreWCF.Channels
             return Task.FromResult(message);
         }
 
-        public override Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType)
+        public override ValueTask<Message> ReadMessageAsync(ReadOnlySequence<byte> buffer, BufferManager bufferManager, string contentType)
         {
-            if (buffer.Array == null)
+            if (buffer.IsEmpty)
             {
-                throw Fx.Exception.ArgumentNull("buffer.Array");
+                throw Fx.Exception.Argument(nameof(buffer), SR.BufferCannotBeEmpty);
             }
 
             if (bufferManager == null)
@@ -82,7 +83,8 @@ namespace CoreWCF.Channels
             //    TD.ByteStreamMessageDecodingStart();
             //}
 
-            var messageData = new ByteStreamBufferedMessageData(buffer, bufferManager);
+            var messageData = new ByteStreamBufferedMessageData(buffer);
+            messageData.OwnBuffer(buffer, bufferManager);
 
             Message message = ByteStreamMessage.CreateMessage(messageData, _bufferedReadReaderQuotas, _moveBodyReaderToContent);
             message.Properties.Encoder = this;
@@ -100,7 +102,7 @@ namespace CoreWCF.Channels
             //    MessageLogger.LogMessage(ref message, MessageLoggingSource.TransportReceive);
             //}
 
-            return message;
+            return new ValueTask<Message>(message);
         }
 
         public override async Task WriteMessageAsync(Message message, Stream stream)
