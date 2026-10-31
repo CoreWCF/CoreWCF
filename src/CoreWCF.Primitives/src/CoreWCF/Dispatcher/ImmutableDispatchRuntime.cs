@@ -684,9 +684,20 @@ namespace CoreWCF.Dispatcher
 
         private Activity CreateActivity(ref Message request, IClientChannel channel, InstanceContext instanceContext)
         {
-            var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
-                WcfInstrumentationActivitySource.IncomingRequestActivityName,
-                ActivityKind.Server);
+            Activity activity;
+            if (Activity.Current == null && W3CTraceContextMessageHeader.TryExtract(request, out ActivityContext parentContext))
+            {
+                activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+                    WcfInstrumentationActivitySource.IncomingRequestActivityName,
+                    ActivityKind.Server,
+                    parentContext);
+            }
+            else
+            {
+                activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+                    WcfInstrumentationActivitySource.IncomingRequestActivityName,
+                    ActivityKind.Server);
+            }
 
             if (activity != null)
             {
