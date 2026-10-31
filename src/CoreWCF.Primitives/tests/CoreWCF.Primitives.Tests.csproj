@@ -22,6 +22,19 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <!-- BufferManagerBufferWriter and BufferedMessageStreamHelper are internal, and are compiled into each
+       CoreWCF assembly through the $(CommonPath) glob in Directory.Build.targets. Test projects set
+       IncludeCommonCode=false, the repo deliberately ships no InternalsVisibleTo, and product assemblies are
+       strong-named while test assemblies are not - so compile the same sources into the test assembly instead
+       of reaching for reflection. This works because neither file references SR/SRCommon (test projects build
+       with OmitResources=true, so neither class is generated). -->
+  <ItemGroup>
+    <Compile Include="$(CommonPath)CoreWCF/Channels/BufferManagerBufferWriter.cs"
+             Link="shared/CoreWCF/Channels/BufferManagerBufferWriter.cs" />
+    <Compile Include="$(CommonPath)CoreWCF/Channels/BufferedMessageStreamHelper.cs"
+             Link="shared/CoreWCF/Channels/BufferedMessageStreamHelper.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../src/CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.Http/src/CoreWCF.Http.csproj" />

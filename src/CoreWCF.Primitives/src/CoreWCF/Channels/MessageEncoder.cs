@@ -41,49 +41,6 @@ namespace CoreWCF.Channels
 
         public abstract Message ReadMessage(ArraySegment<byte> buffer, BufferManager bufferManager, string contentType);
 
-        // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
-        {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
-            {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(
-                            MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
-            }
-
-            return new ArraySegment<byte>(buffer, 0, offset);
-        }
-
-        // used for buffered streaming
-        internal virtual async Task<Message> ReadMessageAsync(Stream stream, BufferManager bufferManager, int maxBufferSize,
-            string contentType)
-        {
-            return ReadMessage(await BufferMessageStreamAsync(stream, bufferManager, maxBufferSize), bufferManager, contentType);
-        }
-
         public override string ToString()
         {
             return ContentType;

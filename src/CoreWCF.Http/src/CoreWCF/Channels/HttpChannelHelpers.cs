@@ -25,6 +25,12 @@ namespace CoreWCF.Channels
         private const string multipartRelatedMediaType = "multipart/related";
         private const string startInfoHeaderParam = "start-info";
         private const string defaultContentType = "application/octet-stream";
+
+        // Static so the buffered-read path does not allocate a delegate per message.
+        private static readonly Func<int, Exception> s_createMaxReceivedMessageSizeExceededException =
+            maxBufferSize => DiagnosticUtility.ExceptionUtility.ThrowHelperError(
+                MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
+
         private readonly BufferManager _bufferManager;
         private readonly bool _isRequest;
         private readonly MessageEncoder _messageEncoder;
@@ -208,38 +214,10 @@ namespace CoreWCF.Channels
         }
 
         // used for buffered streaming
-        internal async Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
+        internal Task<ArraySegment<byte>> BufferMessageStreamAsync(Stream stream, BufferManager bufferManager, int maxBufferSize)
         {
-            byte[] buffer = bufferManager.TakeBuffer(ConnectionOrientedTransportDefaults.ConnectionBufferSize);
-            int offset = 0;
-            int currentBufferSize = Math.Min(buffer.Length, maxBufferSize);
-
-            while (offset < currentBufferSize)
-            {
-                int count = await stream.ReadAsync(buffer, offset, currentBufferSize - offset);
-                if (count == 0)
-                {
-                    stream.Dispose();
-                    break;
-                }
-
-                offset += count;
-                if (offset == currentBufferSize)
-                {
-                    if (currentBufferSize >= maxBufferSize)
-                    {
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(MaxMessageSizeStream.CreateMaxReceivedMessageSizeExceededException(maxBufferSize));
-                    }
-
-                    currentBufferSize = Math.Min(currentBufferSize * 2, maxBufferSize);
-                    byte[] temp = bufferManager.TakeBuffer(currentBufferSize);
-                    Buffer.BlockCopy(buffer, 0, temp, 0, offset);
-                    bufferManager.ReturnBuffer(buffer);
-                    buffer = temp;
-                }
-            }
-
-            return new ArraySegment<byte>(buffer, 0, offset);
+            return BufferedMessageStreamHelper.BufferMessageStreamAsync(stream, bufferManager, maxBufferSize,
+                ConnectionOrientedTransportDefaults.ConnectionBufferSize, s_createMaxReceivedMessageSizeExceededException);
         }
 
         protected abstract void AddProperties(Message message);
