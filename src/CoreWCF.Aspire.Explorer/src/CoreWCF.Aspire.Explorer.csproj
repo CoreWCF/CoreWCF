@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>CoreWCF.Aspire.Explorer</AssemblyName>
+    <RootNamespace>CoreWCF.Aspire.Explorer</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <!-- net8.0 web app; the shared netstandard2.0 CoreWCF sources are not applicable and it is not a NuGet package. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+    <IsPackable>false</IsPackable>
+    <!-- This net8.0 web app gets its ASP.NET Core assemblies from the shared framework; do not pin its
+         transitive dependencies to the netstandard2.0 versions the CoreWCF libraries declare centrally. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <SignAssembly>false</SignAssembly>
+    <!-- Enable `dotnet publish -t:PublishContainer` to produce the explorer image used by the hosting integration. -->
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository>corewcf/aspire-explorer</ContainerRepository>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Web.Services.Description" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" />
+    <!-- The WCF client stack, used to invoke operations through IRequestChannel rather than a
+         hand-rolled HTTP POST. Http brings Primitives with it. -->
+    <PackageReference Include="System.ServiceModel.Http" />
+  </ItemGroup>
+
+</Project>

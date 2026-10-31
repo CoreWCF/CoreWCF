@@ -1,0 +1,97 @@
+@* Formatted / XML request views, mirroring the classic WCF Test Client. The formatted grid edits
+   Operation.RequestParameters in place; the envelope is rebuilt from them at invoke time. *@
+
+<div class="request-editor">
+    <FluentTabs ActiveTabId="@ActiveTab" ActiveTabIdChanged="OnTabChangedAsync" Class="editor-tabs">
+        <FluentTab Id="req-formatted" Label="Formatted" Disabled="@(!Operation.CanUseFormattedRequest)">
+            @if (!Operation.CanUseFormattedRequest)
+            {
+                <p class="editor-note subtext">
+                    This operation takes a complex parameter, which the grid cannot express. Edit the
+                    envelope on the XML tab instead.
+                </p>
+            }
+            else if (_parameters is null)
+            {
+                <p class="editor-note subtext">This operation takes no parameters.</p>
+            }
+            else
+            {
+                <FluentDataGrid TGridItem="WsdlParameter" Items="@_parameters" ItemKey="@(p => p.Name)"
+                                GridTemplateColumns="minmax(120px, 1fr) minmax(90px, 0.8fr) minmax(160px, 2fr)"
+                                Class="param-grid" aria-label="Request parameters">
+                    <PropertyColumn Property="@(p => p.Name)" Title="Name" />
+                    <TemplateColumn Title="Type">
+                        <code class="type">@context.TypeName</code>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Value">
+                        @* Immediate is required for correctness, not polish: the default binding only
+                           commits on blur, so invoking straight from the cell being typed into (very
+                           much the common case with Ctrl+Enter) would send the previous value. The
+                           cached Items query below is what keeps the resulting re-render from
+                           rebuilding the rows and stealing focus out of the cell. *@
+                        <FluentTextField @bind-Value="context.Value" Immediate="true" ImmediateDelay="80"
+                                         Class="cell-input" Spellcheck="false"
+                                         AriaLabel="@($"Value of {context.Name}")" />
+                    </TemplateColumn>
+                </FluentDataGrid>
+            }
+        </FluentTab>
+
+        <FluentTab Id="req-xml" Label="XML">
+            <div class="xml-pane">
+                <div class="xml-actions">
+                    <CopyButton Text="@Envelope" Label="Copy request XML" />
+                </div>
+                @* Immediate for the same reason as the parameter cells: Ctrl+Enter from inside the
+                   editor must send what is on screen, not the last blurred value. *@
+                <FluentTextArea Value="@Envelope" ValueChanged="OnEnvelopeChangedAsync"
+                                Immediate="true" ImmediateDelay="120" Rows="16"
+                                Class="xml-editor" Spellcheck="false"
+                                AriaLabel="Request envelope XML" />
+            </div>
+        </FluentTab>
+    </FluentTabs>
+</div>
+
+@code {
+    /// <summary>The operation being edited. Its parameters are mutated in place by the grid.</summary>
+    [Parameter, EditorRequired]
+    public WsdlOperation Operation { get; set; } = default!;
+
+    /// <summary>The raw envelope shown on the XML tab.</summary>
+    [Parameter, EditorRequired]
+    public string Envelope { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> EnvelopeChanged { get; set; }
+
+    /// <summary>Which tab is showing; owned by the page so it survives a re-render.</summary>
+    [Parameter, EditorRequired]
+    public string ActiveTab { get; set; } = "req-formatted";
+
+    [Parameter]
+    public EventCallback<string> ActiveTabChanged { get; set; }
+
+    private IQueryable<WsdlParameter>? _parameters;
+    private WsdlOperation? _boundOperation;
+
+    protected override void OnParametersSet()
+    {
+        // Cached rather than an inline .AsQueryable(): a fresh IQueryable on every render makes the
+        // grid treat the data as new and drop the focus out of whichever cell is being typed into.
+        if (!ReferenceEquals(_boundOperation, Operation))
+        {
+            _boundOperation = Operation;
+            _parameters = Operation.RequestParameters.Count > 0
+                ? Operation.RequestParameters.AsQueryable()
+                : null;
+        }
+    }
+
+    private Task OnTabChangedAsync(string? tabId)
+        => tabId is { Length: > 0 } id ? ActiveTabChanged.InvokeAsync(id) : Task.CompletedTask;
+
+    private Task OnEnvelopeChangedAsync(string? value)
+        => EnvelopeChanged.InvokeAsync(value ?? string.Empty);
+}

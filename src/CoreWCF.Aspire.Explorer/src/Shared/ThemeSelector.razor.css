@@ -1,0 +1,16 @@
+.theme-selector::part(content) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--inline-icon-margin);
+}
+
+.theme-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .theme-label {
+        display: none;
+    }
+}

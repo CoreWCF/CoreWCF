@@ -1,0 +1,28 @@
+/* ::deep from the plain wrapper: the scope attribute is never stamped onto the element FluentButton
+   renders, so `.copy-button::part(control)` on its own would never match. */
+.copy-wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
+.copy-wrap ::deep .copy-button::part(control) {
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
+.copy-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--foreground-subtext-rest);
+}
+
+.copy-wrap:hover .copy-glyph {
+    color: var(--neutral-foreground-rest);
+}
+
+.copy-glyph.copied {
+    color: var(--status-success);
+}

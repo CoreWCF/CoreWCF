@@ -1,0 +1,77 @@
+.response-busy {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+}
+
+.response-view ::deep .busy-ring {
+    width: 18px;
+    height: 18px;
+}
+
+.response-idle {
+    margin: var(--space-3) 0 0;
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.response-status {
+    display: flex;
+    align-items: center;
+    gap: var(--inline-icon-margin);
+    padding: var(--space-1) 0 var(--space-2);
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background-color: var(--foreground-subtext-rest);
+}
+
+.status-dot.ok {
+    background-color: var(--status-success);
+}
+
+.status-dot.fail {
+    background-color: var(--status-error);
+}
+
+.status-text {
+    font-weight: 600;
+}
+
+.status-sep {
+    color: var(--foreground-subtext-rest);
+}
+
+.status-spacer {
+    flex: 1 1 auto;
+}
+
+.resp-value {
+    display: block;
+    padding: var(--space-1) 0;
+    max-height: 180px;
+    overflow: auto;
+    font-family: var(--mono-font);
+    font-size: var(--type-ramp-minus-1-font-size);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.response-xml {
+    margin: var(--space-2) 0 0;
+    padding: var(--space-2);
+    max-height: 420px;
+    overflow: auto;
+    background-color: var(--surface-code);
+    border: 1px solid var(--stroke-divider);
+    border-radius: var(--radius-control);
+    font-family: var(--mono-font);
+    font-size: var(--type-ramp-minus-1-font-size);
+    white-space: pre-wrap;
+    word-break: break-word;
+}

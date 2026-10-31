@@ -1,0 +1,41 @@
+/* A plain CSS grid rather than FluentLayout/FluentBodyContent: the header height then stops being
+   a magic number the page body has to subtract (the old `calc(100vh - 50px)`). */
+.layout {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Fluent's own header is accent-coloured. The Aspire dashboard neutralises it; so do we. */
+.app-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 46px;
+    padding: 0 var(--layout-right-padding) 0 var(--space-3);
+    box-sizing: border-box;
+    background-color: var(--surface-chrome);
+    border-bottom: 1px solid var(--stroke-divider);
+    color: var(--neutral-foreground-rest);
+}
+
+/* No tile behind it: the badge carries its own colour and outer shape, and boxing it in an accent
+   square would fight both. Height-led, because the badge is slightly taller than it is wide. */
+.app-logo {
+    display: block;
+    height: 28px;
+    width: auto;
+    flex: 0 0 auto;
+}
+
+.app-title {
+    font-size: var(--type-ramp-base-font-size);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.layout-body {
+    min-height: 0; /* lets the grid row shrink so inner panes scroll instead of the page */
+    overflow: hidden;
+}

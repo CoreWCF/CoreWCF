@@ -1,0 +1,45 @@
+@page "/"
+
+@* Ctrl+Enter is bound on the page root rather than on the editor: keydown bubbles out of the Fluent
+   components' shadow roots, so the shortcut works wherever focus happens to be. *@
+<div class="explorer" @onkeydown="OnKeyDownAsync">
+    <FluentToolbar Class="main-toolbar" aria-label="Explorer toolbar">
+        @* fluent-search draws its own magnifier; a second one here would just be duplicated chrome. *@
+        <FluentSearch Value="@_filter" ValueChanged="OnFilterChanged"
+                      Immediate="true" ImmediateDelay="150"
+                      Placeholder="Filter operations"
+                      AriaLabel="Filter services and operations"
+                      Class="filter-input" />
+
+        <FluentSpacer />
+
+        <span class="toolbar-count subtext" role="status" aria-live="polite">@CountLabel</span>
+
+        <FluentButton Appearance="Appearance.Stealth" OnClick="ReloadAllAsync"
+                      Disabled="@(!_nodes.Exists(n => n.IsLoaded))"
+                      Title="Reload every loaded WSDL" AriaLabel="Reload every loaded WSDL"
+                      Class="toolbar-button">
+            <span class="toolbar-glyph" aria-hidden="true">@((MarkupString)Icons.Reload)</span>
+        </FluentButton>
+    </FluentToolbar>
+
+    <div class="explorer-body">
+        <FluentSplitter Orientation="Orientation.Horizontal"
+                        Panel1Size="320px" Panel1MinSize="220px" Panel2MinSize="340px" BarSize="4">
+            <Panel1>
+                <ServiceTree Services="@_view" Selected="@_selection" HasFilter="@HasFilter"
+                             Expanded="EnsureLoadedAsync" Reload="ReloadAsync"
+                             SelectionChanged="OnSelectionChanged" />
+            </Panel1>
+            <Panel2>
+                <OperationDetail Selection="@_selection"
+                                 Envelope="@_envelope" EnvelopeChanged="@(v => _envelope = v)"
+                                 RequestTab="@_requestTab" RequestTabChanged="@(t => _requestTab = t)"
+                                 ResponseTab="@_responseTab" ResponseTabChanged="@(t => _responseTab = t)"
+                                 Result="@_result" Parsed="@_parsed" Error="@_error"
+                                 IsInvoking="@_invoking"
+                                 Invoke="InvokeOperationAsync" Cancel="CancelInvoke" />
+            </Panel2>
+        </FluentSplitter>
+    </div>
+</div>

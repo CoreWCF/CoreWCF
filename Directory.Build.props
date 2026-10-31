@@ -49,6 +49,8 @@
     <TestTargetFrameworks Condition="('$(BuildingInsideVisualStudio)' != 'true') OR $([MSBuild]::VersionGreaterThanOrEquals('$(VisualStudioVersion)', '$(VSMinimumVersionNeededForLatestTfm)'))">$(TestTargetFrameworks);$(LatestDotNetTfm)</TestTargetFrameworks>
     <!-- Add preview dotnet tfm if IncludePreviewTfm is set to true -->
     <TestTargetFrameworks Condition="'$(IncludePreviewTfm)' == 'true'">$(TestTargetFrameworks);$(PreviewDotNetTfm)</TestTargetFrameworks>
+    <!-- For test projects whose product code is .NET (Core) only, e.g. the Aspire integration -->
+    <NetCoreTestTargetFrameworks>$(TestTargetFrameworks)</NetCoreTestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TestTargetFrameworks);net472</TestTargetFrameworks>
   </PropertyGroup>
 

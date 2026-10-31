@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The same tests as CoreWCF.Aspire.Hosting.IntegrationTests, run against the Aspire 13.4.6 AppHost.
+    Two projects rather than one multi-targeted project because DistributedApplicationTestingBuilder
+    loads the AppHost entry point in-process: a single test assembly cannot host both Aspire lines
+    without their assemblies colliding.
+
+    Named so that it does not match "CoreWCF.*.Tests.csproj", the glob the run-tests CI action sweeps -
+    these need a Linux container runtime, which the ordinary matrix does not have.
+  -->
+  <PropertyGroup>
+    <!-- Matches the AppHost: the Aspire 13 AppHost SDK requires a .NET 10 SDK and targets net10.0. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- Self-contained: an Aspire AppHost and an HttpClient, none of the shared CoreWCF test helpers. -->
+    <ReferenceCommonTestProject>false</ReferenceCommonTestProject>
+    <!-- Aspire carries its own Microsoft.Extensions.* versions; the repo-wide pins target the
+         netstandard2.0 libraries and would force an NU1605 downgrade. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Central package management resolves 13.4.6 for net10.0 - see Directory.Packages.props. -->
+    <PackageReference Include="Aspire.Hosting.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Supplies the Projects.* entry-point type DistributedApplicationTestingBuilder starts. -->
+    <ProjectReference Include="../CoreWcfExplorer.IntegrationTests.Aspire13.AppHost/CoreWcfExplorer.IntegrationTests.Aspire13.AppHost.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared with the 9.5.2 project, so both lines are held to exactly the same assertions. -->
+    <Compile Include="../shared/*.cs" />
+  </ItemGroup>
+
+</Project>

@@ -146,6 +146,135 @@ jobs:
         shell: pwsh
         run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1 -Filter '${{ matrix.filter }}'
 
+  # The two jobs below cover the CoreWCF.Aspire.Explorer, which the `test` matrix above cannot
+  # reach: neither of their test projects matches the `CoreWCF.*.Tests.csproj` glob that
+  # .github/actions/run-tests sweeps, because one needs a browser and the other needs a Linux
+  # container runtime.
+  #
+  # They compile what they need from source rather than depending on `build`. The build matrix
+  # produces artifacts neither job consumes, so a `needs: build` would only make them wait.
+  explorer-ui-tests:
+    name: Explorer UI Tests (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+
+      # Builds the explorer too, via ProjectReference. The fixture launches it with
+      # `dotnet run --no-build` against a configuration baked in at build time, so the build that
+      # produced the output has to be this job's own.
+      - name: Build explorer and UI tests
+        shell: bash
+        run: dotnet build src/CoreWCF.Aspire.Explorer/uitests/CoreWCF.Aspire.Explorer.UITests.csproj -c Release -f net8.0
+
+      # The fixture installs chromium itself if it is missing, but not the OS packages it links
+      # against. Doing it here with --with-deps covers both, and makes a missing browser a clear
+      # failure of its own step rather than a timeout inside a test.
+      - name: Install Chromium
+        shell: pwsh
+        run: bin/Release/CoreWCF.Aspire.Explorer.UITests/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run UI tests
+        shell: bash
+        run: |
+          dotnet test src/CoreWCF.Aspire.Explorer/uitests/CoreWCF.Aspire.Explorer.UITests.csproj \
+            --no-build -c Release -f net8.0 \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Explorer.UITests.trx" \
+            --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-pr-explorer-uitests
+          path: TestResults/**/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
+  explorer-integration-tests:
+    name: Explorer Integration Tests (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      # Non-stable and unique per run, so nothing can accidentally consume it as a release tag.
+      - name: Compute image tag
+        id: image
+        shell: bash
+        run: echo "tag=pr-${{ github.event.number }}-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # Built into this runner's Docker daemon only. A pull_request run from a fork has a read-only
+      # token and no secrets, so it cannot push anywhere — but Aspire resolves a locally tagged image
+      # without contacting the registry, so the tests below still exercise the real image.
+      - name: Build explorer container image
+        uses: ./.github/actions/publish-container-image
+        with:
+          project: src/CoreWCF.Aspire.Explorer/src/CoreWCF.Aspire.Explorer.csproj
+          repository: corewcf/aspire-explorer
+          registry: ghcr.io
+          image-tag: ${{ steps.image.outputs.tag }}
+
+      # Consumed only by the AppHost under test, never pushed, so it needs no registry prefix.
+      - name: Build sample service container image
+        uses: ./.github/actions/publish-container-image
+        with:
+          project: src/CoreWCF.Aspire.Hosting/samples/CoreWcfSampleService/CoreWcfSampleService.csproj
+          repository: corewcf/sample-service
+          image-tag: ${{ steps.image.outputs.tag }}
+
+      # The support floor. Both resources are containers, because Aspire 9.x cannot reach a project
+      # endpoint from a container on Linux.
+      - name: Run integration tests (Aspire 9.5.2)
+        shell: bash
+        env:
+          CoreWcfExplorer__ImageTag: ${{ steps.image.outputs.tag }}
+          CoreWcfSampleService__ImageTag: ${{ steps.image.outputs.tag }}
+          ASPIRE_ALLOW_UNSECURED_TRANSPORT: 'true'
+        run: |
+          dotnet test src/CoreWCF.Aspire.Hosting/integrationtests/CoreWCF.Aspire.Hosting.IntegrationTests/CoreWCF.Aspire.Hosting.IntegrationTests.csproj \
+            -c Release \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Hosting.IntegrationTests.trx" \
+            --results-directory TestResults
+
+      # The current line, and the topology consumers actually write: the CoreWCF service is a project
+      # resource, reached through Aspire's container tunnel. Same assertions - the test code is shared.
+      - name: Run integration tests (Aspire 13.4.6)
+        shell: bash
+        env:
+          CoreWcfExplorer__ImageTag: ${{ steps.image.outputs.tag }}
+          ASPIRE_ALLOW_UNSECURED_TRANSPORT: 'true'
+        run: |
+          dotnet test src/CoreWCF.Aspire.Hosting/integrationtests/CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests/CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests.csproj \
+            -c Release \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests.trx" \
+            --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-pr-explorer-integration
+          path: TestResults/**/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
   code-analysis:
     # Code coverage validation. Runs unconditionally on every PR — SonarCloud
     # upload is intentionally CI-only (see ci.yml).

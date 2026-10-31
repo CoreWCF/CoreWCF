@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Publishable as a container so the integration tests can run it alongside the explorer on the
+         container network. Aspire 9.x cannot reach a proxied project endpoint from inside a container
+         on Linux - the container tunnel that fixes that arrived in 13.3 - so on the support floor the
+         only way to exercise the explorer against a real service is for both to be containers. -->
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository>corewcf/sample-service</ContainerRepository>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../CoreWCF.Primitives/src/CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="../../../CoreWCF.Http/src/CoreWCF.Http.csproj" />
+  </ItemGroup>
+
+</Project>

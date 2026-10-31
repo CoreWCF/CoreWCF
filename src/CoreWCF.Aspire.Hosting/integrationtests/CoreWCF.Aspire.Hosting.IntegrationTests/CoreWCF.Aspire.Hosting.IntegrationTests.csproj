@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    End-to-end tests for the hosting integration: they start a real AppHost, which pulls and runs the
+    real explorer container image. Everything the unit tests next door cannot reach - that the image
+    boots, that its health endpoint answers, and that the endpoint addresses WithCoreWcfService
+    projects are reachable from *inside* a container - is only observable here.
+
+    The name is deliberate on both counts:
+
+      * it ends in "Tests", so Directory.Build.props supplies xunit and the runner;
+      * "...IntegrationTests.csproj" does NOT match "CoreWCF.*.Tests.csproj", the glob the run-tests
+        CI action sweeps, so the ordinary matrix does not try to run it. That matrix has no container
+        runtime and spans OSes where Linux containers are unavailable.
+
+    Run explicitly instead - see README.md.
+  -->
+  <PropertyGroup>
+    <!-- Single-targeted, matching the AppHost: the Aspire.AppHost.Sdk version is single-valued and
+         pinned at 9.5.2. The Aspire 13.x line stays covered by the unit tests' net10/net11 legs. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- Self-contained: an Aspire AppHost and an HttpClient, none of the shared CoreWCF test helpers. -->
+    <ReferenceCommonTestProject>false</ReferenceCommonTestProject>
+    <!-- Aspire carries its own Microsoft.Extensions.* versions; the repo-wide pins target the
+         netstandard2.0 libraries and would force an NU1605 downgrade. Same opt-out as the unit tests. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The tests themselves are shared with the Aspire 13.x project next door, so both lines are held
+         to exactly the same assertions. Only the fixture, which names the AppHost entry point, differs. -->
+    <Compile Include="../shared/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Supplies the Projects.* entry-point type DistributedApplicationTestingBuilder starts. -->
+    <ProjectReference Include="../CoreWcfExplorer.IntegrationTests.AppHost/CoreWcfExplorer.IntegrationTests.AppHost.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+.editor-note {
+    margin: var(--space-3) 0 0;
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.type {
+    font-family: var(--mono-font);
+    font-size: var(--type-ramp-minus-1-font-size);
+    color: var(--accent-fill-rest);
+}
+
+.xml-pane {
+    position: relative;
+    margin-top: var(--space-2);
+}
+
+/* Overlaid rather than stacked above the editor, so the copy affordance costs no vertical space. */
+.xml-actions {
+    position: absolute;
+    top: var(--space-1);
+    right: var(--space-2);
+    z-index: 1;
+}
+
+.request-editor ::deep .xml-editor,
+.request-editor ::deep .xml-editor::part(control) {
+    width: 100%;
+    font-family: var(--mono-font);
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.request-editor ::deep .cell-input,
+.request-editor ::deep .cell-input::part(root) {
+    width: 100%;
+}

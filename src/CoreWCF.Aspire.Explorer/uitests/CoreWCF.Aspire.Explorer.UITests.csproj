@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Browser-driven regression tests for the explorer UI.
+
+    The project name matters twice, in opposite directions:
+
+      * it ends in "Tests", so Directory.Build.props treats it as a test project and supplies
+        xunit, the test SDK and the runner;
+      * it does NOT match "CoreWCF.*.Tests.csproj", the glob that .github/actions/run-tests
+        sweeps, so the CI matrix does not try to run it. These tests need a browser and a
+        running app, neither of which that job provides.
+
+    Renaming this project to "...Explorer.Tests" would silently enrol it in every CI leg.
+    Run it explicitly instead - see README.md.
+  -->
+  <PropertyGroup>
+    <!-- The explorer is an ASP.NET Core app; there is no net472 flavour to test. -->
+    <TargetFrameworks>$(NetCoreTestTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- Matches the explorer app: ASP.NET Core assemblies come from the shared framework. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <!-- Self-contained: an in-process CoreWCF host plus the real explorer, run as a child process. -->
+    <ReferenceCommonTestProject>false</ReferenceCommonTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WebApplication is used to host a CoreWCF service in-process for the tests. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Playwright" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The explorer is launched with `dotnet run`, so the tests exercise the real Program.cs,
+         the real static web assets and the real scoped-CSS bundle. The ProjectReference is what
+         guarantees it has been built by the time the tests run. -->
+    <ProjectReference Include="../src/CoreWCF.Aspire.Explorer.csproj" />
+    <ProjectReference Include="../../CoreWCF.Primitives/src/CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="../../CoreWCF.Http/src/CoreWCF.Http.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Baked in rather than derived at runtime: the test assembly cannot otherwise know where the
+         explorer project lives, and `dotnet run` needs the project path and matching configuration. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ExplorerProjectPath</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)../src/CoreWCF.Aspire.Explorer.csproj</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ExplorerConfiguration</_Parameter1>
+      <_Parameter2>$(Configuration)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

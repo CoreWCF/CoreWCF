@@ -1,0 +1,128 @@
+.detail-pane {
+    height: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: var(--space-4) var(--layout-left-padding) var(--space-6);
+}
+
+/* Empty state ------------------------------------------------------------------------------- */
+
+.detail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: var(--space-6);
+    text-align: center;
+}
+
+.placeholder-icon {
+    color: var(--foreground-subtext-rest);
+    opacity: 0.55;
+}
+
+.placeholder-title {
+    margin: var(--space-4) 0 var(--space-1);
+    font-size: var(--type-ramp-plus-1-font-size);
+    font-weight: 600;
+}
+
+.placeholder-hint {
+    margin: 0;
+    max-width: 44ch;
+    font-size: var(--type-ramp-minus-1-font-size);
+    line-height: var(--type-ramp-minus-1-line-height);
+}
+
+.placeholder-hint kbd {
+    padding: 1px 5px;
+    background-color: var(--surface-code);
+    border: 1px solid var(--stroke-divider);
+    border-radius: var(--radius-control);
+    font-family: var(--mono-font);
+    font-size: 0.9em;
+}
+
+/* Header ------------------------------------------------------------------------------------ */
+
+.detail-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+}
+
+.detail-heading {
+    min-width: 0;
+}
+
+.detail-title {
+    margin: 0;
+    font-size: var(--type-ramp-plus-2-font-size);
+    line-height: var(--type-ramp-plus-2-line-height);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detail-contract {
+    display: block;
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.detail-actions {
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+}
+
+.action-glyph {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-end: var(--inline-icon-margin);
+}
+
+/* Metadata ---------------------------------------------------------------------------------- */
+
+.meta {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--space-1) var(--space-4);
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: var(--type-ramp-minus-1-font-size);
+}
+
+.meta dt {
+    color: var(--foreground-subtext-rest);
+}
+
+.meta dd {
+    display: flex;
+    align-items: center;
+    gap: var(--inline-icon-margin);
+    margin: 0;
+    min-width: 0;
+}
+
+.meta-code {
+    font-family: var(--mono-font);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Below roughly 1024px the label column costs more than it explains; stack instead of truncating. */
+@media (max-width: 1024px) {
+    .detail-pane {
+        padding-left: var(--space-3);
+        padding-right: var(--space-3);
+    }
+
+    .meta {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .meta dt {
+        margin-top: var(--space-2);
+    }
+}

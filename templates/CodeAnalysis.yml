@@ -14,6 +14,15 @@ stages:
     displayName: SonarCloud & CodeCoverage reports
     pool:
       vmImage: 'ubuntu-latest'
+    variables:
+      # This job only ever tests net10.0, but CI builds default to adding the preview TFM as well,
+      # so every test project was also being compiled for net11.0 and never run. That is around
+      # 750 MB of output the job cannot use, on an agent that ran out of disk and was lost
+      # mid-coverage-report ("/ is lower than 5%; currently used: 99.80%", reported as an abandoned
+      # job rather than a task failure). MSBuild picks properties up from the environment, so
+      # setting it here covers restore, build and test alike.
+      IncludePreviewTfm: false
+
     steps:
 
     - task: UseDotNet@2
@@ -68,10 +77,14 @@ stages:
         projects: ${{ parameters.testProjects }}
         arguments: '--no-restore --no-build -c Release -f net10.0 --collect:"XPlat Code Coverage" --settings coverlet.runsettings'
 
-    - task: PublishCodeCoverageResults@1
+    # v2 rather than v1. v1 shells out to ReportGenerator to render an HtmlInline report for the
+    # whole codebase into the temp directory - thousands of files, and the operation the agent died
+    # during. v2 publishes the Cobertura files directly, so the report is built service-side.
+    # It also takes every matching file: v1 logged "Multiple file or directory matches were found.
+    # Using the first match", so the published coverage only ever reflected one test project.
+    - task: PublishCodeCoverageResults@2
       displayName: Publish Code Coverage report
       inputs:
-        codeCoverageTool: 'Cobertura'
         summaryFileLocation: $(Agent.TempDirectory)/**/coverage.cobertura.xml
 
     - task: SonarCloudAnalyze@4

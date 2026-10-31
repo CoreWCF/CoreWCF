@@ -174,6 +174,181 @@ jobs:
         shell: pwsh
         run: ./src/CoreWCF.Templates/Run-Templates-UnitTests.ps1 -Filter '${{ matrix.filter }}'
 
+  # Explorer coverage the `test` matrix cannot provide: neither test project matches the
+  # `CoreWCF.*.Tests.csproj` glob that .github/actions/run-tests sweeps, because one needs a browser
+  # and the other a Linux container runtime. Mirrors the pair in pr.yml.
+  explorer-ui-tests:
+    name: Explorer UI Tests (ubuntu-latest)
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('Directory.Packages.props') }}
+
+      - name: Build explorer and UI tests
+        shell: bash
+        run: dotnet build src/CoreWCF.Aspire.Explorer/uitests/CoreWCF.Aspire.Explorer.UITests.csproj -c Release -f net8.0
+
+      - name: Install Chromium
+        shell: pwsh
+        run: bin/Release/CoreWCF.Aspire.Explorer.UITests/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run UI tests
+        shell: bash
+        run: |
+          dotnet test src/CoreWCF.Aspire.Explorer/uitests/CoreWCF.Aspire.Explorer.UITests.csproj \
+            --no-build -c Release -f net8.0 \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Explorer.UITests.trx" \
+            --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-ci-explorer-uitests
+          path: TestResults/**/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
+  explorer-integration-tests:
+    name: Explorer Integration Tests (ubuntu-latest)
+    needs: gate
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.image.outputs.tag }}
+      extra-tags: ${{ steps.image.outputs.extra }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      # sha-<short> is the immutable coordinate. The moving tags are additive: `main` so a consumer
+      # can follow the branch, and `latest` because that is what CoreWcfExplorerImageTags resolves by
+      # default — without it, AddCoreWcfExplorer has nothing to pull. Release branches get their own
+      # moving tag and deliberately do not move `latest`.
+      - name: Compute image tags
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            echo "extra=main latest" >> "$GITHUB_OUTPUT"
+          else
+            # refs/heads/release/1.2 -> release-1.2
+            branch="${GITHUB_REF#refs/heads/}"
+            echo "extra=${branch//\//-}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build explorer container image
+        uses: ./.github/actions/publish-container-image
+        with:
+          project: src/CoreWCF.Aspire.Explorer/src/CoreWCF.Aspire.Explorer.csproj
+          repository: corewcf/aspire-explorer
+          registry: ghcr.io
+          image-tag: ${{ steps.image.outputs.tag }}
+          additional-tags: ${{ steps.image.outputs.extra }}
+
+      # Consumed only by the AppHost under test, never pushed, so it needs no registry prefix.
+      - name: Build sample service container image
+        uses: ./.github/actions/publish-container-image
+        with:
+          project: src/CoreWCF.Aspire.Hosting/samples/CoreWcfSampleService/CoreWcfSampleService.csproj
+          repository: corewcf/sample-service
+          image-tag: ${{ steps.image.outputs.tag }}
+
+      # The support floor. Both resources are containers, because Aspire 9.x cannot reach a project
+      # endpoint from a container on Linux.
+      - name: Run integration tests (Aspire 9.5.2)
+        shell: bash
+        env:
+          CoreWcfExplorer__ImageTag: ${{ steps.image.outputs.tag }}
+          CoreWcfSampleService__ImageTag: ${{ steps.image.outputs.tag }}
+          ASPIRE_ALLOW_UNSECURED_TRANSPORT: 'true'
+        run: |
+          dotnet test src/CoreWCF.Aspire.Hosting/integrationtests/CoreWCF.Aspire.Hosting.IntegrationTests/CoreWCF.Aspire.Hosting.IntegrationTests.csproj \
+            -c Release \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Hosting.IntegrationTests.trx" \
+            --results-directory TestResults
+
+      # The current line, and the topology consumers actually write: the CoreWCF service is a project
+      # resource, reached through Aspire's container tunnel. Same assertions - the test code is shared.
+      - name: Run integration tests (Aspire 13.4.6)
+        shell: bash
+        env:
+          CoreWcfExplorer__ImageTag: ${{ steps.image.outputs.tag }}
+          ASPIRE_ALLOW_UNSECURED_TRANSPORT: 'true'
+        run: |
+          dotnet test src/CoreWCF.Aspire.Hosting/integrationtests/CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests/CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests.csproj \
+            -c Release \
+            --logger "trx;LogFileName=CoreWCF.Aspire.Hosting.Aspire13.IntegrationTests.trx" \
+            --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-ci-explorer-integration
+          path: TestResults/**/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
+  publish-explorer-image:
+    name: Publish Explorer Image
+    needs: explorer-integration-tests
+    # Same opt-in as the package publish job: never push from a fork or mirror that has not
+    # explicitly asked for it. Gated on the integration tests having passed, so a broken image
+    # cannot reach the registry — that image is what AddCoreWcfExplorer resolves for every consumer.
+    if: >-
+      github.event.inputs.publish_packages == 'true' ||
+      (github.event.inputs.publish_packages != 'false' && vars.PUBLISH_PACKAGES == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDKs
+        uses: ./.github/actions/setup-dotnet-sdks
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Rebuilt rather than carried over from the previous job: a Docker image is not a workflow
+      # artifact, and `docker save`/`load` of a ~340 MB tarball costs more than the rebuild.
+      - name: Build and push explorer container image
+        uses: ./.github/actions/publish-container-image
+        with:
+          project: src/CoreWCF.Aspire.Explorer/src/CoreWCF.Aspire.Explorer.csproj
+          repository: corewcf/aspire-explorer
+          registry: ghcr.io
+          image-tag: ${{ needs.explorer-integration-tests.outputs.image-tag }}
+          additional-tags: ${{ needs.explorer-integration-tests.outputs.extra-tags }}
+          push: 'true'
+
   code-analysis:
     name: Code Analysis
     needs: gate
