@@ -2,6 +2,12 @@
 
 CoreWCF is a port of the service side of Windows Communication Foundation (WCF) to .NET Core. The goal of this project is to enable existing WCF services to move to .NET Core.
 
+### Supported platforms
+
+CoreWCF 2.x targets `net8.0` and requires the **ASP.NET Core** shared runtime (the packages carry a `Microsoft.AspNetCore.App` framework reference). It runs on .NET 8 and later.
+
+.NET Framework is **not** supported by CoreWCF 2.x. If you are still hosting on .NET Framework via ASP.NET Core 2.1, stay on CoreWCF 1.x — see [Microsoft Support](Documentation/Microsoft-Support.md).
+
 ### Package Status
 
 The latest released packages can be found at NuGet.org:
@@ -56,8 +62,8 @@ dotnet new corewcf --name MyService
 ```
 * `CoreWCF Service` project template creates a minimal ASP.NET Core web application thats exposes the well-known WCF default service using a `BasicHttpBinding`.
 It supports the following arguments:
-  * `--framework`: `net8.0` (default), `net6.0`, `net48`, `net472` and `net462` are valid values.
-  * `--use-program-main`: whether to turn off ASP.NET Core minimal API hosting. This option only affects projects targeting .NET as .NET Framework requires a `Startup` and a `Program` class. 
+  * `--framework`: `net8.0` (default), `net9.0` and `net10.0` are valid values.
+  * `--use-program-main`: whether to turn off ASP.NET Core minimal API hosting and generate an explicit `Program` class with a `Main` method plus a `Startup` class.
   * `--no-https`: whether to turn off HTTPS and use `BasicHttpSecurityMode.None`. Default is HTTPS enabled using `BasicHttpSecurityMode.Transport`.
   * `--no-wsdl`: whether to turn off WSDL metadata feature.
   * `--use-operation-invoker-generator`: whether to turn on OperationInvokerGenerator feature.

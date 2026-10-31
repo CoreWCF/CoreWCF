@@ -107,13 +107,6 @@ jobs:
         configuration: [Debug, Release]
         os: [windows-latest, ubuntu-latest]
         tfm: [net8.0, net9.0, net10.0, net11.0]
-        include:
-          - configuration: Debug
-            os: windows-latest
-            tfm: net472
-          - configuration: Release
-            os: windows-latest
-            tfm: net472
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -146,13 +139,11 @@ jobs:
           # Windows is fanned out per-TFM because running all variations in one job took
           # ~28 min. Each entry below runs ~16 variations selected by the `Framework` trait
           # set on every theory row in BasicTests.GetVariations(). Adding a new TFM is a
-          # one-line change there plus one matrix entry here. .NET Framework coverage is
-          # intentionally limited to net472 to match the regular build matrix above.
+          # one-line change there plus one matrix entry here.
           - { os: windows-latest, label: windows-default, filter: Framework=default }
           - { os: windows-latest, label: windows-net10.0, filter: Framework=net10.0 }
           - { os: windows-latest, label: windows-net9.0,  filter: Framework=net9.0  }
           - { os: windows-latest, label: windows-net8.0,  filter: Framework=net8.0  }
-          - { os: windows-latest, label: windows-net472,  filter: Framework=net472  }
     steps:
       - name: Checkout
         uses: actions/checkout@v6

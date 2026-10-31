@@ -10,6 +10,8 @@ This release depends on ASP.NET Core 2.1 which is supported on .NET Framework. T
 
 ASP.NET Core 2.1 was released as an OOB (out of band) set of packages and runs on .NET Core 3.1. We run all our tests on .NET Core 3.1 to validate this scenario. The [end of support date](https://dotnet.microsoft.com/platform/support/policy/dotnet-core) for .NET Core 3.1 is December 3, 2022.
 
+> **Note:** the above describes the 1.x migration release only. CoreWCF 2.0 dropped .NET Framework support: the libraries target `net8.0` and reference the ASP.NET Core shared framework directly. Teams still mid-migration on .NET Framework should remain on CoreWCF 1.x.
+
 The first release will have a version number of 0.1. The major version being 0 is a reflection of some core features not currently available which would enable justification of a 1.0 release version. An example of a feature required for 1.0 is support for WSDL generation. Once enough features have been ported, the version number will change to 1.0. The 1.0 version will then receive no more new features and will only see bug fixes.  
 
 The migration release will be supported long term and will only stop receiving bug fixes once the usage rate drops low and the majority are using later releases.

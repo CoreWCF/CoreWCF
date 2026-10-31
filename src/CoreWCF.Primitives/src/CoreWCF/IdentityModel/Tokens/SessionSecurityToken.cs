@@ -915,8 +915,10 @@ namespace CoreWCF.IdentityModel.Tokens
                 byte[] bytes = dictionaryReader.ReadContentAsBase64();
                 using (MemoryStream ms = new MemoryStream(bytes))
                 {
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                     BinaryFormatter formatter = new BinaryFormatter();
                     identity.BootstrapContext = (BootstrapContext)formatter.Deserialize(ms);
+#pragma warning restore SYSLIB0011
                 }
 
                 dictionaryReader.ReadEndElement();
@@ -1248,8 +1250,10 @@ namespace CoreWCF.IdentityModel.Tokens
 
                 using (MemoryStream ms = new MemoryStream())
                 {
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                     BinaryFormatter formatter = new BinaryFormatter();
                     formatter.Serialize(ms, identity.BootstrapContext);
+#pragma warning restore SYSLIB0011
                     byte[] bootstrapArray = ms.ToArray();
                     dictionaryWriter.WriteBase64(bootstrapArray, 0, bootstrapArray.Length);
                 }

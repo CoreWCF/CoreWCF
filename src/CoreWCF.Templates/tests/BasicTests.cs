@@ -44,16 +44,6 @@ public class BasicTests : IClassFixture<ProjectFactoryFixture>
         yield return "net10.0";
         yield return "net9.0";
         yield return "net8.0";
-
-        if (!OperatingSystem.IsWindows())
-        {
-            yield break;
-        }
-
-        // .NET Framework coverage is intentionally limited to net472 to match the regular build
-        // matrix in pr.yml / ci.yml. The 2022 introduction commit also exercised net48 and net462
-        // but they have been dropped to keep the Windows test-templates critical path short.
-        yield return "net472";
     }
 
     public static IEnumerable<TheoryDataRow<TestVariation>> GetVariations()

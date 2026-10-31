@@ -204,7 +204,6 @@ namespace Helpers
 
         public static void RegisterApplicationLifetime(this IServiceCollection services)
         {
-#if NETCOREAPP3_1_OR_GREATER
             var applicationLifetimeType =
                 typeof(Microsoft.AspNetCore.Hosting.WebHostBuilder).Assembly.GetType(
                 "Microsoft.AspNetCore.Hosting.ApplicationLifetime");
@@ -215,25 +214,13 @@ namespace Helpers
             services.AddSingleton(provider =>
                 provider.GetRequiredService<Microsoft.Extensions.Hosting.IHostApplicationLifetime>() as Microsoft.Extensions.Hosting.IApplicationLifetime);
 #pragma warning restore CS0618 // Type or member is obsolete
-#else
-            services.AddSingleton<Microsoft.Extensions.Hosting.IApplicationLifetime, Microsoft.AspNetCore.Hosting.Internal.ApplicationLifetime>();
-#endif
-
         }
 
-#if NET6_0_OR_GREATER
         public static IHost CreateHost<TStartup>() where TStartup : class
         {
             return CreateHost<TStartup>(null);
         }
-#else
-        public static IWebHost CreateHost<TStartup>() where TStartup : class
-        {
-            return CreateHost<TStartup>(null);
-        }
-#endif
 
-#if NET6_0_OR_GREATER
         public static IHost CreateHost<TStartup>(Action<Microsoft.AspNetCore.Hosting.IWebHostBuilder> configureWebHost) where TStartup : class
         {
             var builder = WebApplication.CreateBuilder();
@@ -251,16 +238,7 @@ namespace Helpers
 
             return app;
         }
-#else
-        public static IWebHost CreateHost<TStartup>(Action<Microsoft.AspNetCore.Hosting.IWebHostBuilder> configureWebHost) where TStartup : class
-        {
-            var builder = Microsoft.AspNetCore.WebHost.CreateDefaultBuilder<TStartup>(null);
-            configureWebHost?.Invoke(builder);
-            return builder.Build();
-        }
-#endif
 
-#if NET6_0_OR_GREATER
         private static void InvokeStartupConfigure<TStartup>(TStartup startup, WebApplication app)
         {
             var configureMethod = typeof(TStartup).GetMethod("Configure");
@@ -282,6 +260,5 @@ namespace Helpers
                 configureMethod.Invoke(startup, args);
             }
         }
-#endif
     }
 }

@@ -29,7 +29,7 @@ namespace CoreWCF.IdentityModel.Tokens
             {
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(certificate));
             }
-            //TODO  switch to stronger hash algorithm once we're no longer on netstandard2.0
+            //TODO  switch to a stronger hash algorithm; no longer blocked now that we target net8.0
             return certificate.GetCertHash();
         }
 

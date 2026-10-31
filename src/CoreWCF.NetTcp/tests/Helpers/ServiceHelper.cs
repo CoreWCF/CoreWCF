@@ -20,9 +20,7 @@ namespace Helpers
 {
     public static class ServiceHelper
     {
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateNonKestrelWebHostBuilder<TStartup>(ITestOutputHelper outputHelper, IPAddress ipAddress = null, int port = 0, [CallerMemberName] string callerMethodName = "") where TStartup : class
         {
             if (ipAddress == null)

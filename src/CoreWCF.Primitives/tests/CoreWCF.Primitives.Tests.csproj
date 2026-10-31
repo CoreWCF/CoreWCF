@@ -14,11 +14,7 @@
     <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <PackageReference Include="Microsoft.AspNetCore" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

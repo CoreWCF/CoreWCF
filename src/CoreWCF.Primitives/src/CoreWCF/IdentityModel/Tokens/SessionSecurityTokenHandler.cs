@@ -749,8 +749,12 @@ namespace CoreWCF.IdentityModel.Tokens
             byte[] SerializeWithBinaryFormatter()
             {
                 using MemoryStream ms = new();
+                // Only reachable on runtimes earlier than .NET 9, where BinaryFormatter still
+                // functions. Retained for compatibility with cookies written by earlier versions.
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                 BinaryFormatter formatter = new();
                 formatter.Serialize(ms, token);
+#pragma warning restore SYSLIB0011
                 return ms.ToArray();
             }
 
@@ -795,8 +799,12 @@ namespace CoreWCF.IdentityModel.Tokens
             SecurityToken DeserializeWithBinaryFormatter()
             {
                 using MemoryStream ms = new(bytes);
+                // Only reachable on runtimes earlier than .NET 9, where BinaryFormatter still
+                // functions. Retained for compatibility with cookies written by earlier versions.
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
                 BinaryFormatter formatter = new();
                 return formatter.Deserialize(ms) as SecurityToken;
+#pragma warning restore SYSLIB0011
             }
         }
     }
