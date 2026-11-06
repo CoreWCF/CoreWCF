@@ -342,6 +342,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             int expectedMaxDepth = 2147483647;
             int expectedMaxReadPoolSize = 24;
             int expectedMaxWritePoolSize = 8;
+            int expectedMaxMimeParts = 2000;
             Encoding expectedEncoding = Encoding.Unicode;
             MessageVersion expectedMessageVersion = MessageVersion.Soap11;
 
@@ -354,6 +355,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                 <binding name=""{expectedName}"">
                     <mtomMessageEncoding maxReadPoolSize=""{expectedMaxReadPoolSize}""
                                          maxWritePoolSize=""{expectedMaxWritePoolSize}""
+                                         maxMimeParts=""{expectedMaxMimeParts}""
                                          writeEncoding=""utf-16LE""
                                          messageVersion=""Soap11"">
                         <readerQuotas maxDepth=""{expectedMaxDepth}"" />
@@ -376,6 +378,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.Equal(expectedName, actualBinding.Name);
                     Assert.Equal(expectedMaxReadPoolSize, actualMessageEncodingBindingElement.MaxReadPoolSize);
                     Assert.Equal(expectedMaxWritePoolSize, actualMessageEncodingBindingElement.MaxWritePoolSize);
+                    Assert.Equal(expectedMaxMimeParts, actualMessageEncodingBindingElement.MaxMimeParts);
                     Assert.Equal(expectedEncoding, actualMessageEncodingBindingElement.WriteEncoding);
                     Assert.Equal(expectedMessageVersion, actualMessageEncodingBindingElement.MessageVersion);
                     Assert.Equal(expectedMaxDepth, actualMessageEncodingBindingElement.ReaderQuotas.MaxDepth);
@@ -389,6 +392,7 @@ namespace CoreWCF.ConfigurationManager.Tests
             string expectedName = "customBinding";
             int expectedMaxReadPoolSize = 64;
             int expectedMaxWritePoolSize = 16;
+            int expectedMaxMimeParts = 1000;
             Encoding expectedEncoding = Encoding.UTF8;
             MessageVersion expectedMessageVersion = MessageVersion.Soap12WSAddressing10;
 
@@ -418,6 +422,7 @@ namespace CoreWCF.ConfigurationManager.Tests
                     Assert.Equal(expectedName, actualBinding.Name);
                     Assert.Equal(expectedMaxReadPoolSize, actualMessageEncodingBindingElement.MaxReadPoolSize);
                     Assert.Equal(expectedMaxWritePoolSize, actualMessageEncodingBindingElement.MaxWritePoolSize);
+                    Assert.Equal(expectedMaxMimeParts, actualMessageEncodingBindingElement.MaxMimeParts);
                     Assert.Equal(expectedMessageVersion, actualMessageEncodingBindingElement.MessageVersion);
                     Assert.Equal(expectedEncoding, actualMessageEncodingBindingElement.WriteEncoding);
                 }

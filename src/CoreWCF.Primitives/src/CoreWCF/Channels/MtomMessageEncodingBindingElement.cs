@@ -15,6 +15,7 @@ namespace CoreWCF.Channels
         private int _maxWritePoolSize;
         private XmlDictionaryReaderQuotas _readerQuotas;
         private int _maxBufferSize;
+        private int _maxMimeParts;
         private Encoding _writeEncoding;
         private MessageVersion _messageVersion;
 
@@ -37,6 +38,7 @@ namespace CoreWCF.Channels
             _readerQuotas = new XmlDictionaryReaderQuotas();
             EncoderDefaults.ReaderQuotas.CopyTo(_readerQuotas);
             _maxBufferSize = MtomEncoderDefaults.MaxBufferSize;
+            _maxMimeParts = MtomEncoderDefaults.MaxMimeParts;
             _messageVersion = messageVersion;
             _writeEncoding = writeEncoding;
         }
@@ -49,6 +51,7 @@ namespace CoreWCF.Channels
             _readerQuotas = new XmlDictionaryReaderQuotas();
             elementToBeCloned._readerQuotas.CopyTo(_readerQuotas);
             _maxBufferSize = elementToBeCloned._maxBufferSize;
+            _maxMimeParts = elementToBeCloned._maxMimeParts;
             _writeEncoding = elementToBeCloned._writeEncoding;
             _messageVersion = elementToBeCloned._messageVersion;
         }
@@ -115,6 +118,24 @@ namespace CoreWCF.Channels
             }
         }
 
+        [DefaultValue(MtomEncoderDefaults.MaxMimeParts)]
+        public int MaxMimeParts
+        {
+            get
+            {
+                return _maxMimeParts;
+            }
+            set
+            {
+                if (value <= 0)
+                {
+                    throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentOutOfRangeException(nameof(value), value,
+                                                    SRCommon.ValueMustBePositive));
+                }
+                _maxMimeParts = value;
+            }
+        }
+
         public Encoding WriteEncoding
         {
             get
@@ -159,7 +180,7 @@ namespace CoreWCF.Channels
 
         public override MessageEncoderFactory CreateMessageEncoderFactory()
         {
-            return new MtomMessageEncoderFactory(MessageVersion, WriteEncoding, MaxReadPoolSize, MaxWritePoolSize, MaxBufferSize, ReaderQuotas);
+            return new MtomMessageEncoderFactory(MessageVersion, WriteEncoding, MaxReadPoolSize, MaxWritePoolSize, MaxBufferSize, MaxMimeParts, ReaderQuotas);
         }
 
         public override T GetProperty<T>(BindingContext context)
@@ -233,6 +254,8 @@ namespace CoreWCF.Channels
                 return false;
 
             if (_maxBufferSize != mtom.MaxBufferSize)
+                return false;
+            if (_maxMimeParts != mtom.MaxMimeParts)
                 return false;
 
             if (WriteEncoding.EncodingName != mtom.WriteEncoding.EncodingName)

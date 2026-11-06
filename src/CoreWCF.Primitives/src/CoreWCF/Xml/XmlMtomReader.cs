@@ -10,6 +10,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Xml;
 
+using CoreWCF.Channels;
 using CoreWCF.Runtime;
 using CoreWCF.Text;
 
@@ -17,8 +18,8 @@ namespace CoreWCF.Xml
 {
     internal interface IXmlMtomReaderInitializer
     {
-        void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose);
-        void SetInput(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose);
+        void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose);
+        void SetInput(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose);
     }
 
     internal class XmlMtomReader : XmlDictionaryReader, IXmlLineInfo, IXmlMtomReaderInitializer
@@ -37,9 +38,13 @@ namespace CoreWCF.Xml
 
         public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, string contentType,
             XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
+            => Create(stream, encodings, contentType, quotas, maxBufferSize, MtomEncoderDefaults.MaxMimeParts, onClose);
+
+        public static XmlDictionaryReader Create(Stream stream, Encoding[] encodings, string contentType,
+            XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose)
         {
             XmlMtomReader reader = new XmlMtomReader();
-            reader.SetInput(stream, encodings, contentType, quotas, maxBufferSize, onClose);
+            reader.SetInput(stream, encodings, contentType, quotas, maxBufferSize, maxMimeParts, onClose);
             return reader;
         }
 
@@ -57,9 +62,13 @@ namespace CoreWCF.Xml
 
         public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType,
             XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
+            => Create(buffer, offset, count, encodings, contentType, quotas, maxBufferSize, MtomEncoderDefaults.MaxMimeParts, onClose);
+
+        public static XmlDictionaryReader Create(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType,
+            XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose)
         {
             XmlMtomReader reader = new XmlMtomReader();
-            reader.SetInput(buffer, offset, count, encodings, contentType, quotas, maxBufferSize, onClose);
+            reader.SetInput(buffer, offset, count, encodings, contentType, quotas, maxBufferSize, maxMimeParts, onClose);
             return reader;
         }
 
@@ -71,6 +80,7 @@ namespace CoreWCF.Xml
         private OnXmlDictionaryReaderClose _onClose;
         private bool _readingBinaryElement;
         private int _maxBufferSize;
+        private int _maxMimeParts;
         private int _bufferRemaining;
         private MimePart _part;
 
@@ -112,22 +122,23 @@ namespace CoreWCF.Xml
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new ArgumentException(SR.MtomContentTypeInvalid, nameof(contentType)));
         }
 
-        public void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose) => SetInput(new MemoryStream(buffer, offset, count), encodings, contentType, quotas, maxBufferSize, onClose);
+        public void SetInput(byte[] buffer, int offset, int count, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose) => SetInput(new MemoryStream(buffer, offset, count), encodings, contentType, quotas, maxBufferSize, maxMimeParts, onClose);
 
-        public void SetInput(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, OnXmlDictionaryReaderClose onClose)
+        public void SetInput(Stream stream, Encoding[] encodings, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts, OnXmlDictionaryReaderClose onClose)
         {
             SetReadEncodings(encodings);
             CheckContentType(contentType);
-            Initialize(stream, contentType, quotas, maxBufferSize);
+            Initialize(stream, contentType, quotas, maxBufferSize, maxMimeParts);
             _onClose = onClose;
         }
 
-        private void Initialize(Stream stream, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize)
+        private void Initialize(Stream stream, string contentType, XmlDictionaryReaderQuotas quotas, int maxBufferSize, int maxMimeParts)
         {
             if (stream == null)
                 throw DiagnosticUtility.ExceptionUtility.ThrowHelperArgumentNull(nameof(stream));
 
             _maxBufferSize = maxBufferSize;
+            _maxMimeParts = maxMimeParts;
             _bufferRemaining = maxBufferSize;
 
             string boundary, start, startInfo;
@@ -403,8 +414,6 @@ namespace CoreWCF.Xml
             }
             else
             {
-                // TODO: Fix this to be a configurable setting on MtomMessageEncodingBindingElement
-                int maxMimeParts = 1000; // AppSettings.MaxMimeParts;
                 while (part == null && _mimeReader.ReadNextPart())
                 {
                     MimeHeaders headers = _mimeReader.ReadHeaders(_maxBufferSize, ref _bufferRemaining);
@@ -435,8 +444,8 @@ namespace CoreWCF.Xml
 
                     _mimeParts.Add(currentContentID, currentPart);
 
-                    if (_mimeParts.Count > maxMimeParts)
-                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.MaxMimePartsExceeded, maxMimeParts, "MtomMessageEncoderBindingElement")));
+                    if (_mimeParts.Count > _maxMimeParts)
+                        throw DiagnosticUtility.ExceptionUtility.ThrowHelperError(new XmlException(SR.Format(SR.MaxMimePartsExceeded, _maxMimeParts)));
 
                     if (currentContentID.Equals(contentID))
                         part = currentPart;
