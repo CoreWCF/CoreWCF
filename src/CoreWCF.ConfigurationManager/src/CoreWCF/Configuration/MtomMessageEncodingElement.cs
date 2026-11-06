@@ -25,6 +25,7 @@ namespace CoreWCF.Configuration
             binding.MaxWritePoolSize = MaxWritePoolSize;
             ReaderQuotas.ApplyConfiguration(binding.ReaderQuotas);
             binding.MaxBufferSize = MaxBufferSize;
+            binding.MaxMimeParts = MaxMimeParts;
         }
 
         public override Type BindingElementType
@@ -42,6 +43,7 @@ namespace CoreWCF.Configuration
             MaxReadPoolSize = source.MaxReadPoolSize;
             MaxWritePoolSize = source.MaxWritePoolSize;
             MaxBufferSize = source.MaxBufferSize;
+            MaxMimeParts = source.MaxMimeParts;
         }
 
         protected internal override BindingElement CreateBindingElement()
@@ -61,6 +63,7 @@ namespace CoreWCF.Configuration
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxWritePoolSize, binding.MaxWritePoolSize);
             ReaderQuotas.InitializeFrom(binding.ReaderQuotas);
             SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxBufferSize, binding.MaxBufferSize);
+            SetPropertyValueIfNotDefaultValue(ConfigurationStrings.MaxMimeParts, binding.MaxMimeParts);
         }
 
         [ConfigurationProperty(ConfigurationStrings.MaxReadPoolSize, DefaultValue = EncoderDefaults.MaxReadPoolSize)]
@@ -99,6 +102,14 @@ namespace CoreWCF.Configuration
         {
             get { return (int)base[ConfigurationStrings.MaxBufferSize]; }
             set { base[ConfigurationStrings.MaxBufferSize] = value; }
+        }
+
+        [ConfigurationProperty(ConfigurationStrings.MaxMimeParts, DefaultValue = MtomEncoderDefaults.MaxMimeParts)]
+        [IntegerValidator(MinValue = 1)]
+        public int MaxMimeParts
+        {
+            get { return (int)base[ConfigurationStrings.MaxMimeParts]; }
+            set { base[ConfigurationStrings.MaxMimeParts] = value; }
         }
 
         [ConfigurationProperty(ConfigurationStrings.WriteEncoding, DefaultValue = TextEncoderDefaults.EncodingString)]

@@ -8140,7 +8140,7 @@
     <value>Content stream can be retrieved from MIME message only once.</value>
   </data>
   <data name="MaxMimePartsExceeded" xml:space="preserve">
-    <value>The number of MIME parts in the MTOM message exceeded the current quota '{0}'. To increase the quota, change the '{1}' setting in the AppSettings section of the configuration file.</value>
+    <value>The number of MIME parts in the MTOM message exceeded the current quota '{0}'. To increase the quota, set the MaxMimeParts property on the MtomMessageEncodingBindingElement.</value>
   </data>
   <data name="MimeReaderHeaderAlreadyExists" xml:space="preserve">
     <value>'{0}' MIME header is specified multiple times.</value>

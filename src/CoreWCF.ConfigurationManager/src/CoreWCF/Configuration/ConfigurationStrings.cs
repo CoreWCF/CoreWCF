@@ -243,6 +243,7 @@ namespace CoreWCF.Configuration
         internal const string MaxIssuedTokenCachingTime = "maxIssuedTokenCachingTime";
         internal const string MaxItemsInObjectGraph = "maxItemsInObjectGraph";
         internal const string MaxMessagesToLog = "maxMessagesToLog";
+        internal const string MaxMimeParts = "maxMimeParts";
         internal const string MaxNameTableCharCount = "maxNameTableCharCount";
         internal const string MaxOutboundChannelsPerEndpoint = "maxOutboundChannelsPerEndpoint";
         internal const string MaxOutboundConnectionsPerEndpoint = "maxOutboundConnectionsPerEndpoint";
