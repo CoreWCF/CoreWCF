@@ -140,6 +140,7 @@ namespace CoreWCF.Channels
     internal static class MtomEncoderDefaults
     {
         internal const int MaxBufferSize = 65536;
+        internal const int MaxMimeParts = 1000;
     }
 
     internal static class BinaryEncoderDefaults

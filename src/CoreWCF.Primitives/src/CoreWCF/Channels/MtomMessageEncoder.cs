@@ -23,6 +23,7 @@ namespace CoreWCF.Channels
         private int _maxReadPoolSize;
         private int _maxWritePoolSize;
         private int _maxBufferSize;
+        private int _maxMimeParts;
         private XmlDictionaryReaderQuotas _readerQuotas;
 
         // Pools used by MtomMessageEncoder
@@ -36,13 +37,14 @@ namespace CoreWCF.Channels
         private volatile SynchronizedPool<MtomMessageEncoder.MtomBufferedMessageWriter> _bufferedWriterPool;
         private volatile SynchronizedPool<RecycledMessageState> _recycledStatePool;
 
-        public MtomMessageEncoderFactory(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, int maxBufferSize, XmlDictionaryReaderQuotas quotas)
+        public MtomMessageEncoderFactory(MessageVersion version, Encoding writeEncoding, int maxReadPoolSize, int maxWritePoolSize, int maxBufferSize, int maxMimeParts, XmlDictionaryReaderQuotas quotas)
         {
             _messageVersion = version;
             _writeEncoding = writeEncoding;
             _maxReadPoolSize = maxReadPoolSize;
             _maxWritePoolSize = maxWritePoolSize;
             _maxBufferSize = maxBufferSize;
+            _maxMimeParts = maxMimeParts;
             _readerQuotas = quotas;
             _thisLock = new object();
             _onStreamedReaderClose = new OnXmlDictionaryReaderClose(ReturnStreamedReader);
@@ -72,6 +74,8 @@ namespace CoreWCF.Channels
         public XmlDictionaryReaderQuotas ReaderQuotas => _readerQuotas;
 
         public int MaxBufferSize => _maxBufferSize;
+
+        public int MaxMimeParts => _maxMimeParts;
 
         internal ContentEncoding[] ContentEncodingMap { get; }
 
@@ -187,11 +191,11 @@ namespace CoreWCF.Channels
                 {
                     if (xmlReader != null && xmlReader is IXmlMtomReaderInitializer)
                     {
-                        ((IXmlMtomReaderInitializer)xmlReader).SetInput(stream, MtomMessageEncoderFactory.GetSupportedEncodings(), contentType, ReaderQuotas, MaxBufferSize, _onStreamedReaderClose);
+                        ((IXmlMtomReaderInitializer)xmlReader).SetInput(stream, MtomMessageEncoderFactory.GetSupportedEncodings(), contentType, ReaderQuotas, MaxBufferSize, MaxMimeParts, _onStreamedReaderClose);
                     }
                     else
                     {
-                        xmlReader = XmlMtomReader.Create(stream, MtomMessageEncoderFactory.GetSupportedEncodings(), contentType, ReaderQuotas, MaxBufferSize, _onStreamedReaderClose);
+                        xmlReader = XmlMtomReader.Create(stream, MtomMessageEncoderFactory.GetSupportedEncodings(), contentType, ReaderQuotas, MaxBufferSize, MaxMimeParts, _onStreamedReaderClose);
                         // if (WcfEventSource.Instance.ReadPoolMissIsEnabled())
                         // {
                         //     WcfEventSource.Instance.ReadPoolMiss(xmlReader.GetType().Name);
@@ -617,11 +621,11 @@ namespace CoreWCF.Channels
                     {
                         if (xmlReader != null && xmlReader is IXmlMtomReaderInitializer)
                         {
-                            ((IXmlMtomReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
+                            ((IXmlMtomReaderInitializer)xmlReader).SetInput(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _messageEncoder._factory.MaxMimeParts, _onClose);
                         }
                         else
                         {
-                            xmlReader = XmlMtomReader.Create(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _onClose);
+                            xmlReader = XmlMtomReader.Create(buffer.Array, buffer.Offset, buffer.Count, MtomMessageEncoderFactory.GetSupportedEncodings(), _contentType, Quotas, _messageEncoder.MaxBufferSize, _messageEncoder._factory.MaxMimeParts, _onClose);
                             // if (WcfEventSource.Instance.ReadPoolMissIsEnabled())
                             // {
                             //     WcfEventSource.Instance.ReadPoolMiss(xmlReader.GetType().Name);
