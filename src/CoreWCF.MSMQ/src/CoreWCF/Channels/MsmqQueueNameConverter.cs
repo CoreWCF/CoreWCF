@@ -16,8 +16,7 @@ namespace CoreWCF.Channels
         {
             string uriLocalPath = endpoint.LocalPath;
             int startIndex = uriLocalPath.IndexOf("private", StringComparison.InvariantCultureIgnoreCase) + 8;
-            int length = uriLocalPath.Length - uriLocalPath.LastIndexOf("/", StringComparison.InvariantCultureIgnoreCase) - 1;
-            string queueName = uriLocalPath.Substring(startIndex, length);
+            string queueName = uriLocalPath.Substring(startIndex);
             return $".\\Private$\\{queueName}";
         }
     }
