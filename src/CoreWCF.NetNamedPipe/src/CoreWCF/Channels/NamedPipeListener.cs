@@ -17,6 +17,9 @@ namespace CoreWCF.Channels
     [SupportedOSPlatform("windows")]
     internal class NamedPipeListener
     {
+        private const int OutputSegmentSize = 64 * 1024;
+        private const int MinimumOutputBufferSize = 256 * 1024;
+
         private NamedPipeListenOptions _options;
         private ILogger<NamedPipeListener> _logger;
         private ConnectionDelegate _connectionDelegate;
@@ -44,7 +47,10 @@ namespace CoreWCF.Channels
             _connectionDelegate = ((IConnectionBuilder)options).Build();
             PipeUri.Validate(options.BaseAddress);
             _inputOptions = new PipeOptions(null, PipeScheduler.ThreadPool, PipeScheduler.Inline, options.ConnectionBufferSize, options.ConnectionBufferSize / 2, useSynchronizationContext: false);
-            _outputOptions = new PipeOptions(null, PipeScheduler.Inline, PipeScheduler.ThreadPool, options.ConnectionBufferSize, options.ConnectionBufferSize / 2, useSynchronizationContext: false);
+            // Allow streamed encoder chunks to overlap with sending, without splitting them into 4 KiB native writes.
+            long outputBufferSize = Math.Max(options.ConnectionBufferSize, MinimumOutputBufferSize);
+            _outputOptions = new PipeOptions(null, PipeScheduler.Inline, PipeScheduler.ThreadPool, outputBufferSize, outputBufferSize / 2,
+                minimumSegmentSize: OutputSegmentSize, useSynchronizationContext: false);
             _connectionBufferSize = (int)_inputOptions.PauseWriterThreshold;
         }
 
