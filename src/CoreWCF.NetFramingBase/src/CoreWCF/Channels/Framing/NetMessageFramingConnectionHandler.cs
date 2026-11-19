@@ -9,7 +9,9 @@ using CoreWCF.Configuration;
 using CoreWCF.Dispatcher;
 using CoreWCF.Security;
 using Microsoft.AspNetCore.Connections;
+#if !NETFRAMEWORK
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -22,8 +24,10 @@ namespace CoreWCF.Channels.Framing
         private readonly ILogger _framingLogger;
         private readonly IServiceProvider _services;
 
+#if !NETFRAMEWORK
         [Obsolete("Added by mistake, does nothing", true)]
         public List<ListenOptions> ListenOptions { get; } = new List<ListenOptions>();
+#endif
 
         public NetMessageFramingConnectionHandler(IServiceBuilder serviceBuilder, IDispatcherBuilder dispatcherBuilder, IFramingConnectionHandshakeBuilder handshakeBuilder, ILogger<FramingConnection> framingLogger)
         {

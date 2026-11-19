@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <AssemblyName>CoreWCF.NetFramingBase</AssemblyName>
     <PackageId>CoreWCF.NetFramingBase</PackageId>
     <RootNamespace />
@@ -9,9 +9,22 @@
     <IncludeSharedDuplexChannelSource>True</IncludeSharedDuplexChannelSource>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net462'">
     <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <!-- On .NET Framework we compile against the modern Connections.Abstractions so the
+         IFeatureCollection type identity (Microsoft.Extensions.Features) matches the one used
+         by ASP.NET Core 8+ era packages such as the SignalR client. See issue #1681. -->
+    <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" VersionOverride="8.0.26" />
+    <!-- Pulled in transitively via CoreWCF.Primitives. Aliased so its IFeatureCollection
+         (same namespace, different assembly) can't collide with Microsoft.Extensions.Features. -->
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" VersionOverride="2.3.9" Aliases="HttpFeatures2x" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 

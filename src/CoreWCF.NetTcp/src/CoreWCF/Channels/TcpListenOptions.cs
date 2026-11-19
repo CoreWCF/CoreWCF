@@ -3,8 +3,9 @@
 
 using System;
 using System.Net;
-using System.Security.Policy;
+#if !NETFRAMEWORK
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+#endif
 
 namespace CoreWCF.Channels
 {
@@ -24,10 +25,18 @@ namespace CoreWCF.Channels
 
         public override IServiceProvider ApplicationServices => NetTcpServerOptions?.ApplicationServices;
 
+#if NETFRAMEWORK
+        // On .NET Framework CoreWCF uses its own socket transport (no Kestrel) so the bound
+        // endpoint is recorded directly by the listener once the socket is bound.
+        internal IPEndPoint BoundEndPoint { get; set; }
+
+        public IPEndPoint IPEndpoint => BoundEndPoint;
+#else
         // This is the Kestrel ListenOptions which will be used to create the listener, and can be used to get the IPEndpoint
         internal ListenOptions ListenOptions { get; set; }
 
         public IPEndPoint IPEndpoint => ListenOptions?.IPEndPoint;
+#endif
 
         public NetTcpOptions NetTcpServerOptions { get; internal set; }
     }

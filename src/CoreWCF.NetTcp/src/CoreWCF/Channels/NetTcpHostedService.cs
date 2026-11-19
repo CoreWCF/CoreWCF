@@ -10,8 +10,10 @@ using System.Threading.Tasks;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+#if !NETFRAMEWORK
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,6 +21,90 @@ using Microsoft.Extensions.Options;
 
 namespace CoreWCF.Channels
 {
+#if NETFRAMEWORK
+    // On .NET Framework, CoreWCF cannot host NetTcp on Kestrel: Kestrel 2.x (the last version
+    // supporting .NET Framework) fails to load its transport types when the application graph
+    // contains Microsoft.AspNetCore.Connections.Abstractions >= 8.0, e.g. via the SignalR client
+    // (see issue #1681). Instead a CoreWCF-owned socket transport is always used here.
+    internal class NetTcpHostedService : IHostedService, IAsyncDisposable, IDisposable
+    {
+        private readonly NetTcpOptions _serverOptions;
+        private readonly IServiceBuilder _serviceBuilder;
+        private readonly ILogger<NetTcpHostedService> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private NetTcpFramingTransportManager _transportManager;
+        private bool _started;
+
+        public NetTcpHostedService(IOptions<NetTcpOptions> options, IServer server, IServiceBuilder serviceBuilder, ILogger<NetTcpHostedService> logger, IServiceProvider serviceProvider)
+        {
+            // We request the IServer in the constructor to trigger the constructor of the implementation
+            // so any startup exceptions are thrown via WrappingIServer, same as on other frameworks.
+            _ = server;
+            _serverOptions = options.Value ?? new NetTcpOptions();
+            _serviceBuilder = serviceBuilder;
+            _logger = logger;
+            _serviceProvider = serviceProvider;
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            _started = true;
+            _transportManager = _serviceProvider.GetRequiredService<NetTcpFramingTransportManager>();
+            await _transportManager.BindAsync(_serverOptions.CodeBackedListenOptions, cancellationToken);
+
+            // On .NET Framework (asp.net core 2.1 hosting) the IServer has already been started
+            // before hosted services, so the ServiceBuilder was already opened by WrappingIServer
+            // and we can fix up the base addresses now.
+            _transportManager.UpdateServiceBuilderBaseAddresses();
+            UpdateServerAddressesFeature();
+            var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>() as ICommunicationObject;
+            if (serviceBuilder.State == CommunicationState.Opened)
+            {
+                // Need to resolve the UriPrefixTable as the service builder was already opened
+                // before we could hook up NetMessageFramingConnectionHandler.OnServiceBuilderOpened
+                // to be called when the service builder is opened. As UriPrefixTable is internal
+                // to NetFramingBase, it was also registered as its implemented interface type which
+                // allows us to resolve it here.
+                _ = _serviceProvider.GetRequiredService<IEnumerable<KeyValuePair<BaseUriWithWildcard, HandshakeDelegate>>>();
+            }
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            if (!_started) return Task.CompletedTask;
+            _started = false;
+            var transportManager = _transportManager;
+            _transportManager = null;
+            return transportManager?.StopAsync(cancellationToken) ?? Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            StopAsync(default).GetAwaiter().GetResult();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            // No need to check if StopAsync has been called as it is a no-op after the first call
+            return new ValueTask(StopAsync(default));
+        }
+
+        private void UpdateServerAddressesFeature()
+        {
+            var serverAddressesFeature = _serviceProvider.GetRequiredService<IServer>().Features?.Get<IServerAddressesFeature>();
+            if (serverAddressesFeature == null)
+            {
+                return;
+            }
+
+            foreach (string address in _transportManager.GetListeningAddresses())
+            {
+                serverAddressesFeature.Addresses.Add(address);
+            }
+        }
+    }
+#else
     internal class NetTcpHostedService : IHostedService, IAsyncDisposable, IDisposable
     {
         private static bool s_isNetFramework => RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase);
@@ -133,4 +219,5 @@ namespace CoreWCF.Channels
             }
         }
     }
+#endif
 }

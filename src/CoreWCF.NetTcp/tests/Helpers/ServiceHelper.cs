@@ -77,6 +77,13 @@ namespace Helpers
                     logging.SetMinimumLevel(LogLevel.Debug);
                 })
 #endif // DEBUG
+#if NETFRAMEWORK
+                // On .NET Framework NetTcp no longer hosts on Kestrel (see issue #1681), and
+                // Kestrel 2.x itself can't accept connections when the test graph contains
+                // Microsoft.AspNetCore.Connections.Abstractions >= 8.0. Replace it with a no-op
+                // IServer; these tests serve no HTTP traffic.
+                .UseNoOpServer()
+#endif
                 .UseNetTcp(ipAddress, port)
                 .UseStartup(startupType);
         }
@@ -115,20 +122,60 @@ namespace Helpers
                 logging.SetMinimumLevel(LogLevel.Information);
             })
 #endif // DEBUG
+#if NETFRAMEWORK
+            // See comment in CreateWebHostBuilder(Type).
+            .UseNoOpServer()
+#endif
             .UseStartup<TStartup>();
         }
+
+#if NETFRAMEWORK
+        private static IWebHostBuilder UseNoOpServer(this IWebHostBuilder builder)
+        {
+            return builder.ConfigureServices(services =>
+                services.AddSingleton<Microsoft.AspNetCore.Hosting.Server.IServer, NoOpServer>());
+        }
+
+        // An IServer that binds nothing. NetTcp runs on CoreWCF's own socket transport on
+        // .NET Framework, and Kestrel 2.x is unusable when Connections.Abstractions >= 8.0
+        // is loaded (issue #1681).
+        private class NoOpServer : Microsoft.AspNetCore.Hosting.Server.IServer
+        {
+            public Microsoft.AspNetCore.Http.Features.IFeatureCollection Features { get; } = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+
+            public NoOpServer()
+            {
+                Features.Set<IServerAddressesFeature>(new Microsoft.AspNetCore.Hosting.Server.Features.ServerAddressesFeature());
+            }
+
+            public void Dispose() { }
+
+            public System.Threading.Tasks.Task StartAsync<TContext>(Microsoft.AspNetCore.Hosting.Server.IHttpApplication<TContext> application, System.Threading.CancellationToken cancellationToken) => System.Threading.Tasks.Task.CompletedTask;
+
+            public System.Threading.Tasks.Task StopAsync(System.Threading.CancellationToken cancellationToken) => System.Threading.Tasks.Task.CompletedTask;
+        }
+#endif
 
         public static string GetNetTcpAddressInUse(this IWebHost host)
         {
             IEnumerable<Uri> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses.Select(addr => new Uri(addr, UriKind.Absolute));
+#if NETFRAMEWORK
+            // On .NET Framework the addresses contain the ephemeral Kestrel HTTP endpoint too.
+            var addressInUse = addresses.Single(uri => uri.Scheme == Uri.UriSchemeNetTcp);
+#else
             var addressInUse = addresses.Single(uri => uri.Port != 5000 && uri.Port != 5001);
+#endif
             return $"net.tcp://{addressInUse.Host}:{addressInUse.Port}";
         }
 
         public static int GetNetTcpPortInUse(this IWebHost host)
         {
             System.Collections.Generic.ICollection<string> addresses = host.ServerFeatures.Get<IServerAddressesFeature>().Addresses;
+#if NETFRAMEWORK
+            var addressInUse = addresses.Select(addr => new Uri(addr, UriKind.Absolute)).First(uri => uri.Scheme == Uri.UriSchemeNetTcp);
+#else
             var addressInUse = new Uri(addresses.First(), UriKind.Absolute);
+#endif
             return addressInUse.Port;
         }
 

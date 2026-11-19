@@ -1,19 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
     <AssemblyName>CoreWCF.NetTcp</AssemblyName>
     <PackageId>CoreWCF.NetTcp</PackageId>
     <RootNamespace />
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net462'">
     <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" />
     <!-- See rationale in comment https://github.com/CoreWCF/CoreWCF/issues/1171#issuecomment-1675183317 -->
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <!-- On .NET Framework, Kestrel 2.x's transport types fail to load when the app graph
+         contains Microsoft.AspNetCore.Connections.Abstractions >= 8.0 (e.g. via the SignalR
+         client). We therefore compile against the modern Connections.Abstractions and use a
+         CoreWCF-owned socket transport instead of Kestrel. See issue #1681. -->
+    <PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" VersionOverride="8.0.26" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -23,4 +32,14 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
     <ProjectReference Include="$(SourceDir)CoreWCF.NetFramingBase\src\CoreWCF.NetFramingBase.csproj" />
   </ItemGroup>
+
+  <!-- The System.Web.Services.Description package compiles against its ref/netstandard2.0
+       assembly on all TFMs but also injects the GAC System.Web.Services framework assembly on
+       net462, making every type in that namespace ambiguous (CS0433). The GAC assembly isn't
+       needed at compile time (the package's net462 facade type-forwards to it at runtime). -->
+  <Target Name="RemoveGacSystemWebServicesReference" AfterTargets="ResolveLockFileReferences" Condition="'$(TargetFramework)' == 'net462'">
+    <ItemGroup>
+      <Reference Remove="System.Web.Services" />
+    </ItemGroup>
+  </Target>
 </Project>

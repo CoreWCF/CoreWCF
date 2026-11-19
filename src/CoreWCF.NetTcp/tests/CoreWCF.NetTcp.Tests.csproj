@@ -18,6 +18,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" />
     <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
+    <!-- Arrives transitively via CoreWCF.NetTcp's net462 asset. Aliased so its
+         IFeatureCollection (same namespace as Microsoft.AspNetCore.Http.Features 2.x)
+         doesn't make test source ambiguous; the assembly is still deployed and used
+         by CoreWCF at runtime. -->
+    <PackageReference Include="Microsoft.Extensions.Features" VersionOverride="8.0.26" Aliases="ExtensionsFeatures" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'net472' ">
