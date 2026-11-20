@@ -27,8 +27,6 @@ namespace CoreWCF.Dispatcher
         private readonly MessageRpcErrorHandler _processMessageNonCleanupError;
         private readonly MessageRpcErrorHandler _processMessageCleanupError;
 
-        private Activity? _activity;
-
         internal ImmutableDispatchRuntime(DispatchRuntime dispatch)
         {
             _authenticationBehavior = AuthenticationBehavior.TryCreate(dispatch);
@@ -413,20 +411,20 @@ namespace CoreWCF.Dispatcher
                 }
             }
 
-            if (_activity != null)
+            if (rpc.Activity != null)
             {
                 var reply = rpc.Reply;
-                if (_activity.IsAllDataRequested && reply != null)
+                if (rpc.Activity.IsAllDataRequested && reply != null)
                 {
                     if (reply.IsFault)
                     {
-                        _activity.SetStatus(ActivityStatusCode.Error);
+                        rpc.Activity.SetStatus(ActivityStatusCode.Error);
                     }
 
-                    _activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
+                    rpc.Activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
                 }
 
-                _activity.Stop();
+                rpc.Activity.Stop();
             }
 
             BeforeSendReply(rpc, ref exception, ref thereIsAnUnhandledException);
@@ -591,7 +589,7 @@ namespace CoreWCF.Dispatcher
             TransferChannelFromPendingList(rpc);
             await AcquireDynamicInstanceContextAsync(rpc);
 
-            _activity = CreateActivity(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy, rpc.InstanceContext);
+            rpc.Activity = CreateActivity(ref rpc.Request, (IClientChannel)rpc.Channel.Proxy, rpc.InstanceContext);
 
             AfterReceiveRequest(ref rpc);
 
@@ -980,10 +978,9 @@ namespace CoreWCF.Dispatcher
                     rpc.ChannelHandler.InstanceContextServiceThrottle.DeactivateInstanceContext();
                 }
 
-                //if (rpc.Activity != null && DiagnosticUtility.ShouldUseActivity)
-                //{
-                //    rpc.Activity.Stop();
-                //}
+                // The desktop WCF stop of rpc.Activity lived here. rpc.Activity is now stopped in
+                // PrepareReplyAsync, once the reply tags are applied, with a safety net in
+                // MessageRpc.ProcessAsync for paths that never reach the reply code.
             }
 
             ErrorBehavior.HandleError(rpc);
