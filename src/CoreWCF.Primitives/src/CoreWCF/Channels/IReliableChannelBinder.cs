@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using CoreWCF.Configuration;
 
 namespace CoreWCF.Channels
 {
@@ -23,15 +25,18 @@ namespace CoreWCF.Channels
 
         void Abort();
 
-        Task CloseAsync(TimeSpan timeout);
-        Task CloseAsync(TimeSpan timeout, MaskingMode maskingMode);
-        Task OpenAsync(TimeSpan timeout);
-        Task SendAsync(Message message, TimeSpan timeout);
-        Task SendAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
+        Task CloseAsync(CancellationToken token);
+        Task CloseAsync(CancellationToken token, MaskingMode maskingMode);
+        Task OpenAsync(CancellationToken token);
+        Task SendAsync(Message message, CancellationToken token);
+        Task SendAsync(Message message, CancellationToken token, MaskingMode maskingMode);
 
-        Task<(bool, RequestContext)> TryReceiveAsync(TimeSpan timeout);
-        Task<(bool, RequestContext)> TryReceiveAsync(TimeSpan timeout, MaskingMode maskingMode);
-
+        //Task DispatchAsync(RequestContext context);
+        //Task DispatchAsync(RequestContext context, MaskingMode maskingMode);
+        Task<bool> StartTryGetChannelAsync();
+        Task OnReceivedMessageAsync();
+        Task<RequestContext> OnReceivedRequestAsync(RequestContext context);
+        Task ReceivedRequestOnChannelAsync(IChannel channel);
         ISession GetInnerSession();
         void HandleException(Exception e);
         bool IsHandleable(Exception e);
@@ -44,7 +49,7 @@ namespace CoreWCF.Channels
         bool AddressResponse(Message request, Message response);
         bool UseNewChannel(IChannel channel);
 
-        Task<Message> RequestAsync(Message message, TimeSpan timeout);
-        Task<Message> RequestAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
+        //Task<Message> RequestAsync(Message message, TimeSpan timeout);
+        //Task<Message> RequestAsync(Message message, TimeSpan timeout, MaskingMode maskingMode);
     }
 }

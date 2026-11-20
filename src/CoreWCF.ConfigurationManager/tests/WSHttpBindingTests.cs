@@ -100,5 +100,74 @@ namespace CoreWCF.ConfigurationManager.Tests
                 }
             }
         }
+
+        [NetCoreOnlyFact]
+        public void WSHttpBinding_WithReliableSession()
+        {
+            string expectedName = "wsHttpBindingWithRS";
+
+            string xml = $@"
+<configuration>
+    <system.serviceModel>
+        <bindings>
+            <wsHttpBinding>
+                <binding name=""{expectedName}"">
+                    <reliableSession enabled=""true"" ordered=""false"" inactivityTimeout=""00:05:00"" />
+                    <security mode=""None""/>
+                </binding>
+            </wsHttpBinding>
+        </bindings>
+    </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    var actualBinding = settingHolder.ResolveBinding(nameof(WSHttpBinding), expectedName) as WSHttpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.True(actualBinding.ReliableSession.Enabled);
+                    Assert.False(actualBinding.ReliableSession.Ordered);
+                    Assert.Equal(TimeSpan.FromMinutes(5), actualBinding.ReliableSession.InactivityTimeout);
+                    Assert.Equal(SecurityMode.None, actualBinding.Security.Mode);
+                }
+            }
+        }
+
+        [NetCoreOnlyFact]
+        public void WSHttpBinding_WithReliableSessionDefaults()
+        {
+            string expectedName = "wsHttpBindingWithRSDefaults";
+
+            string xml = $@"
+<configuration>
+    <system.serviceModel>
+        <bindings>
+            <wsHttpBinding>
+                <binding name=""{expectedName}"">
+                    <reliableSession enabled=""true"" />
+                    <security mode=""None""/>
+                </binding>
+            </wsHttpBinding>
+        </bindings>
+    </system.serviceModel>
+</configuration>";
+
+            using (var fs = TemporaryFileStream.Create(xml))
+            {
+                using (ServiceProvider provider = CreateProvider(fs.Name))
+                {
+                    IConfigurationHolder settingHolder = GetConfigurationHolder(provider);
+
+                    var actualBinding = settingHolder.ResolveBinding(nameof(WSHttpBinding), expectedName) as WSHttpBinding;
+                    Assert.Equal(expectedName, actualBinding.Name);
+                    Assert.True(actualBinding.ReliableSession.Enabled);
+                    Assert.True(actualBinding.ReliableSession.Ordered);
+                    Assert.Equal(TimeSpan.FromMinutes(10), actualBinding.ReliableSession.InactivityTimeout);
+                }
+            }
+        }
     }
 }

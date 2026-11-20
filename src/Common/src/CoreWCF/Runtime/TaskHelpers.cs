@@ -190,6 +190,43 @@ namespace CoreWCF.Runtime
             }
         }
 
+        // Behavior semantics are that if the task is completed, we don't care about the state of
+        // the CancellationToken and return true. If the task is not completed, we wait on the task
+        // and return true if the task completes or false if the CancellationToken is canceled before
+        // that happens.
+        public static Task<bool> WaitWithCancellationAsync(this Task task, CancellationToken token)
+        {
+            if (task.IsCompleted)
+            {
+                return Task.FromResult(true);
+            }
+
+            // If the token is already canceled, no need to await anything, just return false
+            if (token.IsCancellationRequested)
+            {
+                return Task.FromResult(false);
+            }
+
+            // Only if we need to wait asynchronously do we want to allocate an async state machine
+            return WaitWithCancellationCoreAsync(task, token);
+        }
+
+        private static async Task<bool> WaitWithCancellationCoreAsync(this Task task, CancellationToken token)
+        {
+            if (!token.CanBeCanceled)
+            {
+                await task;
+                return true;
+            }
+
+            TaskCompletionSource<object> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (token.Register((tcsObj) => ((TaskCompletionSource<object>)tcsObj).TrySetResult(null), tcs, useSynchronizationContext: false))
+            {
+                Task completedTask = await Task.WhenAny(task, tcs.Task);
+                return completedTask == task;
+            }
+        }
+
         // Task.GetAwaiter().GetResult() calls an internal variant of Wait() which doesn't wrap exceptions in
         // an AggregateException. It does spinwait so if it's expected that the Task isn't about to complete,
         // then use the NoSpin variant.
