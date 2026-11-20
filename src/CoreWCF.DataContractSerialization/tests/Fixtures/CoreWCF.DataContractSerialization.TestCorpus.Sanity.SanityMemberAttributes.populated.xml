@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/CoreWCF.DataContractSerialization.TestCorpus.Sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Required>7</a:Required><a:First>1</a:First><a:RenamedSecond>2</a:RenamedSecond><a:Third>3</a:Third></Root>

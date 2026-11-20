@@ -1,0 +1,9 @@
+# Golden fixtures are byte-exact DataContractSerializer output.
+#
+# The repository root .gitattributes sets `* text=auto`, which would normalise line endings on
+# checkout. DataContractSerializer escapes \n inside attribute values as &#xA; but leaves a raw
+# 0x0A byte inside element text, so any corpus type holding a string with a newline would be
+# rewritten on Windows checkout and silently fail a byte comparison that passes on Linux.
+#
+# Treat every fixture as binary so git never touches the bytes.
+* -text

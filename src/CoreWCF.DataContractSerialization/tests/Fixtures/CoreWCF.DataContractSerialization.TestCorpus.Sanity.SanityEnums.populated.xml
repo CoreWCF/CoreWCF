@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/CoreWCF.DataContractSerialization.TestCorpus.Sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Flags>Alpha Gamma</a:Flags><a:Plain>Second</a:Plain><a:Renamed>wire-one</a:Renamed></Root>

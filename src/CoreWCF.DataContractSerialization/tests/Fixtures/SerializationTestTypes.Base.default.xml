@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/SerializationTestTypes" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:A>0</a:A><a:B i:nil="true"/></Root>

@@ -1,0 +1,32 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (7,17)-(7,33),
+      Message: No serializer was generated for 'App.HasPrivateMember', so it falls back to the reflection-based DataContractSerializer, which needs dynamic code: member '_hidden' is not public,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: COREWCF_0403,
+        Title: Contract falls back to the reflection-based serializer,
+        MessageFormat: No serializer was generated for '{0}', so it falls back to the reflection-based DataContractSerializer, which needs dynamic code: {1},
+        Category: DataContractSerializerGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (13,17)-(13,37),
+      Message: 'App.NoDefaultConstructor' is written by generated code, but reading it falls back to the reflection-based DataContractSerializer, which needs dynamic code: it has no accessible parameterless constructor, which generated code needs and DataContractSerializer does not,
+      Severity: Warning,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: COREWCF_0404,
+        Title: Contract is written by generated code but not read by it,
+        MessageFormat: '{0}' is written by generated code, but reading it falls back to the reflection-based DataContractSerializer, which needs dynamic code: {1},
+        Category: DataContractSerializerGenerator,
+        DefaultSeverity: Warning,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

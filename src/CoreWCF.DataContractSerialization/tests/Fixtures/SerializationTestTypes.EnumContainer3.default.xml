@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/SerializationTestTypes" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:myPrivateEnum3 i:type="a:ArrayOfMyPrivateEnum3"><a:MyPrivateEnum3>red</a:MyPrivateEnum3></a:myPrivateEnum3></Root>

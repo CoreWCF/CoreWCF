@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/CoreWCF.DataContractSerialization.TestCorpus.Sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Flags><a:SanityFlagsEnum>Beta Gamma</a:SanityFlagsEnum></a:Flags><a:Plain><a:SanityEnum>First</a:SanityEnum><a:SanityEnum>None</a:SanityEnum></a:Plain></Root>

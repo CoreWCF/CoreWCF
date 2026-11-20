@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/SerializationTestTypes" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:a1 xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays"><b:ArrayOfint><b:int>1</b:int></b:ArrayOfint><b:ArrayOfint/></a:a1></Root>

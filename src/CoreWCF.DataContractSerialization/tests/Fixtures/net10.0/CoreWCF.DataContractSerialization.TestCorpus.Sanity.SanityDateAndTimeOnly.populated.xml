@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/CoreWCF.DataContractSerialization.TestCorpus.Sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Date>2020-01-02</a:Date><a:MissingTime i:nil="true"/><a:NullableDate>2021-11-12</a:NullableDate><a:Precise>06:07:08.009</a:Precise><a:Time>03:04:05</a:Time></Root>

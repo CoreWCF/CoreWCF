@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://corewcf.example/sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:Nested xmlns:b="http://corewcf.example/sanity/nested"><b:Inner>inner</b:Inner></a:Nested><a:RenamedValue>outer</a:RenamedValue></Root>

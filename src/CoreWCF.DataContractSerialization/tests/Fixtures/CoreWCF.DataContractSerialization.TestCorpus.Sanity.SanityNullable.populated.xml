@@ -1,0 +1,1 @@
+<Root xmlns="http://tempuri.org/" xmlns:a="http://schemas.datacontract.org/2004/07/CoreWCF.DataContractSerialization.TestCorpus.Sanity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:NullDateTime i:nil="true"/><a:NullInt i:nil="true"/><a:NullReference i:nil="true" xmlns:b="http://corewcf.example/sanity/nested"/><a:NullString i:nil="true"/><a:SetInt>5</a:SetInt></Root>

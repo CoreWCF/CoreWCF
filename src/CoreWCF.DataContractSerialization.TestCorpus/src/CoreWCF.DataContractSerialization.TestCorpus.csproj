@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>CoreWCF.DataContractSerialization.TestCorpus</AssemblyName>
+    <RootNamespace>CoreWCF.DataContractSerialization.TestCorpus</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!-- Not named *Tests*/*BuildTools*, so IncludeCommonCode would default to true. This corpus is
+         deliberately CoreWCF-free: pure BCL, no reflection, so it stays AOT-publishable. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+    <!-- Corpus types are copied verbatim from dotnet/runtime and keep upstream shape: unassigned
+         public fields, unused privates, obsolete serialization APIs. -->
+    <NoWarn>$(NoWarn);CS0169;CS0414;CS0649;CS0618;CS0612;CS8632;SYSLIB0050;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The generated serializer context lives here rather than in the test project because
+         generated code can only reach non-public [DataMember]s of types in its own assembly.
+         BaseDCNoIsRef has exactly such a member, and a generator that cannot see it would emit a
+         serializer that silently omits it. -->
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization\src\CoreWCF.DataContractSerialization.csproj" />
+    <ProjectReference Include="$(SourceDir)CoreWCF.DataContractSerialization.Generator\src\CoreWCF.DataContractSerialization.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Mirrors the gate in CoreWCF.DataContractSerialization.targets, which a package consumer gets
+       automatically. That file cannot simply be imported here: NuGet injects it after the SDK
+       targets, where TargetFrameworkIdentifier is populated, whereas an import in the project body
+       is evaluated before that and would silently see an empty value and disable the generator. -->
+  <PropertyGroup Condition="'$(EnableCoreWCFDataContractSerializerGenerator)'=='' AND !$(TargetFramework.StartsWith('net4')) AND !$(TargetFramework.StartsWith('netstandard'))">
+    <EnableCoreWCFDataContractSerializerGenerator>true</EnableCoreWCFDataContractSerializerGenerator>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(EnableCoreWCFDataContractSerializerGenerator)'==''">
+    <EnableCoreWCFDataContractSerializerGenerator>false</EnableCoreWCFDataContractSerializerGenerator>
+  </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="EnableCoreWCFDataContractSerializerGenerator" />
+  </ItemGroup>
+</Project>

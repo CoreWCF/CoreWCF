@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using CoreWCF.Channels;
 using CoreWCF.Dispatcher;
+using CoreWCF.Runtime.Serialization;
 
 namespace CoreWCF.Description
 {
@@ -97,6 +98,22 @@ namespace CoreWCF.Description
                 dcs.SetSerializationSurrogateProvider(SerializationSurrogateProvider);
             }
             return dcs;
+        }
+
+        /// <summary>
+        /// Creates a source-generated, reflection-free serializer for <paramref name="type"/>, or
+        /// null when none is available.
+        /// </summary>
+        /// <remarks>
+        /// A sibling of <see cref="CreateSerializer(Type, XmlDictionaryString, XmlDictionaryString, IList{Type})"/>
+        /// rather than a change to it, because <see cref="XmlObjectSerializer"/> cannot express an
+        /// AOT-safe serializer - see <see cref="AotXmlObjectSerializer"/> for why. Returning null is
+        /// the normal case: the operation formatter then falls back to the reflection-based path, so
+        /// behaviour is unchanged for anyone who has not opted in.
+        /// </remarks>
+        public virtual AotXmlObjectSerializer CreateAotSerializer(Type type, XmlDictionaryString name, XmlDictionaryString ns, IList<Type> knownTypes)
+        {
+            return null;
         }
 
         internal object GetFormatter(OperationDescription operation, out bool formatRequest, out bool formatReply, bool isProxy)
