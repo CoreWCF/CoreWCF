@@ -1,0 +1,38 @@
+@inherits LayoutComponentBase
+
+@* FluentDesignTheme restores the stored mode, so _mode self-corrects once the circuit starts. *@
+<FluentDesignTheme @bind-Mode="@_mode" CustomColor="#512BD4" StorageName="corewcf-explorer-theme" />
+
+@* data-theme drives the token overrides in app.css. FluentDesignTheme does not set it itself, and
+   System mode deliberately leaves it off so the prefers-color-scheme fallback applies. *@
+<div class="layout" data-theme="@ThemeAttribute">
+    <header class="app-header">
+        @* The CoreWCF badge from Documentation/branding. Decorative: the product name is spelled out
+           in the adjacent title, so a second announcement would just be noise. *@
+        <img class="app-logo" src="corewcf-logo.svg" alt="" aria-hidden="true" width="26" height="28" />
+        <span class="app-title">CoreWCF SOAP Explorer</span>
+        <FluentSpacer />
+        <ThemeSelector Mode="_mode" ModeChanged="OnModeChanged" />
+    </header>
+
+    <main class="layout-body">
+        @Body
+    </main>
+</div>
+
+<FluentToastProvider Position="ToastPosition.TopRight" />
+<FluentTooltipProvider />
+<FluentMenuProvider />
+
+@code {
+    private DesignThemeModes _mode = DesignThemeModes.System;
+
+    private string? ThemeAttribute => _mode switch
+    {
+        DesignThemeModes.Light => "light",
+        DesignThemeModes.Dark => "dark",
+        _ => null,
+    };
+
+    private void OnModeChanged(DesignThemeModes mode) => _mode = mode;
+}

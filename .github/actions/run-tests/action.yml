@@ -88,7 +88,32 @@ runs:
           exit 1
         fi
         rc=0
+        ran=0
         for proj in "${projects[@]}"; do
+          # Ask MSBuild what the project actually targets rather than maintaining an
+          # exclude list. -getProperty evaluates without building or restoring, so this
+          # stays correct as projects change their TFM list - e.g. the Aspire projects,
+          # which are .NET (Core) only and have no net472 flavour.
+          tfms="$(dotnet msbuild "$proj" -nologo -getProperty:TargetFrameworks 2>/dev/null || true)"
+          tfms="${tfms//[[:space:]]/}"
+          if [ -z "$tfms" ]; then
+            # Single-target projects leave TargetFrameworks empty.
+            tfms="$(dotnet msbuild "$proj" -nologo -getProperty:TargetFramework 2>/dev/null || true)"
+            tfms="${tfms//[[:space:]]/}"
+          fi
+          if [ -z "$tfms" ]; then
+            echo "::error::Could not determine target frameworks for $proj."
+            rc=1
+            continue
+          fi
+          case ";$tfms;" in
+            *";$TFM;"*) ;;
+            *)
+              echo "::notice::Skipping $proj - does not target $TFM (targets: $tfms)."
+              continue
+              ;;
+          esac
+          ran=$((ran + 1))
           echo "::group::Testing $proj ($CONFIGURATION / $TFM)"
           if ! dotnet test "$proj" \
                 --no-restore --no-build \
@@ -99,6 +124,11 @@ runs:
           fi
           echo "::endgroup::"
         done
+        # Without this, a mistyped matrix TFM would skip every project and pass green.
+        if [ "$ran" -eq 0 ]; then
+          echo "::error::No test project targets $TFM; nothing ran."
+          rc=1
+        fi
         exit $rc
 
     - name: Upload test results

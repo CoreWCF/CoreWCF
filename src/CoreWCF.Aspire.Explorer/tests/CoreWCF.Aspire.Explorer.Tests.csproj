@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The explorer is an ASP.NET Core app; there is no net472 flavour to test. -->
+    <TargetFrameworks>$(NetCoreTestTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- Matches the explorer app: ASP.NET Core assemblies come from the shared framework. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <!-- Self-contained tests: an in-process CoreWCF host plus the explorer's parsing/invocation logic. -->
+    <ReferenceCommonTestProject>false</ReferenceCommonTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WebApplication is used to host a CoreWCF service in-process for the tests. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/CoreWCF.Aspire.Explorer.csproj" />
+    <ProjectReference Include="../../CoreWCF.Primitives/src/CoreWCF.Primitives.csproj" />
+    <ProjectReference Include="../../CoreWCF.Http/src/CoreWCF.Http.csproj" />
+  </ItemGroup>
+
+</Project>

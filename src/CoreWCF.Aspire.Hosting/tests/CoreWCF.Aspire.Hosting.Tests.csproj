@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Aspire.Hosting and the product project are .NET only; there is no net472 flavour to test. -->
+    <TargetFrameworks>$(NetCoreTestTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- This is a self-contained Aspire model test; it does not use the shared CoreWCF test helpers. -->
+    <ReferenceCommonTestProject>false</ReferenceCommonTestProject>
+    <!-- The net10.0/net11.0 legs resolve Aspire 13.x, which needs Microsoft.Extensions.* 10.0.x.
+         Transitive pinning would hold those at the repo-wide 8.0.x pins and fail with NU1605. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/CoreWCF.Aspire.Hosting.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,177 @@
+@* Services -> contracts -> operations. Selection is wired twice on purpose: FluentTreeView's
+   OnSelectedChange is what makes the tree keyboard-operable (Enter / arrow keys), while the per-item
+   @onclick keeps mouse selection working even if the web component does not raise selected-change.
+   SelectAsync is idempotent, so a mouse click firing both paths is harmless. *@
+
+<nav class="tree-pane" aria-label="CoreWCF services">
+    @if (Services.Count == 0)
+    {
+        <p class="tree-empty subtext">
+            @if (HasFilter)
+            {
+                @:No operation matches the filter.
+            }
+            else
+            {
+                @:No CoreWCF services were configured. Register services with
+                <code>WithCoreWcfService(...)</code>
+                @:in the Aspire AppHost.
+            }
+        </p>
+    }
+    else
+    {
+        <FluentTreeView Class="service-tree" OnSelectedChange="OnSelectedChangeAsync">
+            @foreach (var service in Services)
+            {
+                var node = service.Node;
+
+                <FluentTreeItem Expanded="@node.IsExpanded"
+                                ExpandedChanged="@(expanded => OnExpandedAsync(node, expanded))"
+                                aria-label="@($"Service {node.Name}")">
+                    <div class="row svc-row">
+                        <span class="row-icon" aria-hidden="true">@((MarkupString)Icons.Service)</span>
+                        <span class="row-text svc-name">@node.Name</span>
+                        @if (node.IsLoading)
+                        {
+                            <FluentProgressRing Class="row-ring" aria-label="@($"Loading {node.Name}")" />
+                        }
+                        else if (node.IsLoaded)
+                        {
+                            @* The wrapper, not the button, carries stopPropagation: event modifiers are
+                               only valid on elements, and a bubbled click would collapse the node. *@
+                            <span class="row-actions" @onclick="Swallow" @onclick:stopPropagation="true">
+                                <FluentButton Appearance="Appearance.Stealth" Class="row-action"
+                                              Title="@($"Reload {node.Name}")"
+                                              AriaLabel="@($"Reload {node.Name}")"
+                                              OnClick="@(() => Reload.InvokeAsync(node))">
+                                    <span class="row-action-glyph" aria-hidden="true">@((MarkupString)Icons.Reload)</span>
+                                </FluentButton>
+                            </span>
+                        }
+                    </div>
+
+                    @if (node.IsLoading)
+                    {
+                        <FluentTreeItem Disabled="true" Text="Loading WSDL…" />
+                    }
+                    else if (node.Error is { Length: > 0 } error)
+                    {
+                        <FluentTreeItem Disabled="true" Class="row-error" aria-label="@error">
+                            <span class="row-text error-text">@error</span>
+                        </FluentTreeItem>
+                    }
+                    else
+                    {
+                        @foreach (var filtered in service.Contracts)
+                        {
+                            <FluentTreeItem InitiallyExpanded="true" aria-label="@($"Contract {filtered.Contract.Name}")">
+                                <div class="row">
+                                    <span class="row-icon" aria-hidden="true">@((MarkupString)Icons.Contract)</span>
+                                    <span class="row-text">@filtered.Contract.Name</span>
+                                </div>
+
+                                @foreach (var operation in filtered.Operations)
+                                {
+                                    var id = OperationSelection.MakeId(node.Name, filtered.Contract.Name, operation.Name);
+                                    var isSelected = id == Selected?.Id;
+
+                                    @* Selection is carried on data-selected, never on Class. fluent-tree-item
+                                       adds its own "nested" class at runtime to indent child items; a Class
+                                       that changed between renders would make Blazor rewrite the whole class
+                                       attribute and wipe it, shifting the row 16px left the moment it was
+                                       picked. A constant Class is left untouched by the diff. *@
+                                    <FluentTreeItem data-operation-id="@id"
+                                                    data-selected="@(isSelected ? "true" : null)"
+                                                    aria-label="@($"Operation {operation.Name}")"
+                                                    Class="op-item"
+                                                    @onclick="@(() => SelectAsync(node, filtered.Contract, operation))">
+                                        <div class="row op-row">
+                                            <span class="row-icon" aria-hidden="true">@((MarkupString)Icons.Operation)</span>
+                                            <span class="row-text">@operation.Name</span>
+                                        </div>
+                                    </FluentTreeItem>
+                                }
+                            </FluentTreeItem>
+                        }
+                    }
+                </FluentTreeItem>
+            }
+        </FluentTreeView>
+    }
+</nav>
+
+@code {
+    /// <summary>The filtered catalogue to render, produced by <see cref="TreeFilter.Apply" />.</summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<FilteredService> Services { get; set; } = [];
+
+    /// <summary>The currently selected operation, highlighted in the tree.</summary>
+    [Parameter]
+    public OperationSelection? Selected { get; set; }
+
+    /// <summary>True when a filter is active, so the empty state can say why the tree is empty.</summary>
+    [Parameter]
+    public bool HasFilter { get; set; }
+
+    /// <summary>Raised when a service node is expanded, so its WSDL can be loaded on demand.</summary>
+    [Parameter]
+    public EventCallback<ServiceNode> Expanded { get; set; }
+
+    /// <summary>Raised when the user asks for a service's WSDL to be fetched again.</summary>
+    [Parameter]
+    public EventCallback<ServiceNode> Reload { get; set; }
+
+    /// <summary>Raised when an operation is chosen, by mouse or keyboard.</summary>
+    [Parameter]
+    public EventCallback<OperationSelection> SelectionChanged { get; set; }
+
+    private async Task OnExpandedAsync(ServiceNode node, bool expanded)
+    {
+        node.IsExpanded = expanded;
+        if (expanded)
+        {
+            await Expanded.InvokeAsync(node);
+        }
+    }
+
+    private Task SelectAsync(ServiceNode node, WsdlContract contract, WsdlOperation operation)
+    {
+        var selection = new OperationSelection(node, contract, operation);
+        return selection.Id == Selected?.Id
+            ? Task.CompletedTask
+            : SelectionChanged.InvokeAsync(selection);
+    }
+
+    private Task OnSelectedChangeAsync(FluentTreeItem? item)
+    {
+        // Service and contract items carry no data-operation-id; only operations are selectable.
+        if (item?.AdditionalAttributes is null
+            || !item.AdditionalAttributes.TryGetValue("data-operation-id", out var raw)
+            || raw?.ToString() is not { Length: > 0 } id)
+        {
+            return Task.CompletedTask;
+        }
+
+        foreach (var service in Services)
+        {
+            foreach (var filtered in service.Contracts)
+            {
+                foreach (var operation in filtered.Operations)
+                {
+                    if (OperationSelection.MakeId(service.Node.Name, filtered.Contract.Name, operation.Name) == id)
+                    {
+                        return SelectAsync(service.Node, filtered.Contract, operation);
+                    }
+                }
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Exists so <c>@onclick:stopPropagation</c> has a handler to attach to.</summary>
+    private void Swallow()
+    {
+    }
+}
