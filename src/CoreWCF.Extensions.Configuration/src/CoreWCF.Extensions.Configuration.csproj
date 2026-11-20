@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace />
+    <!-- The shared CoreWCF sources are not needed here and pull in resource generation. -->
+    <IncludeCommonCode>false</IncludeCommonCode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SourceDir)CoreWCF.Primitives\src\CoreWCF.Primitives.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+</Project>
