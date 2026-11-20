@@ -18,6 +18,14 @@ namespace CoreWCF.MSMQ.Tests
         }
 
         [Fact]
+        public void GetMsmqFormatQueueNameKeepsSlashesInQueueNameTest()
+        {
+            var uri = new Uri("net.msmq://localhost/private/thename/ofmyservice");
+            string result = MsmqQueueNameConverter.GetMsmqFormatQueueName(uri);
+            Assert.Equal(".\\Private$\\thename/ofmyservice", result);
+        }
+
+        [Fact]
         public void GetEndpointUrlTest()
         {
             string result = MsmqQueueNameConverter.GetEndpointUrl("QueueName");
