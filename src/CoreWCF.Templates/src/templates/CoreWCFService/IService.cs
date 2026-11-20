@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 
 namespace CoreWCFService
 {
-    [ServiceContract]
+    [ServiceContract(Namespace="http://tempuri.org")]
     public interface IService
     {
         [OperationContract]
