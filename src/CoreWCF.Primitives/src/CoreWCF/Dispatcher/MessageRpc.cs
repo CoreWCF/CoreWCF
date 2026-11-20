@@ -305,7 +305,15 @@ namespace CoreWCF.Dispatcher
                 try
                 {
                     var helper = new TimeoutHelper(ChannelHandler.CloseAfterFaultTimeout);
-                    await Channel.CloseAsync(helper.GetCancellationToken());
+                    var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                    try
+                    {
+                        await Channel.CloseAsync(token);
+                    }
+                    finally
+                    {
+                        registration.Dispose();
+                    }
                 }
                 catch (Exception e)
                 {

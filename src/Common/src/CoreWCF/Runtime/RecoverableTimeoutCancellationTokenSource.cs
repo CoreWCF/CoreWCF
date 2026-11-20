@@ -14,6 +14,12 @@ namespace CoreWCF.Runtime
     {
         private TimeSpan _originalTimeout;
 
+        // The coalesced timer this source is registered with, if any. It's used to remove
+        // this source from the timer's tracking list when the operation completes so the
+        // source can be disposed and collected instead of lingering until the timer fires.
+        private CancellationTokenSourceIOThreadTimer _owningTimer;
+        private int _unregistered;
+
         public RecoverableTimeoutCancellationTokenSource(TimeSpan timeout) : base()
         {
             if (timeout.TotalMilliseconds > int.MaxValue)
@@ -41,6 +47,26 @@ namespace CoreWCF.Runtime
             return (int)_originalTimeout.TotalMilliseconds;
         }
 
+        internal void SetOwningTimer(CancellationTokenSourceIOThreadTimer timer)
+        {
+            _owningTimer = timer;
+        }
+
+        // Called on the normal completion path once the CancellationToken is no longer
+        // needed. It removes this source from the coalesced timer's tracking list (so it
+        // no longer keeps this instance alive until the send timeout expires) and disposes
+        // it. Safe to call multiple times and from any thread.
+        internal void Unregister()
+        {
+            if (Interlocked.Exchange(ref _unregistered, 1) != 0)
+            {
+                return;
+            }
+
+            _owningTimer?.UnregisterTokenSourceForCancellation(this);
+            Dispose();
+        }
+
         internal static TimeSpan GetOriginalTimeout(CancellationToken token)
         {
             // Covers CancellationToken.None as well as any other non-cancellable token
@@ -50,6 +76,25 @@ namespace CoreWCF.Runtime
             }
 
             return TimeSpan.FromMilliseconds(token.GetHashCode());
+        }
+    }
+
+    // Lightweight (allocation-free) handle handed back when a cancellation token is
+    // acquired for a scoped operation. Disposing it on the completion path unregisters
+    // and disposes the underlying source. Disposing a default instance is a no-op, which
+    // covers the CancellationToken.None / pre-cancelled cases where there's no source.
+    internal readonly struct RecoverableTokenRegistration
+    {
+        private readonly RecoverableTimeoutCancellationTokenSource _tokenSource;
+
+        internal RecoverableTokenRegistration(RecoverableTimeoutCancellationTokenSource tokenSource)
+        {
+            _tokenSource = tokenSource;
+        }
+
+        public void Dispose()
+        {
+            _tokenSource?.Unregister();
         }
     }
 
@@ -71,14 +116,13 @@ namespace CoreWCF.Runtime
             _timerFiredState = state;
         }
 
-        public void RegisterTokenSourceForCancellation(CancellationTokenSource cts)
+        public void RegisterTokenSourceForCancellation(RecoverableTimeoutCancellationTokenSource cts)
         {
-            // TODO: Consider if unregistering would be helpful. It would require
-            // knowing that the CancellationToken is no longer needed.
             lock (_cancellationTokenSources)
             {
                 if (!_timerFired)
                 {
+                    cts.SetOwningTimer(this);
                     _cancellationTokenSources.Add(cts);
                     return;
                 }
@@ -86,6 +130,22 @@ namespace CoreWCF.Runtime
 
             // Timer has already fired so cancelling now.
             CancelTokenSource(cts);
+        }
+
+        // Removes a token source that was registered via RegisterTokenSourceForCancellation.
+        // Called from the normal completion path (RecoverableTimeoutCancellationTokenSource.Unregister)
+        // so completed sources don't accumulate in the list until the timer fires. If the timer
+        // has already fired the list is no longer mutated (OnTimer iterates it without the lock),
+        // so there's nothing to remove.
+        public void UnregisterTokenSourceForCancellation(RecoverableTimeoutCancellationTokenSource cts)
+        {
+            lock (_cancellationTokenSources)
+            {
+                if (!_timerFired)
+                {
+                    _cancellationTokenSources.Remove(cts);
+                }
+            }
         }
 
         internal static void CancelTokenSource(object state)

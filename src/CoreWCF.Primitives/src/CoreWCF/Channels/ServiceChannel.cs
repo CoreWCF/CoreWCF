@@ -573,7 +573,20 @@ namespace CoreWCF.Channels
         internal IAsyncResult BeginCall(string action, bool oneway, ProxyOperationRuntime operation, object[] ins, TimeSpan timeout, AsyncCallback callback, object asyncState)
         {
             var helper = new TimeoutHelper(_operationTimeout);
-            return BeginCallAsync(action, oneway, operation, ins, helper.GetCancellationToken()).ToApm(callback, asyncState);
+            return BeginCallWithCleanupAsync().ToApm(callback, asyncState);
+
+            async Task<ProxyRpc> BeginCallWithCleanupAsync()
+            {
+                var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                try
+                {
+                    return await BeginCallAsync(action, oneway, operation, ins, token);
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
+            }
         }
 
         internal async Task<ProxyRpc> BeginCallAsync(string action, bool oneway, ProxyOperationRuntime operation, object[] ins, CancellationToken token)
@@ -625,10 +638,18 @@ namespace CoreWCF.Channels
         }
 
 
-        internal Task<object> CallAsync(string action, bool oneway, ProxyOperationRuntime operation, object[] ins, object[] outs)
+        internal async Task<object> CallAsync(string action, bool oneway, ProxyOperationRuntime operation, object[] ins, object[] outs)
         {
             var helper = new TimeoutHelper(_operationTimeout);
-            return CallAsync(action, oneway, operation, ins, outs, helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                return await CallAsync(action, oneway, operation, ins, outs, token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         internal async Task<object> CallAsync(string action, bool oneway, ProxyOperationRuntime operation, object[] ins, object[] outs, CancellationToken token)
@@ -720,7 +741,15 @@ namespace CoreWCF.Channels
                 try
                 {
                     var helper = new TimeoutHelper(CloseTimeout);
-                    await CloseAsync(helper.GetCancellationToken());
+                    var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                    try
+                    {
+                        await CloseAsync(token);
+                    }
+                    finally
+                    {
+                        registration.Dispose();
+                    }
                 }
                 catch (CommunicationException e)
                 {
@@ -1060,10 +1089,18 @@ namespace CoreWCF.Channels
         }
 
         #region IChannel Members
-        public Task SendAsync(Message message)
+        public async Task SendAsync(Message message)
         {
             var helper = new TimeoutHelper(OperationTimeout);
-            return SendAsync(message, helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                await SendAsync(message, token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public Task SendAsync(Message message, CancellationToken token)
@@ -1072,10 +1109,18 @@ namespace CoreWCF.Channels
             return CallAsync(message.Headers.Action, true, operation, new object[] { message }, Array.Empty<object>(), token);
         }
 
-        public Task<Message> RequestAsync(Message message)
+        public async Task<Message> RequestAsync(Message message)
         {
             var helper = new TimeoutHelper(OperationTimeout);
-            return RequestAsync(message, helper.GetCancellationToken());
+            var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+            try
+            {
+                return await RequestAsync(message, token);
+            }
+            finally
+            {
+                registration.Dispose();
+            }
         }
 
         public async Task<Message> RequestAsync(Message message, CancellationToken token)

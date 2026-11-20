@@ -1928,10 +1928,18 @@ namespace CoreWCF.Security
                     base.AbortCore();
                 }
 
-                public Task CloseAsync()
+                public async Task CloseAsync()
                 {
                     TimeoutHelper helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
-                    return CloseAsync(helper.GetCancellationToken());
+                    var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                    try
+                    {
+                        await CloseAsync(token);
+                    }
+                    finally
+                    {
+                        registration.Dispose();
+                    }
                 }
 
                 public override Task CloseAsync(CancellationToken token)
@@ -2065,9 +2073,18 @@ namespace CoreWCF.Security
                 AbortCore();
             }
 
-            public Task CloseAsync()
+            public async Task CloseAsync()
             {
-                return CloseAsync(new TimeoutHelper(ServiceDefaults.CloseTimeout).GetCancellationToken());
+                var helper = new TimeoutHelper(ServiceDefaults.CloseTimeout);
+                var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                try
+                {
+                    await CloseAsync(token);
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
             }
 
             public async Task CloseAsync(CancellationToken token)
@@ -2116,7 +2133,10 @@ namespace CoreWCF.Security
             private async Task CloseDuplexSessionChannelAsync(CancellationToken token)
             {
                 TimeoutHelper timeoutHelper = new TimeoutHelper(TimeSpan.FromMinutes(30));
-                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken());
+                RecoverableTokenRegistration registration = default;
+                try
+                {
+                await ((ISessionChannel<IDuplexSession>)_duplexSessionChannel).Session.CloseOutputSessionAsync(timeoutHelper.GetCancellationToken(out registration));
 
                 TimeSpan iterationTimeout = timeoutHelper.RemainingTime();
                 bool lastIteration = (iterationTimeout == TimeSpan.Zero);
@@ -2127,12 +2147,12 @@ namespace CoreWCF.Security
                     bool receiveThrowing = true;
                     try
                     {
-                        (Message receiveMessage, bool success) = await _duplexSessionChannel.TryReceiveAsync(timeoutHelper.GetCancellationToken());
+                        (Message receiveMessage, bool success) = await _duplexSessionChannel.TryReceiveAsync(timeoutHelper.GetCancellationToken(out registration));
 
                         receiveThrowing = false;
                         if (success && receiveMessage == null)
                         {
-                            await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken());
+                            await _duplexSessionChannel.CloseAsync(timeoutHelper.GetCancellationToken(out registration));
                             return;
                         }
                     }
@@ -2167,6 +2187,11 @@ namespace CoreWCF.Security
                 }
 
                 _duplexSessionChannel.Abort();
+                }
+                finally
+                {
+                    registration.Dispose();
+                }
             }
 
             private void DetermineCloseOutputSessionMessage(out bool sendClose, out bool sendCloseResponse, out Message pendingCloseResponseMessage, out RequestContext pendingCloseRequestContext)
@@ -2429,9 +2454,11 @@ namespace CoreWCF.Security
                     // channel.ThrowIfFaulted();
                     // channel.ThrowIfNotOpened();
                     Exception pendingException = null;
+                    var closeOutputHelper = new TimeoutHelper(timeout);
+                    var closeOutputToken = closeOutputHelper.GetCancellationToken(out RecoverableTokenRegistration registration);
                     try
                     {
-                        await _channel.CloseOutputSessionAsync(new TimeoutHelper(timeout).GetCancellationToken());
+                        await _channel.CloseOutputSessionAsync(closeOutputToken);
                     }
                     catch (Exception e)
                     {
@@ -2441,6 +2468,10 @@ namespace CoreWCF.Security
                         }
 
                         pendingException = e;
+                    }
+                    finally
+                    {
+                        registration.Dispose();
                     }
                     if (pendingException != null)
                     {
@@ -2528,9 +2559,18 @@ namespace CoreWCF.Security
                     return OpenAsync();
                 }
 
-                public Task SendAsync(Message message)
+                public async Task SendAsync(Message message)
                 {
-                    return SendAsync(message, new TimeoutHelper(ServiceDefaults.SendTimeout).GetCancellationToken());
+                    var helper = new TimeoutHelper(ServiceDefaults.SendTimeout);
+                    var token = helper.GetCancellationToken(out RecoverableTokenRegistration registration);
+                    try
+                    {
+                        await SendAsync(message, token);
+                    }
+                    finally
+                    {
+                        registration.Dispose();
+                    }
                 }
 
                 public Task SendAsync(Message message, CancellationToken token)
