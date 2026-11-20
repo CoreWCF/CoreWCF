@@ -10,9 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Services;
 using Xunit;
 
-#if !NET472
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
 public class BasicServiceTest
 {
     public ITestOutputHelper _output;

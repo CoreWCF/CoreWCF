@@ -22,9 +22,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [WindowsOnlyFact]  // HttpSys not supported on Linux
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public void HostedServiceDuplexEcho()
         {
             // This test uses a non Kestrel IServer implementation (HttpSys) to trigger code path
@@ -64,9 +62,7 @@ namespace CoreWCF.NetTcp.Tests
         }
 
         [WindowsOnlyFact]
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public void HostedServiceDuplexWindowsClaimSetEcho()
         {
             // This test uses a non Kestrel IServer implementation (HttpSys) to trigger code path

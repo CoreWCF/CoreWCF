@@ -12,9 +12,7 @@ using Xunit;
 
 namespace Helpers
 {
-#if !NET472
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
     internal static class ServiceHelper
     {
         public static IWebHostBuilder CreateWebHostBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string basePath = "", [CallerMemberName] string callerMethodName = "") where TStartup : class =>

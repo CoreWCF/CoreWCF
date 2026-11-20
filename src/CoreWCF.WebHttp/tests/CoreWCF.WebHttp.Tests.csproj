@@ -7,18 +7,10 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Net.Http" />
     <PackageReference Include="NewtonSoft.Json" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <PackageReference Include="Microsoft.AspNetCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.ServiceModel.Web" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

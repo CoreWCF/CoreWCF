@@ -1,36 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>CoreWCF.Primitives</AssemblyName>
     <PackageId>CoreWCF.Primitives</PackageId>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace />
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Server.Abstractions" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
-    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <!-- Need to reference Microsoft.Extensions.Primitives 8.x as it restores InplaceStringBuilder which aspnetcore 2.1 Kestrel needs -->
     <PackageReference Include="Microsoft.Extensions.Primitives" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <!-- Needed to add Configuration, Console, and Debug as Microsoft.AspNetCore.App includes earlier versions which aren't compatible with Logging 8.0.0 -->
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
     <PackageReference Include="System.DirectoryServices" />
     <PackageReference Include="System.DirectoryServices.Protocols" />
-    <PackageReference Include="System.IO.Pipelines" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
-    <PackageReference Include="System.Security.Principal.Windows" />
-    <PackageReference Include="System.Reflection.DispatchProxy" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" />
     <PackageReference Include="System.Web.Services.Description" />
   </ItemGroup>
   <ItemGroup>
@@ -38,8 +28,6 @@
     <ProjectReference Include="$(SourceDir)CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn3.11.csproj" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="CoreWCFWebApplicationExtensions.cs" />
-    <None Include="CoreWCFWebApplicationExtensions.cs" Link="PackageFiles/CoreWCFWebApplicationExtensions.cs" />
     <None Include="CoreWCF.Primitives.props" Link="PackageFiles/CoreWCF.Primitives.props" />
     <None Include="CoreWCF.Primitives.targets" Link="PackageFiles/CoreWCF.Primitives.targets" />
   </ItemGroup>
@@ -62,11 +50,6 @@
     <Content Include="CoreWCF.Primitives.targets">
       <Pack>true</Pack>
       <PackagePath>build;buildTransitive</PackagePath>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="CoreWCFWebApplicationExtensions.cs">
-      <Pack>true</Pack>
-      <PackagePath>contentFiles</PackagePath>
       <Visible>false</Visible>
     </Content>
   </ItemGroup>

@@ -13,14 +13,7 @@
     <PackageReference Include="System.ServiceModel.Primitives" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <Reference Include="System.Net.Http" />
-    <PackageReference Include="Microsoft.AspNetCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.HttpSys" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)'!='net472'">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>

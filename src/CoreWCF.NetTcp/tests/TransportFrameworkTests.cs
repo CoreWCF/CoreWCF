@@ -150,12 +150,6 @@ namespace CoreWCF.NetTcp.Tests
             string matchingPortRawLine = null;
             bool verifiedClientPort = false;
             bool extraLogging = false;
-#if NETFRAMEWORK
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                extraLogging = true;
-            }
-#endif
             if (extraLogging) output.WriteLine("Client port: " + clientPort + ", Service port: " + servicePort + ", Process exited?: " + myProcess.HasExited);
             while (!myProcess.StandardOutput.EndOfStream)
             {

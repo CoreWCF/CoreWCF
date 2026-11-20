@@ -202,11 +202,7 @@ namespace CoreWCF.Primitives.Tests
 
                     var response = await client.SendAsync(request, cancellationToken);
 
-#if NET5_0_OR_GREATER
                     var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-#else
-                    var responseBody = await response.Content.ReadAsStringAsync();
-#endif
 
                     const string expected = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                                             "<s:Body>" +

@@ -23,7 +23,7 @@ dotnet test src/CoreWCF.Http/tests/CoreWCF.Http.Tests.csproj --filter "FullyQual
 dotnet test src/CoreWCF.Http/tests/CoreWCF.Http.Tests.csproj -f net8.0
 ```
 
-Test target frameworks: `net8.0`, `net9.0`, `net10.0`, and `net472` (Windows only). All library projects target `netstandard2.0`.
+Test target frameworks: `net8.0`, `net9.0`, and `net10.0` (plus `net11.0` in CI). All library projects target `net8.0` and reference the ASP.NET Core shared framework via `<FrameworkReference Include="Microsoft.AspNetCore.App" />`. The Roslyn analyzer projects under `CoreWCF.BuildTools` are the sole exception and remain on `netstandard2.0`, as required by the compiler host.
 
 Some integration tests (Kafka, RabbitMQ) require Docker containers. These use Testcontainers and start automatically when the tests run.
 
@@ -115,7 +115,7 @@ NuGet package versions are managed centrally in `Directory.Packages.props`. When
 
 - Each module (`CoreWCF.{Name}`) has `src/` and `tests/` subdirectories.
 - Test projects use `$(TestTargetFrameworks)` from `Directory.Build.props` for multi-TFM testing.
-- Some test projects disable concurrent test execution (`RunUnitTestsConcurrently=false`) for tests that use shared resources (Metadata, MSMQ, Queue, Kafka, HTTP on net472).
+- Some test projects disable concurrent test execution (`RunUnitTestsConcurrently=false`) for tests that use shared resources (Metadata, MSMQ, Queue, Kafka).
 
 ### PRs and Branches
 

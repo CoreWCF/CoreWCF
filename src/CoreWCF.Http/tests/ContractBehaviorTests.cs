@@ -31,9 +31,6 @@ namespace CoreWCF.Http.Tests
         [InlineData("MisplacedAttributes")]
         [InlineData("CustomAttributesImplementsOther")]
         [InlineData("ByHandImplementsOther")]
-#if NET472
-        [InlineData("ByHand_UsingHiddenProperty")]
-#endif
         public void Variations(string method)
         {
             Startup._method = method;
@@ -44,10 +41,7 @@ namespace CoreWCF.Http.Tests
                 switch (method)
                 {
                     case "ByHand":
-                        Variation_ByHand(false);
-                        break;
-                    case "ByHand_UsingHiddenProperty":
-                        Variation_ByHand(true);
+                        Variation_ByHand();
                         break;
                     case "CustomAttribute":
                         Variation_CustomAttribute();
@@ -95,24 +89,14 @@ namespace CoreWCF.Http.Tests
             return new ChannelFactory<T>(httpBinding, new System.ServiceModel.EndpointAddress(new Uri($"http://localhost:{_host.GetHttpPort()}/BasicWcfService/ContractBehaviorService.svc")));
         }
 
-        private void Variation_ByHand(bool useHiddenProperty)
+        private void Variation_ByHand()
         {
             ChannelFactory<IContractBehaviorBasic_ByHand> cf = GetChannelFactory<IContractBehaviorBasic_ByHand>();
             try
             {
                 string HelloStr = "ByHand";
                 CustomContractBehaviorAttribute cb = new CustomContractBehaviorAttribute();
-                if (useHiddenProperty)
-                {
-#if NET472
-                    cf.Endpoint.Contract.Behaviors.Add(cb);
-                    HelloStr = "ByHand_UsingHiddenProperty";
-#endif
-                }
-                else
-                {
-                    cf.Endpoint.Contract.ContractBehaviors.Add(cb);
-                }
+                cf.Endpoint.Contract.ContractBehaviors.Add(cb);
 
                 cf.Open();
                 string expected = "IContractBehavior:ClientContract.CustomContractBehaviorAttribute;";
@@ -280,7 +264,6 @@ namespace CoreWCF.Http.Tests
                     switch (_method)
                     {
                         case "ByHand":
-                        case "ByHand_UsingHiddenProperty":
                             builder.AddService<ContractBehaviorBasic_ByHand_Service>();
                             builder.AddServiceEndpoint<ContractBehaviorBasic_ByHand_Service, ServiceContract.IContractBehaviorBasic_ByHand>(new BasicHttpBinding(), "/BasicWcfService/ContractBehaviorService.svc");
                             builder.ConfigureServiceHostBase<ContractBehaviorBasic_ByHand_Service>(serviceHost =>

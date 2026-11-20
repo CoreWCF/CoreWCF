@@ -16,9 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-#if !NET472
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
 public class NamedPipeListenerStartupTests
 {
     private readonly ITestOutputHelper _output;

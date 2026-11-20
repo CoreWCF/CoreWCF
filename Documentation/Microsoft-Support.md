@@ -4,13 +4,16 @@ This document details Microsoft Support policy for CoreWCF.
 
 We recognize how important support is to enterprise customers, and so we are pleased to announce that Microsoft Product Support will be available for CoreWCF customers.
 
-Support for CoreWCF 1.x will depend on the support status for the underlying .NET platforms it runs on.
+Support for CoreWCF will depend on the support status for the underlying .NET platforms it runs on.
 
-| **Runtime Version** | **Support dependency duration** |
-| --- | --- |
-| .NET Framework 4.x | The specific version of [.NET Framework](https://dotnet.microsoft.com/platform/support/policy/dotnet-framework), and [ASP.NET Core 2.1.](https://dotnet.microsoft.com/platform/support/policy/aspnet) |
-| .NET Core 3.1 | .NET Core 3.1 LTS - December 13, 2022 |
-| .NET 6 | .NET 6 LTS - November 12, 2024 |
+CoreWCF 2.x targets `net8.0` and requires the ASP.NET Core shared runtime. **.NET Framework is not supported by CoreWCF 2.x.**
+
+| **CoreWCF version** | **Runtime Version** | **Support dependency duration** |
+| --- | --- | --- |
+| 2.x | .NET 8 and later | The specific version of [.NET](https://dotnet.microsoft.com/platform/support/policy/dotnet-core) being used |
+| 1.x | .NET Framework 4.x | The specific version of [.NET Framework](https://dotnet.microsoft.com/platform/support/policy/dotnet-framework), and [ASP.NET Core 2.1.](https://dotnet.microsoft.com/platform/support/policy/aspnet) |
+| 1.x | .NET Core 3.1 | .NET Core 3.1 LTS - December 13, 2022 |
+| 1.x | .NET 6 | .NET 6 LTS - November 12, 2024 |
 
 CoreWCF will use Major.Minor versioning strategy:
 

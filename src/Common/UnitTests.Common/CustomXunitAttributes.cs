@@ -7,6 +7,10 @@ using System.Runtime.InteropServices;
 
 namespace Xunit;
 
+/// <summary>
+/// Retained for source compatibility. Every supported target framework is .NET (Core),
+/// so this no longer skips anything.
+/// </summary>
 public class NetCoreOnlyFactAttribute : FactAttribute
 {
     public NetCoreOnlyFactAttribute(
@@ -14,10 +18,6 @@ public class NetCoreOnlyFactAttribute : FactAttribute
         [CallerLineNumber] int sourceLineNumber = -1)
           : base(sourceFilePath, sourceLineNumber)
     {
-        if (Environment.Version.Major < 6)
-        {
-            Skip = nameof(NetCoreOnlyFactAttribute);
-        }
     }
 }
 
@@ -70,8 +70,7 @@ public class WindowsNetCoreOnlyFactAttribute : FactAttribute
         [CallerLineNumber] int sourceLineNumber = -1)
           : base(sourceFilePath, sourceLineNumber)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            || Environment.Version.Major < 6)
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             Skip = nameof(WindowsNetCoreOnlyFactAttribute);
         }
@@ -85,8 +84,7 @@ public class WindowsNetCoreOnlyTheoryAttribute : TheoryAttribute
         [CallerLineNumber] int sourceLineNumber = -1)
           : base(sourceFilePath, sourceLineNumber)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            || Environment.Version.Major < 6)
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             Skip = nameof(WindowsNetCoreOnlyTheoryAttribute);
         }

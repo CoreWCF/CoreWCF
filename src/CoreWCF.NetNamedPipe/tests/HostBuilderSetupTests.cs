@@ -11,9 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Services;
 using Xunit;
 
-#if !NET472
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
 public class HostBuilderSetupTests
 {
     public ITestOutputHelper _output;

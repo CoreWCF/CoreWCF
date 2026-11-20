@@ -12,9 +12,6 @@ using System.IO;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
-#if NET472
-using System.Security.Authentication;
-#endif // NET472
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
@@ -87,9 +84,7 @@ namespace Helpers
         //    };
         //}
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateHttpSysBuilder<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
             CreateBaseWebHostBuilder<TStartup>(outputHelper, callerMethodName)
             .UseHttpSys(options =>
@@ -156,12 +151,7 @@ namespace Helpers
             {
                 options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();
@@ -169,9 +159,7 @@ namespace Helpers
                 });
             });
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateHttpsWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
             CreateBaseWebHostBuilder<TStartup>(outputHelper, callerMethodName)
             .UseHttpSys(options =>
@@ -183,9 +171,7 @@ namespace Helpers
                 options.UrlPrefixes.Add("https://localhost:44300");
             });
 
-#if NET5_0_OR_GREATER
         [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-#endif
         public static IWebHostBuilder CreateWebHostBuilderWithHttpSys<TStartup>(ITestOutputHelper outputHelper = default, [CallerMemberName] string callerMethodName = "") where TStartup : class =>
             CreateBaseWebHostBuilder<TStartup>(outputHelper, callerMethodName)
             .UseHttpSys(options =>
@@ -204,12 +190,7 @@ namespace Helpers
             {
                 options.Listen(address: IPAddress.Loopback, 0, listenOptions =>
                 {
-                    listenOptions.UseHttps(httpsOptions =>
-                    {
-#if NET472
-                        httpsOptions.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-#endif // NET472
-                    });
+                    listenOptions.UseHttps();
                     if (Debugger.IsAttached)
                     {
                         listenOptions.UseConnectionLogging();

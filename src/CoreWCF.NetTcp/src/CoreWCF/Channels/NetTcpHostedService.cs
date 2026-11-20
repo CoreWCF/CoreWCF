@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreWCF.Configuration;
@@ -21,8 +19,6 @@ namespace CoreWCF.Channels
 {
     internal class NetTcpHostedService : IHostedService, IAsyncDisposable, IDisposable
     {
-        private static bool s_isNetFramework => RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.OrdinalIgnoreCase);
-
         private readonly NetTcpOptions _serverOptions;
         private readonly IServiceBuilder _serviceBuilder;
         private readonly ILogger<NetTcpHostedService> _logger;
@@ -36,18 +32,15 @@ namespace CoreWCF.Channels
             // We request the IServer in the constructor to trigger the constructor of the implementation. If the implementation
             // is KestrelServer it will run NetTcpFramingOptionsSetup.Configure, which we use to detect the server is Kestrel.
             // We can't just examine the type as we wrap it so we can throw any startup exceptions using WrappingIServer.
-            // The IServer will have already been started on asp.net core 2.1, but later versions start it after IHostedService's
+            // The IServer is started after IHostedService's, so the ApplicationStarted callback is where the server
+            // addresses can safely be fixed up.
             _ = server;
             _serverOptions = options.Value ?? new NetTcpOptions();
             _serviceBuilder = serviceBuilder;
             _logger = logger;
             _serviceProvider = serviceProvider;
             IApplicationLifetime appLifetime = _serviceProvider.GetRequiredService<IApplicationLifetime>();
-            // asp.net core 2.1 executes the ApplicationStarted registered callback before it starts hosted services
-            if (!s_isNetFramework)
-            {
-                _applicationStartedRegistration = appLifetime.ApplicationStarted.Register(UpdateServerAddressesFeature);
-            }
+            _applicationStartedRegistration = appLifetime.ApplicationStarted.Register(UpdateServerAddressesFeature);
             Init();
         }
 
@@ -73,36 +66,13 @@ namespace CoreWCF.Channels
             _kestrel = ActivatorUtilities.CreateInstance(_serviceProvider, typeof(KestrelServer), transportFactory) as KestrelServer;
 
             await _kestrel.StartAsync<int>(null, cancellationToken);
-
-            // As we don't register the ApplicationStarted callback when running on .NET Framework, and we know that the IServer
-            // has already started before us, we can fixup the server addresses now.
-            if (s_isNetFramework)
-            {
-                UpdateServerAddressesFeature();
-                // Need to update base addresses as ServiceBuilder was opened by wrapping WrappingIServer
-                var framingOptionsSetup = _serviceProvider.GetRequiredService<NetTcpFramingOptionsSetup>();
-                framingOptionsSetup.UpdateServiceBuilderBaseAddresses();
-                var serviceBuilder = _serviceProvider.GetRequiredService<IServiceBuilder>() as ICommunicationObject;
-                if (serviceBuilder.State == CommunicationState.Opened)
-                {
-                    // Need to resolve the UriPrefixTable as the service builder was already opened
-                    // before we could hook up NetMessageFramingConnectionHandler.OnServiceBuilderOpened
-                    // to be called when the service builder is opened. As UriPrefixTable is internal
-                    // to NetFramingBase, it was also registered as its implemented interface type which
-                    // allows us to resolve it here.
-                    _ = _serviceProvider.GetRequiredService<IEnumerable<KeyValuePair<BaseUriWithWildcard, HandshakeDelegate>>>();
-                }
-            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             if (!_started) return Task.CompletedTask;
             _started = false;
-            if (!s_isNetFramework)
-            {
-                _applicationStartedRegistration.Dispose();
-            }
+            _applicationStartedRegistration.Dispose();
 
             if (KestrelAlreadyInUse) return Task.CompletedTask;
             return _kestrel.StopAsync(cancellationToken);

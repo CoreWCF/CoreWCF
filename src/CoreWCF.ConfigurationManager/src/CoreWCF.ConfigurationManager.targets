@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <_CoreWCFConfigFiles Include="$(MSBuildThisFileDirectory)\..\contentFiles\any\netstandard2.0\CoreWCF.machine.config" />
+    <_CoreWCFConfigFiles Include="$(MSBuildThisFileDirectory)\..\contentFiles\any\net8.0\CoreWCF.machine.config" />
   </ItemGroup>
   <Target Name="CopyCoreWCFConfigFiles" BeforeTargets="Build;Publish">
     <Copy SourceFiles="@(_CoreWCFConfigFiles)" DestinationFolder="$(OutputPath)" />

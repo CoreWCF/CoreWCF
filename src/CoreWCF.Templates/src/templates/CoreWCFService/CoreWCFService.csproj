@@ -10,12 +10,6 @@
     <!--#if(enableOperationInvokerGenerator)-->
     <EnableCoreWCFOperationInvokerGenerator>true</EnableCoreWCFOperationInvokerGenerator>
     <!--#endif-->
-    <!--#if(isNetFramework)-->
-    <!-- The CoreWCF OperationInvokerGenerator emits C# 11 ('file' types) and C# 9 ('module initializers')
-         code. The .NET SDK defaults LangVersion to 7.3 when targeting .NET Framework, so raise it here so
-         the generated code compiles on net4xx targets. -->
-    <LangVersion>Latest</LangVersion>
-    <!--#endif-->
   </PropertyGroup>
   <!--#if(implicitUsings)-->
   <ItemGroup>
@@ -29,10 +23,7 @@
   </ItemGroup>
   <!--#endif-->
   <ItemGroup>
-    <!--#if(isNetFramework)-->
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.3.9" />
-    <!--#endif-->
-    <PackageReference Include="CoreWCF.Primitives" Version="1.*" />
-    <PackageReference Include="CoreWCF.Http" Version="1.*" />
+    <PackageReference Include="CoreWCF.Primitives" Version="2.*" />
+    <PackageReference Include="CoreWCF.Http" Version="2.*" />
   </ItemGroup>
 </Project>

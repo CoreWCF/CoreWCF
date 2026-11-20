@@ -6,17 +6,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <Compile Remove="**\*.cs" />
-    <Compile Remove="*.cs" />
-    <Compile Include="DummyTest.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <PackageReference Include="Microsoft.AspNetCore" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
@@ -26,7 +16,7 @@
     <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'!='net472'">
+  <ItemGroup>
     <ProjectReference Include="$(SourceDir)CoreWCF.Kafka.Client\src\CoreWCF.Kafka.Client.csproj" />
     <ProjectReference Include="..\src\CoreWCF.Kafka.csproj" />
     <ProjectReference Include="..\..\CoreWCF.BuildTools\src\CoreWCF.BuildTools.Roslyn4.0.csproj" OutputItemType="Analyzer" />
